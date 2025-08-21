@@ -27,9 +27,7 @@
 typedef struct async_ctx_st async_ctx;
 typedef struct async_pool_st async_pool;
 
-#include "arch/async_null.h"
-#include "arch/async_posix.h"
-#include "arch/async_win.h"
+#include "arch/async_arch.h"
 
 struct async_ctx_st
 {

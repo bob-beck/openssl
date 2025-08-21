@@ -7,6 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
+#include <openssl/bio.h>
 #include <openssl/safestack.h>
 
 /* Standard comparing function for names */
