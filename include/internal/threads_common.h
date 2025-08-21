@@ -10,6 +10,8 @@
 #ifndef _CRYPTO_THREADS_COMMON_H_
 #define _CRYPTO_THREADS_COMMON_H_
 
+#include <openssl/types.h>
+
 typedef enum
 {
   CRYPTO_THREAD_LOCAL_RCU_KEY = 0,

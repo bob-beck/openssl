@@ -7,6 +7,11 @@
  * https://www.openssl.org/source/license.html
  */
 
+#ifndef OSSL_CRYPTO_ML_DSA_SIGN_H
+#define OSSL_CRYPTO_ML_DSA_SIGN_H
+
+#include "ml_dsa_vector.h"
+
 struct ml_dsa_sig_st
 {
   VECTOR z;
@@ -14,3 +19,5 @@ struct ml_dsa_sig_st
   uint8_t *c_tilde;
   size_t c_tilde_len;
 };
+
+#endif /* OSSL_CRYPTO_ML_DSA_SIGN_H */
