@@ -84,6 +84,8 @@ print <<EOF;
  * https://www.openssl.org/source/license.html
  */
 
+#include <openssl/obj_mac.h>
+#include <openssl/safestack.h>
 
 typedef struct {
     int sign_id;
