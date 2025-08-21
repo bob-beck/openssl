@@ -14,22 +14,25 @@
 #include "internal/deprecated.h"
 
 #include <openssl/mdc2.h>
+
 #include "crypto/evp.h"
+
 #include "legacy_meth.h"
 
-IMPLEMENT_LEGACY_EVP_MD_METH(mdc2, MDC2)
+IMPLEMENT_LEGACY_EVP_MD_METH (mdc2, MDC2)
 
 static const EVP_MD mdc2_md = {
-    NID_mdc2,
-    NID_mdc2WithRSA,
-    MDC2_DIGEST_LENGTH,
-    0,
-    EVP_ORIG_GLOBAL,
-    LEGACY_EVP_MD_METH_TABLE(mdc2_init, mdc2_update, mdc2_final, NULL,
-                             MDC2_BLOCK),
+  NID_mdc2,
+  NID_mdc2WithRSA,
+  MDC2_DIGEST_LENGTH,
+  0,
+  EVP_ORIG_GLOBAL,
+  LEGACY_EVP_MD_METH_TABLE (mdc2_init, mdc2_update, mdc2_final, NULL,
+                            MDC2_BLOCK),
 };
 
-const EVP_MD *EVP_mdc2(void)
+const EVP_MD *
+EVP_mdc2 (void)
 {
-    return &mdc2_md;
+  return &mdc2_md;
 }

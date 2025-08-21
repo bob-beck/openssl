@@ -7,17 +7,19 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include <openssl/opensslv.h>
 #include <openssl/aes.h>
+#include <openssl/opensslv.h>
+
 #include "aes_local.h"
 
 #ifndef OPENSSL_NO_DEPRECATED_3_0
-const char *AES_options(void)
+const char *
+AES_options (void)
 {
-# ifdef FULL_UNROLL
-    return "aes(full)";
-# else
-    return "aes(partial)";
-# endif
+#ifdef FULL_UNROLL
+  return "aes(full)";
+#else
+  return "aes(partial)";
+#endif
 }
 #endif

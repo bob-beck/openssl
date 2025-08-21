@@ -8,6 +8,7 @@
  */
 
 #include <openssl/rand.h>
+
 #include "testutil.h"
 
 /*
@@ -15,13 +16,15 @@
  * guaranteed to run before any generate calls have been made.
  */
 
-static int test_rand_status(void)
+static int
+test_rand_status (void)
 {
-    return TEST_true(RAND_status());
+  return TEST_true (RAND_status ());
 }
 
-int setup_tests(void)
+int
+setup_tests (void)
 {
-    ADD_TEST(test_rand_status);
-    return 1;
+  ADD_TEST (test_rand_status);
+  return 1;
 }

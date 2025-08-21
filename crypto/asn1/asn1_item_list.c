@@ -10,37 +10,42 @@
 /* We need to use the low level ASN1 items until they are removed */
 #define OPENSSL_SUPPRESS_DEPRECATED
 
+#include "asn1_item_list.h"
+
 #include <stdio.h>
-#include "internal/cryptlib.h"
+
 #include <openssl/asn1.h>
 #include <openssl/asn1t.h>
 #include <openssl/cms.h>
 #include <openssl/dh.h>
 #include <openssl/ocsp.h>
-#include <openssl/pkcs7.h>
 #include <openssl/pkcs12.h>
+#include <openssl/pkcs7.h>
 #include <openssl/rsa.h>
-#include <openssl/x509v3.h>
 #include <openssl/x509_acert.h>
+#include <openssl/x509v3.h>
 
-#include "asn1_item_list.h"
+#include "internal/cryptlib.h"
 
-const ASN1_ITEM *ASN1_ITEM_lookup(const char *name)
+const ASN1_ITEM *
+ASN1_ITEM_lookup (const char *name)
 {
-    size_t i;
+  size_t i;
 
-    for (i = 0; i < OSSL_NELEM(asn1_item_list); i++) {
-        const ASN1_ITEM *it = ASN1_ITEM_ptr(asn1_item_list[i]);
+  for (i = 0; i < OSSL_NELEM (asn1_item_list); i++)
+    {
+      const ASN1_ITEM *it = ASN1_ITEM_ptr (asn1_item_list[i]);
 
-        if (strcmp(it->sname, name) == 0)
-            return it;
+      if (strcmp (it->sname, name) == 0)
+        return it;
     }
-    return NULL;
+  return NULL;
 }
 
-const ASN1_ITEM *ASN1_ITEM_get(size_t i)
+const ASN1_ITEM *
+ASN1_ITEM_get (size_t i)
 {
-    if (i >= OSSL_NELEM(asn1_item_list))
-        return NULL;
-    return ASN1_ITEM_ptr(asn1_item_list[i]);
+  if (i >= OSSL_NELEM (asn1_item_list))
+    return NULL;
+  return ASN1_ITEM_ptr (asn1_item_list[i]);
 }

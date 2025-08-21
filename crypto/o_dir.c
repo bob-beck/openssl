@@ -7,8 +7,9 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "internal/e_os.h"
 #include <errno.h>
+
+#include "internal/e_os.h"
 
 /*
  * The routines really come from the Levitte Programming, so to make life
@@ -23,15 +24,15 @@
 #include "internal/o_dir.h"
 
 #define LPDIR_H
-#if defined OPENSSL_SYS_UNIX || defined DJGPP \
+#if defined OPENSSL_SYS_UNIX || defined DJGPP                                 \
     || (defined __VMS_VER && __VMS_VER >= 70000000)
-# include "LPdir_unix.c"
+#include "LPdir_unix.c"
 #elif defined OPENSSL_SYS_VMS
-# include "LPdir_vms.c"
+#include "LPdir_vms.c"
 #elif defined OPENSSL_SYS_WIN32
-# include "LPdir_win32.c"
+#include "LPdir_win32.c"
 #elif defined OPENSSL_SYS_WINCE
-# include "LPdir_wince.c"
+#include "LPdir_wince.c"
 #else
-# include "LPdir_nyi.c"
+#include "LPdir_nyi.c"
 #endif

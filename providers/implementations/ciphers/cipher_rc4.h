@@ -8,14 +8,17 @@
  */
 
 #include <openssl/rc4.h>
+
 #include "prov/ciphercommon.h"
 
-typedef struct prov_rc4_ctx_st {
-    PROV_CIPHER_CTX base;      /* Must be first */
-    union {
-        OSSL_UNION_ALIGN;
-        RC4_KEY ks;
-    } ks;
+typedef struct prov_rc4_ctx_st
+{
+  PROV_CIPHER_CTX base; /* Must be first */
+  union
+  {
+    OSSL_UNION_ALIGN;
+    RC4_KEY ks;
+  } ks;
 } PROV_RC4_CTX;
 
-const PROV_CIPHER_HW *ossl_prov_cipher_hw_rc4(size_t keybits);
+const PROV_CIPHER_HW *ossl_prov_cipher_hw_rc4 (size_t keybits);

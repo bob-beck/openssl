@@ -14,8 +14,9 @@
 #include "internal/deprecated.h"
 
 #include <openssl/ec.h>
-#include "ec_local.h"
 #include <openssl/err.h>
+
+#include "ec_local.h"
 
 /*-
  * returns
@@ -23,13 +24,14 @@
  *      0: incorrect signature
  *     -1: error
  */
-int ECDSA_do_verify(const unsigned char *dgst, int dgst_len,
-                    const ECDSA_SIG *sig, EC_KEY *eckey)
+int
+ECDSA_do_verify (const unsigned char *dgst, int dgst_len, const ECDSA_SIG *sig,
+                 EC_KEY *eckey)
 {
-    if (eckey->meth->verify_sig != NULL)
-        return eckey->meth->verify_sig(dgst, dgst_len, sig, eckey);
-    ERR_raise(ERR_LIB_EC, EC_R_OPERATION_NOT_SUPPORTED);
-    return -1;
+  if (eckey->meth->verify_sig != NULL)
+    return eckey->meth->verify_sig (dgst, dgst_len, sig, eckey);
+  ERR_raise (ERR_LIB_EC, EC_R_OPERATION_NOT_SUPPORTED);
+  return -1;
 }
 
 /*-
@@ -38,12 +40,12 @@ int ECDSA_do_verify(const unsigned char *dgst, int dgst_len,
  *      0: incorrect signature
  *     -1: error
  */
-int ECDSA_verify(int type, const unsigned char *dgst, int dgst_len,
-                 const unsigned char *sigbuf, int sig_len, EC_KEY *eckey)
+int
+ECDSA_verify (int type, const unsigned char *dgst, int dgst_len,
+              const unsigned char *sigbuf, int sig_len, EC_KEY *eckey)
 {
-    if (eckey->meth->verify != NULL)
-        return eckey->meth->verify(type, dgst, dgst_len, sigbuf, sig_len,
-                                   eckey);
-    ERR_raise(ERR_LIB_EC, EC_R_OPERATION_NOT_SUPPORTED);
-    return -1;
+  if (eckey->meth->verify != NULL)
+    return eckey->meth->verify (type, dgst, dgst_len, sigbuf, sig_len, eckey);
+  ERR_raise (ERR_LIB_EC, EC_R_OPERATION_NOT_SUPPORTED);
+  return -1;
 }

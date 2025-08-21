@@ -8,15 +8,18 @@
  */
 
 #include "crypto/aria.h"
+
 #include "prov/ciphercommon.h"
 #include "prov/ciphercommon_gcm.h"
 
-typedef struct prov_aria_gcm_ctx_st {
-    PROV_GCM_CTX base;              /* must be first entry in struct */
-    union {
-        OSSL_UNION_ALIGN;
-        ARIA_KEY ks;
-    } ks;
+typedef struct prov_aria_gcm_ctx_st
+{
+  PROV_GCM_CTX base; /* must be first entry in struct */
+  union
+  {
+    OSSL_UNION_ALIGN;
+    ARIA_KEY ks;
+  } ks;
 } PROV_ARIA_GCM_CTX;
 
-const PROV_GCM_HW *ossl_prov_aria_hw_gcm(size_t keybits);
+const PROV_GCM_HW *ossl_prov_aria_hw_gcm (size_t keybits);

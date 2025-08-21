@@ -8,13 +8,14 @@
  */
 
 /* This is the C source file where we include this header directly */
-#include <openssl/sslerr_legacy.h>
 #include <openssl/ssl.h>
+#include <openssl/sslerr_legacy.h>
 
 #ifndef OPENSSL_NO_DEPRECATED_3_0
-int ERR_load_SSL_strings(void)
+int
+ERR_load_SSL_strings (void)
 {
-    return OPENSSL_init_crypto(OPENSSL_INIT_LOAD_SSL_STRINGS, 0);
+  return OPENSSL_init_crypto (OPENSSL_INIT_LOAD_SSL_STRINGS, 0);
 }
 #else
 NON_EMPTY_TRANSLATION_UNIT

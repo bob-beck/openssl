@@ -6,8 +6,8 @@
  * in the file LICENSE in the source distribution or at
  * https://www.openssl.org/source/license.html
  */
-#include "terp.c"
+#include "main.c"
 #include "quic_bindings.c"
 #include "quic_ops.c"
 #include "quic_tests.c"
-#include "main.c"
+#include "terp.c"

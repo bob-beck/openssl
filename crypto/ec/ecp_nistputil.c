@@ -36,6 +36,7 @@
  */
 
 #include <stddef.h>
+
 #include "ec_local.h"
 
 /*
@@ -50,89 +51,77 @@
  * 'num'+1 field elements for storage of intermediate values.
  */
 void
-ossl_ec_GFp_nistp_points_make_affine_internal(size_t num, void *point_array,
-                                              size_t felem_size,
-                                              void *tmp_felems,
-                                              void (*felem_one) (void *out),
-                                              int (*felem_is_zero) (const void
-                                                                    *in),
-                                              void (*felem_assign) (void *out,
-                                                                    const void
-                                                                    *in),
-                                              void (*felem_square) (void *out,
-                                                                    const void
-                                                                    *in),
-                                              void (*felem_mul) (void *out,
-                                                                 const void
-                                                                 *in1,
-                                                                 const void
-                                                                 *in2),
-                                              void (*felem_inv) (void *out,
-                                                                 const void
-                                                                 *in),
-                                              void (*felem_contract) (void
-                                                                      *out,
-                                                                      const
-                                                                      void
-                                                                      *in))
+ossl_ec_GFp_nistp_points_make_affine_internal (
+    size_t num, void *point_array, size_t felem_size, void *tmp_felems,
+    void (*felem_one) (void *out), int (*felem_is_zero) (const void *in),
+    void (*felem_assign) (void *out, const void *in),
+    void (*felem_square) (void *out, const void *in),
+    void (*felem_mul) (void *out, const void *in1, const void *in2),
+    void (*felem_inv) (void *out, const void *in),
+    void (*felem_contract) (void *out, const void *in))
 {
-    int i = 0;
+  int i = 0;
 
 #define tmp_felem(I) (&((char *)tmp_felems)[(I) * felem_size])
-#define X(I) (&((char *)point_array)[3*(I) * felem_size])
-#define Y(I) (&((char *)point_array)[(3*(I) + 1) * felem_size])
-#define Z(I) (&((char *)point_array)[(3*(I) + 2) * felem_size])
+#define X(I) (&((char *)point_array)[3 * (I) * felem_size])
+#define Y(I) (&((char *)point_array)[(3 * (I) + 1) * felem_size])
+#define Z(I) (&((char *)point_array)[(3 * (I) + 2) * felem_size])
 
-    if (!felem_is_zero(Z(0)))
-        felem_assign(tmp_felem(0), Z(0));
-    else
-        felem_one(tmp_felem(0));
-    for (i = 1; i < (int)num; i++) {
-        if (!felem_is_zero(Z(i)))
-            felem_mul(tmp_felem(i), tmp_felem(i - 1), Z(i));
-        else
-            felem_assign(tmp_felem(i), tmp_felem(i - 1));
+  if (!felem_is_zero (Z (0)))
+    felem_assign (tmp_felem (0), Z (0));
+  else
+    felem_one (tmp_felem (0));
+  for (i = 1; i < (int)num; i++)
+    {
+      if (!felem_is_zero (Z (i)))
+        felem_mul (tmp_felem (i), tmp_felem (i - 1), Z (i));
+      else
+        felem_assign (tmp_felem (i), tmp_felem (i - 1));
     }
-    /*
-     * Now each tmp_felem(i) is the product of Z(0) .. Z(i), skipping any
-     * zero-valued factors: if Z(i) = 0, we essentially pretend that Z(i) = 1
-     */
+  /*
+   * Now each tmp_felem(i) is the product of Z(0) .. Z(i), skipping any
+   * zero-valued factors: if Z(i) = 0, we essentially pretend that Z(i) = 1
+   */
 
-    felem_inv(tmp_felem(num - 1), tmp_felem(num - 1));
-    for (i = num - 1; i >= 0; i--) {
-        if (i > 0)
+  felem_inv (tmp_felem (num - 1), tmp_felem (num - 1));
+  for (i = num - 1; i >= 0; i--)
+    {
+      if (i > 0)
+        /*
+         * tmp_felem(i-1) is the product of Z(0) .. Z(i-1), tmp_felem(i)
+         * is the inverse of the product of Z(0) .. Z(i)
+         */
+        /* 1/Z(i) */
+        felem_mul (tmp_felem (num), tmp_felem (i - 1), tmp_felem (i));
+      else
+        felem_assign (tmp_felem (num), tmp_felem (0)); /* 1/Z(0) */
+
+      if (!felem_is_zero (Z (i)))
+        {
+          if (i > 0)
             /*
-             * tmp_felem(i-1) is the product of Z(0) .. Z(i-1), tmp_felem(i)
-             * is the inverse of the product of Z(0) .. Z(i)
+             * For next iteration, replace tmp_felem(i-1) by its inverse
              */
-            /* 1/Z(i) */
-            felem_mul(tmp_felem(num), tmp_felem(i - 1), tmp_felem(i));
-        else
-            felem_assign(tmp_felem(num), tmp_felem(0)); /* 1/Z(0) */
+            felem_mul (tmp_felem (i - 1), tmp_felem (i), Z (i));
 
-        if (!felem_is_zero(Z(i))) {
-            if (i > 0)
-                /*
-                 * For next iteration, replace tmp_felem(i-1) by its inverse
-                 */
-                felem_mul(tmp_felem(i - 1), tmp_felem(i), Z(i));
-
+          /*
+           * Convert point (X, Y, Z) into affine form (X/(Z^2), Y/(Z^3), 1)
+           */
+          felem_square (Z (i), tmp_felem (num));     /* 1/(Z^2) */
+          felem_mul (X (i), X (i), Z (i));           /* X/(Z^2) */
+          felem_mul (Z (i), Z (i), tmp_felem (num)); /* 1/(Z^3) */
+          felem_mul (Y (i), Y (i), Z (i));           /* Y/(Z^3) */
+          felem_contract (X (i), X (i));
+          felem_contract (Y (i), Y (i));
+          felem_one (Z (i));
+        }
+      else
+        {
+          if (i > 0)
             /*
-             * Convert point (X, Y, Z) into affine form (X/(Z^2), Y/(Z^3), 1)
+             * For next iteration, replace tmp_felem(i-1) by its inverse
              */
-            felem_square(Z(i), tmp_felem(num)); /* 1/(Z^2) */
-            felem_mul(X(i), X(i), Z(i)); /* X/(Z^2) */
-            felem_mul(Z(i), Z(i), tmp_felem(num)); /* 1/(Z^3) */
-            felem_mul(Y(i), Y(i), Z(i)); /* Y/(Z^3) */
-            felem_contract(X(i), X(i));
-            felem_contract(Y(i), Y(i));
-            felem_one(Z(i));
-        } else {
-            if (i > 0)
-                /*
-                 * For next iteration, replace tmp_felem(i-1) by its inverse
-                 */
-                felem_assign(tmp_felem(i - 1), tmp_felem(i));
+            felem_assign (tmp_felem (i - 1), tmp_felem (i));
         }
     }
 }
@@ -153,7 +142,8 @@ ossl_ec_GFp_nistp_points_make_affine_internal(size_t num, void *point_array,
  * digits over the binary representation, and was merely meant to simplify the
  * handling of signed factors given in two's complement; but it has since been
  * shown to be the basis of various signed-digit representations that do have
- * further advantages, including the wNAF, using the following general approach:
+ * further advantages, including the wNAF, using the following general
+ * approach:
  *
  * (1) Given a binary representation
  *
@@ -184,13 +174,13 @@ ossl_ec_GFp_nistp_points_make_affine_internal(size_t num, void *point_array,
  *     equivalent of the wNAF (independently discovered by various researchers
  *     around 2004).
  *
- * To prevent leaking information through side channels in point multiplication,
- * we need to recode the given integer into a regular pattern: sliding windows
- * as in wNAFs won't do, we need their fixed-window equivalent -- which is a few
- * decades older: we'll be using the so-called "modified Booth encoding" due to
- * MacSorley ("High-speed arithmetic in binary computers", Proc. IRE, vol. 49
- * (1961), pp. 67-91), in a radix-2^5 setting.  That is, we always combine five
- * signed bits into a signed digit:
+ * To prevent leaking information through side channels in point
+ * multiplication, we need to recode the given integer into a regular pattern:
+ * sliding windows as in wNAFs won't do, we need their fixed-window equivalent
+ * -- which is a few decades older: we'll be using the so-called "modified
+ * Booth encoding" due to MacSorley ("High-speed arithmetic in binary
+ * computers", Proc. IRE, vol. 49 (1961), pp. 67-91), in a radix-2^5 setting.
+ * That is, we always combine five signed bits into a signed digit:
  *
  *       s_(5j + 4) s_(5j + 3) s_(5j + 2) s_(5j + 1) s_(5j)
  *
@@ -210,17 +200,18 @@ ossl_ec_GFp_nistp_points_make_affine_internal(size_t num, void *point_array,
  * b_-1, has to be b_4 b_3 b_2 b_1 b_0 0.
  *
  */
-void ossl_ec_GFp_nistp_recode_scalar_bits(unsigned char *sign,
-                                          unsigned char *digit, unsigned char in)
+void
+ossl_ec_GFp_nistp_recode_scalar_bits (unsigned char *sign,
+                                      unsigned char *digit, unsigned char in)
 {
-    unsigned char s, d;
+  unsigned char s, d;
 
-    s = ~((in >> 5) - 1);       /* sets all bits to MSB(in), 'in' seen as
-                                 * 6-bit value */
-    d = (1 << 6) - in - 1;
-    d = (d & s) | (in & ~s);
-    d = (d >> 1) + (d & 1);
+  s = ~((in >> 5) - 1); /* sets all bits to MSB(in), 'in' seen as
+                         * 6-bit value */
+  d = (1 << 6) - in - 1;
+  d = (d & s) | (in & ~s);
+  d = (d >> 1) + (d & 1);
 
-    *sign = s & 1;
-    *digit = d;
+  *sign = s & 1;
+  *digit = d;
 }

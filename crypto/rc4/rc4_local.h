@@ -8,9 +8,10 @@
  */
 
 #ifndef OSSL_CRYPTO_RC4_LOCAL_H
-# define OSSL_CRYPTO_RC4_LOCAL_H
+#define OSSL_CRYPTO_RC4_LOCAL_H
 
-# include <openssl/opensslconf.h>
-# include "internal/cryptlib.h"
+#include <openssl/opensslconf.h>
+
+#include "internal/cryptlib.h"
 
 #endif

@@ -8,29 +8,32 @@
  */
 
 #include <stdio.h>
-#include "internal/cryptlib.h"
+
 #include <openssl/buffer.h>
-#include <openssl/objects.h>
 #include <openssl/evp.h>
-#include <openssl/x509.h>
+#include <openssl/objects.h>
 #include <openssl/pem.h>
+#include <openssl/x509.h>
+
+#include "internal/cryptlib.h"
 
 /* Handle 'other' PEMs: not private keys */
 
-void *PEM_ASN1_read_bio(d2i_of_void *d2i, const char *name, BIO *bp, void **x,
-                        pem_password_cb *cb, void *u)
+void *
+PEM_ASN1_read_bio (d2i_of_void *d2i, const char *name, BIO *bp, void **x,
+                   pem_password_cb *cb, void *u)
 {
-    const unsigned char *p = NULL;
-    unsigned char *data = NULL;
-    long len;
-    char *ret = NULL;
+  const unsigned char *p = NULL;
+  unsigned char *data = NULL;
+  long len;
+  char *ret = NULL;
 
-    if (!PEM_bytes_read_bio(&data, &len, NULL, name, bp, cb, u))
-        return NULL;
-    p = data;
-    ret = d2i(x, &p, len);
-    if (ret == NULL)
-        ERR_raise(ERR_LIB_PEM, ERR_R_ASN1_LIB);
-    OPENSSL_free(data);
-    return ret;
+  if (!PEM_bytes_read_bio (&data, &len, NULL, name, bp, cb, u))
+    return NULL;
+  p = data;
+  ret = d2i (x, &p, len);
+  if (ret == NULL)
+    ERR_raise (ERR_LIB_PEM, ERR_R_ASN1_LIB);
+  OPENSSL_free (data);
+  return ret;
 }

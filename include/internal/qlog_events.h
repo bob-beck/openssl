@@ -6,10 +6,10 @@
  * in the file LICENSE in the source distribution or at
  * https://www.openssl.org/source/license.html
  */
-QLOG_EVENT(connectivity, connection_started)
-QLOG_EVENT(connectivity, connection_state_updated)
-QLOG_EVENT(connectivity, connection_closed)
-QLOG_EVENT(transport, parameters_set)
-QLOG_EVENT(transport, packet_sent)
-QLOG_EVENT(transport, packet_received)
-QLOG_EVENT(recovery, packet_lost)
+QLOG_EVENT (connectivity, connection_started)
+QLOG_EVENT (connectivity, connection_state_updated)
+QLOG_EVENT (connectivity, connection_closed)
+QLOG_EVENT (transport, parameters_set)
+QLOG_EVENT (transport, packet_sent)
+QLOG_EVENT (transport, packet_received)
+QLOG_EVENT (recovery, packet_lost)

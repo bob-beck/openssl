@@ -8,22 +8,26 @@
  */
 
 #include <stdlib.h>
+
 #include <openssl/crypto.h>
+
 #include "internal/refcount.h"
+
 #include "prov/provider_util.h"
 
-struct mac_key_st {
-    OSSL_LIB_CTX *libctx;
-    CRYPTO_REF_COUNT refcnt;
-    unsigned char *priv_key;
-    size_t priv_key_len;
-    PROV_CIPHER cipher;
-    char *properties;
-    int cmac;
+struct mac_key_st
+{
+  OSSL_LIB_CTX *libctx;
+  CRYPTO_REF_COUNT refcnt;
+  unsigned char *priv_key;
+  size_t priv_key_len;
+  PROV_CIPHER cipher;
+  char *properties;
+  int cmac;
 };
 
 typedef struct mac_key_st MAC_KEY;
 
-MAC_KEY *ossl_mac_key_new(OSSL_LIB_CTX *libctx, int cmac);
-void ossl_mac_key_free(MAC_KEY *mackey);
-int ossl_mac_key_up_ref(MAC_KEY *mackey);
+MAC_KEY *ossl_mac_key_new (OSSL_LIB_CTX *libctx, int cmac);
+void ossl_mac_key_free (MAC_KEY *mackey);
+int ossl_mac_key_up_ref (MAC_KEY *mackey);

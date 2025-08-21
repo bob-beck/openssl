@@ -14,22 +14,25 @@
 #include "internal/deprecated.h"
 
 #include <openssl/whrlpool.h>
+
 #include "crypto/evp.h"
+
 #include "legacy_meth.h"
 
-IMPLEMENT_LEGACY_EVP_MD_METH(wp, WHIRLPOOL)
+IMPLEMENT_LEGACY_EVP_MD_METH (wp, WHIRLPOOL)
 
 static const EVP_MD whirlpool_md = {
-    NID_whirlpool,
-    0,
-    WHIRLPOOL_DIGEST_LENGTH,
-    0,
-    EVP_ORIG_GLOBAL,
-    LEGACY_EVP_MD_METH_TABLE(wp_init, wp_update, wp_final, NULL,
-                             WHIRLPOOL_BBLOCK / 8),
+  NID_whirlpool,
+  0,
+  WHIRLPOOL_DIGEST_LENGTH,
+  0,
+  EVP_ORIG_GLOBAL,
+  LEGACY_EVP_MD_METH_TABLE (wp_init, wp_update, wp_final, NULL,
+                            WHIRLPOOL_BBLOCK / 8),
 };
 
-const EVP_MD *EVP_whirlpool(void)
+const EVP_MD *
+EVP_whirlpool (void)
 {
-    return &whirlpool_md;
+  return &whirlpool_md;
 }

@@ -8,13 +8,16 @@
  */
 
 #include <stddef.h>
-#include "internal/cryptlib.h"
+
 #include <openssl/asn1.h>
 #include <openssl/asn1t.h>
-#include <openssl/objects.h>
 #include <openssl/buffer.h>
 #include <openssl/err.h>
+#include <openssl/objects.h>
 #include <openssl/x509v3.h>
+
+#include "internal/cryptlib.h"
+
 #include "asn1_local.h"
 
 /*
@@ -22,42 +25,49 @@
  * passing details to a callback.
  */
 
-ASN1_SCTX *ASN1_SCTX_new(int (*scan_cb) (ASN1_SCTX *ctx))
+ASN1_SCTX *
+ASN1_SCTX_new (int (*scan_cb) (ASN1_SCTX *ctx))
 {
-    ASN1_SCTX *ret = OPENSSL_zalloc(sizeof(*ret));
+  ASN1_SCTX *ret = OPENSSL_zalloc (sizeof (*ret));
 
-    if (ret == NULL)
-        return NULL;
-    ret->scan_cb = scan_cb;
-    return ret;
+  if (ret == NULL)
+    return NULL;
+  ret->scan_cb = scan_cb;
+  return ret;
 }
 
-void ASN1_SCTX_free(ASN1_SCTX *p)
+void
+ASN1_SCTX_free (ASN1_SCTX *p)
 {
-    OPENSSL_free(p);
+  OPENSSL_free (p);
 }
 
-const ASN1_ITEM *ASN1_SCTX_get_item(ASN1_SCTX *p)
+const ASN1_ITEM *
+ASN1_SCTX_get_item (ASN1_SCTX *p)
 {
-    return p->it;
+  return p->it;
 }
 
-const ASN1_TEMPLATE *ASN1_SCTX_get_template(ASN1_SCTX *p)
+const ASN1_TEMPLATE *
+ASN1_SCTX_get_template (ASN1_SCTX *p)
 {
-    return p->tt;
+  return p->tt;
 }
 
-unsigned long ASN1_SCTX_get_flags(ASN1_SCTX *p)
+unsigned long
+ASN1_SCTX_get_flags (ASN1_SCTX *p)
 {
-    return p->flags;
+  return p->flags;
 }
 
-void ASN1_SCTX_set_app_data(ASN1_SCTX *p, void *data)
+void
+ASN1_SCTX_set_app_data (ASN1_SCTX *p, void *data)
 {
-    p->app_data = data;
+  p->app_data = data;
 }
 
-void *ASN1_SCTX_get_app_data(ASN1_SCTX *p)
+void *
+ASN1_SCTX_get_app_data (ASN1_SCTX *p)
 {
-    return p->app_data;
+  return p->app_data;
 }

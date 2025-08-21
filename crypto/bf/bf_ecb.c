@@ -14,8 +14,9 @@
 #include "internal/deprecated.h"
 
 #include <openssl/blowfish.h>
-#include "bf_local.h"
 #include <openssl/opensslv.h>
+
+#include "bf_local.h"
 
 /*
  * Blowfish as implemented from 'Blowfish: Springer-Verlag paper' (From
@@ -23,27 +24,29 @@
  * SECURITY WORKSHOP, CAMBRIDGE, U.K., DECEMBER 9-11, 1993)
  */
 
-const char *BF_options(void)
+const char *
+BF_options (void)
 {
-    return "blowfish(ptr)";
+  return "blowfish(ptr)";
 }
 
-void BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
-                    const BF_KEY *key, int encrypt)
+void
+BF_ecb_encrypt (const unsigned char *in, unsigned char *out, const BF_KEY *key,
+                int encrypt)
 {
-    BF_LONG l, d[2];
+  BF_LONG l, d[2];
 
-    n2l(in, l);
-    d[0] = l;
-    n2l(in, l);
-    d[1] = l;
-    if (encrypt)
-        BF_encrypt(d, key);
-    else
-        BF_decrypt(d, key);
-    l = d[0];
-    l2n(l, out);
-    l = d[1];
-    l2n(l, out);
-    l = d[0] = d[1] = 0;
+  n2l (in, l);
+  d[0] = l;
+  n2l (in, l);
+  d[1] = l;
+  if (encrypt)
+    BF_encrypt (d, key);
+  else
+    BF_decrypt (d, key);
+  l = d[0];
+  l2n (l, out);
+  l = d[1];
+  l2n (l, out);
+  l = d[0] = d[1] = 0;
 }

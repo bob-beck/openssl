@@ -8,49 +8,56 @@
  */
 
 #include <stdlib.h>
-#include "apps.h"
+
 #include "../testutil.h"
+#include "apps.h"
 
 /* shim that avoids sucking in too much from apps/apps.c */
 
-void *app_malloc(size_t sz, const char *what)
+void *
+app_malloc (size_t sz, const char *what)
 {
-    void *vp;
+  void *vp;
 
-    /*
-     * This isn't ideal but it is what the app's app_malloc() does on failure.
-     * Instead of exiting with a failure, abort() is called which makes sure
-     * that there will be a good stack trace for debugging purposes.
-     */
-    if (!TEST_ptr(vp = OPENSSL_malloc(sz))) {
-        TEST_info("Could not allocate %zu bytes for %s\n", sz, what);
-        abort();
+  /*
+   * This isn't ideal but it is what the app's app_malloc() does on failure.
+   * Instead of exiting with a failure, abort() is called which makes sure
+   * that there will be a good stack trace for debugging purposes.
+   */
+  if (!TEST_ptr (vp = OPENSSL_malloc (sz)))
+    {
+      TEST_info ("Could not allocate %zu bytes for %s\n", sz, what);
+      abort ();
     }
-    return vp;
+  return vp;
 }
 
 /* shim to prevent sucking in too much from apps */
 
-int opt_legacy_okay(void)
+int
+opt_legacy_okay (void)
 {
-    return 1;
+  return 1;
 }
 
 /*
  * These three functions are defined here so that they don't need to come from
  * the apps source code and pull in a lot of additional things.
  */
-int opt_provider_option_given(void)
+int
+opt_provider_option_given (void)
 {
-    return 0;
+  return 0;
 }
 
-const char *app_get0_propq(void)
+const char *
+app_get0_propq (void)
 {
-    return NULL;
+  return NULL;
 }
 
-OSSL_LIB_CTX *app_get0_libctx(void)
+OSSL_LIB_CTX *
+app_get0_libctx (void)
 {
-    return NULL;
+  return NULL;
 }
