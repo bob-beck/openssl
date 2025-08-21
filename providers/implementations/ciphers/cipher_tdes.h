@@ -12,6 +12,7 @@
 
 #include "crypto/des_platform.h"
 
+#include "prov/ciphercommon.h"
 #include "prov/securitycheck.h"
 
 #define DES_BLOCK_SIZE 8

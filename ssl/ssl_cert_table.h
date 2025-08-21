@@ -7,6 +7,8 @@
  * https://www.openssl.org/source/license.html
  */
 
+#include "ssl_local.h"
+
 /*
  * Certificate table information. NB: table entries must match SSL_PKEY indices
  */

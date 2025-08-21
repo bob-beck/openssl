@@ -11,6 +11,8 @@
 
 #include "crypto/des_platform.h"
 
+#include "prov/ciphercommon.h"
+
 #define TDES_FLAGS 0
 
 typedef struct prov_des_ctx_st

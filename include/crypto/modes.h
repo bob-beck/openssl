@@ -7,6 +7,9 @@
  * https://www.openssl.org/source/license.html
  */
 
+#ifndef OSSL_CRYPTO_MODES_H
+#define OSSL_CRYPTO_MODES_H
+
 /* This header can move into provider when legacy support is removed */
 #include <openssl/modes.h>
 
@@ -276,3 +279,4 @@ struct siv128_context
 };
 
 #endif /* OPENSSL_NO_SIV */
+#endif /* OSSL_CRYPTO_MODES_H */

@@ -11,6 +11,8 @@
 #define OSSL_SM4_PLATFORM_H
 #pragma once
 
+#include "crypto/sm4.h"
+
 #if defined(OPENSSL_CPUID_OBJ)
 #if defined(__aarch64__) || defined(_M_ARM64)
 #include "arm_arch.h"

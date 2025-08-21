@@ -8,6 +8,7 @@
  */
 
 #include <openssl/e_os2.h>
+#include <openssl/evp.h>
 
 #define SLH_DSA_MAX_N 32
 #define SLH_DSA_SK_SEED(key) ((key)->priv)
@@ -16,6 +17,10 @@
 #define SLH_DSA_PK_ROOT(key) ((key)->priv + (key)->params->n * 3)
 #define SLH_DSA_PUB(key) SLH_DSA_PK_SEED (key)
 #define SLH_DSA_PRIV(key) SLH_DSA_SK_SEED (key)
+
+typedef struct slh_dsa_params_st SLH_DSA_PARAMS;
+typedef struct slh_adrs_func_st SLH_ADRS_FUNC;
+typedef struct slh_hash_func_st SLH_HASH_FUNC;
 
 /*
  * NOTE: Any changes to this structure may require updating

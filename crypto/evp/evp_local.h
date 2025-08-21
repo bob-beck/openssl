@@ -9,6 +9,8 @@
 
 #include <openssl/core_dispatch.h>
 
+#include <crypto/evp.h>
+
 #include "internal/refcount.h"
 
 #define EVP_CTRL_RET_UNSUPPORTED -1

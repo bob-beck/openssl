@@ -12,6 +12,7 @@
 #pragma once
 
 #include "ciphercommon_aead.h"
+#include "prov/ciphercommon.h"
 
 typedef struct prov_ccm_hw_st PROV_CCM_HW;
 

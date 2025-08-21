@@ -13,6 +13,8 @@
 
 #include <openssl/aes.h>
 
+#include "crypto/modes.h"
+
 #ifdef VPAES_ASM
 int vpaes_set_encrypt_key (const unsigned char *userKey, int bits,
                            AES_KEY *key);

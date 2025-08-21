@@ -10,6 +10,9 @@
 #ifndef OSSL_CRYPTO_X509_V3_ADMIS_H
 #define OSSL_CRYPTO_X509_V3_ADMIS_H
 
+#include <openssl/asn1.h>
+#include <openssl/x509v3.h>
+
 struct NamingAuthority_st
 {
   ASN1_OBJECT *namingAuthorityId;
