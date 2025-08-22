@@ -19,9 +19,14 @@
 #define OSSL_CRYPTO_LMS_SIG_H
 #pragma once
 #ifndef OPENSSL_NO_LMS
-#include "internal/packet.h"
 
-#include "lms.h"
+#include <stdint.h>
+
+#include "internal/packet.h"
+/* XXX beck Fascinatingly, this can define OPENSSL_NO_LMS for us. */
+#undef OPENSSL_NO_LMS
+
+#include "crypto/lms.h"
 
 /* The values defined for 8 byte TAGS */
 extern const uint16_t OSSL_LMS_D_PBLC; /* 8080 */

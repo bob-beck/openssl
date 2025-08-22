@@ -16,9 +16,12 @@
 #define OSSL_CRYPTO_LMS_H
 #pragma once
 #ifndef OPENSSL_NO_LMS
+
+#include <stdint.h>
+
 #include <openssl/params.h>
 
-#include "types.h"
+#include "crypto/types.h"
 
 /*
  * Numeric identifiers associated with Leighton-Micali Signatures (LMS)

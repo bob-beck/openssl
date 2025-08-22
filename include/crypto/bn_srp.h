@@ -6,8 +6,12 @@
  * in the file LICENSE in the source distribution or at
  * https://www.openssl.org/source/license.html
  */
+#if !defined(OSSL_INCLUDE_CRYPTO_BN_SRP_H)
+#define OSSL_INCLUDE_CRYPTO_BN_SRP_H
 
 #ifndef OPENSSL_NO_SRP
+
+#include <openssl/bn.h>
 
 extern const BIGNUM ossl_bn_group_1024;
 
@@ -30,3 +34,5 @@ extern const BIGNUM ossl_bn_generator_5;
 extern const BIGNUM ossl_bn_generator_2;
 
 #endif
+
+#endif /* !defined(OSSL_INCLUDE_CRYPTO_BN_SRP_H) */

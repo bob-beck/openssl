@@ -14,6 +14,10 @@
 #include <openssl/params.h>
 
 #include "internal/packet.h"
+/* XXX beck Fascinatingly, this can define OPENSSL_NO_LMS for us. */
+#undef OPENSSL_NO_LMS
+
+#include "crypto/lms.h"
 
 /*
  * This LMS implementation assumes that the hash algorithm must be the same for

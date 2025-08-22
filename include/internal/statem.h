@@ -9,6 +9,9 @@
 #ifndef OSSL_INTERNAL_STATEM_H
 #define OSSL_INTERNAL_STATEM_H
 
+#include <openssl/e_os2.h>
+#include <openssl/ssl.h>
+
 /*****************************************************************************
  *                                                                           *
  * These enums should be considered PRIVATE to the state machine. No         *
