@@ -11,6 +11,8 @@
 #define OSSL_INTERNAL_CORE_H
 #pragma once
 
+#include <openssl/types.h>
+
 /*
  * namespaces:
  *
