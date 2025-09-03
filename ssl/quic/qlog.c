@@ -665,12 +665,14 @@ static int ossl_unused filter_match_event(const char *cat, size_t cat_l,
 static void filter_apply(size_t *enabled, int add, const char *cat,
 			 size_t cat_l, const char *event, size_t event_l)
 {
+/* clang-format off */
 	/* Find events which match the given filters. */
 #define QLOG_EVENT(e_cat, e_name)                                            \
 	if (filter_match_event(cat, cat_l, event, event_l, #e_cat, #e_name)) \
 		bit_set(enabled, QLOG_EVENT_TYPE_##e_cat##_##e_name, add);
-#include "internal/qlog_events.h"
+#include "internal/qlog_events.inc"
 #undef QLOG_EVENT
+/* clang-format on */
 }
 
 static int lex_fail(struct lexer *lex, const char *msg)
