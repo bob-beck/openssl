@@ -134,7 +134,9 @@ void sha256_block_data_order_c(SHA256_CTX *ctx, const void *in, size_t num);
 	void sha256_block_data_order(SHA256_CTX *ctx, const void *in,
 				     size_t num);
 
-#include "crypto/md32_common.h"
+/* clang-format off */
+#include "crypto/md32_common.inc"
+/* clang-format on */
 
 #if !defined(SHA256_ASM) || defined(INCLUDE_C_SHA256)
 static const SHA_LONG K256[64] = {
