@@ -57,7 +57,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     /* We are going to split the buffer in two, sizes l1 and l2, giving b1 and
      * b2.
      */
-    if (len > 0) {
+    if (len > 0)
+    {
         --len;
         /* Use first byte to divide the remaining buffer into 3Fths. I admit
          * this disallows some number sizes. If it matters, better ideas are
@@ -75,7 +76,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     BN_set_negative(b2, s2);
 
     /* divide by 0 is an error */
-    if (BN_is_zero(b2)) {
+    if (BN_is_zero(b2))
+    {
         success = 1;
         goto done;
     }
@@ -84,16 +86,17 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     if (BN_is_zero(b1))
         success = BN_is_zero(b3) && BN_is_zero(b4);
     else if (BN_is_negative(b1))
-        success = (BN_is_negative(b3) != BN_is_negative(b2) || BN_is_zero(b3))
-            && (BN_is_negative(b4) || BN_is_zero(b4));
+        success =
+            (BN_is_negative(b3) != BN_is_negative(b2) || BN_is_zero(b3)) && (BN_is_negative(b4) || BN_is_zero(b4));
     else
-        success = (BN_is_negative(b3) == BN_is_negative(b2)  || BN_is_zero(b3))
-            && (!BN_is_negative(b4) || BN_is_zero(b4));
+        success =
+            (BN_is_negative(b3) == BN_is_negative(b2) || BN_is_zero(b3)) && (!BN_is_negative(b4) || BN_is_zero(b4));
     OPENSSL_assert(BN_mul(b5, b3, b2, ctx));
     OPENSSL_assert(BN_add(b5, b5, b4));
 
     success = success && BN_cmp(b5, b1) == 0;
-    if (!success) {
+    if (!success)
+    {
         BN_print_fp(stdout, b1);
         putchar('\n');
         BN_print_fp(stdout, b2);
@@ -104,16 +107,13 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         putchar('\n');
         BN_print_fp(stdout, b5);
         putchar('\n');
-        printf("%d %d %d %d %d %d %d\n", BN_is_negative(b1),
-               BN_is_negative(b2),
-               BN_is_negative(b3), BN_is_negative(b4), BN_is_zero(b4),
-               BN_is_negative(b3) != BN_is_negative(b2)
-               && (BN_is_negative(b4) || BN_is_zero(b4)),
+        printf("%d %d %d %d %d %d %d\n", BN_is_negative(b1), BN_is_negative(b2), BN_is_negative(b3), BN_is_negative(b4),
+               BN_is_zero(b4), BN_is_negative(b3) != BN_is_negative(b2) && (BN_is_negative(b4) || BN_is_zero(b4)),
                BN_cmp(b5, b1));
         puts("----\n");
     }
 
- done:
+done:
     OPENSSL_assert(success);
     ERR_clear_error();
 

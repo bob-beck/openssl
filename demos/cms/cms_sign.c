@@ -63,7 +63,8 @@ int main(int argc, char **argv)
     if (!out)
         goto err;
 
-    if (!(flags & CMS_STREAM)) {
+    if (!(flags & CMS_STREAM))
+    {
         if (BIO_reset(in) < 0)
             goto err;
     }
@@ -73,8 +74,9 @@ int main(int argc, char **argv)
         goto err;
 
     ret = EXIT_SUCCESS;
- err:
-    if (ret != EXIT_SUCCESS) {
+err:
+    if (ret != EXIT_SUCCESS)
+    {
         fprintf(stderr, "Error Signing Data\n");
         ERR_print_errors_fp(stderr);
     }

@@ -22,69 +22,64 @@
 #include <string.h>
 
 #ifndef OPENSSL_NO_SECURE_MEMORY
-# if defined(_WIN32)
-#  include <windows.h>
-#  if defined(WINAPI_FAMILY_PARTITION)
-#   if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP | WINAPI_PARTITION_SYSTEM)
+#if defined(_WIN32)
+#include <windows.h>
+#if defined(WINAPI_FAMILY_PARTITION)
+#if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP | WINAPI_PARTITION_SYSTEM)
 /*
  * While VirtualLock is available under the app partition (e.g. UWP),
  * the headers do not define the API. Define it ourselves instead.
  */
 WINBASEAPI
-BOOL
-WINAPI
-VirtualLock(
-    _In_ LPVOID lpAddress,
-    _In_ SIZE_T dwSize
-    );
-#   endif
-#  endif
-# endif
-# include <stdlib.h>
-# include <assert.h>
-# if defined(OPENSSL_SYS_UNIX)
-#  include <unistd.h>
-# endif
-# include <sys/types.h>
-# if defined(OPENSSL_SYS_UNIX)
-#  include <sys/mman.h>
-#  if defined(__FreeBSD__)
-#    define MADV_DONTDUMP MADV_NOCORE
-#  endif
-#  if !defined(MAP_CONCEAL)
-#    define MAP_CONCEAL 0
-#  endif
-# endif
-# if defined(OPENSSL_SYS_LINUX)
-#  include <sys/syscall.h>
-#  if defined(SYS_mlock2)
-#   include <linux/mman.h>
-#   include <errno.h>
-#  endif
-#  include <sys/param.h>
-# endif
-# include <sys/stat.h>
-# include <fcntl.h>
+BOOL WINAPI VirtualLock(_In_ LPVOID lpAddress, _In_ SIZE_T dwSize);
+#endif
+#endif
+#endif
+#include <stdlib.h>
+#include <assert.h>
+#if defined(OPENSSL_SYS_UNIX)
+#include <unistd.h>
+#endif
+#include <sys/types.h>
+#if defined(OPENSSL_SYS_UNIX)
+#include <sys/mman.h>
+#if defined(__FreeBSD__)
+#define MADV_DONTDUMP MADV_NOCORE
+#endif
+#if !defined(MAP_CONCEAL)
+#define MAP_CONCEAL 0
+#endif
+#endif
+#if defined(OPENSSL_SYS_LINUX)
+#include <sys/syscall.h>
+#if defined(SYS_mlock2)
+#include <linux/mman.h>
+#include <errno.h>
+#endif
+#include <sys/param.h>
+#endif
+#include <sys/stat.h>
+#include <fcntl.h>
 #endif
 #ifndef HAVE_MADVISE
-# if defined(MADV_DONTDUMP)
-#  define HAVE_MADVISE 1
-# else
-#  define HAVE_MADVISE 0
-# endif
+#if defined(MADV_DONTDUMP)
+#define HAVE_MADVISE 1
+#else
+#define HAVE_MADVISE 0
+#endif
 #endif
 #if HAVE_MADVISE
-# undef NO_MADVISE
+#undef NO_MADVISE
 #else
-# define NO_MADVISE
+#define NO_MADVISE
 #endif
 
 #define CLEAR(p, s) OPENSSL_cleanse(p, s)
 #ifndef PAGE_SIZE
-# define PAGE_SIZE    4096
+#define PAGE_SIZE 4096
 #endif
 #if !defined(MAP_ANON) && defined(MAP_ANONYMOUS)
-# define MAP_ANON MAP_ANONYMOUS
+#define MAP_ANON MAP_ANONYMOUS
 #endif
 
 #ifndef OPENSSL_NO_SECURE_MEMORY
@@ -110,13 +105,17 @@ int CRYPTO_secure_malloc_init(size_t size, size_t minsize)
 #ifndef OPENSSL_NO_SECURE_MEMORY
     int ret = 0;
 
-    if (!secure_mem_initialized) {
+    if (!secure_mem_initialized)
+    {
         sec_malloc_lock = CRYPTO_THREAD_lock_new();
         if (sec_malloc_lock == NULL)
             return 0;
-        if ((ret = sh_init(size, minsize)) != 0) {
+        if ((ret = sh_init(size, minsize)) != 0)
+        {
             secure_mem_initialized = 1;
-        } else {
+        }
+        else
+        {
             CRYPTO_THREAD_lock_free(sec_malloc_lock);
             sec_malloc_lock = NULL;
         }
@@ -131,7 +130,8 @@ int CRYPTO_secure_malloc_init(size_t size, size_t minsize)
 int CRYPTO_secure_malloc_done(void)
 {
 #ifndef OPENSSL_NO_SECURE_MEMORY
-    if (secure_mem_used == 0) {
+    if (secure_mem_used == 0)
+    {
         sh_done();
         secure_mem_initialized = 0;
         CRYPTO_THREAD_lock_free(sec_malloc_lock);
@@ -158,10 +158,12 @@ void *CRYPTO_secure_malloc(size_t num, const char *file, int line)
     size_t actual_size;
     int reason = CRYPTO_R_SECURE_MALLOC_FAILURE;
 
-    if (!secure_mem_initialized) {
+    if (!secure_mem_initialized)
+    {
         return CRYPTO_malloc(num, file, line);
     }
-    if (!CRYPTO_THREAD_write_lock(sec_malloc_lock)) {
+    if (!CRYPTO_THREAD_write_lock(sec_malloc_lock))
+    {
         reason = ERR_R_CRYPTO_LIB;
         goto err;
     }
@@ -169,8 +171,9 @@ void *CRYPTO_secure_malloc(size_t num, const char *file, int line)
     actual_size = ret ? sh_actual_size(ret) : 0;
     secure_mem_used += actual_size;
     CRYPTO_THREAD_unlock(sec_malloc_lock);
- err:
-    if (ret == NULL && (file != NULL || line != 0)) {
+err:
+    if (ret == NULL && (file != NULL || line != 0))
+    {
         ERR_new();
         ERR_set_debug(file, line, NULL);
         ERR_set_error(ERR_LIB_CRYPTO, reason, NULL);
@@ -198,7 +201,8 @@ void CRYPTO_secure_free(void *ptr, const char *file, int line)
 
     if (ptr == NULL)
         return;
-    if (!CRYPTO_secure_allocated(ptr)) {
+    if (!CRYPTO_secure_allocated(ptr))
+    {
         CRYPTO_free(ptr, file, line);
         return;
     }
@@ -214,15 +218,15 @@ void CRYPTO_secure_free(void *ptr, const char *file, int line)
 #endif /* OPENSSL_NO_SECURE_MEMORY */
 }
 
-void CRYPTO_secure_clear_free(void *ptr, size_t num,
-                              const char *file, int line)
+void CRYPTO_secure_clear_free(void *ptr, size_t num, const char *file, int line)
 {
 #ifndef OPENSSL_NO_SECURE_MEMORY
     size_t actual_size;
 
     if (ptr == NULL)
         return;
-    if (!CRYPTO_secure_allocated(ptr)) {
+    if (!CRYPTO_secure_allocated(ptr))
+    {
         OPENSSL_cleanse(ptr, num);
         CRYPTO_free(ptr, file, line);
         return;
@@ -293,7 +297,6 @@ size_t CRYPTO_secure_actual_size(void *ptr)
  */
 #ifndef OPENSSL_NO_SECURE_MEMORY
 
-
 /*
  * The implementation provided here uses a fixed-sized mmap() heap,
  * which is locked into memory, not written to core files, and protected
@@ -311,23 +314,22 @@ size_t CRYPTO_secure_actual_size(void *ptr)
 
 #define ONE ((size_t)1)
 
-# define TESTBIT(t, b)  (t[(b) >> 3] &  (ONE << ((b) & 7)))
-# define SETBIT(t, b)   (t[(b) >> 3] |= (ONE << ((b) & 7)))
-# define CLEARBIT(t, b) (t[(b) >> 3] &= (0xFF & ~(ONE << ((b) & 7))))
+#define TESTBIT(t, b) (t[(b) >> 3] & (ONE << ((b) & 7)))
+#define SETBIT(t, b) (t[(b) >> 3] |= (ONE << ((b) & 7)))
+#define CLEARBIT(t, b) (t[(b) >> 3] &= (0xFF & ~(ONE << ((b) & 7))))
 
-#define WITHIN_ARENA(p) \
-    ((char*)(p) >= sh.arena && (char*)(p) < &sh.arena[sh.arena_size])
-#define WITHIN_FREELIST(p) \
-    ((char*)(p) >= (char*)sh.freelist && (char*)(p) < (char*)&sh.freelist[sh.freelist_size])
+#define WITHIN_ARENA(p) ((char *)(p) >= sh.arena && (char *)(p) < &sh.arena[sh.arena_size])
+#define WITHIN_FREELIST(p) ((char *)(p) >= (char *)sh.freelist && (char *)(p) < (char *)&sh.freelist[sh.freelist_size])
 
-
-typedef struct sh_list_st {
+typedef struct sh_list_st
+{
     struct sh_list_st *next;
     struct sh_list_st **p_next;
 } SH_LIST;
 
-typedef struct sh_st {
-    char* map_result;
+typedef struct sh_st
+{
+    char *map_result;
     size_t map_size;
     char *arena;
     size_t arena_size;
@@ -346,7 +348,8 @@ static size_t sh_getlist(char *ptr)
     ossl_ssize_t list = sh.freelist_size - 1;
     size_t bit = (sh.arena_size + ptr - sh.arena) / sh.minsize;
 
-    for (; bit; bit >>= 1, list--) {
+    for (; bit; bit >>= 1, list--)
+    {
         if (TESTBIT(sh.bittable, bit))
             break;
         OPENSSL_assert((bit & 1) == 0);
@@ -354,7 +357,6 @@ static size_t sh_getlist(char *ptr)
 
     return list;
 }
-
 
 static int sh_testbit(char *ptr, int list, unsigned char *table)
 {
@@ -403,7 +405,8 @@ static void sh_add_to_list(char **list, char *ptr)
     OPENSSL_assert(temp->next == NULL || WITHIN_ARENA(temp->next));
     temp->p_next = (SH_LIST **)list;
 
-    if (temp->next != NULL) {
+    if (temp->next != NULL)
+    {
         OPENSSL_assert((char **)temp->next->p_next == list);
         temp->next->p_next = &(temp->next);
     }
@@ -426,7 +429,6 @@ static void sh_remove_from_list(char *ptr)
     OPENSSL_assert(WITHIN_FREELIST(temp2->p_next) || WITHIN_ARENA(temp2->p_next));
 }
 
-
 static int sh_init(size_t size, size_t minsize)
 {
     int ret;
@@ -446,7 +448,8 @@ static int sh_init(size_t size, size_t minsize)
     if (size == 0 || (size & (size - 1)) != 0)
         goto err;
 
-    if (minsize <= sizeof(SH_LIST)) {
+    if (minsize <= sizeof(SH_LIST))
+    {
         OPENSSL_assert(sizeof(SH_LIST) <= 65536);
         /*
          * Compute the minimum possible allocation size.
@@ -461,11 +464,13 @@ static int sh_init(size_t size, size_t minsize)
         if (sizeof(SH_LIST) > 256)
             minsize |= minsize >> 8;
         minsize++;
-    } else {
+    }
+    else
+    {
         /* make sure minsize is a powers of 2 */
-          OPENSSL_assert((minsize & (minsize - 1)) == 0);
-          if ((minsize & (minsize - 1)) != 0)
-              goto err;
+        OPENSSL_assert((minsize & (minsize - 1)) == 0);
+        if ((minsize & (minsize - 1)) != 0)
+            goto err;
     }
 
     sh.arena_size = size;
@@ -496,13 +501,13 @@ static int sh_init(size_t size, size_t minsize)
         goto err;
 
     /* Allocate space for heap, and two extra pages as guards */
-#if defined(_SC_PAGE_SIZE) || defined (_SC_PAGESIZE)
+#if defined(_SC_PAGE_SIZE) || defined(_SC_PAGESIZE)
     {
-# if defined(_SC_PAGE_SIZE)
+#if defined(_SC_PAGE_SIZE)
         long tmppgsize = sysconf(_SC_PAGE_SIZE);
-# else
+#else
         long tmppgsize = sysconf(_SC_PAGESIZE);
-# endif
+#endif
         if (tmppgsize < 1)
             pgsize = PAGE_SIZE;
         else
@@ -517,28 +522,27 @@ static int sh_init(size_t size, size_t minsize)
     sh.map_size = pgsize + sh.arena_size + pgsize;
 
 #if !defined(_WIN32)
-# ifdef MAP_ANON
-    sh.map_result = mmap(NULL, sh.map_size,
-                         PROT_READ|PROT_WRITE, MAP_ANON|MAP_PRIVATE|MAP_CONCEAL, -1, 0);
-# else
+#ifdef MAP_ANON
+    sh.map_result = mmap(NULL, sh.map_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE | MAP_CONCEAL, -1, 0);
+#else
     {
         int fd;
 
         sh.map_result = MAP_FAILED;
-        if ((fd = open("/dev/zero", O_RDWR)) >= 0) {
-            sh.map_result = mmap(NULL, sh.map_size,
-                                 PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
+        if ((fd = open("/dev/zero", O_RDWR)) >= 0)
+        {
+            sh.map_result = mmap(NULL, sh.map_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
             close(fd);
         }
     }
-# endif
+#endif
     if (sh.map_result == MAP_FAILED)
         goto err;
 #else
     sh.map_result = VirtualAlloc(NULL, sh.map_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
     if (sh.map_result == NULL)
-            goto err;
+        goto err;
 #endif
 
     sh.arena = (char *)(sh.map_result + pgsize);
@@ -568,11 +572,15 @@ static int sh_init(size_t size, size_t minsize)
 #endif
 
 #if defined(OPENSSL_SYS_LINUX) && defined(MLOCK_ONFAULT) && defined(SYS_mlock2)
-    if (syscall(SYS_mlock2, sh.arena, sh.arena_size, MLOCK_ONFAULT) < 0) {
-        if (errno == ENOSYS) {
+    if (syscall(SYS_mlock2, sh.arena, sh.arena_size, MLOCK_ONFAULT) < 0)
+    {
+        if (errno == ENOSYS)
+        {
             if (mlock(sh.arena, sh.arena_size) < 0)
                 ret = 2;
-        } else {
+        }
+        else
+        {
             ret = 2;
         }
     }
@@ -590,7 +598,7 @@ static int sh_init(size_t size, size_t minsize)
 
     return ret;
 
- err:
+err:
     sh_done();
     return 0;
 }
@@ -652,7 +660,8 @@ static void *sh_malloc(size_t size)
         return NULL;
 
     /* split larger entry */
-    while (slist != list) {
+    while (slist != list)
+    {
         char *temp = sh.freelist[slist];
 
         /* remove from bigger list */
@@ -677,7 +686,7 @@ static void *sh_malloc(size_t size)
         sh_add_to_list(&sh.freelist[slist], temp);
         OPENSSL_assert(sh.freelist[slist] == temp);
 
-        OPENSSL_assert(temp-(sh.arena_size >> slist) == sh_find_my_buddy(temp, (int)slist));
+        OPENSSL_assert(temp - (sh.arena_size >> slist) == sh_find_my_buddy(temp, (int)slist));
     }
 
     /* peel off memory to hand back */
@@ -711,7 +720,8 @@ static void sh_free(void *ptr)
     sh_add_to_list(&sh.freelist[list], ptr);
 
     /* Try to coalesce two adjacent free areas. */
-    while ((buddy = sh_find_my_buddy(ptr, (int)list)) != NULL) {
+    while ((buddy = sh_find_my_buddy(ptr, (int)list)) != NULL)
+    {
         OPENSSL_assert(ptr == sh_find_my_buddy(buddy, (int)list));
         OPENSSL_assert(ptr != NULL);
         OPENSSL_assert(!sh_testbit(ptr, (int)list, sh.bitmalloc));

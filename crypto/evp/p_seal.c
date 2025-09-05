@@ -16,8 +16,7 @@
 #include <openssl/objects.h>
 #include <openssl/x509.h>
 
-int EVP_SealInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
-                 unsigned char **ek, int *ekl, unsigned char *iv,
+int EVP_SealInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type, unsigned char **ek, int *ekl, unsigned char *iv,
                  EVP_PKEY **pubk, int npubk)
 {
     unsigned char key[EVP_MAX_KEY_LENGTH];
@@ -28,13 +27,13 @@ int EVP_SealInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
     int i, len;
     int rv = 0;
 
-    if (type != NULL) {
+    if (type != NULL)
+    {
         EVP_CIPHER_CTX_reset(ctx);
         if (!EVP_EncryptInit_ex(ctx, type, NULL, NULL, NULL))
             return 0;
     }
-    if ((cipher = EVP_CIPHER_CTX_get0_cipher(ctx)) != NULL
-            && (prov = EVP_CIPHER_get0_provider(cipher)) != NULL)
+    if ((cipher = EVP_CIPHER_CTX_get0_cipher(ctx)) != NULL && (prov = EVP_CIPHER_get0_provider(cipher)) != NULL)
         libctx = ossl_provider_libctx(prov);
     if ((npubk <= 0) || !pubk)
         return 1;
@@ -53,17 +52,18 @@ int EVP_SealInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
     if (!EVP_EncryptInit_ex(ctx, NULL, NULL, key, iv))
         goto err;
 
-    for (i = 0; i < npubk; i++) {
+    for (i = 0; i < npubk; i++)
+    {
         size_t keylen = len;
 
         pctx = EVP_PKEY_CTX_new_from_pkey(libctx, pubk[i], NULL);
-        if (pctx == NULL) {
+        if (pctx == NULL)
+        {
             ERR_raise(ERR_LIB_EVP, ERR_R_EVP_LIB);
             goto err;
         }
 
-        if (EVP_PKEY_encrypt_init(pctx) <= 0
-            || EVP_PKEY_encrypt(pctx, ek[i], &keylen, key, keylen) <= 0)
+        if (EVP_PKEY_encrypt_init(pctx) <= 0 || EVP_PKEY_encrypt(pctx, ek[i], &keylen, key, keylen) <= 0)
             goto err;
         ekl[i] = (int)keylen;
         EVP_PKEY_CTX_free(pctx);

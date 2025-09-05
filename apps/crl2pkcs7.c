@@ -21,9 +21,15 @@
 
 static int add_certs_from_file(STACK_OF(X509) *stack, char *certfile);
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_INFORM, OPT_OUTFORM, OPT_IN, OPT_OUT, OPT_NOCRL, OPT_CERTFILE,
+    OPT_INFORM,
+    OPT_OUTFORM,
+    OPT_IN,
+    OPT_OUT,
+    OPT_NOCRL,
+    OPT_CERTFILE,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
@@ -35,16 +41,14 @@ const OPTIONS crl2pkcs7_options[] = {
     {"in", OPT_IN, '<', "Input file"},
     {"inform", OPT_INFORM, 'F', "Input format - DER or PEM"},
     {"nocrl", OPT_NOCRL, '-', "No crl to load, just certs from '-certfile'"},
-    {"certfile", OPT_CERTFILE, '<',
-     "File of chain of certs to a trusted CA; can be repeated"},
+    {"certfile", OPT_CERTFILE, '<', "File of chain of certs to a trusted CA; can be repeated"},
 
     OPT_SECTION("Output"),
     {"out", OPT_OUT, '>', "Output file"},
     {"outform", OPT_OUTFORM, 'F', "Output format - DER or PEM"},
 
     OPT_PROV_OPTIONS,
-    {NULL}
-};
+    {NULL}};
 
 int crl2pkcs7_main(int argc, char **argv)
 {
@@ -56,16 +60,17 @@ int crl2pkcs7_main(int argc, char **argv)
     STACK_OF(X509_CRL) *crl_stack = NULL;
     X509_CRL *crl = NULL;
     char *infile = NULL, *outfile = NULL, *prog, *certfile;
-    int i = 0, informat = FORMAT_PEM, outformat = FORMAT_PEM, ret = 1, nocrl =
-        0;
+    int i = 0, informat = FORMAT_PEM, outformat = FORMAT_PEM, ret = 1, nocrl = 0;
     OPTION_CHOICE o;
 
     prog = opt_init(argc, argv, crl2pkcs7_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -90,8 +95,7 @@ int crl2pkcs7_main(int argc, char **argv)
             nocrl = 1;
             break;
         case OPT_CERTFILE:
-            if ((certflst == NULL)
-                && (certflst = sk_OPENSSL_STRING_new_null()) == NULL)
+            if ((certflst == NULL) && (certflst = sk_OPENSSL_STRING_new_null()) == NULL)
                 goto end;
             if (!sk_OPENSSL_STRING_push(certflst, opt_arg()))
                 goto end;
@@ -107,7 +111,8 @@ int crl2pkcs7_main(int argc, char **argv)
     if (!opt_check_rest_arg(NULL))
         goto opthelp;
 
-    if (!nocrl) {
+    if (!nocrl)
+    {
         in = bio_open_default(infile, 'r', informat);
         if (in == NULL)
             goto end;
@@ -116,7 +121,8 @@ int crl2pkcs7_main(int argc, char **argv)
             crl = d2i_X509_CRL_bio(in, NULL);
         else if (informat == FORMAT_PEM)
             crl = PEM_read_bio_X509_CRL(in, NULL, NULL, NULL);
-        if (crl == NULL) {
+        if (crl == NULL)
+        {
             BIO_printf(bio_err, "unable to load CRL\n");
             ERR_print_errors(bio_err);
             goto end;
@@ -134,24 +140,28 @@ int crl2pkcs7_main(int argc, char **argv)
     if (!ASN1_INTEGER_set(p7s->version, 1))
         goto end;
 
-    if (crl != NULL) {
+    if (crl != NULL)
+    {
         if ((crl_stack = sk_X509_CRL_new_null()) == NULL)
             goto end;
         p7s->crl = crl_stack;
 
         if (!sk_X509_CRL_push(crl_stack, crl))
             goto end;
-        crl = NULL;             /* now part of p7 for OPENSSL_freeing */
+        crl = NULL; /* now part of p7 for OPENSSL_freeing */
     }
 
-    if (certflst != NULL) {
+    if (certflst != NULL)
+    {
         if ((cert_stack = sk_X509_new_null()) == NULL)
             goto end;
         p7s->cert = cert_stack;
 
-        for (i = 0; i < sk_OPENSSL_STRING_num(certflst); i++) {
+        for (i = 0; i < sk_OPENSSL_STRING_num(certflst); i++)
+        {
             certfile = sk_OPENSSL_STRING_value(certflst, i);
-            if (add_certs_from_file(cert_stack, certfile) < 0) {
+            if (add_certs_from_file(cert_stack, certfile) < 0)
+            {
                 BIO_printf(bio_err, "error loading certificates\n");
                 ERR_print_errors(bio_err);
                 goto end;
@@ -167,13 +177,14 @@ int crl2pkcs7_main(int argc, char **argv)
         i = i2d_PKCS7_bio(out, p7);
     else if (outformat == FORMAT_PEM)
         i = PEM_write_bio_PKCS7(out, p7);
-    if (!i) {
+    if (!i)
+    {
         BIO_printf(bio_err, "unable to write pkcs7 object\n");
         ERR_print_errors(bio_err);
         goto end;
     }
     ret = 0;
- end:
+end:
     sk_OPENSSL_STRING_free(certflst);
     BIO_free(in);
     BIO_free_all(out);
@@ -202,23 +213,28 @@ static int add_certs_from_file(STACK_OF(X509) *stack, char *certfile)
     X509_INFO *xi;
 
     in = BIO_new_file(certfile, "r");
-    if (in == NULL) {
+    if (in == NULL)
+    {
         BIO_printf(bio_err, "error opening the file, %s\n", certfile);
         goto end;
     }
 
     /* This loads from a file, a stack of x509/crl/pkey sets */
     sk = PEM_X509_INFO_read_bio(in, NULL, NULL, NULL);
-    if (sk == NULL) {
+    if (sk == NULL)
+    {
         BIO_printf(bio_err, "error reading the file, %s\n", certfile);
         goto end;
     }
 
     /* scan over it and pull out the CRL's */
-    while (sk_X509_INFO_num(sk)) {
+    while (sk_X509_INFO_num(sk))
+    {
         xi = sk_X509_INFO_shift(sk);
-        if (xi->x509 != NULL) {
-            if (!sk_X509_push(stack, xi->x509)) {
+        if (xi->x509 != NULL)
+        {
+            if (!sk_X509_push(stack, xi->x509))
+            {
                 X509_INFO_free(xi);
                 goto end;
             }
@@ -229,7 +245,7 @@ static int add_certs_from_file(STACK_OF(X509) *stack, char *certfile)
     }
 
     ret = count;
- end:
+end:
     /* never need to OPENSSL_free x */
     BIO_free(in);
     sk_X509_INFO_free(sk);

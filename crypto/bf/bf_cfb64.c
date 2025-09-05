@@ -22,8 +22,7 @@
  * used is contained in *num;
  */
 
-void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-                      long length, const BF_KEY *schedule,
+void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out, long length, const BF_KEY *schedule,
                       unsigned char *ivec, int *num, int encrypt)
 {
     register BF_LONG v0, v1, t;
@@ -33,9 +32,12 @@ void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
     unsigned char *iv, c, cc;
 
     iv = (unsigned char *)ivec;
-    if (encrypt) {
-        while (l--) {
-            if (n == 0) {
+    if (encrypt)
+    {
+        while (l--)
+        {
+            if (n == 0)
+            {
                 n2l(iv, v0);
                 ti[0] = v0;
                 n2l(iv, v1);
@@ -53,9 +55,13 @@ void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
             iv[n] = c;
             n = (n + 1) & 0x07;
         }
-    } else {
-        while (l--) {
-            if (n == 0) {
+    }
+    else
+    {
+        while (l--)
+        {
+            if (n == 0)
+            {
                 n2l(iv, v0);
                 ti[0] = v0;
                 n2l(iv, v1);

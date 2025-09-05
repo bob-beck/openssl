@@ -8,25 +8,27 @@
  */
 
 #ifndef OSSL_MLX_KEM_H
-# define OSSL_MLX_KEM_H
-# pragma once
+#define OSSL_MLX_KEM_H
+#pragma once
 
 #include <openssl/evp.h>
 #include <openssl/ml_kem.h>
 #include <crypto/ml_kem.h>
 #include <crypto/ecx.h>
 
-typedef struct ecdh_vinfo_st {
+typedef struct ecdh_vinfo_st
+{
     const char *algorithm_name;
     const char *group_name;
-    size_t      pubkey_bytes;
-    size_t      prvkey_bytes;
-    size_t      shsec_bytes;
-    int         ml_kem_slot;
-    int         ml_kem_variant;
+    size_t pubkey_bytes;
+    size_t prvkey_bytes;
+    size_t shsec_bytes;
+    int ml_kem_slot;
+    int ml_kem_variant;
 } ECDH_VINFO;
 
-typedef struct mlx_key_st {
+typedef struct mlx_key_st
+{
     OSSL_LIB_CTX *libctx;
     char *propq;
     const ML_KEM_VINFO *minfo;

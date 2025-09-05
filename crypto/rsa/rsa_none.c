@@ -17,15 +17,16 @@
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 
-int RSA_padding_add_none(unsigned char *to, int tlen,
-                         const unsigned char *from, int flen)
+int RSA_padding_add_none(unsigned char *to, int tlen, const unsigned char *from, int flen)
 {
-    if (flen > tlen) {
+    if (flen > tlen)
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE);
         return 0;
     }
 
-    if (flen < tlen) {
+    if (flen < tlen)
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_DATA_TOO_SMALL_FOR_KEY_SIZE);
         return 0;
     }
@@ -34,11 +35,11 @@ int RSA_padding_add_none(unsigned char *to, int tlen,
     return 1;
 }
 
-int RSA_padding_check_none(unsigned char *to, int tlen,
-                           const unsigned char *from, int flen, int num)
+int RSA_padding_check_none(unsigned char *to, int tlen, const unsigned char *from, int flen, int num)
 {
 
-    if (flen > tlen) {
+    if (flen > tlen)
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_DATA_TOO_LARGE);
         return -1;
     }

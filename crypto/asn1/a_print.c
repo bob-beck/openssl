@@ -24,7 +24,8 @@ int ASN1_PRINTABLE_type(const unsigned char *s, int len)
     if (len < 0)
         len = (int)strlen((const char *)s);
 
-    while (len-- > 0) {
+    while (len-- > 0)
+    {
         c = *(s++);
         if (!ossl_isasn1print(c))
             ia5 = 1;
@@ -48,7 +49,8 @@ int ASN1_UNIVERSALSTRING_to_string(ASN1_UNIVERSALSTRING *s)
     if ((s->length % 4) != 0)
         return 0;
     p = s->data;
-    for (i = 0; i < s->length; i += 4) {
+    for (i = 0; i < s->length; i += 4)
+    {
         if ((p[0] != '\0') || (p[1] != '\0') || (p[2] != '\0'))
             break;
         else
@@ -57,7 +59,8 @@ int ASN1_UNIVERSALSTRING_to_string(ASN1_UNIVERSALSTRING *s)
     if (i < s->length)
         return 0;
     p = s->data;
-    for (i = 3; i < s->length; i += 4) {
+    for (i = 3; i < s->length; i += 4)
+    {
         *(p++) = s->data[i];
     }
     *(p) = '\0';
@@ -76,14 +79,15 @@ int ASN1_STRING_print(BIO *bp, const ASN1_STRING *v)
         return 0;
     n = 0;
     p = (const char *)v->data;
-    for (i = 0; i < v->length; i++) {
-        if ((p[i] > '~') || ((p[i] < ' ') &&
-                             (p[i] != '\n') && (p[i] != '\r')))
+    for (i = 0; i < v->length; i++)
+    {
+        if ((p[i] > '~') || ((p[i] < ' ') && (p[i] != '\n') && (p[i] != '\r')))
             buf[n] = '.';
         else
             buf[n] = p[i];
         n++;
-        if (n >= 80) {
+        if (n >= 80)
+        {
             if (BIO_write(bp, buf, n) <= 0)
                 return 0;
             n = 0;

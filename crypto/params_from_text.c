@@ -22,11 +22,9 @@
  * (if the size can be arbitrary, then we give whatever we have)
  */
 
-static int prepare_from_text(const OSSL_PARAM *paramdefs, const char *key,
-                             const char *value, size_t value_n,
+static int prepare_from_text(const OSSL_PARAM *paramdefs, const char *key, const char *value, size_t value_n,
                              /* Output parameters */
-                             const OSSL_PARAM **paramdef, int *ishex,
-                             size_t *buf_n, BIGNUM **tmpbn, int *found)
+                             const OSSL_PARAM **paramdef, int *ishex, size_t *buf_n, BIGNUM **tmpbn, int *found)
 {
     const OSSL_PARAM *p;
     size_t buf_bits;
@@ -44,7 +42,8 @@ static int prepare_from_text(const OSSL_PARAM *paramdefs, const char *key,
     if (p == NULL)
         return 0;
 
-    switch (p->data_type) {
+    switch (p->data_type)
+    {
     case OSSL_PARAM_INTEGER:
     case OSSL_PARAM_UNSIGNED_INTEGER:
         if (*ishex)
@@ -55,8 +54,8 @@ static int prepare_from_text(const OSSL_PARAM *paramdefs, const char *key,
         if (r == 0 || *tmpbn == NULL)
             return 0;
 
-        if (p->data_type == OSSL_PARAM_UNSIGNED_INTEGER
-            && BN_is_negative(*tmpbn)) {
+        if (p->data_type == OSSL_PARAM_UNSIGNED_INTEGER && BN_is_negative(*tmpbn))
+        {
             ERR_raise(ERR_LIB_CRYPTO, CRYPTO_R_INVALID_NEGATIVE_VALUE);
             return 0;
         }
@@ -71,8 +70,8 @@ static int prepare_from_text(const OSSL_PARAM *paramdefs, const char *key,
          * To subtract 1 from an absolute value of a negative number we
          * actually have to add 1: -3 - 1 = -4, |-3| = 3 + 1 = 4.
          */
-        if (p->data_type == OSSL_PARAM_INTEGER && BN_is_negative(*tmpbn)
-            && !BN_add_word(*tmpbn, 1)) {
+        if (p->data_type == OSSL_PARAM_INTEGER && BN_is_negative(*tmpbn) && !BN_add_word(*tmpbn, 1))
+        {
             return 0;
         }
 
@@ -97,8 +96,10 @@ static int prepare_from_text(const OSSL_PARAM *paramdefs, const char *key,
          * A zero data size means "arbitrary size", so only do the
          * range checking if a size is specified.
          */
-        if (p->data_size > 0) {
-            if (buf_bits > p->data_size * 8) {
+        if (p->data_size > 0)
+        {
+            if (buf_bits > p->data_size * 8)
+            {
                 ERR_raise(ERR_LIB_CRYPTO, CRYPTO_R_TOO_SMALL_BUFFER);
                 /* Since this is a different error, we don't break */
                 return 0;
@@ -108,22 +109,27 @@ static int prepare_from_text(const OSSL_PARAM *paramdefs, const char *key,
         }
         break;
     case OSSL_PARAM_UTF8_STRING:
-        if (*ishex) {
+        if (*ishex)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
             return 0;
         }
         *buf_n = strlen(value) + 1;
         break;
     case OSSL_PARAM_OCTET_STRING:
-        if (*ishex) {
+        if (*ishex)
+        {
             size_t hexdigits = strlen(value);
-            if ((hexdigits % 2) != 0) {
+            if ((hexdigits % 2) != 0)
+            {
                 /* We don't accept an odd number of hex digits */
                 ERR_raise(ERR_LIB_CRYPTO, CRYPTO_R_ODD_NUMBER_OF_DIGITS);
                 return 0;
             }
             *buf_n = hexdigits >> 1;
-        } else {
+        }
+        else
+        {
             *buf_n = value_n;
         }
         break;
@@ -132,15 +138,16 @@ static int prepare_from_text(const OSSL_PARAM *paramdefs, const char *key,
     return 1;
 }
 
-static int construct_from_text(OSSL_PARAM *to, const OSSL_PARAM *paramdef,
-                               const char *value, size_t value_n, int ishex,
+static int construct_from_text(OSSL_PARAM *to, const OSSL_PARAM *paramdef, const char *value, size_t value_n, int ishex,
                                void *buf, size_t buf_n, BIGNUM *tmpbn)
 {
     if (buf == NULL)
         return 0;
 
-    if (buf_n > 0) {
-        switch (paramdef->data_type) {
+    if (buf_n > 0)
+    {
+        switch (paramdef->data_type)
+        {
         case OSSL_PARAM_INTEGER:
         case OSSL_PARAM_UNSIGNED_INTEGER:
             /*
@@ -159,8 +166,8 @@ static int construct_from_text(OSSL_PARAM *to, const OSSL_PARAM *paramdef,
              * Because we did the first part on the BIGNUM itself, we can just
              * invert all the bytes here and be done with it.
              */
-            if (paramdef->data_type == OSSL_PARAM_INTEGER
-                && BN_is_negative(tmpbn)) {
+            if (paramdef->data_type == OSSL_PARAM_INTEGER && BN_is_negative(tmpbn))
+            {
                 unsigned char *cp;
                 size_t i = buf_n;
 
@@ -178,12 +185,15 @@ static int construct_from_text(OSSL_PARAM *to, const OSSL_PARAM *paramdef,
             buf_n--;
             break;
         case OSSL_PARAM_OCTET_STRING:
-            if (ishex) {
+            if (ishex)
+            {
                 size_t l = 0;
 
                 if (!OPENSSL_hexstr2buf_ex(buf, buf_n, &l, value, ':'))
                     return 0;
-            } else {
+            }
+            else
+            {
                 memcpy(buf, value, buf_n);
             }
             break;
@@ -199,7 +209,7 @@ static int construct_from_text(OSSL_PARAM *to, const OSSL_PARAM *paramdef,
 }
 
 /**
- * OSSL_PARAM_print_to_bio - Print OSSL_PARAM array to a bio 
+ * OSSL_PARAM_print_to_bio - Print OSSL_PARAM array to a bio
  *
  * @p:        Array of OSSL_PARAM structures containing keys and values.
  * @bio:      Pointer to bio where the formatted output will be written.
@@ -227,7 +237,8 @@ int OSSL_PARAM_print_to_bio(const OSSL_PARAM *p, BIO *bio, int print_values)
     /*
      * Iterate through each key in the array printing its key and value
      */
-    for (; p->key != NULL; p++) {
+    for (; p->key != NULL; p++)
+    {
         ok = -1;
         ok = BIO_printf(bio, "%s: ", p->key);
 
@@ -238,19 +249,24 @@ int OSSL_PARAM_print_to_bio(const OSSL_PARAM *p, BIO *bio, int print_values)
          * if printing of values was not requested, just move on
          * to the next param, after adding a newline to the buffer
          */
-        if (print_values == 0) {
+        if (print_values == 0)
+        {
             BIO_printf(bio, "\n");
             continue;
         }
 
-        switch (p->data_type) {
+        switch (p->data_type)
+        {
         case OSSL_PARAM_UNSIGNED_INTEGER:
-            if (p->data_size > sizeof(int64_t)) {
+            if (p->data_size > sizeof(int64_t))
+            {
                 if (OSSL_PARAM_get_BN(p, &bn))
                     ok = BN_print(bio, bn);
                 else
                     ok = BIO_printf(bio, "error getting value\n");
-            } else {
+            }
+            else
+            {
                 if (OSSL_PARAM_get_uint64(p, &u))
                     ok = BIO_printf(bio, "%llu\n", (unsigned long long int)u);
                 else
@@ -258,12 +274,15 @@ int OSSL_PARAM_print_to_bio(const OSSL_PARAM *p, BIO *bio, int print_values)
             }
             break;
         case OSSL_PARAM_INTEGER:
-            if (p->data_size > sizeof(int64_t)) {
+            if (p->data_size > sizeof(int64_t))
+            {
                 if (OSSL_PARAM_get_BN(p, &bn))
                     ok = BN_print(bio, bn);
                 else
                     ok = BIO_printf(bio, "error getting value\n");
-            } else {
+            }
+            else
+            {
                 if (OSSL_PARAM_get_int64(p, &i))
                     ok = BIO_printf(bio, "%lld\n", (long long int)i);
                 else
@@ -291,8 +310,7 @@ int OSSL_PARAM_print_to_bio(const OSSL_PARAM *p, BIO *bio, int print_values)
             break;
 #endif
         default:
-            ok = BIO_printf(bio, "unknown type (%u) of %zu bytes\n",
-                            p->data_type, p->data_size);
+            ok = BIO_printf(bio, "unknown type (%u) of %zu bytes\n", p->data_type, p->data_size);
             break;
         }
         if (ok == -1)
@@ -303,9 +321,7 @@ end:
     return ok == -1 ? 0 : 1;
 }
 
-int OSSL_PARAM_allocate_from_text(OSSL_PARAM *to,
-                                  const OSSL_PARAM *paramdefs,
-                                  const char *key, const char *value,
+int OSSL_PARAM_allocate_from_text(OSSL_PARAM *to, const OSSL_PARAM *paramdefs, const char *key, const char *value,
                                   size_t value_n, int *found)
 {
     const OSSL_PARAM *paramdef = NULL;
@@ -318,20 +334,18 @@ int OSSL_PARAM_allocate_from_text(OSSL_PARAM *to,
     if (to == NULL || paramdefs == NULL)
         return 0;
 
-    if (!prepare_from_text(paramdefs, key, value, value_n,
-                           &paramdef, &ishex, &buf_n, &tmpbn, found))
+    if (!prepare_from_text(paramdefs, key, value, value_n, &paramdef, &ishex, &buf_n, &tmpbn, found))
         goto err;
 
     if ((buf = OPENSSL_zalloc(buf_n > 0 ? buf_n : 1)) == NULL)
         goto err;
 
-    ok = construct_from_text(to, paramdef, value, value_n, ishex,
-                             buf, buf_n, tmpbn);
+    ok = construct_from_text(to, paramdef, value, value_n, ishex, buf, buf_n, tmpbn);
     BN_free(tmpbn);
     if (!ok)
         OPENSSL_free(buf);
     return ok;
- err:
+err:
     BN_free(tmpbn);
     return 0;
 }

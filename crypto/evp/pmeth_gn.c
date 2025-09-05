@@ -17,7 +17,7 @@
 #include <openssl/evp.h>
 #include "crypto/bn.h"
 #ifndef FIPS_MODULE
-# include "crypto/asn1.h"
+#include "crypto/asn1.h"
 #endif
 #include "crypto/evp.h"
 #include "evp_local.h"
@@ -35,16 +35,13 @@ static int gen_init(EVP_PKEY_CTX *ctx, int operation)
     if (ctx->keymgmt == NULL || ctx->keymgmt->gen_init == NULL)
         goto legacy;
 
-    switch (operation) {
+    switch (operation)
+    {
     case EVP_PKEY_OP_PARAMGEN:
-        ctx->op.keymgmt.genctx =
-            evp_keymgmt_gen_init(ctx->keymgmt,
-                                 OSSL_KEYMGMT_SELECT_ALL_PARAMETERS, NULL);
+        ctx->op.keymgmt.genctx = evp_keymgmt_gen_init(ctx->keymgmt, OSSL_KEYMGMT_SELECT_ALL_PARAMETERS, NULL);
         break;
     case EVP_PKEY_OP_KEYGEN:
-        ctx->op.keymgmt.genctx =
-            evp_keymgmt_gen_init(ctx->keymgmt, OSSL_KEYMGMT_SELECT_KEYPAIR,
-                                 NULL);
+        ctx->op.keymgmt.genctx = evp_keymgmt_gen_init(ctx->keymgmt, OSSL_KEYMGMT_SELECT_KEYPAIR, NULL);
         break;
     }
 
@@ -54,19 +51,17 @@ static int gen_init(EVP_PKEY_CTX *ctx, int operation)
         ret = 1;
     goto end;
 
- legacy:
+legacy:
 #ifdef FIPS_MODULE
     goto not_supported;
 #else
-    if (ctx->pmeth == NULL
-        || (operation == EVP_PKEY_OP_PARAMGEN
-            && ctx->pmeth->paramgen == NULL)
-        || (operation == EVP_PKEY_OP_KEYGEN
-            && ctx->pmeth->keygen == NULL))
+    if (ctx->pmeth == NULL || (operation == EVP_PKEY_OP_PARAMGEN && ctx->pmeth->paramgen == NULL) ||
+        (operation == EVP_PKEY_OP_KEYGEN && ctx->pmeth->keygen == NULL))
         goto not_supported;
 
     ret = 1;
-    switch (operation) {
+    switch (operation)
+    {
     case EVP_PKEY_OP_PARAMGEN:
         if (ctx->pmeth->paramgen_init != NULL)
             ret = ctx->pmeth->paramgen_init(ctx);
@@ -78,14 +73,15 @@ static int gen_init(EVP_PKEY_CTX *ctx, int operation)
     }
 #endif
 
- end:
-    if (ret <= 0 && ctx != NULL) {
+end:
+    if (ret <= 0 && ctx != NULL)
+    {
         evp_pkey_ctx_free_old_ops(ctx);
         ctx->operation = EVP_PKEY_OP_UNDEFINED;
     }
     return ret;
 
- not_supported:
+not_supported:
     ERR_raise(ERR_LIB_EVP, EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE);
     ret = -2;
     goto end;
@@ -108,15 +104,11 @@ static int ossl_callback_to_pkey_gencb(const OSSL_PARAM params[], void *arg)
     int p = -1, n = -1;
 
     if (ctx->pkey_gencb == NULL)
-        return 1;                /* No callback?  That's fine */
+        return 1; /* No callback?  That's fine */
 
-    if ((param = OSSL_PARAM_locate_const(params, OSSL_GEN_PARAM_POTENTIAL))
-        == NULL
-        || !OSSL_PARAM_get_int(param, &p))
+    if ((param = OSSL_PARAM_locate_const(params, OSSL_GEN_PARAM_POTENTIAL)) == NULL || !OSSL_PARAM_get_int(param, &p))
         return 0;
-    if ((param = OSSL_PARAM_locate_const(params, OSSL_GEN_PARAM_ITERATION))
-        == NULL
-        || !OSSL_PARAM_get_int(param, &n))
+    if ((param = OSSL_PARAM_locate_const(params, OSSL_GEN_PARAM_ITERATION)) == NULL || !OSSL_PARAM_get_int(param, &n))
         return 0;
 
     ctx->keygen_info[0] = p;
@@ -144,7 +136,8 @@ int EVP_PKEY_generate(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey)
     if (*ppkey == NULL)
         *ppkey = allocated_pkey = EVP_PKEY_new();
 
-    if (*ppkey == NULL) {
+    if (*ppkey == NULL)
+    {
         ERR_raise(ERR_LIB_EVP, ERR_R_EVP_LIB);
         return -1;
     }
@@ -165,11 +158,10 @@ int EVP_PKEY_generate(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey)
     ctx->keygen_info_count = 2;
 
     ret = 1;
-    if (ctx->pkey != NULL) {
+    if (ctx->pkey != NULL)
+    {
         EVP_KEYMGMT *tmp_keymgmt = ctx->keymgmt;
-        void *keydata =
-            evp_pkey_export_to_provider(ctx->pkey, ctx->libctx,
-                                        &tmp_keymgmt, ctx->propquery);
+        void *keydata = evp_pkey_export_to_provider(ctx->pkey, ctx->libctx, &tmp_keymgmt, ctx->propquery);
 
         if (tmp_keymgmt == NULL)
             goto not_supported;
@@ -177,18 +169,15 @@ int EVP_PKEY_generate(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey)
          * It's ok if keydata is NULL here.  The backend is expected to deal
          * with that as it sees fit.
          */
-        ret = evp_keymgmt_gen_set_template(ctx->keymgmt,
-                                           ctx->op.keymgmt.genctx, keydata);
+        ret = evp_keymgmt_gen_set_template(ctx->keymgmt, ctx->op.keymgmt.genctx, keydata);
     }
 
     /*
      * the returned value from evp_keymgmt_util_gen() is cached in *ppkey,
      * so we do not need to save it, just check it.
      */
-    ret = ret
-        && (evp_keymgmt_util_gen(*ppkey, ctx->keymgmt, ctx->op.keymgmt.genctx,
-                                 ossl_callback_to_pkey_gencb, ctx)
-            != NULL);
+    ret = ret && (evp_keymgmt_util_gen(*ppkey, ctx->keymgmt, ctx->op.keymgmt.genctx, ossl_callback_to_pkey_gencb,
+                                       ctx) != NULL);
 
     ctx->keygen_info = NULL;
 
@@ -205,7 +194,7 @@ int EVP_PKEY_generate(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey)
 
     goto end;
 
- legacy:
+legacy:
 #ifdef FIPS_MODULE
     goto not_supported;
 #else
@@ -220,7 +209,8 @@ int EVP_PKEY_generate(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey)
     if (ctx->pkey != NULL && !ossl_assert(!evp_pkey_is_provided(ctx->pkey)))
         goto not_accessible;
 
-    switch (ctx->operation) {
+    switch (ctx->operation)
+    {
     case EVP_PKEY_OP_PARAMGEN:
         ret = ctx->pmeth->paramgen(ctx, *ppkey);
         break;
@@ -232,24 +222,25 @@ int EVP_PKEY_generate(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey)
     }
 #endif
 
- end:
-    if (ret <= 0) {
+end:
+    if (ret <= 0)
+    {
         if (allocated_pkey != NULL)
             *ppkey = NULL;
         EVP_PKEY_free(allocated_pkey);
     }
     return ret;
 
- not_supported:
+not_supported:
     ERR_raise(ERR_LIB_EVP, EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE);
     ret = -2;
     goto end;
- not_initialized:
+not_initialized:
     ERR_raise(ERR_LIB_EVP, EVP_R_OPERATION_NOT_INITIALIZED);
     ret = -1;
     goto end;
 #ifndef FIPS_MODULE
- not_accessible:
+not_accessible:
     ERR_raise(ERR_LIB_EVP, EVP_R_INACCESSIBLE_DOMAIN_PARAMETERS);
     ret = -1;
     goto end;
@@ -258,7 +249,8 @@ int EVP_PKEY_generate(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey)
 
 int EVP_PKEY_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey)
 {
-    if (ctx->operation != EVP_PKEY_OP_PARAMGEN) {
+    if (ctx->operation != EVP_PKEY_OP_PARAMGEN)
+    {
         ERR_raise(ERR_LIB_EVP, EVP_R_OPERATION_NOT_INITIALIZED);
         return -1;
     }
@@ -267,7 +259,8 @@ int EVP_PKEY_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey)
 
 int EVP_PKEY_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey)
 {
-    if (ctx->operation != EVP_PKEY_OP_KEYGEN) {
+    if (ctx->operation != EVP_PKEY_OP_KEYGEN)
+    {
         ERR_raise(ERR_LIB_EVP, EVP_R_OPERATION_NOT_INITIALIZED);
         return -1;
     }
@@ -313,8 +306,7 @@ int EVP_PKEY_CTX_get_keygen_info(EVP_PKEY_CTX *ctx, int idx)
 
 #ifndef FIPS_MODULE
 
-EVP_PKEY *EVP_PKEY_new_mac_key(int type, ENGINE *e,
-                               const unsigned char *key, int keylen)
+EVP_PKEY *EVP_PKEY_new_mac_key(int type, ENGINE *e, const unsigned char *key, int keylen)
 {
     EVP_PKEY_CTX *mac_ctx = NULL;
     EVP_PKEY *mac_key = NULL;
@@ -327,7 +319,7 @@ EVP_PKEY *EVP_PKEY_new_mac_key(int type, ENGINE *e,
         goto merr;
     if (EVP_PKEY_keygen(mac_ctx, &mac_key) <= 0)
         goto merr;
- merr:
+merr:
     EVP_PKEY_CTX_free(mac_ctx);
     return mac_key;
 }
@@ -348,7 +340,7 @@ static int fromdata_init(EVP_PKEY_CTX *ctx, int operation)
     ctx->operation = operation;
     return 1;
 
- not_supported:
+not_supported:
     if (ctx != NULL)
         ctx->operation = EVP_PKEY_OP_UNDEFINED;
     ERR_raise(ERR_LIB_EVP, EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE);
@@ -360,13 +352,13 @@ int EVP_PKEY_fromdata_init(EVP_PKEY_CTX *ctx)
     return fromdata_init(ctx, EVP_PKEY_OP_FROMDATA);
 }
 
-int EVP_PKEY_fromdata(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey, int selection,
-                      OSSL_PARAM params[])
+int EVP_PKEY_fromdata(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey, int selection, OSSL_PARAM params[])
 {
     void *keydata = NULL;
     EVP_PKEY *allocated_pkey = NULL;
 
-    if (ctx == NULL || (ctx->operation & EVP_PKEY_OP_FROMDATA) == 0) {
+    if (ctx == NULL || (ctx->operation & EVP_PKEY_OP_FROMDATA) == 0)
+    {
         ERR_raise(ERR_LIB_EVP, EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE);
         return -2;
     }
@@ -377,14 +369,17 @@ int EVP_PKEY_fromdata(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey, int selection,
     if (*ppkey == NULL)
         allocated_pkey = *ppkey = EVP_PKEY_new();
 
-    if (*ppkey == NULL) {
+    if (*ppkey == NULL)
+    {
         ERR_raise(ERR_LIB_EVP, ERR_R_EVP_LIB);
         return -1;
     }
 
     keydata = evp_keymgmt_util_fromdata(*ppkey, ctx->keymgmt, selection, params);
-    if (keydata == NULL) {
-        if (allocated_pkey != NULL) {
+    if (keydata == NULL)
+    {
+        if (allocated_pkey != NULL)
+        {
             *ppkey = NULL;
             EVP_PKEY_free(allocated_pkey);
         }
@@ -420,14 +415,14 @@ int EVP_PKEY_todata(const EVP_PKEY *pkey, int selection, OSSL_PARAM **params)
 }
 
 #ifndef FIPS_MODULE
-struct fake_import_data_st {
+struct fake_import_data_st
+{
     OSSL_CALLBACK *export_cb;
     void *export_cbarg;
 };
 
 static OSSL_FUNC_keymgmt_import_fn pkey_fake_import;
-static int pkey_fake_import(void *fake_keydata, int ignored_selection,
-                            const OSSL_PARAM params[])
+static int pkey_fake_import(void *fake_keydata, int ignored_selection, const OSSL_PARAM params[])
 {
     struct fake_import_data_st *data = fake_keydata;
 
@@ -435,15 +430,16 @@ static int pkey_fake_import(void *fake_keydata, int ignored_selection,
 }
 #endif
 
-int EVP_PKEY_export(const EVP_PKEY *pkey, int selection,
-                    OSSL_CALLBACK *export_cb, void *export_cbarg)
+int EVP_PKEY_export(const EVP_PKEY *pkey, int selection, OSSL_CALLBACK *export_cb, void *export_cbarg)
 {
-    if (pkey == NULL) {
+    if (pkey == NULL)
+    {
         ERR_raise(ERR_LIB_EVP, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
 #ifndef FIPS_MODULE
-    if (evp_pkey_is_legacy(pkey)) {
+    if (evp_pkey_is_legacy(pkey))
+    {
         struct fake_import_data_st data;
 
         data.export_cb = export_cb;
@@ -453,8 +449,7 @@ int EVP_PKEY_export(const EVP_PKEY *pkey, int selection,
          * We don't need to care about libctx or propq here, as we're only
          * interested in the resulting OSSL_PARAM array.
          */
-        return pkey->ameth->export_to(pkey, &data, pkey_fake_import,
-                                      NULL, NULL);
+        return pkey->ameth->export_to(pkey, &data, pkey_fake_import, NULL, NULL);
     }
 #endif
     return evp_keymgmt_util_export(pkey, selection, export_cb, export_cbarg);

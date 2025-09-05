@@ -13,7 +13,7 @@
 #include "names.h"
 #include "internal/e_os.h"
 
-int name_cmp(const char * const *a, const char * const *b)
+int name_cmp(const char *const *a, const char *const *b)
 {
     return OPENSSL_strcasecmp(*a, *b);
 }
@@ -34,7 +34,8 @@ void print_names(BIO *out, STACK_OF(OPENSSL_CSTRING) *names)
     sk_OPENSSL_CSTRING_sort(names);
     if (i > 1)
         BIO_printf(out, "{ ");
-    for (j = 0; j < i; j++) {
+    for (j = 0; j < i; j++)
+    {
         const char *name = sk_OPENSSL_CSTRING_value(names, j);
 
         if (j > 0)

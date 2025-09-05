@@ -27,11 +27,11 @@ static OSSL_FUNC_provider_gettable_params_fn legacy_gettable_params;
 static OSSL_FUNC_provider_get_params_fn legacy_get_params;
 static OSSL_FUNC_provider_query_operation_fn legacy_query;
 
-#define ALG(NAMES, FUNC) { NAMES, "provider=legacy", FUNC }
+#define ALG(NAMES, FUNC) {NAMES, "provider=legacy", FUNC}
 
 #ifdef STATIC_LEGACY
 OSSL_provider_init_fn ossl_legacy_provider_init;
-# define OSSL_provider_init ossl_legacy_provider_init
+#define OSSL_provider_init ossl_legacy_provider_init
 #endif
 
 #ifndef STATIC_LEGACY
@@ -56,9 +56,7 @@ static const OSSL_PARAM legacy_param_types[] = {
     OSSL_PARAM_DEFN(OSSL_PROV_PARAM_NAME, OSSL_PARAM_UTF8_PTR, NULL, 0),
     OSSL_PARAM_DEFN(OSSL_PROV_PARAM_VERSION, OSSL_PARAM_UTF8_PTR, NULL, 0),
     OSSL_PARAM_DEFN(OSSL_PROV_PARAM_BUILDINFO, OSSL_PARAM_UTF8_PTR, NULL, 0),
-    OSSL_PARAM_DEFN(OSSL_PROV_PARAM_STATUS, OSSL_PARAM_INTEGER, NULL, 0),
-    OSSL_PARAM_END
-};
+    OSSL_PARAM_DEFN(OSSL_PROV_PARAM_STATUS, OSSL_PARAM_INTEGER, NULL, 0), OSSL_PARAM_END};
 
 static const OSSL_PARAM *legacy_gettable_params(void *provctx)
 {
@@ -100,8 +98,7 @@ static const OSSL_ALGORITHM legacy_digests[] = {
 #ifndef OPENSSL_NO_RMD160
     ALG(PROV_NAMES_RIPEMD_160, ossl_ripemd160_functions),
 #endif /* OPENSSL_NO_RMD160 */
-    { NULL, NULL, NULL }
-};
+    {NULL, NULL, NULL}};
 
 static const OSSL_ALGORITHM legacy_ciphers[] = {
 #ifndef OPENSSL_NO_CAST
@@ -139,9 +136,9 @@ static const OSSL_ALGORITHM legacy_ciphers[] = {
 #ifndef OPENSSL_NO_RC4
     ALG(PROV_NAMES_RC4, ossl_rc4128_functions),
     ALG(PROV_NAMES_RC4_40, ossl_rc440_functions),
-# ifndef OPENSSL_NO_MD5
+#ifndef OPENSSL_NO_MD5
     ALG(PROV_NAMES_RC4_HMAC_MD5, ossl_rc4_hmac_ossl_md5_functions),
-# endif /* OPENSSL_NO_MD5 */
+#endif /* OPENSSL_NO_MD5 */
 #endif /* OPENSSL_NO_RC4 */
 #ifndef OPENSSL_NO_RC5
     ALG(PROV_NAMES_RC5_ECB, ossl_rc5128ecb_functions),
@@ -158,20 +155,17 @@ static const OSSL_ALGORITHM legacy_ciphers[] = {
     ALG(PROV_NAMES_DES_CFB1, ossl_des_cfb1_functions),
     ALG(PROV_NAMES_DES_CFB8, ossl_des_cfb8_functions),
 #endif /* OPENSSL_NO_DES */
-    { NULL, NULL, NULL }
-};
+    {NULL, NULL, NULL}};
 
-static const OSSL_ALGORITHM legacy_kdfs[] = {
-    ALG(PROV_NAMES_PBKDF1, ossl_kdf_pbkdf1_functions),
-    ALG(PROV_NAMES_PVKKDF, ossl_kdf_pvk_functions),
-    { NULL, NULL, NULL }
-};
+static const OSSL_ALGORITHM legacy_kdfs[] = {ALG(PROV_NAMES_PBKDF1, ossl_kdf_pbkdf1_functions),
+                                             ALG(PROV_NAMES_PVKKDF, ossl_kdf_pvk_functions),
+                                             {NULL, NULL, NULL}};
 
-static const OSSL_ALGORITHM *legacy_query(void *provctx, int operation_id,
-                                          int *no_cache)
+static const OSSL_ALGORITHM *legacy_query(void *provctx, int operation_id, int *no_cache)
 {
     *no_cache = 0;
-    switch (operation_id) {
+    switch (operation_id)
+    {
     case OSSL_OP_DIGEST:
         return legacy_digests;
     case OSSL_OP_CIPHER:
@@ -190,16 +184,13 @@ static void legacy_teardown(void *provctx)
 
 /* Functions we provide to the core */
 static const OSSL_DISPATCH legacy_dispatch_table[] = {
-    { OSSL_FUNC_PROVIDER_TEARDOWN, (void (*)(void))legacy_teardown },
-    { OSSL_FUNC_PROVIDER_GETTABLE_PARAMS, (void (*)(void))legacy_gettable_params },
-    { OSSL_FUNC_PROVIDER_GET_PARAMS, (void (*)(void))legacy_get_params },
-    { OSSL_FUNC_PROVIDER_QUERY_OPERATION, (void (*)(void))legacy_query },
-    OSSL_DISPATCH_END
-};
+    {OSSL_FUNC_PROVIDER_TEARDOWN, (void (*)(void))legacy_teardown},
+    {OSSL_FUNC_PROVIDER_GETTABLE_PARAMS, (void (*)(void))legacy_gettable_params},
+    {OSSL_FUNC_PROVIDER_GET_PARAMS, (void (*)(void))legacy_get_params},
+    {OSSL_FUNC_PROVIDER_QUERY_OPERATION, (void (*)(void))legacy_query},
+    OSSL_DISPATCH_END};
 
-int OSSL_provider_init(const OSSL_CORE_HANDLE *handle,
-                       const OSSL_DISPATCH *in,
-                       const OSSL_DISPATCH **out,
+int OSSL_provider_init(const OSSL_CORE_HANDLE *handle, const OSSL_DISPATCH *in, const OSSL_DISPATCH **out,
                        void **provctx)
 {
     OSSL_LIB_CTX *libctx = NULL;
@@ -208,14 +199,20 @@ int OSSL_provider_init(const OSSL_CORE_HANDLE *handle,
 #endif
 
 #ifndef STATIC_LEGACY
-    for (tmp = in; tmp->function_id != 0; tmp++) {
+    for (tmp = in; tmp->function_id != 0; tmp++)
+    {
         /*
          * We do not support the scenario of an application linked against
          * multiple versions of libcrypto (e.g. one static and one dynamic),
          * but sharing a single legacy.so. We do a simple sanity check here.
          */
-#define set_func(c, f) if (c == NULL) c = f; else if (c != f) return 0;
-        switch (tmp->function_id) {
+#define set_func(c, f)                                                                                                 \
+    if (c == NULL)                                                                                                     \
+        c = f;                                                                                                         \
+    else if (c != f)                                                                                                   \
+        return 0;
+        switch (tmp->function_id)
+        {
         case OSSL_FUNC_CORE_NEW_ERROR:
             set_func(c_new_error, OSSL_FUNC_core_new_error(tmp));
             break;
@@ -229,8 +226,7 @@ int OSSL_provider_init(const OSSL_CORE_HANDLE *handle,
             set_func(c_set_error_mark, OSSL_FUNC_core_set_error_mark(tmp));
             break;
         case OSSL_FUNC_CORE_CLEAR_LAST_ERROR_MARK:
-            set_func(c_clear_last_error_mark,
-                     OSSL_FUNC_core_clear_last_error_mark(tmp));
+            set_func(c_clear_last_error_mark, OSSL_FUNC_core_clear_last_error_mark(tmp));
             break;
         case OSSL_FUNC_CORE_POP_ERROR_TO_MARK:
             set_func(c_pop_error_to_mark, OSSL_FUNC_core_pop_error_to_mark(tmp));
@@ -242,8 +238,8 @@ int OSSL_provider_init(const OSSL_CORE_HANDLE *handle,
     }
 #endif
 
-    if ((*provctx = ossl_prov_ctx_new()) == NULL
-        || (libctx = OSSL_LIB_CTX_new_child(handle, in)) == NULL) {
+    if ((*provctx = ossl_prov_ctx_new()) == NULL || (libctx = OSSL_LIB_CTX_new_child(handle, in)) == NULL)
+    {
         OSSL_LIB_CTX_free(libctx);
         legacy_teardown(*provctx);
         *provctx = NULL;

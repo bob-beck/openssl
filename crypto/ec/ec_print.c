@@ -13,9 +13,7 @@
 #include "ec_local.h"
 
 /* the return value must be freed (using OPENSSL_free()) */
-char *EC_POINT_point2hex(const EC_GROUP *group,
-                         const EC_POINT *point,
-                         point_conversion_form_t form, BN_CTX *ctx)
+char *EC_POINT_point2hex(const EC_GROUP *group, const EC_POINT *point, point_conversion_form_t form, BN_CTX *ctx)
 {
     char *ret, *p;
     size_t buf_len, i;
@@ -35,13 +33,12 @@ char *EC_POINT_point2hex(const EC_GROUP *group,
         p += ossl_to_hex(p, buf[i]);
     *p = '\0';
 
- err:
+err:
     OPENSSL_free(buf);
     return ret;
 }
 
-EC_POINT *EC_POINT_hex2point(const EC_GROUP *group,
-                             const char *hex, EC_POINT *point, BN_CTX *ctx)
+EC_POINT *EC_POINT_hex2point(const EC_GROUP *group, const char *hex, EC_POINT *point, BN_CTX *ctx)
 {
     int ok = 0;
     unsigned char *oct_buf = NULL;
@@ -51,11 +48,14 @@ EC_POINT *EC_POINT_hex2point(const EC_GROUP *group,
     if (group == NULL || hex == NULL)
         return NULL;
 
-    if (point == NULL) {
+    if (point == NULL)
+    {
         pt = EC_POINT_new(group);
         if (pt == NULL)
             goto err;
-    } else {
+    }
+    else
+    {
         pt = point;
     }
 
@@ -64,13 +64,14 @@ EC_POINT *EC_POINT_hex2point(const EC_GROUP *group,
     if (oct_buf == NULL)
         goto err;
 
-    if (!OPENSSL_hexstr2buf_ex(oct_buf, len, &oct_buf_len, hex, '\0')
-        || !EC_POINT_oct2point(group, pt, oct_buf, oct_buf_len, ctx))
+    if (!OPENSSL_hexstr2buf_ex(oct_buf, len, &oct_buf_len, hex, '\0') ||
+        !EC_POINT_oct2point(group, pt, oct_buf, oct_buf_len, ctx))
         goto err;
     ok = 1;
 err:
     OPENSSL_clear_free(oct_buf, oct_buf_len);
-    if (!ok) {
+    if (!ok)
+    {
         if (pt != point)
             EC_POINT_clear_free(pt);
         pt = NULL;

@@ -8,7 +8,7 @@
  */
 
 #ifdef OPENSSL_NO_CT
-# error "CT is disabled"
+#error "CT is disabled"
 #endif
 
 #include <openssl/ct.h>
@@ -25,8 +25,7 @@
  */
 static const time_t SCT_CLOCK_DRIFT_TOLERANCE = 300;
 
-CT_POLICY_EVAL_CTX *CT_POLICY_EVAL_CTX_new_ex(OSSL_LIB_CTX *libctx,
-                                              const char *propq)
+CT_POLICY_EVAL_CTX *CT_POLICY_EVAL_CTX_new_ex(OSSL_LIB_CTX *libctx, const char *propq)
 {
     CT_POLICY_EVAL_CTX *ctx = OPENSSL_zalloc(sizeof(CT_POLICY_EVAL_CTX));
     OSSL_TIME now;
@@ -35,16 +34,17 @@ CT_POLICY_EVAL_CTX *CT_POLICY_EVAL_CTX_new_ex(OSSL_LIB_CTX *libctx,
         return NULL;
 
     ctx->libctx = libctx;
-    if (propq != NULL) {
+    if (propq != NULL)
+    {
         ctx->propq = OPENSSL_strdup(propq);
-        if (ctx->propq == NULL) {
+        if (ctx->propq == NULL)
+        {
             OPENSSL_free(ctx);
             return NULL;
         }
     }
 
-    now = ossl_time_add(ossl_time_now(),
-                        ossl_seconds2time(SCT_CLOCK_DRIFT_TOLERANCE));
+    now = ossl_time_add(ossl_time_now(), ossl_seconds2time(SCT_CLOCK_DRIFT_TOLERANCE));
     ctx->epoch_time_in_ms = ossl_time2ms(now);
 
     return ctx;
@@ -81,8 +81,7 @@ int CT_POLICY_EVAL_CTX_set1_issuer(CT_POLICY_EVAL_CTX *ctx, X509 *issuer)
     return 1;
 }
 
-void CT_POLICY_EVAL_CTX_set_shared_CTLOG_STORE(CT_POLICY_EVAL_CTX *ctx,
-                                               CTLOG_STORE *log_store)
+void CT_POLICY_EVAL_CTX_set_shared_CTLOG_STORE(CT_POLICY_EVAL_CTX *ctx, CTLOG_STORE *log_store)
 {
     ctx->log_store = log_store;
 }
@@ -92,12 +91,12 @@ void CT_POLICY_EVAL_CTX_set_time(CT_POLICY_EVAL_CTX *ctx, uint64_t time_in_ms)
     ctx->epoch_time_in_ms = time_in_ms;
 }
 
-X509* CT_POLICY_EVAL_CTX_get0_cert(const CT_POLICY_EVAL_CTX *ctx)
+X509 *CT_POLICY_EVAL_CTX_get0_cert(const CT_POLICY_EVAL_CTX *ctx)
 {
     return ctx->cert;
 }
 
-X509* CT_POLICY_EVAL_CTX_get0_issuer(const CT_POLICY_EVAL_CTX *ctx)
+X509 *CT_POLICY_EVAL_CTX_get0_issuer(const CT_POLICY_EVAL_CTX *ctx)
 {
     return ctx->issuer;
 }

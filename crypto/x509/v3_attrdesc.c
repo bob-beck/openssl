@@ -24,8 +24,7 @@ ASN1_SEQUENCE(OSSL_INFO_SYNTAX_POINTER) = {
 
 ASN1_CHOICE(OSSL_INFO_SYNTAX) = {
     ASN1_SIMPLE(OSSL_INFO_SYNTAX, choice.content, DIRECTORYSTRING),
-    ASN1_SIMPLE(OSSL_INFO_SYNTAX, choice.pointer, OSSL_INFO_SYNTAX_POINTER)
-} ASN1_CHOICE_END(OSSL_INFO_SYNTAX)
+    ASN1_SIMPLE(OSSL_INFO_SYNTAX, choice.pointer, OSSL_INFO_SYNTAX_POINTER)} ASN1_CHOICE_END(OSSL_INFO_SYNTAX)
 
 ASN1_SEQUENCE(OSSL_PRIVILEGE_POLICY_ID) = {
     ASN1_SIMPLE(OSSL_PRIVILEGE_POLICY_ID, privilegePolicy, ASN1_OBJECT),
@@ -46,9 +45,7 @@ IMPLEMENT_ASN1_FUNCTIONS(OSSL_INFO_SYNTAX_POINTER)
 IMPLEMENT_ASN1_FUNCTIONS(OSSL_PRIVILEGE_POLICY_ID)
 IMPLEMENT_ASN1_FUNCTIONS(OSSL_ATTRIBUTE_DESCRIPTOR)
 
-static int i2r_HASH(X509V3_EXT_METHOD *method,
-                    OSSL_HASH *hash,
-                    BIO *out, int indent)
+static int i2r_HASH(X509V3_EXT_METHOD *method, OSSL_HASH *hash, BIO *out, int indent)
 {
     if (BIO_printf(out, "%*sAlgorithm: ", indent, "") <= 0)
         return 0;
@@ -56,11 +53,11 @@ static int i2r_HASH(X509V3_EXT_METHOD *method,
         return 0;
     if (BIO_puts(out, "\n") <= 0)
         return 0;
-    if (hash->algorithmIdentifier->parameter) {
+    if (hash->algorithmIdentifier->parameter)
+    {
         if (BIO_printf(out, "%*sParameter: ", indent, "") <= 0)
             return 0;
-        if (ossl_print_attribute_value(out, 0, hash->algorithmIdentifier->parameter,
-                                       indent + 4) <= 0)
+        if (ossl_print_attribute_value(out, 0, hash->algorithmIdentifier->parameter, indent + 4) <= 0)
             return 0;
         if (BIO_puts(out, "\n") <= 0)
             return 0;
@@ -72,9 +69,7 @@ static int i2r_HASH(X509V3_EXT_METHOD *method,
     return ossl_bio_print_hex(out, hash->hashValue->data, hash->hashValue->length);
 }
 
-static int i2r_INFO_SYNTAX_POINTER(X509V3_EXT_METHOD *method,
-                                   OSSL_INFO_SYNTAX_POINTER *pointer,
-                                   BIO *out, int indent)
+static int i2r_INFO_SYNTAX_POINTER(X509V3_EXT_METHOD *method, OSSL_INFO_SYNTAX_POINTER *pointer, BIO *out, int indent)
 {
     if (BIO_printf(out, "%*sNames:\n", indent, "") <= 0)
         return 0;
@@ -82,7 +77,8 @@ static int i2r_INFO_SYNTAX_POINTER(X509V3_EXT_METHOD *method,
         return 0;
     if (BIO_puts(out, "\n") <= 0)
         return 0;
-    if (pointer->hash != NULL) {
+    if (pointer->hash != NULL)
+    {
         if (BIO_printf(out, "%*sHash:\n", indent, "") <= 0)
             return 0;
         if (i2r_HASH(method, pointer->hash, out, indent + 4) <= 0)
@@ -91,11 +87,10 @@ static int i2r_INFO_SYNTAX_POINTER(X509V3_EXT_METHOD *method,
     return 1;
 }
 
-static int i2r_OSSL_INFO_SYNTAX(X509V3_EXT_METHOD *method,
-                                OSSL_INFO_SYNTAX *info,
-                                BIO *out, int indent)
+static int i2r_OSSL_INFO_SYNTAX(X509V3_EXT_METHOD *method, OSSL_INFO_SYNTAX *info, BIO *out, int indent)
 {
-    switch (info->type) {
+    switch (info->type)
+    {
     case OSSL_INFO_SYNTAX_TYPE_CONTENT:
         if (BIO_printf(out, "%*sContent: ", indent, "") <= 0)
             return 0;
@@ -114,9 +109,7 @@ static int i2r_OSSL_INFO_SYNTAX(X509V3_EXT_METHOD *method,
     return 0;
 }
 
-static int i2r_OSSL_PRIVILEGE_POLICY_ID(X509V3_EXT_METHOD *method,
-                                        OSSL_PRIVILEGE_POLICY_ID *ppid,
-                                        BIO *out, int indent)
+static int i2r_OSSL_PRIVILEGE_POLICY_ID(X509V3_EXT_METHOD *method, OSSL_PRIVILEGE_POLICY_ID *ppid, BIO *out, int indent)
 {
     char buf[80];
 
@@ -130,9 +123,7 @@ static int i2r_OSSL_PRIVILEGE_POLICY_ID(X509V3_EXT_METHOD *method,
     return i2r_OSSL_INFO_SYNTAX(method, ppid->privPolSyntax, out, indent + 4);
 }
 
-static int i2r_OSSL_ATTRIBUTE_DESCRIPTOR(X509V3_EXT_METHOD *method,
-                                         OSSL_ATTRIBUTE_DESCRIPTOR *ad,
-                                         BIO *out, int indent)
+static int i2r_OSSL_ATTRIBUTE_DESCRIPTOR(X509V3_EXT_METHOD *method, OSSL_ATTRIBUTE_DESCRIPTOR *ad, BIO *out, int indent)
 {
     char buf[80];
 
@@ -143,18 +134,18 @@ static int i2r_OSSL_ATTRIBUTE_DESCRIPTOR(X509V3_EXT_METHOD *method,
         return 0;
     if (BIO_printf(out, "%*sSyntax:\n", indent, "") <= 0)
         return 0;
-    if (BIO_printf(out, "%*s%.*s", indent + 4, "",
-                   ad->attributeSyntax->length, ad->attributeSyntax->data) <= 0)
+    if (BIO_printf(out, "%*s%.*s", indent + 4, "", ad->attributeSyntax->length, ad->attributeSyntax->data) <= 0)
         return 0;
     if (BIO_puts(out, "\n\n") <= 0)
         return 0;
-    if (ad->name != NULL) {
+    if (ad->name != NULL)
+    {
         if (BIO_printf(out, "%*sName: %.*s\n", indent, "", ad->name->length, ad->name->data) <= 0)
             return 0;
     }
-    if (ad->description != NULL) {
-        if (BIO_printf(out, "%*sDescription: %.*s\n", indent, "",
-                       ad->description->length, ad->description->data) <= 0)
+    if (ad->description != NULL)
+    {
+        if (BIO_printf(out, "%*sDescription: %.*s\n", indent, "", ad->description->length, ad->description->data) <= 0)
             return 0;
     }
     if (BIO_printf(out, "%*sDomination Rule:\n", indent, "") <= 0)
@@ -162,14 +153,17 @@ static int i2r_OSSL_ATTRIBUTE_DESCRIPTOR(X509V3_EXT_METHOD *method,
     return i2r_OSSL_PRIVILEGE_POLICY_ID(method, ad->dominationRule, out, indent + 4);
 }
 
-const X509V3_EXT_METHOD ossl_v3_attribute_descriptor = {
-    NID_attribute_descriptor, X509V3_EXT_MULTILINE,
-    ASN1_ITEM_ref(OSSL_ATTRIBUTE_DESCRIPTOR),
-    0, 0, 0, 0,
-    0, 0,
-    0,
-    0,
-    (X509V3_EXT_I2R)i2r_OSSL_ATTRIBUTE_DESCRIPTOR,
-    NULL,
-    NULL
-};
+const X509V3_EXT_METHOD ossl_v3_attribute_descriptor = {NID_attribute_descriptor,
+                                                        X509V3_EXT_MULTILINE,
+                                                        ASN1_ITEM_ref(OSSL_ATTRIBUTE_DESCRIPTOR),
+                                                        0,
+                                                        0,
+                                                        0,
+                                                        0,
+                                                        0,
+                                                        0,
+                                                        0,
+                                                        0,
+                                                        (X509V3_EXT_I2R)i2r_OSSL_ATTRIBUTE_DESCRIPTOR,
+                                                        NULL,
+                                                        NULL};

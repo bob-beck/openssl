@@ -43,10 +43,9 @@ static EVP_PKEY *load_key(OSSL_LIB_CTX *libctx, FILE *f, const char *passphrase)
      * accepted. If set to EVP_PKEY_KEYPAIR, a private key will be required, and
      * if set to EVP_PKEY_PUBLIC_KEY, a public key will be required.
      */
-    dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, "PEM", NULL, "RSA",
-                                         selection,
-                                         libctx, propq);
-    if (dctx == NULL) {
+    dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, "PEM", NULL, "RSA", selection, libctx, propq);
+    if (dctx == NULL)
+    {
         fprintf(stderr, "OSSL_DECODER_CTX_new_for_pkey() failed\n");
         goto cleanup;
     }
@@ -60,17 +59,18 @@ static EVP_PKEY *load_key(OSSL_LIB_CTX *libctx, FILE *f, const char *passphrase)
      * interactive applications which do not know if a passphrase should be
      * prompted for in advance, or for GUI applications.
      */
-    if (passphrase != NULL) {
-        if (OSSL_DECODER_CTX_set_passphrase(dctx,
-                                            (const unsigned char *)passphrase,
-                                            strlen(passphrase)) == 0) {
+    if (passphrase != NULL)
+    {
+        if (OSSL_DECODER_CTX_set_passphrase(dctx, (const unsigned char *)passphrase, strlen(passphrase)) == 0)
+        {
             fprintf(stderr, "OSSL_DECODER_CTX_set_passphrase() failed\n");
             goto cleanup;
         }
     }
 
     /* Do the decode, reading from file. */
-    if (OSSL_DECODER_from_fp(dctx, f) == 0) {
+    if (OSSL_DECODER_from_fp(dctx, f) == 0)
+    {
         fprintf(stderr, "OSSL_DECODER_from_fp() failed\n");
         goto cleanup;
     }
@@ -84,7 +84,8 @@ cleanup:
      * might fail subsequently, so ensure it's properly freed
      * in this case.
      */
-    if (ret == 0) {
+    if (ret == 0)
+    {
         EVP_PKEY_free(pkey);
         pkey = NULL;
     }
@@ -118,12 +119,11 @@ static int store_key(EVP_PKEY *pkey, FILE *f, const char *passphrase)
      * Purely for the sake of demonstration, here we choose to export the whole
      * key if a passphrase is provided and the public key otherwise.
      */
-    selection = (passphrase != NULL)
-        ? EVP_PKEY_KEYPAIR
-        : EVP_PKEY_PUBLIC_KEY;
+    selection = (passphrase != NULL) ? EVP_PKEY_KEYPAIR : EVP_PKEY_PUBLIC_KEY;
 
     ectx = OSSL_ENCODER_CTX_new_for_pkey(pkey, selection, "PEM", NULL, propq);
-    if (ectx == NULL) {
+    if (ectx == NULL)
+    {
         fprintf(stderr, "OSSL_ENCODER_CTX_new_for_pkey() failed\n");
         goto cleanup;
     }
@@ -140,24 +140,26 @@ static int store_key(EVP_PKEY *pkey, FILE *f, const char *passphrase)
      * Note that specifying a passphrase alone is not enough to cause the
      * key to be encrypted. You must set both a cipher and a passphrase.
      */
-    if (passphrase != NULL) {
+    if (passphrase != NULL)
+    {
         /* Set cipher. AES-128-CBC is a reasonable default. */
-        if (OSSL_ENCODER_CTX_set_cipher(ectx, "AES-128-CBC", propq) == 0) {
+        if (OSSL_ENCODER_CTX_set_cipher(ectx, "AES-128-CBC", propq) == 0)
+        {
             fprintf(stderr, "OSSL_ENCODER_CTX_set_cipher() failed\n");
             goto cleanup;
         }
 
         /* Set passphrase. */
-        if (OSSL_ENCODER_CTX_set_passphrase(ectx,
-                                            (const unsigned char *)passphrase,
-                                            strlen(passphrase)) == 0) {
+        if (OSSL_ENCODER_CTX_set_passphrase(ectx, (const unsigned char *)passphrase, strlen(passphrase)) == 0)
+        {
             fprintf(stderr, "OSSL_ENCODER_CTX_set_passphrase() failed\n");
             goto cleanup;
         }
     }
 
     /* Do the encode, writing to the given file. */
-    if (OSSL_ENCODER_to_fp(ectx, f) == 0) {
+    if (OSSL_ENCODER_to_fp(ectx, f) == 0)
+    {
         fprintf(stderr, "OSSL_ENCODER_to_fp() failed\n");
         goto cleanup;
     }
@@ -184,12 +186,14 @@ int main(int argc, char **argv)
 
     /* Decode PEM key from stdin and then PEM encode it to stdout. */
     pkey = load_key(libctx, stdin, passphrase_in);
-    if (pkey == NULL) {
+    if (pkey == NULL)
+    {
         fprintf(stderr, "Failed to decode key\n");
         goto cleanup;
     }
 
-    if (store_key(pkey, stdout, passphrase_out) == 0) {
+    if (store_key(pkey, stdout, passphrase_out) == 0)
+    {
         fprintf(stderr, "Failed to encode key\n");
         goto cleanup;
     }

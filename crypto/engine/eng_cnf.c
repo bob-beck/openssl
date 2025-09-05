@@ -33,7 +33,8 @@ static int int_engine_init(ENGINE *e)
         return 0;
     if (!initialized_engines)
         initialized_engines = sk_ENGINE_new_null();
-    if (!initialized_engines || !sk_ENGINE_push(initialized_engines, e)) {
+    if (!initialized_engines || !sk_ENGINE_push(initialized_engines, e))
+    {
         ENGINE_finish(e);
         return 0;
     }
@@ -56,17 +57,18 @@ static int int_engine_configure(const char *name, const char *value, const CONF 
     /* Value is a section containing ENGINE commands */
     ecmds = NCONF_get_section(cnf, value);
 
-    if (!ecmds) {
+    if (!ecmds)
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_ENGINE_SECTION_ERROR);
         return 0;
     }
 
-    for (i = 0; i < sk_CONF_VALUE_num(ecmds); i++) {
+    for (i = 0; i < sk_CONF_VALUE_num(ecmds); i++)
+    {
         ecmd = sk_CONF_VALUE_value(ecmds, i);
         ctrlname = skip_dot(ecmd->name);
         ctrlvalue = ecmd->value;
-        OSSL_TRACE2(CONF, "ENGINE: doing ctrl(%s,%s)\n",
-                    ctrlname, ctrlvalue);
+        OSSL_TRACE2(CONF, "ENGINE: doing ctrl(%s,%s)\n", ctrlname, ctrlvalue);
 
         /* First handle some special pseudo ctrls */
 
@@ -76,7 +78,8 @@ static int int_engine_configure(const char *name, const char *value, const CONF 
         else if (strcmp(ctrlname, "soft_load") == 0)
             soft = 1;
         /* Load a dynamic ENGINE */
-        else if (strcmp(ctrlname, "dynamic_path") == 0) {
+        else if (strcmp(ctrlname, "dynamic_path") == 0)
+        {
             e = ENGINE_by_id("dynamic");
             if (!e)
                 goto err;
@@ -88,14 +91,17 @@ static int int_engine_configure(const char *name, const char *value, const CONF 
                 goto err;
         }
         /* ... add other pseudos here ... */
-        else {
+        else
+        {
             /*
              * At this point we need an ENGINE structural reference if we
              * don't already have one.
              */
-            if (!e) {
+            if (!e)
+            {
                 e = ENGINE_by_id(name);
-                if (!e && soft) {
+                if (!e && soft)
+                {
                     ERR_clear_error();
                     return 1;
                 }
@@ -108,36 +114,43 @@ static int int_engine_configure(const char *name, const char *value, const CONF 
              */
             if (strcmp(ctrlvalue, "EMPTY") == 0)
                 ctrlvalue = NULL;
-            if (strcmp(ctrlname, "init") == 0) {
+            if (strcmp(ctrlname, "init") == 0)
+            {
                 if (!NCONF_get_number_e(cnf, value, "init", &do_init))
                     goto err;
-                if (do_init == 1) {
+                if (do_init == 1)
+                {
                     if (!int_engine_init(e))
                         goto err;
-                } else if (do_init != 0) {
+                }
+                else if (do_init != 0)
+                {
                     ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INVALID_INIT_VALUE);
                     goto err;
                 }
-            } else if (strcmp(ctrlname, "default_algorithms") == 0) {
+            }
+            else if (strcmp(ctrlname, "default_algorithms") == 0)
+            {
                 if (!ENGINE_set_default_string(e, ctrlvalue))
                     goto err;
-            } else if (!ENGINE_ctrl_cmd_string(e, ctrlname, ctrlvalue, 0))
+            }
+            else if (!ENGINE_ctrl_cmd_string(e, ctrlname, ctrlvalue, 0))
                 goto err;
         }
-
     }
-    if (e && (do_init == -1) && !int_engine_init(e)) {
+    if (e && (do_init == -1) && !int_engine_init(e))
+    {
         ecmd = NULL;
         goto err;
     }
     ret = 1;
- err:
-    if (ret != 1) {
+err:
+    if (ret != 1)
+    {
         if (ecmd == NULL)
             ERR_raise(ERR_LIB_ENGINE, ENGINE_R_ENGINE_CONFIGURATION_ERROR);
         else
-            ERR_raise_data(ERR_LIB_ENGINE, ENGINE_R_ENGINE_CONFIGURATION_ERROR,
-                           "section=%s, name=%s, value=%s",
+            ERR_raise_data(ERR_LIB_ENGINE, ENGINE_R_ENGINE_CONFIGURATION_ERROR, "section=%s, name=%s, value=%s",
                            ecmd->section, ecmd->name, ecmd->value);
     }
     ENGINE_free(e);
@@ -149,17 +162,19 @@ static int int_engine_module_init(CONF_IMODULE *md, const CONF *cnf)
     STACK_OF(CONF_VALUE) *elist;
     CONF_VALUE *cval;
     int i;
-    OSSL_TRACE2(CONF, "Called engine module: name %s, value %s\n",
-                CONF_imodule_get_name(md), CONF_imodule_get_value(md));
+    OSSL_TRACE2(CONF, "Called engine module: name %s, value %s\n", CONF_imodule_get_name(md),
+                CONF_imodule_get_value(md));
     /* Value is a section containing ENGINEs to configure */
     elist = NCONF_get_section(cnf, CONF_imodule_get_value(md));
 
-    if (!elist) {
+    if (!elist)
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_ENGINES_SECTION_ERROR);
         return 0;
     }
 
-    for (i = 0; i < sk_CONF_VALUE_num(elist); i++) {
+    for (i = 0; i < sk_CONF_VALUE_num(elist); i++)
+    {
         cval = sk_CONF_VALUE_value(elist, i);
         if (!int_engine_configure(cval->name, cval->value, cnf))
             return 0;
@@ -180,6 +195,5 @@ static void int_engine_module_finish(CONF_IMODULE *md)
 
 void ENGINE_add_conf_module(void)
 {
-    CONF_module_add("engines",
-                    int_engine_module_init, int_engine_module_finish);
+    CONF_module_add("engines", int_engine_module_init, int_engine_module_finish);
 }

@@ -22,8 +22,7 @@ X509 *load_cert_pem(const char *file, OSSL_LIB_CTX *libctx)
 
     if (!TEST_ptr(file) || !TEST_ptr(bio = BIO_new(BIO_s_file())))
         return NULL;
-    if (TEST_int_gt(BIO_read_filename(bio, file), 0)
-            && TEST_ptr(cert = X509_new_ex(libctx, NULL)))
+    if (TEST_int_gt(BIO_read_filename(bio, file), 0) && TEST_ptr(cert = X509_new_ex(libctx, NULL)))
         (void)TEST_ptr(cert = PEM_read_bio_X509(bio, &cert, NULL, NULL));
 
     BIO_free(bio);
@@ -40,19 +39,24 @@ STACK_OF(X509) *load_certs_pem(const char *file)
         return NULL;
 
     certs = sk_X509_new_null();
-    if (certs == NULL) {
+    if (certs == NULL)
+    {
         BIO_free(bio);
         return NULL;
     }
 
     ERR_set_mark();
-    do {
+    do
+    {
         x = PEM_read_bio_X509(bio, NULL, 0, NULL);
-        if (x != NULL && !sk_X509_push(certs, x)) {
+        if (x != NULL && !sk_X509_push(certs, x))
+        {
             OSSL_STACK_OF_X509_free(certs);
             BIO_free(bio);
             return NULL;
-        } else if (x == NULL) {
+        }
+        else if (x == NULL)
+        {
             /*
              * We probably just ran out of certs, so ignore any errors
              * generated
@@ -73,12 +77,12 @@ EVP_PKEY *load_pkey_pem(const char *file, OSSL_LIB_CTX *libctx)
 
     if (!TEST_ptr(file) || !TEST_ptr(bio = BIO_new(BIO_s_file())))
         return NULL;
-    if (TEST_int_gt(BIO_read_filename(bio, file), 0)) {
+    if (TEST_int_gt(BIO_read_filename(bio, file), 0))
+    {
         unsigned long err = ERR_peek_error();
 
-        if (TEST_ptr(key = PEM_read_bio_PrivateKey_ex(bio, NULL, NULL, NULL,
-                                                      libctx, NULL))
-            && err != ERR_peek_error()) {
+        if (TEST_ptr(key = PEM_read_bio_PrivateKey_ex(bio, NULL, NULL, NULL, libctx, NULL)) && err != ERR_peek_error())
+        {
             TEST_info("Spurious error from reading PEM");
             EVP_PKEY_free(key);
             key = NULL;

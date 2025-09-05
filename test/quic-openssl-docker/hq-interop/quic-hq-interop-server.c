@@ -41,13 +41,13 @@
 
 /* Include the appropriate header file for SOCK_STREAM */
 #ifdef _WIN32
-# include <stdarg.h>
-# include <winsock2.h>
-# include <ws2tcpip.h>
+#include <stdarg.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #else
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
 #endif
 
 #include <openssl/bio.h>
@@ -123,8 +123,7 @@ static char *fileprefix = NULL;
  * Note:
  * - The predefined protocol is specified in the `alpn_ossltest` array.
  */
-static int select_alpn(SSL *ssl, const unsigned char **out,
-                       unsigned char *out_len, const unsigned char *in,
+static int select_alpn(SSL *ssl, const unsigned char **out, unsigned char *out_len, const unsigned char *in,
                        unsigned int in_len, void *arg)
 {
     /*
@@ -132,9 +131,8 @@ static int select_alpn(SSL *ssl, const unsigned char **out,
      * This scans the list of alpns we support and matches against
      * what the client is requesting
      */
-    if (SSL_select_next_proto((unsigned char **)out, out_len, alpn_ossltest,
-                              sizeof(alpn_ossltest), in,
-                              in_len) == OPENSSL_NPN_NEGOTIATED)
+    if (SSL_select_next_proto((unsigned char **)out, out_len, alpn_ossltest, sizeof(alpn_ossltest), in, in_len) ==
+        OPENSSL_NPN_NEGOTIATED)
         return SSL_TLSEXT_ERR_OK;
     return SSL_TLSEXT_ERR_ALERT_FATAL;
 }
@@ -201,7 +199,8 @@ static SSL_CTX *create_ctx(const char *cert_path, const char *key_path)
      * "make chain" in this directory.  If the server will be executed from some
      * other directory, move or copy the files there.
      */
-    if (SSL_CTX_use_certificate_chain_file(ctx, cert_path) <= 0) {
+    if (SSL_CTX_use_certificate_chain_file(ctx, cert_path) <= 0)
+    {
         fprintf(stderr, "couldn't load certificate file: %s\n", cert_path);
         goto err;
     }
@@ -212,7 +211,8 @@ static SSL_CTX *create_ctx(const char *cert_path, const char *key_path)
      * whether the certificate chain is valid, the certificates could be
      * expired, or may otherwise fail to form a chain that a client can validate.
      */
-    if (SSL_CTX_use_PrivateKey_file(ctx, key_path, SSL_FILETYPE_PEM) <= 0) {
+    if (SSL_CTX_use_PrivateKey_file(ctx, key_path, SSL_FILETYPE_PEM) <= 0)
+    {
         fprintf(stderr, "couldn't load key file: %s\n", key_path);
         goto err;
     }
@@ -279,7 +279,8 @@ static BIO *create_socket(uint16_t port)
 #endif
 
     /* Retrieve the file descriptor for a new UDP socket */
-    if ((fd = BIO_socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP, 0)) < 0) {
+    if ((fd = BIO_socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP, 0)) < 0)
+    {
         fprintf(stderr, "cannot create socket");
         goto err;
     }
@@ -290,7 +291,8 @@ static BIO *create_socket(uint16_t port)
      * server will only accept IPv6 connections.
      */
 #ifdef IPV6_V6ONLY
-    if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &opt, sizeof(opt)) < 0) {
+    if (setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &opt, sizeof(opt)) < 0)
+    {
         fprintf(stderr, "setsockopt IPV6_V6ONLY failed");
         goto err;
     }
@@ -300,7 +302,8 @@ static BIO *create_socket(uint16_t port)
      * Create a new BIO_ADDR
      */
     addr = BIO_ADDR_new();
-    if (addr == NULL) {
+    if (addr == NULL)
+    {
         fprintf(stderr, "Unable to create BIO_ADDR\n");
         goto err;
     }
@@ -308,13 +311,15 @@ static BIO *create_socket(uint16_t port)
     /*
      * Build an INADDR_ANY BIO_ADDR
      */
-    if (!BIO_ADDR_rawmake(addr, AF_INET6, &in6addr_any, sizeof(in6addr_any), htons(port))) {
+    if (!BIO_ADDR_rawmake(addr, AF_INET6, &in6addr_any, sizeof(in6addr_any), htons(port)))
+    {
         fprintf(stderr, "unable to bind to port %d\n", port);
         goto err;
     }
 
     /* Bind to the new UDP socket */
-    if (!BIO_bind(fd, addr, 0)) {
+    if (!BIO_bind(fd, addr, 0))
+    {
         fprintf(stderr, "cannot bind to %u\n", port);
         goto err;
     }
@@ -323,7 +328,8 @@ static BIO *create_socket(uint16_t port)
      * Create a new datagram socket
      */
     sock = BIO_new(BIO_s_datagram());
-    if (sock == NULL) {
+    if (sock == NULL)
+    {
         fprintf(stderr, "cannot create dgram bio\n");
         goto err;
     }
@@ -331,7 +337,8 @@ static BIO *create_socket(uint16_t port)
     /*
      * associate the underlying socket with the dgram BIO
      */
-    if (!BIO_set_fd(sock, fd, BIO_CLOSE)) {
+    if (!BIO_set_fd(sock, fd, BIO_CLOSE))
+    {
         fprintf(stderr, "Unable to set fd of dgram sock\n");
         goto err;
     }
@@ -369,7 +376,8 @@ err:
  */
 static int handle_io_failure(SSL *ssl, int res)
 {
-    switch (SSL_get_error(ssl, res)) {
+    switch (SSL_get_error(ssl, res))
+    {
     case SSL_ERROR_ZERO_RETURN:
         /* EOF */
         return 0;
@@ -383,7 +391,8 @@ static int handle_io_failure(SSL *ssl, int res)
          * stream reset - or some failure occurred on the underlying
          * connection.
          */
-        switch (SSL_get_stream_read_state(ssl)) {
+        switch (SSL_get_stream_read_state(ssl))
+        {
         case SSL_STREAM_STATE_RESET_REMOTE:
             fprintf(stderr, "Stream reset occurred\n");
             /*
@@ -406,8 +415,7 @@ static int handle_io_failure(SSL *ssl, int res)
          * information about it from SSL_get_verify_result().
          */
         if (SSL_get_verify_result(ssl) != X509_V_OK)
-            fprintf(stderr, "Verify error: %s\n",
-                    X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
+            fprintf(stderr, "Verify error: %s\n", X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
         return -1;
 
     default:
@@ -462,17 +470,21 @@ static void process_new_stream(SSL *stream)
     size_t total_read = 0;
 
     memset(buf, 0, BUF_SIZE);
-    for (;;) {
+    for (;;)
+    {
         nread = 0;
-        ret = SSL_read_ex(stream, &buf[total_read],
-                          sizeof(buf) - total_read - 1, &nread);
+        ret = SSL_read_ex(stream, &buf[total_read], sizeof(buf) - total_read - 1, &nread);
         total_read += nread;
-        if (ret <= 0) {
+        if (ret <= 0)
+        {
             ret = handle_io_failure(stream, ret);
-            if (ret == 0) {
+            if (ret == 0)
+            {
                 /* EOF condition, fin bit set, we got the whole request */
                 break;
-            } else {
+            }
+            else
+            {
                 /* permanent failure, abort */
                 fprintf(stderr, "Failure on stream\n");
                 return;
@@ -498,32 +510,41 @@ static void process_new_stream(SSL *stream)
 
     fprintf(stderr, "Serving %s\n", path);
     readbio = BIO_new_file(path, "r");
-    if (readbio == NULL) {
+    if (readbio == NULL)
+    {
         fprintf(stderr, "Unable to open %s\n", path);
         ERR_print_errors_fp(stderr);
         goto done;
     }
 
     /* Read the readbio file into a buffer, and just send it to the requestor */
-    while (BIO_eof(readbio) <= 0) {
+    while (BIO_eof(readbio) <= 0)
+    {
         bytes_read = 0;
-        if (!BIO_read_ex(readbio, buf, BUF_SIZE, &bytes_read)) {
-            if (BIO_eof(readbio) <= 0) {
+        if (!BIO_read_ex(readbio, buf, BUF_SIZE, &bytes_read))
+        {
+            if (BIO_eof(readbio) <= 0)
+            {
                 fprintf(stderr, "Failed to read from %s\n", path);
                 ERR_print_errors_fp(stderr);
                 goto out;
-            } else {
+            }
+            else
+            {
                 break;
             }
         }
 
         offset = 0;
-        for (;;) {
+        for (;;)
+        {
             bytes_written = 0;
             rc = SSL_write_ex(stream, &buf[offset], bytes_read, &bytes_written);
-            if (rc <= 0) {
+            if (rc <= 0)
+            {
                 rc = SSL_get_error(stream, rc);
-                switch (rc) {
+                switch (rc)
+                {
                 case SSL_ERROR_WANT_WRITE:
                     fprintf(stderr, "Send buffer full, retrying\n");
                     continue;
@@ -620,14 +641,16 @@ static int run_quic_server(SSL_CTX *ctx, BIO *sock)
      * Begin an infinite loop of listening for connections. We will only
      * exit this loop if we encounter an error.
      */
-    for (;;) {
+    for (;;)
+    {
         /* Pristine error stack for each new connection */
         ERR_clear_error();
 
         /* Block while waiting for a client connection */
         printf("Waiting for connection\n");
         conn = SSL_accept_connection(listener, 0);
-        if (conn == NULL) {
+        if (conn == NULL)
+        {
             fprintf(stderr, "error while accepting connection\n");
             goto err;
         }
@@ -640,9 +663,8 @@ static int run_quic_server(SSL_CTX *ctx, BIO *sock)
          * are using the default stream mode, as would be specified by
          * a call to SSL_set_default_stream_mode
          */
-        if (!SSL_set_incoming_stream_policy(conn,
-                                            SSL_INCOMING_STREAM_POLICY_ACCEPT,
-                                            0)) {
+        if (!SSL_set_incoming_stream_policy(conn, SSL_INCOMING_STREAM_POLICY_ACCEPT, 0))
+        {
             fprintf(stderr, "Failed to set incomming stream policy\n");
             goto close_conn;
         }
@@ -651,7 +673,8 @@ static int run_quic_server(SSL_CTX *ctx, BIO *sock)
          * Until the connection is closed, accept incomming stream
          * requests and serve them
          */
-        for (;;) {
+        for (;;)
+        {
             /*
              * Note that SSL_accept_stream is blocking here, as the
              * conn SSL object inherited the deafult blocking property
@@ -659,7 +682,8 @@ static int run_quic_server(SSL_CTX *ctx, BIO *sock)
              * is no need to handle retry failures here.
              */
             stream = SSL_accept_stream(conn, 0);
-            if (stream == NULL) {
+            if (stream == NULL)
+            {
                 /*
                  * If we don't get a stream, either we
                  * Hit a legitimate error, and should bail out
@@ -673,8 +697,7 @@ static int run_quic_server(SSL_CTX *ctx, BIO *sock)
                 ERR_print_errors_fp(stderr);
                 errcode = ERR_get_error();
                 if (ERR_GET_REASON(errcode) != SSL_R_PROTOCOL_IS_SHUTDOWN)
-                    fprintf(stderr, "Failure in accept stream, error %s\n",
-                            ERR_reason_error_string(errcode));
+                    fprintf(stderr, "Failure in accept stream, error %s\n", ERR_reason_error_string(errcode));
                 break;
             }
             process_new_stream(stream);
@@ -685,7 +708,7 @@ static int run_quic_server(SSL_CTX *ctx, BIO *sock)
          * Shut down the connection. We may need to call this multiple times
          * to ensure the connection is shutdown completely.
          */
-close_conn:
+    close_conn:
         while (SSL_shutdown(conn) != 1)
             continue;
 
@@ -745,7 +768,8 @@ int main(int argc, char *argv[])
     BIO *sock = NULL;
     unsigned long port;
 
-    if (argc != 4) {
+    if (argc != 4)
+    {
         fprintf(stderr, "usage: %s <port> <server.crt> <server.key>\n", argv[0]);
         goto out;
     }
@@ -757,7 +781,8 @@ int main(int argc, char *argv[])
     fprintf(stderr, "Fileprefix is %s\n", fileprefix);
 
     /* Create SSL_CTX that supports QUIC. */
-    if ((ctx = create_ctx(argv[2], argv[3])) == NULL) {
+    if ((ctx = create_ctx(argv[2], argv[3])) == NULL)
+    {
         ERR_print_errors_fp(stderr);
         fprintf(stderr, "Failed to create context\n");
         goto out;
@@ -765,21 +790,24 @@ int main(int argc, char *argv[])
 
     /* Parse port number from command line arguments. */
     port = strtoul(argv[1], NULL, 0);
-    if (port == 0 || port > UINT16_MAX) {
+    if (port == 0 || port > UINT16_MAX)
+    {
         fprintf(stderr, "Failed to parse port number\n");
         goto out;
     }
     fprintf(stderr, "Binding to port %lu\n", port);
 
     /* Create and bind a UDP socket. */
-    if ((sock = create_socket((uint16_t)port)) == NULL) {
+    if ((sock = create_socket((uint16_t)port)) == NULL)
+    {
         ERR_print_errors_fp(stderr);
         fprintf(stderr, "Failed to create socket\n");
         goto out;
     }
 
     /* QUIC server connection acceptance loop. */
-    if (!run_quic_server(ctx, sock)) {
+    if (!run_quic_server(ctx, sock))
+    {
         ERR_print_errors_fp(stderr);
         fprintf(stderr, "Failed to run quic server\n");
         goto out;

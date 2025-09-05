@@ -11,7 +11,8 @@
  * libssl the application makes, and would hypothetically be linked into a
  * larger application.
  */
-typedef struct app_conn_st {
+typedef struct app_conn_st
+{
     SSL *ssl;
     int fd;
     int rx_need_tx, tx_need_rx;
@@ -39,7 +40,8 @@ SSL_CTX *create_ssl_ctx(void)
     SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
 
     /* Load default root CA store. */
-    if (SSL_CTX_set_default_verify_paths(ctx) == 0) {
+    if (SSL_CTX_set_default_verify_paths(ctx) == 0)
+    {
         SSL_CTX_free(ctx);
         return NULL;
     }
@@ -66,26 +68,30 @@ APP_CONN *new_conn(SSL_CTX *ctx, int fd, const char *bare_hostname)
         return NULL;
 
     ssl = conn->ssl = SSL_new(ctx);
-    if (ssl == NULL) {
+    if (ssl == NULL)
+    {
         free(conn);
         return NULL;
     }
 
     SSL_set_connect_state(ssl); /* cannot fail */
 
-    if (SSL_set_fd(ssl, fd) <= 0) {
+    if (SSL_set_fd(ssl, fd) <= 0)
+    {
         SSL_free(ssl);
         free(conn);
         return NULL;
     }
 
-    if (SSL_set1_host(ssl, bare_hostname) <= 0) {
+    if (SSL_set1_host(ssl, bare_hostname) <= 0)
+    {
         SSL_free(ssl);
         free(conn);
         return NULL;
     }
 
-    if (SSL_set_tlsext_host_name(ssl, bare_hostname) <= 0) {
+    if (SSL_set_tlsext_host_name(ssl, bare_hostname) <= 0)
+    {
         SSL_free(ssl);
         free(conn);
         return NULL;
@@ -93,7 +99,8 @@ APP_CONN *new_conn(SSL_CTX *ctx, int fd, const char *bare_hostname)
 
 #ifdef USE_QUIC
     /* Configure ALPN, which is required for QUIC. */
-    if (SSL_set_alpn_protos(ssl, alpn, sizeof(alpn))) {
+    if (SSL_set_alpn_protos(ssl, alpn, sizeof(alpn)))
+    {
         /* Note: SSL_set_alpn_protos returns 1 for failure. */
         SSL_free(ssl);
         free(conn);
@@ -118,16 +125,18 @@ int tx(APP_CONN *conn, const void *buf, int buf_len)
     conn->tx_need_rx = 0;
 
     l = SSL_write(conn->ssl, buf, buf_len);
-    if (l <= 0) {
+    if (l <= 0)
+    {
         rc = SSL_get_error(conn->ssl, l);
-        switch (rc) {
-            case SSL_ERROR_WANT_READ:
-                conn->tx_need_rx = 1;
-            case SSL_ERROR_WANT_CONNECT:
-            case SSL_ERROR_WANT_WRITE:
-                return -2;
-            default:
-                return -1;
+        switch (rc)
+        {
+        case SSL_ERROR_WANT_READ:
+            conn->tx_need_rx = 1;
+        case SSL_ERROR_WANT_CONNECT:
+        case SSL_ERROR_WANT_WRITE:
+            return -2;
+        default:
+            return -1;
         }
     }
 
@@ -147,15 +156,17 @@ int rx(APP_CONN *conn, void *buf, int buf_len)
     conn->rx_need_tx = 0;
 
     l = SSL_read(conn->ssl, buf, buf_len);
-    if (l <= 0) {
+    if (l <= 0)
+    {
         rc = SSL_get_error(conn->ssl, l);
-        switch (rc) {
-            case SSL_ERROR_WANT_WRITE:
-                conn->rx_need_tx = 1;
-            case SSL_ERROR_WANT_READ:
-                return -2;
-            default:
-                return -1;
+        switch (rc)
+        {
+        case SSL_ERROR_WANT_WRITE:
+            conn->rx_need_tx = 1;
+        case SSL_ERROR_WANT_READ:
+            return -2;
+        default:
+            return -1;
         }
     }
 
@@ -198,9 +209,7 @@ int get_conn_fd(APP_CONN *conn)
 int get_conn_pending_tx(APP_CONN *conn)
 {
 #ifdef USE_QUIC
-    return (SSL_net_read_desired(conn->ssl) ? POLLIN : 0)
-           | (SSL_net_write_desired(conn->ssl) ? POLLOUT : 0)
-           | POLLERR;
+    return (SSL_net_read_desired(conn->ssl) ? POLLIN : 0) | (SSL_net_write_desired(conn->ssl) ? POLLOUT : 0) | POLLERR;
 #else
     return (conn->tx_need_rx ? POLLIN : 0) | POLLOUT | POLLERR;
 #endif
@@ -270,7 +279,7 @@ void teardown_ctx(SSL_CTX *ctx)
 #include <sys/socket.h>
 #include <sys/signal.h>
 #ifdef USE_QUIC
-# include <sys/time.h>
+#include <sys/time.h>
 #endif
 #include <netdb.h>
 #include <unistd.h>
@@ -280,13 +289,13 @@ void teardown_ctx(SSL_CTX *ctx)
 
 static inline void ms_to_timeval(struct timeval *t, int ms)
 {
-    t->tv_sec   = ms < 0 ? -1 : ms/1000;
-    t->tv_usec  = ms < 0 ? 0 : (ms%1000)*1000;
+    t->tv_sec = ms < 0 ? -1 : ms / 1000;
+    t->tv_usec = ms < 0 ? 0 : (ms % 1000) * 1000;
 }
 
 static inline int timeval_to_ms(const struct timeval *t)
 {
-    return t->tv_sec*1000 + t->tv_usec/1000;
+    return t->tv_sec * 1000 + t->tv_usec / 1000;
 }
 
 #endif
@@ -311,25 +320,27 @@ int main(int argc, char **argv)
     ms_to_timeval(&timeout, 2000);
 #endif
 
-    if (argc < 3) {
+    if (argc < 3)
+    {
         fprintf(stderr, "usage: %s host port\n", argv[0]);
         goto fail;
     }
 
-    tx_len = snprintf(tx_msg, sizeof(tx_msg),
-                      "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
+    tx_len = snprintf(tx_msg, sizeof(tx_msg), "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
 
     ctx = create_ssl_ctx();
-    if (ctx == NULL) {
+    if (ctx == NULL)
+    {
         fprintf(stderr, "cannot create SSL context\n");
         goto fail;
     }
 
-    hints.ai_family     = AF_INET;
-    hints.ai_socktype   = SOCK_STREAM;
-    hints.ai_flags      = AI_PASSIVE;
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
     rc = getaddrinfo(argv[1], argv[2], &hints, &result);
-    if (rc < 0) {
+    if (rc < 0)
+    {
         fprintf(stderr, "cannot resolve\n");
         goto fail;
     }
@@ -341,39 +352,49 @@ int main(int argc, char **argv)
 #else
     fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 #endif
-    if (fd < 0) {
+    if (fd < 0)
+    {
         fprintf(stderr, "cannot create socket\n");
         goto fail;
     }
 
     rc = connect(fd, result->ai_addr, result->ai_addrlen);
-    if (rc < 0) {
+    if (rc < 0)
+    {
         fprintf(stderr, "cannot connect\n");
         goto fail;
     }
 
     rc = fcntl(fd, F_SETFL, O_NONBLOCK);
-    if (rc < 0) {
+    if (rc < 0)
+    {
         fprintf(stderr, "cannot make socket nonblocking\n");
         goto fail;
     }
 
     conn = new_conn(ctx, fd, argv[1]);
-    if (conn == NULL) {
+    if (conn == NULL)
+    {
         fprintf(stderr, "cannot establish connection\n");
         goto fail;
     }
 
     /* TX */
-    while (tx_len != 0) {
+    while (tx_len != 0)
+    {
         l = tx(conn, tx_p, tx_len);
-        if (l > 0) {
+        if (l > 0)
+        {
             tx_p += l;
             tx_len -= l;
-        } else if (l == -1) {
+        }
+        else if (l == -1)
+        {
             fprintf(stderr, "tx error\n");
             goto fail;
-        } else if (l == -2) {
+        }
+        else if (l == -2)
+        {
 #ifdef USE_QUIC
             struct timeval start, now, deadline, t;
 #endif
@@ -411,13 +432,19 @@ int main(int argc, char **argv)
     }
 
     /* RX */
-    for (;;) {
+    for (;;)
+    {
         l = rx(conn, rx_buf, sizeof(rx_buf));
-        if (l > 0) {
+        if (l > 0)
+        {
             fwrite(rx_buf, 1, l, stdout);
-        } else if (l == -1) {
+        }
+        else if (l == -1)
+        {
             break;
-        } else if (l == -2) {
+        }
+        else if (l == -2)
+        {
 #ifdef USE_QUIC
             struct timeval start, now, deadline, t;
 #endif

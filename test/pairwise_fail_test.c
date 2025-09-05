@@ -12,7 +12,8 @@
 #include <openssl/self_test.h>
 #include "testutil.h"
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_ERR = -1,
     OPT_EOF = 0,
     OPT_PROVIDER_NAME,
@@ -22,26 +23,24 @@ typedef enum OPTION_choice {
     OPT_TEST_ENUM
 } OPTION_CHOICE;
 
-struct self_test_arg {
+struct self_test_arg
+{
     const char *type;
 };
 
 static OSSL_LIB_CTX *libctx = NULL;
 static char *pairwise_name = NULL;
 static char *dsaparam_file = NULL;
-static struct self_test_arg self_test_args = { 0 };
+static struct self_test_arg self_test_args = {0};
 
 const OPTIONS *test_get_options(void)
 {
     static const OPTIONS test_options[] = {
         OPT_TEST_OPTIONS_DEFAULT_USAGE,
-        { "config", OPT_CONFIG_FILE, '<',
-          "The configuration file to use for the libctx" },
-        { "pairwise", OPT_PAIRWISETEST, 's',
-          "Test keygen pairwise test failures" },
-        { "dsaparam", OPT_DSAPARAM, 's', "DSA param file" },
-        { NULL }
-    };
+        {"config", OPT_CONFIG_FILE, '<', "The configuration file to use for the libctx"},
+        {"pairwise", OPT_PAIRWISETEST, 's', "Test keygen pairwise test failures"},
+        {"dsaparam", OPT_DSAPARAM, 's', "DSA param file"},
+        {NULL}};
     return test_options;
 }
 
@@ -55,7 +54,8 @@ static int self_test_on_pairwise_fail(const OSSL_PARAM params[], void *arg)
     if (p == NULL || p->data_type != OSSL_PARAM_UTF8_STRING)
         return 0;
     phase = (const char *)p->data;
-    if (strcmp(phase, OSSL_SELF_TEST_PHASE_CORRUPT) == 0) {
+    if (strcmp(phase, OSSL_SELF_TEST_PHASE_CORRUPT) == 0)
+    {
         p = OSSL_PARAM_locate_const(params, OSSL_PROV_PARAM_SELF_TEST_TYPE);
         if (p == NULL || p->data_type != OSSL_PARAM_UTF8_STRING)
             return 0;
@@ -93,19 +93,24 @@ static int test_keygen_pairwise_failure(void)
     const char *type = OSSL_SELF_TEST_TYPE_PCT;
     int ret = 0;
 
-    if (strcmp(pairwise_name, "rsa") == 0) {
+    if (strcmp(pairwise_name, "rsa") == 0)
+    {
         if (!TEST_true(setup_selftest_pairwise_failure(type)))
             goto err;
         if (!TEST_ptr_null(pkey = EVP_PKEY_Q_keygen(libctx, NULL, "RSA", (size_t)2048)))
             goto err;
-    } else if (strncmp(pairwise_name, "ec", 2) == 0) {
+    }
+    else if (strncmp(pairwise_name, "ec", 2) == 0)
+    {
         if (strcmp(pairwise_name, "eckat") == 0)
             type = OSSL_SELF_TEST_TYPE_PCT_KAT;
         if (!TEST_true(setup_selftest_pairwise_failure(type)))
             goto err;
         if (!TEST_ptr_null(pkey = EVP_PKEY_Q_keygen(libctx, NULL, "EC", "P-256")))
             goto err;
-    } else if (strncmp(pairwise_name, "dsa", 3) == 0) {
+    }
+    else if (strncmp(pairwise_name, "dsa", 3) == 0)
+    {
         if (strcmp(pairwise_name, "dsakat") == 0)
             type = OSSL_SELF_TEST_TYPE_PCT_KAT;
         if (!TEST_true(setup_selftest_pairwise_failure(type)))
@@ -122,7 +127,9 @@ static int test_keygen_pairwise_failure(void)
             goto err;
         if (!TEST_ptr_null(pkey))
             goto err;
-    } else if (strncmp(pairwise_name, "eddsa", 5) == 0) {
+    }
+    else if (strncmp(pairwise_name, "eddsa", 5) == 0)
+    {
         if (!TEST_true(setup_selftest_pairwise_failure(type)))
             goto err;
         if (!TEST_ptr(ctx = EVP_PKEY_CTX_new_from_name(libctx, "ED25519", NULL)))
@@ -133,7 +140,9 @@ static int test_keygen_pairwise_failure(void)
             goto err;
         if (!TEST_ptr_null(pkey))
             goto err;
-    } else if (strncmp(pairwise_name, "ml-dsa", 6) == 0) {
+    }
+    else if (strncmp(pairwise_name, "ml-dsa", 6) == 0)
+    {
         if (!TEST_true(setup_selftest_pairwise_failure(type)))
             goto err;
         if (!TEST_ptr(ctx = EVP_PKEY_CTX_new_from_name(libctx, "ML-DSA-87", NULL)))
@@ -144,7 +153,9 @@ static int test_keygen_pairwise_failure(void)
             goto err;
         if (!TEST_ptr_null(pkey))
             goto err;
-    } else if (strncmp(pairwise_name, "slh-dsa", 7) == 0) {
+    }
+    else if (strncmp(pairwise_name, "slh-dsa", 7) == 0)
+    {
         if (!TEST_true(setup_selftest_pairwise_failure(type)))
             goto err;
         if (!TEST_ptr(ctx = EVP_PKEY_CTX_new_from_name(libctx, "SLH-DSA-SHA2-256f", NULL)))
@@ -155,7 +166,9 @@ static int test_keygen_pairwise_failure(void)
             goto err;
         if (!TEST_ptr_null(pkey))
             goto err;
-    } else if (strncmp(pairwise_name, "ml-kem", 6) == 0) {
+    }
+    else if (strncmp(pairwise_name, "ml-kem", 6) == 0)
+    {
         if (!TEST_true(setup_selftest_pairwise_failure(type)))
             goto err;
         if (!TEST_ptr(ctx = EVP_PKEY_CTX_new_from_name(libctx, "ML-KEM-1024", NULL)))
@@ -181,8 +194,10 @@ int setup_tests(void)
     OPTION_CHOICE o;
     char *config_file = NULL;
 
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_CONFIG_FILE:
             config_file = opt_arg();
             break;
@@ -193,7 +208,7 @@ int setup_tests(void)
             dsaparam_file = opt_arg();
             break;
         case OPT_TEST_CASES:
-           break;
+            break;
         default:
         case OPT_ERR:
             return 0;
@@ -203,7 +218,8 @@ int setup_tests(void)
     libctx = OSSL_LIB_CTX_new();
     if (libctx == NULL)
         return 0;
-    if (!OSSL_LIB_CTX_load_config(libctx, config_file)) {
+    if (!OSSL_LIB_CTX_load_config(libctx, config_file))
+    {
         opt_printf_stderr("Failed to load config\n");
         return 0;
     }

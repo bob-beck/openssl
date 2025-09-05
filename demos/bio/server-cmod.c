@@ -31,12 +31,14 @@ int main(int argc, char *argv[])
 
     ctx = SSL_CTX_new(TLS_server_method());
 
-    if (CONF_modules_load_file("cmod.cnf", "testapp", 0) <= 0) {
+    if (CONF_modules_load_file("cmod.cnf", "testapp", 0) <= 0)
+    {
         fprintf(stderr, "Error processing config file\n");
         goto err;
     }
 
-    if (SSL_CTX_config(ctx, "server") == 0) {
+    if (SSL_CTX_config(ctx, "server") == 0)
+    {
         fprintf(stderr, "Error configuring server.\n");
         goto err;
     }
@@ -55,7 +57,7 @@ int main(int argc, char *argv[])
     BIO_set_accept_bios(in, ssl_bio);
     ssl_bio = NULL;
 
- again:
+again:
     /*
      * The first call will setup the accept socket, and the second will get a
      * socket.  In this loop, the first actual accept will occur in the
@@ -65,9 +67,11 @@ int main(int argc, char *argv[])
     if (BIO_do_accept(in) <= 0)
         goto err;
 
-    for (;;) {
+    for (;;)
+    {
         i = BIO_read(in, buf, sizeof(buf));
-        if (i == 0) {
+        if (i == 0)
+        {
             /*
              * If we have finished, remove the underlying BIO stack so the
              * next time we call any function for this BIO, it will attempt
@@ -78,7 +82,8 @@ int main(int argc, char *argv[])
             BIO_free_all(tmp);
             goto again;
         }
-        if (i < 0) {
+        if (i < 0)
+        {
             if (BIO_should_retry(in))
                 continue;
             goto err;
@@ -88,7 +93,7 @@ int main(int argc, char *argv[])
     }
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS)
         ERR_print_errors_fp(stderr);
     BIO_free(in);

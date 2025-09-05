@@ -44,7 +44,8 @@ int FuzzerInitialize(int *argc, char ***argv)
  *     GET_PREFERRED_TX_DCID_CHANGED    u8(0x0B) u8(clear)
  */
 
-enum {
+enum
+{
     CMD_RESET_WITH_ODCID,
     CMD_RESET_WITHOUT_ODCID,
     CMD_ADD_FROM_INITIAL,
@@ -63,9 +64,7 @@ static int get_cid(PACKET *pkt, QUIC_CONN_ID *cid)
 {
     unsigned int cidl;
 
-    if (!PACKET_get_1(pkt, &cidl)
-        || cidl > QUIC_MAX_CONN_ID_LEN
-        || !PACKET_copy_bytes(pkt, cid->id, cidl))
+    if (!PACKET_get_1(pkt, &cidl) || cidl > QUIC_MAX_CONN_ID_LEN || !PACKET_copy_bytes(pkt, cid->id, cidl))
         return 0;
 
     cid->id_len = (unsigned char)cidl;
@@ -88,13 +87,16 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     if ((rcidm = ossl_quic_rcidm_new(NULL)) == NULL)
         goto err;
 
-    while (PACKET_remaining(&pkt) > 0) {
+    while (PACKET_remaining(&pkt) > 0)
+    {
         if (!PACKET_get_1(&pkt, &cmd))
             goto err;
 
-        switch (cmd) {
+        switch (cmd)
+        {
         case CMD_RESET_WITH_ODCID:
-            if (!get_cid(&pkt, &arg_cid)) {
+            if (!get_cid(&pkt, &arg_cid))
+            {
                 rc = -1;
                 goto err;
             }
@@ -115,7 +117,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
             break;
 
         case CMD_ADD_FROM_INITIAL:
-            if (!get_cid(&pkt, &arg_cid)) {
+            if (!get_cid(&pkt, &arg_cid))
+            {
                 rc = -1;
                 goto err;
             }
@@ -124,7 +127,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
             break;
 
         case CMD_ADD_FROM_SERVER_RETRY:
-            if (!get_cid(&pkt, &arg_cid)) {
+            if (!get_cid(&pkt, &arg_cid))
+            {
                 rc = -1;
                 goto err;
             }
@@ -133,9 +137,9 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
             break;
 
         case CMD_ADD_FROM_NCID:
-            if (!PACKET_get_net_8(&pkt, &ncid_frame.seq_num)
-                || !PACKET_get_net_8(&pkt, &ncid_frame.retire_prior_to)
-                || !get_cid(&pkt, &ncid_frame.conn_id)) {
+            if (!PACKET_get_net_8(&pkt, &ncid_frame.seq_num) || !PACKET_get_net_8(&pkt, &ncid_frame.retire_prior_to) ||
+                !get_cid(&pkt, &ncid_frame.conn_id))
+            {
                 rc = -1;
                 goto err;
             }
@@ -148,7 +152,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
             break;
 
         case CMD_ON_PACKET_SENT:
-            if (!PACKET_get_net_8(&pkt, &arg_num_pkt)) {
+            if (!PACKET_get_net_8(&pkt, &arg_num_pkt))
+            {
                 rc = -1;
                 goto err;
             }
@@ -173,7 +178,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
             break;
 
         case CMD_GET_PREFERRED_TX_DCID_CHANGED:
-            if (!PACKET_get_1(&pkt, &arg_clear)) {
+            if (!PACKET_get_1(&pkt, &arg_clear))
+            {
                 rc = -1;
                 goto err;
             }

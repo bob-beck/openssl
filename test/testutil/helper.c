@@ -16,13 +16,13 @@
  * tweak for Windows
  */
 #ifdef WIN32
-# define timezone _timezone
+#define timezone _timezone
 #endif
 
-#if defined(__FreeBSD__) || defined(__wasi__) || \
-    (defined(__APPLE__) && !defined(OPENSSL_NO_APPLE_CRYPTO_RANDOM) && \
+#if defined(__FreeBSD__) || defined(__wasi__) ||                                                                       \
+    (defined(__APPLE__) && !defined(OPENSSL_NO_APPLE_CRYPTO_RANDOM) &&                                                 \
      !(defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED >= 1050))
-# define USE_TIMEGM
+#define USE_TIMEGM
 #endif
 
 time_t test_asn1_string_to_time_t(const char *asn1_string)
@@ -37,7 +37,7 @@ time_t test_asn1_string_to_time_t(const char *asn1_string)
     time_t timestamp_utc;
 
     timestamp_asn1 = ASN1_TIME_new();
-    if(timestamp_asn1 == NULL)
+    if (timestamp_asn1 == NULL)
         return -1;
     if (!ASN1_TIME_set_string(timestamp_asn1, asn1_string))
     {
@@ -46,11 +46,13 @@ time_t test_asn1_string_to_time_t(const char *asn1_string)
     }
 
     timestamp_tm = OPENSSL_malloc(sizeof(*timestamp_tm));
-    if (timestamp_tm == NULL) {
+    if (timestamp_tm == NULL)
+    {
         ASN1_TIME_free(timestamp_asn1);
         return -1;
     }
-    if (!(ASN1_TIME_to_tm(timestamp_asn1, timestamp_tm))) {
+    if (!(ASN1_TIME_to_tm(timestamp_asn1, timestamp_tm)))
+    {
         OPENSSL_free(timestamp_tm);
         ASN1_TIME_free(timestamp_asn1);
         return -1;
@@ -63,9 +65,11 @@ time_t test_asn1_string_to_time_t(const char *asn1_string)
      * than djgpp.
      */
     tz = getenv("TZ");
-    if (tz != NULL) {
+    if (tz != NULL)
+    {
         tz = OPENSSL_strdup(tz);
-        if (tz == NULL) {
+        if (tz == NULL)
+        {
             OPENSSL_free(timestamp_tm);
             return -1;
         }
@@ -74,10 +78,13 @@ time_t test_asn1_string_to_time_t(const char *asn1_string)
 
     timestamp_utc = mktime(timestamp_tm);
 
-    if (tz != NULL) {
+    if (tz != NULL)
+    {
         setenv("TZ", tz, 1);
         OPENSSL_free(tz);
-    } else {
+    }
+    else
+    {
         unsetenv("TZ");
     }
 #elif defined(USE_TIMEGM)

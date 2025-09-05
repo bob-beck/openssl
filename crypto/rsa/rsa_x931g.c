@@ -22,10 +22,9 @@
 
 /* X9.31 RSA key derivation and generation */
 
-int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
-                       BIGNUM *q2, const BIGNUM *Xp1, const BIGNUM *Xp2,
-                       const BIGNUM *Xp, const BIGNUM *Xq1, const BIGNUM *Xq2,
-                       const BIGNUM *Xq, const BIGNUM *e, BN_GENCB *cb)
+int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1, BIGNUM *q2, const BIGNUM *Xp1, const BIGNUM *Xp2,
+                       const BIGNUM *Xp, const BIGNUM *Xq1, const BIGNUM *Xq2, const BIGNUM *Xq, const BIGNUM *e,
+                       BN_GENCB *cb)
 {
     BIGNUM *r0 = NULL, *r1 = NULL, *r2 = NULL, *r3 = NULL;
     BN_CTX *ctx = NULL, *ctx2 = NULL;
@@ -46,11 +45,14 @@ int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
 
     if (r3 == NULL)
         goto err;
-    if (!rsa->e) {
+    if (!rsa->e)
+    {
         rsa->e = BN_dup(e);
         if (!rsa->e)
             goto err;
-    } else {
+    }
+    else
+    {
         e = rsa->e;
     }
 
@@ -59,26 +61,27 @@ int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
      * test programs to output selective parameters.
      */
 
-    if (Xp && rsa->p == NULL) {
+    if (Xp && rsa->p == NULL)
+    {
         rsa->p = BN_new();
         if (rsa->p == NULL)
             goto err;
 
-        if (!BN_X931_derive_prime_ex(rsa->p, p1, p2,
-                                     Xp, Xp1, Xp2, e, ctx, cb))
+        if (!BN_X931_derive_prime_ex(rsa->p, p1, p2, Xp, Xp1, Xp2, e, ctx, cb))
             goto err;
     }
 
-    if (Xq && rsa->q == NULL) {
+    if (Xq && rsa->q == NULL)
+    {
         rsa->q = BN_new();
         if (rsa->q == NULL)
             goto err;
-        if (!BN_X931_derive_prime_ex(rsa->q, q1, q2,
-                                     Xq, Xq1, Xq2, e, ctx, cb))
+        if (!BN_X931_derive_prime_ex(rsa->q, q1, q2, Xq, Xq1, Xq2, e, ctx, cb))
             goto err;
     }
 
-    if (rsa->p == NULL || rsa->q == NULL) {
+    if (rsa->p == NULL || rsa->q == NULL)
+    {
         BN_CTX_end(ctx);
         BN_CTX_free(ctx);
         return 2;
@@ -98,17 +101,17 @@ int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
 
     /* calculate d */
     if (!BN_sub(r1, rsa->p, BN_value_one()))
-        goto err;               /* p-1 */
+        goto err; /* p-1 */
     if (!BN_sub(r2, rsa->q, BN_value_one()))
-        goto err;               /* q-1 */
+        goto err; /* q-1 */
     if (!BN_mul(r0, r1, r2, ctx))
-        goto err;               /* (p-1)(q-1) */
+        goto err; /* (p-1)(q-1) */
 
     if (!BN_gcd(r3, r1, r2, ctx))
         goto err;
 
     if (!BN_div(r0, NULL, r0, r3, ctx))
-        goto err;               /* LCM((p-1)(q-1)) */
+        goto err; /* LCM((p-1)(q-1)) */
 
     ctx2 = BN_CTX_new();
     if (ctx2 == NULL)
@@ -139,7 +142,7 @@ int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
 
     rsa->dirty_cnt++;
     ret = 1;
- err:
+err:
     BN_CTX_end(ctx);
     BN_CTX_free(ctx);
     BN_CTX_free(ctx2);
@@ -147,8 +150,7 @@ int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
     return ret;
 }
 
-int RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
-                             BN_GENCB *cb)
+int RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e, BN_GENCB *cb)
 {
     int ok = 0;
     BIGNUM *Xp = NULL, *Xq = NULL;
@@ -173,12 +175,10 @@ int RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
 
     /* Generate two primes from Xp, Xq */
 
-    if (!BN_X931_generate_prime_ex(rsa->p, NULL, NULL, NULL, NULL, Xp,
-                                   e, ctx, cb))
+    if (!BN_X931_generate_prime_ex(rsa->p, NULL, NULL, NULL, NULL, Xp, e, ctx, cb))
         goto error;
 
-    if (!BN_X931_generate_prime_ex(rsa->q, NULL, NULL, NULL, NULL, Xq,
-                                   e, ctx, cb))
+    if (!BN_X931_generate_prime_ex(rsa->q, NULL, NULL, NULL, NULL, Xq, e, ctx, cb))
         goto error;
 
     /*
@@ -186,14 +186,13 @@ int RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
      * RSA components.
      */
 
-    if (!RSA_X931_derive_ex(rsa, NULL, NULL, NULL, NULL,
-                            NULL, NULL, NULL, NULL, NULL, NULL, e, cb))
+    if (!RSA_X931_derive_ex(rsa, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, e, cb))
         goto error;
 
     rsa->dirty_cnt++;
     ok = 1;
 
- error:
+error:
     BN_CTX_end(ctx);
     BN_CTX_free(ctx);
 
@@ -201,5 +200,4 @@ int RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
         return 1;
 
     return 0;
-
 }

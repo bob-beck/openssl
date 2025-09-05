@@ -57,8 +57,7 @@ ASN1_UTCTIME *ASN1_UTCTIME_set(ASN1_UTCTIME *s, time_t t)
     return ASN1_UTCTIME_adj(s, t, 0, 0);
 }
 
-ASN1_UTCTIME *ASN1_UTCTIME_adj(ASN1_UTCTIME *s, time_t t,
-                               int offset_day, long offset_sec)
+ASN1_UTCTIME *ASN1_UTCTIME_adj(ASN1_UTCTIME *s, time_t t, int offset_day, long offset_sec)
 {
     struct tm *ts;
     struct tm data;
@@ -67,7 +66,8 @@ ASN1_UTCTIME *ASN1_UTCTIME_adj(ASN1_UTCTIME *s, time_t t,
     if (ts == NULL)
         return NULL;
 
-    if (offset_day || offset_sec) {
+    if (offset_day || offset_sec)
+    {
         if (!OPENSSL_gmtime_adj(ts, offset_day, offset_sec))
             return NULL;
     }

@@ -63,8 +63,7 @@ int DH_check_params(const DH *dh, int *ret)
      * (2b) FFC domain params conform to FIPS-186-4 explicit domain param
      * validity tests.
      */
-    return ossl_ffc_params_FIPS186_4_validate(dh->libctx, &dh->params,
-                                              FFC_PARAM_TYPE_DH, ret, NULL);
+    return ossl_ffc_params_FIPS186_4_validate(dh->libctx, &dh->params, FFC_PARAM_TYPE_DH, ret, NULL);
 }
 #else
 int DH_check_params(const DH *dh, int *ret)
@@ -84,9 +83,7 @@ int DH_check_params(const DH *dh, int *ret)
 
     if (!BN_is_odd(dh->params.p))
         *ret |= DH_CHECK_P_NOT_PRIME;
-    if (BN_is_negative(dh->params.g)
-        || BN_is_zero(dh->params.g)
-        || BN_is_one(dh->params.g))
+    if (BN_is_negative(dh->params.g) || BN_is_zero(dh->params.g) || BN_is_one(dh->params.g))
         *ret |= DH_NOT_SUITABLE_GENERATOR;
     if (BN_copy(tmp, dh->params.p) == NULL || !BN_sub_word(tmp, 1))
         goto err;
@@ -98,7 +95,7 @@ int DH_check_params(const DH *dh, int *ret)
         *ret |= DH_MODULUS_TOO_LARGE;
 
     ok = 1;
- err:
+err:
     BN_CTX_end(ctx);
     BN_CTX_free(ctx);
     return ok;
@@ -154,7 +151,8 @@ int DH_check(const DH *dh, int *ret)
         return 1;
 
     /* Don't do any checks at all with an excessively large modulus */
-    if (BN_num_bits(dh->params.p) > OPENSSL_DH_CHECK_MAX_MODULUS_BITS) {
+    if (BN_num_bits(dh->params.p) > OPENSSL_DH_CHECK_MAX_MODULUS_BITS)
+    {
         ERR_raise(ERR_LIB_DH, DH_R_MODULUS_TOO_LARGE);
         *ret = DH_MODULUS_TOO_LARGE | DH_CHECK_P_NOT_PRIME;
         return 0;
@@ -172,19 +170,22 @@ int DH_check(const DH *dh, int *ret)
     if (t2 == NULL)
         goto err;
 
-    if (dh->params.q != NULL) {
+    if (dh->params.q != NULL)
+    {
         if (BN_ucmp(dh->params.p, dh->params.q) > 0)
             q_good = 1;
         else
             *ret |= DH_CHECK_INVALID_Q_VALUE;
     }
 
-    if (q_good) {
+    if (q_good)
+    {
         if (BN_cmp(dh->params.g, BN_value_one()) <= 0)
             *ret |= DH_NOT_SUITABLE_GENERATOR;
         else if (BN_cmp(dh->params.g, dh->params.p) >= 0)
             *ret |= DH_NOT_SUITABLE_GENERATOR;
-        else {
+        else
+        {
             /* Check g^q == 1 mod p */
             if (!BN_mod_exp(t1, dh->params.g, dh->params.q, dh->params.p, ctx))
                 goto err;
@@ -201,8 +202,7 @@ int DH_check(const DH *dh, int *ret)
             goto err;
         if (!BN_is_one(t2))
             *ret |= DH_CHECK_INVALID_Q_VALUE;
-        if (dh->params.j != NULL
-            && BN_cmp(dh->params.j, t1))
+        if (dh->params.j != NULL && BN_cmp(dh->params.j, t1))
             *ret |= DH_CHECK_INVALID_J_VALUE;
     }
 
@@ -211,7 +211,8 @@ int DH_check(const DH *dh, int *ret)
         goto err;
     if (!r)
         *ret |= DH_CHECK_P_NOT_PRIME;
-    else if (dh->params.q == NULL) {
+    else if (dh->params.q == NULL)
+    {
         if (!BN_rshift1(t1, dh->params.p))
             goto err;
         r = BN_check_prime(t1, ctx, NULL);
@@ -221,7 +222,7 @@ int DH_check(const DH *dh, int *ret)
             *ret |= DH_CHECK_P_NOT_SAFE_PRIME;
     }
     ok = 1;
- err:
+err:
     BN_CTX_end(ctx);
     BN_CTX_free(ctx);
     return ok;
@@ -251,13 +252,15 @@ int DH_check_pub_key_ex(const DH *dh, const BIGNUM *pub_key)
 int DH_check_pub_key(const DH *dh, const BIGNUM *pub_key, int *ret)
 {
     /* Don't do any checks at all with an excessively large modulus */
-    if (BN_num_bits(dh->params.p) > OPENSSL_DH_CHECK_MAX_MODULUS_BITS) {
+    if (BN_num_bits(dh->params.p) > OPENSSL_DH_CHECK_MAX_MODULUS_BITS)
+    {
         ERR_raise(ERR_LIB_DH, DH_R_MODULUS_TOO_LARGE);
         *ret = DH_MODULUS_TOO_LARGE | DH_CHECK_PUBKEY_INVALID;
         return 0;
     }
 
-    if (dh->params.q != NULL && BN_ucmp(dh->params.p, dh->params.q) < 0) {
+    if (dh->params.q != NULL && BN_ucmp(dh->params.p, dh->params.q) < 0)
+    {
         *ret |= DH_CHECK_INVALID_Q_VALUE | DH_CHECK_PUBKEY_INVALID;
         return 1;
     }
@@ -272,8 +275,7 @@ int DH_check_pub_key(const DH *dh, const BIGNUM *pub_key, int *ret)
  */
 int ossl_dh_check_pub_key_partial(const DH *dh, const BIGNUM *pub_key, int *ret)
 {
-    return ossl_ffc_validate_public_key_partial(&dh->params, pub_key, ret)
-           && *ret == 0;
+    return ossl_ffc_validate_public_key_partial(&dh->params, pub_key, ret) && *ret == 0;
 }
 
 int ossl_dh_check_priv_key(const DH *dh, const BIGNUM *priv_key, int *ret)
@@ -286,32 +288,40 @@ int ossl_dh_check_priv_key(const DH *dh, const BIGNUM *priv_key, int *ret)
     if (two_powN == NULL)
         return 0;
 
-    if (dh->params.q != NULL) {
+    if (dh->params.q != NULL)
+    {
         upper = dh->params.q;
 #ifndef FIPS_MODULE
-    } else if (dh->params.p != NULL) {
+    }
+    else if (dh->params.p != NULL)
+    {
         /*
          * We do not have q so we just check the key is within some
          * reasonable range, or the number of bits is equal to dh->length.
          */
         int length = dh->length;
 
-        if (length == 0) {
+        if (length == 0)
+        {
             length = BN_num_bits(dh->params.p) - 1;
-            if (BN_num_bits(priv_key) <= length
-                && BN_num_bits(priv_key) > 1)
+            if (BN_num_bits(priv_key) <= length && BN_num_bits(priv_key) > 1)
                 ok = 1;
-        } else if (BN_num_bits(priv_key) == length) {
+        }
+        else if (BN_num_bits(priv_key) == length)
+        {
             ok = 1;
         }
         goto end;
 #endif
-    } else {
+    }
+    else
+    {
         goto end;
     }
 
     /* Is it from an approved Safe prime group ?*/
-    if (DH_get_nid((DH *)dh) != NID_undef && dh->length != 0) {
+    if (DH_get_nid((DH *)dh) != NID_undef && dh->length != 0)
+    {
         if (!BN_lshift(two_powN, BN_value_one(), dh->length))
             goto end;
         if (BN_cmp(two_powN, dh->params.q) < 0)
@@ -339,18 +349,14 @@ int ossl_dh_check_pairwise(const DH *dh, int return_on_null_numbers)
     OSSL_CALLBACK *stcb = NULL;
     void *stcbarg = NULL;
 
-    if (dh->params.p == NULL
-        || dh->params.g == NULL
-        || dh->priv_key == NULL
-        || dh->pub_key == NULL)
+    if (dh->params.p == NULL || dh->params.g == NULL || dh->priv_key == NULL || dh->pub_key == NULL)
         return return_on_null_numbers;
 
     OSSL_SELF_TEST_get_callback(dh->libctx, &stcb, &stcbarg);
     st = OSSL_SELF_TEST_new(stcb, stcbarg);
     if (st == NULL)
         goto err;
-    OSSL_SELF_TEST_onbegin(st, OSSL_SELF_TEST_TYPE_PCT,
-                           OSSL_SELF_TEST_DESC_PCT_DH);
+    OSSL_SELF_TEST_onbegin(st, OSSL_SELF_TEST_TYPE_PCT, OSSL_SELF_TEST_DESC_PCT_DH);
 
     ctx = BN_CTX_new_ex(dh->libctx);
     if (ctx == NULL)
@@ -366,7 +372,7 @@ int ossl_dh_check_pairwise(const DH *dh, int return_on_null_numbers)
 #ifdef FIPS_MODULE
     {
         int len;
-        unsigned char bytes[1024] = {0};    /* Max key size of 8192 bits */
+        unsigned char bytes[1024] = {0}; /* Max key size of 8192 bits */
 
         if (BN_num_bytes(pub_key) > (int)sizeof(bytes))
             goto err;
@@ -378,7 +384,7 @@ int ossl_dh_check_pairwise(const DH *dh, int return_on_null_numbers)
 #endif
     /* check it matches the existing public_key */
     ret = BN_cmp(pub_key, dh->pub_key) == 0;
- err:
+err:
     BN_free(pub_key);
     BN_CTX_free(ctx);
 

@@ -12,7 +12,7 @@
  */
 
 #include "crmf_local.h"
-#include <openssl/rand.h> /* for RAND_bytes_ex() */
+#include <openssl/rand.h>   /* for RAND_bytes_ex() */
 #include "internal/sizes.h" /* for OSSL_MAX_NAME_SIZE */
 #include <openssl/err.h>
 
@@ -24,9 +24,7 @@
  * |macnid| e.g., NID_hmac_sha1
  * returns pointer to OSSL_CRMF_PBMPARAMETER on success, NULL on error
  */
-OSSL_CRMF_PBMPARAMETER *OSSL_CRMF_pbmp_new(OSSL_LIB_CTX *libctx, size_t slen,
-                                           int owfnid, size_t itercnt,
-                                           int macnid)
+OSSL_CRMF_PBMPARAMETER *OSSL_CRMF_pbmp_new(OSSL_LIB_CTX *libctx, size_t slen, int owfnid, size_t itercnt, int macnid)
 {
     OSSL_CRMF_PBMPARAMETER *pbm = NULL;
     unsigned char *salt = NULL;
@@ -41,7 +39,8 @@ OSSL_CRMF_PBMPARAMETER *OSSL_CRMF_pbmp_new(OSSL_LIB_CTX *libctx, size_t slen,
      */
     if ((salt = OPENSSL_malloc(slen)) == NULL)
         goto err;
-    if (RAND_bytes_ex(libctx, salt, slen, 0) <= 0) {
+    if (RAND_bytes_ex(libctx, salt, slen, 0) <= 0)
+    {
         ERR_raise(ERR_LIB_CRMF, CRMF_R_FAILURE_OBTAINING_RANDOM);
         goto err;
     }
@@ -53,7 +52,8 @@ OSSL_CRMF_PBMPARAMETER *OSSL_CRMF_pbmp_new(OSSL_LIB_CTX *libctx, size_t slen,
      * compute the key used in the MAC process.  All implementations MUST
      * support SHA-1.
      */
-    if (!X509_ALGOR_set0(pbm->owf, OBJ_nid2obj(owfnid), V_ASN1_UNDEF, NULL)) {
+    if (!X509_ALGOR_set0(pbm->owf, OBJ_nid2obj(owfnid), V_ASN1_UNDEF, NULL))
+    {
         ERR_raise(ERR_LIB_CRMF, CRMF_R_SETTING_OWF_ALGOR_FAILURE);
         goto err;
     }
@@ -68,16 +68,19 @@ OSSL_CRMF_PBMPARAMETER *OSSL_CRMF_pbmp_new(OSSL_LIB_CTX *libctx, size_t slen,
      * passwords.  Hashing is generally considered a cheap operation but
      * this may not be true with all hash functions in the future.
      */
-    if (itercnt < 100) {
+    if (itercnt < 100)
+    {
         ERR_raise(ERR_LIB_CRMF, CRMF_R_ITERATIONCOUNT_BELOW_100);
         goto err;
     }
-    if (itercnt > OSSL_CRMF_PBM_MAX_ITERATION_COUNT) {
+    if (itercnt > OSSL_CRMF_PBM_MAX_ITERATION_COUNT)
+    {
         ERR_raise(ERR_LIB_CRMF, CRMF_R_BAD_PBM_ITERATIONCOUNT);
         goto err;
     }
 
-    if (!ASN1_INTEGER_set(pbm->iterationCount, (long)itercnt)) {
+    if (!ASN1_INTEGER_set(pbm->iterationCount, (long)itercnt))
+    {
         ERR_raise(ERR_LIB_CRMF, CRMF_R_CRMFERROR);
         goto err;
     }
@@ -87,14 +90,15 @@ OSSL_CRMF_PBMPARAMETER *OSSL_CRMF_pbmp_new(OSSL_LIB_CTX *libctx, size_t slen,
      * function to be used.  All implementations MUST support HMAC-SHA1 [HMAC].
      * All implementations SHOULD support DES-MAC and Triple-DES-MAC [PKCS11].
      */
-    if (!X509_ALGOR_set0(pbm->mac, OBJ_nid2obj(macnid), V_ASN1_UNDEF, NULL)) {
+    if (!X509_ALGOR_set0(pbm->mac, OBJ_nid2obj(macnid), V_ASN1_UNDEF, NULL))
+    {
         ERR_raise(ERR_LIB_CRMF, CRMF_R_SETTING_MAC_ALGOR_FAILURE);
         goto err;
     }
 
     OPENSSL_free(salt);
     return pbm;
- err:
+err:
     OPENSSL_free(salt);
     OSSL_CRMF_PBMPARAMETER_free(pbm);
     return NULL;
@@ -112,10 +116,8 @@ OSSL_CRMF_PBMPARAMETER *OSSL_CRMF_pbmp_new(OSSL_LIB_CTX *libctx, size_t slen,
  * returns 1 on success, 0 on error
  */
 /* could be combined with other MAC calculations in the library */
-int OSSL_CRMF_pbm_new(OSSL_LIB_CTX *libctx, const char *propq,
-                      const OSSL_CRMF_PBMPARAMETER *pbmp,
-                      const unsigned char *msg, size_t msglen,
-                      const unsigned char *sec, size_t seclen,
+int OSSL_CRMF_pbm_new(OSSL_LIB_CTX *libctx, const char *propq, const OSSL_CRMF_PBMPARAMETER *pbmp,
+                      const unsigned char *msg, size_t msglen, const unsigned char *sec, size_t seclen,
                       unsigned char **out, size_t *outlen)
 {
     int mac_nid, hmac_md_nid = NID_undef;
@@ -129,8 +131,8 @@ int OSSL_CRMF_pbm_new(OSSL_LIB_CTX *libctx, const char *propq,
     unsigned char *mac_res = 0;
     int ok = 0;
 
-    if (out == NULL || pbmp == NULL || pbmp->mac == NULL
-            || pbmp->mac->algorithm == NULL || msg == NULL || sec == NULL) {
+    if (out == NULL || pbmp == NULL || pbmp->mac == NULL || pbmp->mac->algorithm == NULL || msg == NULL || sec == NULL)
+    {
         ERR_raise(ERR_LIB_CRMF, CRMF_R_NULL_ARGUMENT);
         goto err;
     }
@@ -143,7 +145,8 @@ int OSSL_CRMF_pbm_new(OSSL_LIB_CTX *libctx, const char *propq,
      * support SHA-1.
      */
     OBJ_obj2txt(mdname, sizeof(mdname), pbmp->owf->algorithm, 0);
-    if ((owf = EVP_MD_fetch(libctx, mdname, propq)) == NULL) {
+    if ((owf = EVP_MD_fetch(libctx, mdname, propq)) == NULL)
+    {
         ERR_raise(ERR_LIB_CRMF, CRMF_R_UNSUPPORTED_ALGORITHM);
         goto err;
     }
@@ -162,15 +165,16 @@ int OSSL_CRMF_pbm_new(OSSL_LIB_CTX *libctx, const char *propq,
         goto err;
     if (!EVP_DigestFinal_ex(ctx, basekey, &bklen))
         goto err;
-    if (!ASN1_INTEGER_get_int64(&iterations, pbmp->iterationCount)
-            || iterations < 100 /* min from RFC */
-            || iterations > OSSL_CRMF_PBM_MAX_ITERATION_COUNT) {
+    if (!ASN1_INTEGER_get_int64(&iterations, pbmp->iterationCount) || iterations < 100 /* min from RFC */
+        || iterations > OSSL_CRMF_PBM_MAX_ITERATION_COUNT)
+    {
         ERR_raise(ERR_LIB_CRMF, CRMF_R_BAD_PBM_ITERATIONCOUNT);
         goto err;
     }
 
     /* the first iteration was already done above */
-    while (--iterations > 0) {
+    while (--iterations > 0)
+    {
         if (!EVP_DigestInit_ex(ctx, owf, NULL))
             goto err;
         if (!EVP_DigestUpdate(ctx, basekey, bklen))
@@ -186,32 +190,34 @@ int OSSL_CRMF_pbm_new(OSSL_LIB_CTX *libctx, const char *propq,
      */
     mac_nid = OBJ_obj2nid(pbmp->mac->algorithm);
 
-    if (!EVP_PBE_find(EVP_PBE_TYPE_PRF, mac_nid, NULL, &hmac_md_nid, NULL)
-        || OBJ_obj2txt(hmac_mdname, sizeof(hmac_mdname),
-                       OBJ_nid2obj(hmac_md_nid), 0) <= 0) {
+    if (!EVP_PBE_find(EVP_PBE_TYPE_PRF, mac_nid, NULL, &hmac_md_nid, NULL) ||
+        OBJ_obj2txt(hmac_mdname, sizeof(hmac_mdname), OBJ_nid2obj(hmac_md_nid), 0) <= 0)
+    {
         ERR_raise(ERR_LIB_CRMF, CRMF_R_UNSUPPORTED_ALGORITHM);
         goto err;
     }
     /* could be generalized to allow non-HMAC: */
-    if (EVP_Q_mac(libctx, "HMAC", propq, hmac_mdname, NULL, basekey, bklen,
-                  msg, msglen, mac_res, EVP_MAX_MD_SIZE, outlen) == NULL)
+    if (EVP_Q_mac(libctx, "HMAC", propq, hmac_mdname, NULL, basekey, bklen, msg, msglen, mac_res, EVP_MAX_MD_SIZE,
+                  outlen) == NULL)
         goto err;
 
     ok = 1;
 
- err:
+err:
     OPENSSL_cleanse(basekey, bklen);
     EVP_MD_free(owf);
     EVP_MD_CTX_free(ctx);
 
-    if (ok == 1) {
+    if (ok == 1)
+    {
         *out = mac_res;
         return 1;
     }
 
     OPENSSL_free(mac_res);
 
-    if (pbmp != NULL && pbmp->mac != NULL) {
+    if (pbmp != NULL && pbmp->mac != NULL)
+    {
         char buf[128];
 
         if (OBJ_obj2txt(buf, sizeof(buf), pbmp->mac->algorithm, 0))

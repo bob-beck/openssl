@@ -17,39 +17,41 @@
 #include <openssl/kdf.h>
 #include <openssl/params.h>
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_KDFOPT, OPT_BIN, OPT_KEYLEN, OPT_OUT,
-    OPT_CIPHER, OPT_DIGEST, OPT_MAC,
+    OPT_KDFOPT,
+    OPT_BIN,
+    OPT_KEYLEN,
+    OPT_OUT,
+    OPT_CIPHER,
+    OPT_DIGEST,
+    OPT_MAC,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
-const OPTIONS kdf_options[] = {
-    {OPT_HELP_STR, 1, '-', "Usage: %s [options] kdf_name\n"},
+const OPTIONS kdf_options[] = {{OPT_HELP_STR, 1, '-', "Usage: %s [options] kdf_name\n"},
 
-    OPT_SECTION("General"),
-    {"help", OPT_HELP, '-', "Display this summary"},
-    {"kdfopt", OPT_KDFOPT, 's', "KDF algorithm control parameters in n:v form"},
-    {"cipher", OPT_CIPHER, 's', "Cipher"},
-    {"digest", OPT_DIGEST, 's', "Digest"},
-    {"mac", OPT_MAC, 's', "MAC"},
-    {OPT_MORE_STR, 1, '-', "See 'Supported Controls' in the EVP_KDF_ docs\n"},
-    {"keylen", OPT_KEYLEN, 's', "The size of the output derived key"},
+                               OPT_SECTION("General"),
+                               {"help", OPT_HELP, '-', "Display this summary"},
+                               {"kdfopt", OPT_KDFOPT, 's', "KDF algorithm control parameters in n:v form"},
+                               {"cipher", OPT_CIPHER, 's', "Cipher"},
+                               {"digest", OPT_DIGEST, 's', "Digest"},
+                               {"mac", OPT_MAC, 's', "MAC"},
+                               {OPT_MORE_STR, 1, '-', "See 'Supported Controls' in the EVP_KDF_ docs\n"},
+                               {"keylen", OPT_KEYLEN, 's', "The size of the output derived key"},
 
-    OPT_SECTION("Output"),
-    {"out", OPT_OUT, '>', "Output to filename rather than stdout"},
-    {"binary", OPT_BIN, '-',
-        "Output in binary format (default is hexadecimal)"},
+                               OPT_SECTION("Output"),
+                               {"out", OPT_OUT, '>', "Output to filename rather than stdout"},
+                               {"binary", OPT_BIN, '-', "Output in binary format (default is hexadecimal)"},
 
-    OPT_PROV_OPTIONS,
+                               OPT_PROV_OPTIONS,
 
-    OPT_PARAMETERS(),
-    {"kdf_name", 0, 0, "Name of the KDF algorithm"},
-    {NULL}
-};
+                               OPT_PARAMETERS(),
+                               {"kdf_name", 0, 0, "Name of the KDF algorithm"},
+                               {NULL}};
 
-static char *alloc_kdf_algorithm_name(STACK_OF(OPENSSL_STRING) **optp,
-                                      const char *name, const char *arg)
+static char *alloc_kdf_algorithm_name(STACK_OF(OPENSSL_STRING) **optp, const char *name, const char *arg)
 {
     size_t len = strlen(name) + strlen(arg) + 2;
     char *res;
@@ -82,10 +84,12 @@ int kdf_main(int argc, char **argv)
     char *digest = NULL, *cipher = NULL, *mac = NULL;
 
     prog = opt_init(argc, argv, kdf_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         default:
-opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto err;
         case OPT_HELP:
@@ -138,8 +142,8 @@ opthelp:
     if (argc != 1)
         goto opthelp;
 
-    if ((kdf = EVP_KDF_fetch(app_get0_libctx(), argv[0],
-                             app_get0_propq())) == NULL) {
+    if ((kdf = EVP_KDF_fetch(app_get0_libctx(), argv[0], app_get0_propq())) == NULL)
+    {
         BIO_printf(bio_err, "Invalid KDF name %s\n", argv[0]);
         goto opthelp;
     }
@@ -148,15 +152,16 @@ opthelp:
     if (ctx == NULL)
         goto err;
 
-    if (opts != NULL) {
+    if (opts != NULL)
+    {
         int ok = 1;
-        OSSL_PARAM *params =
-            app_params_new_from_opts(opts, EVP_KDF_settable_ctx_params(kdf));
+        OSSL_PARAM *params = app_params_new_from_opts(opts, EVP_KDF_settable_ctx_params(kdf));
 
         if (params == NULL)
             goto err;
 
-        if (!EVP_KDF_CTX_set_params(ctx, params)) {
+        if (!EVP_KDF_CTX_set_params(ctx, params))
+        {
             BIO_printf(bio_err, "KDF parameter error\n");
             ERR_print_errors(bio_err);
             ok = 0;
@@ -170,7 +175,8 @@ opthelp:
     if (out == NULL)
         goto err;
 
-    if (dkm_len <= 0) {
+    if (dkm_len <= 0)
+    {
         BIO_printf(bio_err, "Invalid derived key length.\n");
         goto err;
     }
@@ -178,16 +184,21 @@ opthelp:
     if (dkm_bytes == NULL)
         goto err;
 
-    if (!EVP_KDF_derive(ctx, dkm_bytes, dkm_len, NULL)) {
+    if (!EVP_KDF_derive(ctx, dkm_bytes, dkm_len, NULL))
+    {
         BIO_printf(bio_err, "EVP_KDF_derive failed\n");
         goto err;
     }
 
-    if (out_bin) {
+    if (out_bin)
+    {
         BIO_write(out, dkm_bytes, dkm_len);
-    } else {
+    }
+    else
+    {
         hexout = OPENSSL_buf2hexstr(dkm_bytes, dkm_len);
-        if (hexout == NULL) {
+        if (hexout == NULL)
+        {
             BIO_printf(bio_err, "Memory allocation failure\n");
             goto err;
         }

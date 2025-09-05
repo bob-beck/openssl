@@ -78,7 +78,8 @@ int WHIRLPOOL_Update(WHIRLPOOL_CTX *c, const void *_inp, size_t bytes)
     size_t chunk = ((size_t)1) << (sizeof(size_t) * 8 - 4);
     const unsigned char *inp = _inp;
 
-    while (bytes >= chunk) {
+    while (bytes >= chunk)
+    {
         WHIRLPOOL_BitUpdate(c, inp, chunk * 8);
         bytes -= chunk;
         inp += chunk;
@@ -92,8 +93,7 @@ int WHIRLPOOL_Update(WHIRLPOOL_CTX *c, const void *_inp, size_t bytes)
 void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
 {
     size_t n;
-    unsigned int bitoff = c->bitoff,
-        bitrem = bitoff % 8, inpgap = (8 - (unsigned int)bits % 8) & 7;
+    unsigned int bitoff = c->bitoff, bitrem = bitoff % 8, inpgap = (8 - (unsigned int)bits % 8) & 7;
     const unsigned char *inp = _inp;
 
     /*
@@ -102,33 +102,42 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
      * to detect overflows.
      */
     c->bitlen[0] += bits;
-    if (c->bitlen[0] < bits) {  /* overflow */
+    if (c->bitlen[0] < bits)
+    { /* overflow */
         n = 1;
-        do {
+        do
+        {
             c->bitlen[n]++;
-        } while (c->bitlen[n] == 0
-                 && ++n < (WHIRLPOOL_COUNTER / sizeof(size_t)));
+        } while (c->bitlen[n] == 0 && ++n < (WHIRLPOOL_COUNTER / sizeof(size_t)));
     }
 #ifndef OPENSSL_SMALL_FOOTPRINT
- reconsider:
-    if (inpgap == 0 && bitrem == 0) { /* byte-oriented loop */
-        while (bits) {
-            if (bitoff == 0 && (n = bits / WHIRLPOOL_BBLOCK)) {
+reconsider:
+    if (inpgap == 0 && bitrem == 0)
+    { /* byte-oriented loop */
+        while (bits)
+        {
+            if (bitoff == 0 && (n = bits / WHIRLPOOL_BBLOCK))
+            {
                 whirlpool_block(c, inp, n);
                 inp += n * WHIRLPOOL_BBLOCK / 8;
                 bits %= WHIRLPOOL_BBLOCK;
-            } else {
+            }
+            else
+            {
                 unsigned int byteoff = bitoff / 8;
 
                 bitrem = WHIRLPOOL_BBLOCK - bitoff; /* reuse bitrem */
-                if (bits >= bitrem) {
+                if (bits >= bitrem)
+                {
                     bits -= bitrem;
                     bitrem /= 8;
                     memcpy(c->data + byteoff, inp, bitrem);
                     inp += bitrem;
                     whirlpool_block(c, c->data, 1);
                     bitoff = 0;
-                } else {
+                }
+                else
+                {
                     memcpy(c->data + byteoff, inp, bits / 8);
                     bitoff += (unsigned int)bits;
                     bits = 0;
@@ -136,7 +145,8 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
                 c->bitoff = bitoff;
             }
         }
-    } else                      /* bit-oriented loop */
+    }
+    else /* bit-oriented loop */
 #endif
     {
         /*-
@@ -151,28 +161,33 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
                 |
                 c->bitoff/8
         */
-        while (bits) {
+        while (bits)
+        {
             unsigned int byteoff = bitoff / 8;
             unsigned char b;
 
 #ifndef OPENSSL_SMALL_FOOTPRINT
-            if (bitrem == inpgap) {
+            if (bitrem == inpgap)
+            {
                 c->data[byteoff++] |= inp[0] & (0xff >> inpgap);
                 inpgap = 8 - inpgap;
                 bitoff += inpgap;
-                bitrem = 0;     /* bitoff%8 */
+                bitrem = 0; /* bitoff%8 */
                 bits -= inpgap;
-                inpgap = 0;     /* bits%8 */
+                inpgap = 0; /* bits%8 */
                 inp++;
-                if (bitoff == WHIRLPOOL_BBLOCK) {
+                if (bitoff == WHIRLPOOL_BBLOCK)
+                {
                     whirlpool_block(c, c->data, 1);
                     bitoff = 0;
                 }
                 c->bitoff = bitoff;
                 goto reconsider;
-            } else
+            }
+            else
 #endif
-            if (bits > 8) {
+                if (bits > 8)
+            {
                 b = ((inp[0] << inpgap) | (inp[1] >> (8 - inpgap)));
                 b &= 0xff;
                 if (bitrem)
@@ -182,14 +197,17 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
                 bitoff += 8;
                 bits -= 8;
                 inp++;
-                if (bitoff >= WHIRLPOOL_BBLOCK) {
+                if (bitoff >= WHIRLPOOL_BBLOCK)
+                {
                     whirlpool_block(c, c->data, 1);
                     byteoff = 0;
                     bitoff %= WHIRLPOOL_BBLOCK;
                 }
                 if (bitrem)
                     c->data[byteoff] = b << (8 - bitrem);
-            } else {            /* remaining less than or equal to 8 bits */
+            }
+            else
+            { /* remaining less than or equal to 8 bits */
 
                 b = (inp[0] << inpgap) & 0xff;
                 if (bitrem)
@@ -197,7 +215,8 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
                 else
                     c->data[byteoff++] = b;
                 bitoff += (unsigned int)bits;
-                if (bitoff == WHIRLPOOL_BBLOCK) {
+                if (bitoff == WHIRLPOOL_BBLOCK)
+                {
                     whirlpool_block(c, c->data, 1);
                     byteoff = 0;
                     bitoff %= WHIRLPOOL_BBLOCK;
@@ -225,15 +244,15 @@ int WHIRLPOOL_Final(unsigned char *md, WHIRLPOOL_CTX *c)
     byteoff++;
 
     /* pad with zeros */
-    if (byteoff > (WHIRLPOOL_BBLOCK / 8 - WHIRLPOOL_COUNTER)) {
+    if (byteoff > (WHIRLPOOL_BBLOCK / 8 - WHIRLPOOL_COUNTER))
+    {
         if (byteoff < WHIRLPOOL_BBLOCK / 8)
             memset(&c->data[byteoff], 0, WHIRLPOOL_BBLOCK / 8 - byteoff);
         whirlpool_block(c, c->data, 1);
         byteoff = 0;
     }
     if (byteoff < (WHIRLPOOL_BBLOCK / 8 - WHIRLPOOL_COUNTER))
-        memset(&c->data[byteoff], 0,
-               (WHIRLPOOL_BBLOCK / 8 - WHIRLPOOL_COUNTER) - byteoff);
+        memset(&c->data[byteoff], 0, (WHIRLPOOL_BBLOCK / 8 - WHIRLPOOL_COUNTER) - byteoff);
     /* smash 256-bit c->bitlen in big-endian order */
     p = &c->data[WHIRLPOOL_BBLOCK / 8 - 1]; /* last byte in c->data */
     for (i = 0; i < WHIRLPOOL_COUNTER / sizeof(size_t); i++)
@@ -242,7 +261,8 @@ int WHIRLPOOL_Final(unsigned char *md, WHIRLPOOL_CTX *c)
 
     whirlpool_block(c, c->data, 1);
 
-    if (md) {
+    if (md)
+    {
         memcpy(md, c->H.c, WHIRLPOOL_DIGEST_LENGTH);
         OPENSSL_cleanse(c, sizeof(*c));
         return 1;

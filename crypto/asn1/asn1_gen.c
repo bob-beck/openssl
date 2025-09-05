@@ -12,40 +12,42 @@
 #include "internal/cryptlib.h"
 #include "crypto/asn1.h"
 
-#define ASN1_GEN_FLAG           0x10000
-#define ASN1_GEN_FLAG_IMP       (ASN1_GEN_FLAG|1)
-#define ASN1_GEN_FLAG_EXP       (ASN1_GEN_FLAG|2)
-#define ASN1_GEN_FLAG_TAG       (ASN1_GEN_FLAG|3)
-#define ASN1_GEN_FLAG_BITWRAP   (ASN1_GEN_FLAG|4)
-#define ASN1_GEN_FLAG_OCTWRAP   (ASN1_GEN_FLAG|5)
-#define ASN1_GEN_FLAG_SEQWRAP   (ASN1_GEN_FLAG|6)
-#define ASN1_GEN_FLAG_SETWRAP   (ASN1_GEN_FLAG|7)
-#define ASN1_GEN_FLAG_FORMAT    (ASN1_GEN_FLAG|8)
+#define ASN1_GEN_FLAG 0x10000
+#define ASN1_GEN_FLAG_IMP (ASN1_GEN_FLAG | 1)
+#define ASN1_GEN_FLAG_EXP (ASN1_GEN_FLAG | 2)
+#define ASN1_GEN_FLAG_TAG (ASN1_GEN_FLAG | 3)
+#define ASN1_GEN_FLAG_BITWRAP (ASN1_GEN_FLAG | 4)
+#define ASN1_GEN_FLAG_OCTWRAP (ASN1_GEN_FLAG | 5)
+#define ASN1_GEN_FLAG_SEQWRAP (ASN1_GEN_FLAG | 6)
+#define ASN1_GEN_FLAG_SETWRAP (ASN1_GEN_FLAG | 7)
+#define ASN1_GEN_FLAG_FORMAT (ASN1_GEN_FLAG | 8)
 
-#define ASN1_GEN_STR(str,val)   {str, sizeof(str) - 1, val}
+#define ASN1_GEN_STR(str, val) {str, sizeof(str) - 1, val}
 
-#define ASN1_FLAG_EXP_MAX       20
+#define ASN1_FLAG_EXP_MAX 20
 /* Maximum number of nested sequences */
-#define ASN1_GEN_SEQ_MAX_DEPTH  50
+#define ASN1_GEN_SEQ_MAX_DEPTH 50
 
 /* Input formats */
 
 /* ASCII: default */
-#define ASN1_GEN_FORMAT_ASCII   1
+#define ASN1_GEN_FORMAT_ASCII 1
 /* UTF8 */
-#define ASN1_GEN_FORMAT_UTF8    2
+#define ASN1_GEN_FORMAT_UTF8 2
 /* Hex */
-#define ASN1_GEN_FORMAT_HEX     3
+#define ASN1_GEN_FORMAT_HEX 3
 /* List of bits */
 #define ASN1_GEN_FORMAT_BITLIST 4
 
-struct tag_name_st {
+struct tag_name_st
+{
     const char *strnam;
     int len;
     int tag;
 };
 
-typedef struct {
+typedef struct
+{
     int exp_tag;
     int exp_class;
     int exp_constructed;
@@ -53,7 +55,8 @@ typedef struct {
     long exp_len;
 } tag_exp_type;
 
-typedef struct {
+typedef struct
+{
     int imp_tag;
     int imp_class;
     int utype;
@@ -63,16 +66,12 @@ typedef struct {
     int exp_count;
 } tag_exp_arg;
 
-static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
-                              int *perr);
+static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth, int *perr);
 static int bitstr_cb(const char *elem, int len, void *bitstr);
 static int asn1_cb(const char *elem, int len, void *bitstr);
-static int append_exp(tag_exp_arg *arg, int exp_tag, int exp_class,
-                      int exp_constructed, int exp_pad, int imp_ok);
-static int parse_tagging(const char *vstart, int vlen, int *ptag,
-                         int *pclass);
-static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
-                             int depth, int *perr);
+static int append_exp(tag_exp_arg *arg, int exp_tag, int exp_class, int exp_constructed, int exp_pad, int imp_ok);
+static int parse_tagging(const char *vstart, int vlen, int *ptag, int *pclass);
+static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf, int depth, int *perr);
 static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype);
 static int asn1_str2tag(const char *tagstr, int len);
 
@@ -96,8 +95,7 @@ ASN1_TYPE *ASN1_generate_v3(const char *str, X509V3_CTX *cnf)
     return ret;
 }
 
-static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
-                              int *perr)
+static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth, int *perr)
 {
     ASN1_TYPE *ret;
     tag_exp_arg asn1_tags;
@@ -118,23 +116,27 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
     asn1_tags.imp_class = -1;
     asn1_tags.format = ASN1_GEN_FORMAT_ASCII;
     asn1_tags.exp_count = 0;
-    if (CONF_parse_list(str, ',', 1, asn1_cb, &asn1_tags) != 0) {
+    if (CONF_parse_list(str, ',', 1, asn1_cb, &asn1_tags) != 0)
+    {
         *perr = ASN1_R_UNKNOWN_TAG;
         return NULL;
     }
 
-    if ((asn1_tags.utype == V_ASN1_SEQUENCE)
-        || (asn1_tags.utype == V_ASN1_SET)) {
-        if (!cnf) {
+    if ((asn1_tags.utype == V_ASN1_SEQUENCE) || (asn1_tags.utype == V_ASN1_SET))
+    {
+        if (!cnf)
+        {
             *perr = ASN1_R_SEQUENCE_OR_SET_NEEDS_CONFIG;
             return NULL;
         }
-        if (depth >= ASN1_GEN_SEQ_MAX_DEPTH) {
+        if (depth >= ASN1_GEN_SEQ_MAX_DEPTH)
+        {
             *perr = ASN1_R_ILLEGAL_NESTED_TAGGING;
             return NULL;
         }
         ret = asn1_multi(asn1_tags.utype, asn1_tags.str, cnf, depth, perr);
-    } else
+    }
+    else
         ret = asn1_str2type(asn1_tags.str, asn1_tags.format, asn1_tags.utype);
 
     if (!ret)
@@ -152,11 +154,11 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
     cpy_start = orig_der;
 
     /* Do we need IMPLICIT tagging? */
-    if (asn1_tags.imp_tag != -1) {
+    if (asn1_tags.imp_tag != -1)
+    {
         /* If IMPLICIT we will replace the underlying tag */
         /* Skip existing tag+len */
-        r = ASN1_get_object(&cpy_start, &hdr_len, &hdr_tag, &hdr_class,
-                            cpy_len);
+        r = ASN1_get_object(&cpy_start, &hdr_len, &hdr_tag, &hdr_class, cpy_len);
         if (r & 0x80)
             goto err;
         /* Update copy length */
@@ -165,11 +167,13 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
          * For IMPLICIT tagging the length should match the original length
          * and constructed flag should be consistent.
          */
-        if (r & 0x1) {
+        if (r & 0x1)
+        {
             /* Indefinite length constructed */
             hdr_constructed = 2;
             hdr_len = 0;
-        } else
+        }
+        else
             /* Just retain constructed flag */
             hdr_constructed = r & V_ASN1_CONSTRUCTED;
         /*
@@ -177,13 +181,14 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
          * it will mess up if indefinite length
          */
         len = ASN1_object_size(0, hdr_len, asn1_tags.imp_tag);
-    } else
+    }
+    else
         len = cpy_len;
 
     /* Work out length in any EXPLICIT, starting from end */
 
-    for (i = 0, etmp = asn1_tags.exp_list + asn1_tags.exp_count - 1;
-         i < asn1_tags.exp_count; i++, etmp--) {
+    for (i = 0, etmp = asn1_tags.exp_list + asn1_tags.exp_count - 1; i < asn1_tags.exp_count; i++, etmp--)
+    {
         /* Content length: number of content octets + any padding */
         len += etmp->exp_pad;
         etmp->exp_len = len;
@@ -203,23 +208,21 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
 
     /* Output explicit tags first */
 
-    for (i = 0, etmp = asn1_tags.exp_list; i < asn1_tags.exp_count;
-         i++, etmp++) {
-        ASN1_put_object(&p, etmp->exp_constructed, etmp->exp_len,
-                        etmp->exp_tag, etmp->exp_class);
+    for (i = 0, etmp = asn1_tags.exp_list; i < asn1_tags.exp_count; i++, etmp++)
+    {
+        ASN1_put_object(&p, etmp->exp_constructed, etmp->exp_len, etmp->exp_tag, etmp->exp_class);
         if (etmp->exp_pad)
             *p++ = 0;
     }
 
     /* If IMPLICIT, output tag */
 
-    if (asn1_tags.imp_tag != -1) {
-        if (asn1_tags.imp_class == V_ASN1_UNIVERSAL
-            && (asn1_tags.imp_tag == V_ASN1_SEQUENCE
-                || asn1_tags.imp_tag == V_ASN1_SET))
+    if (asn1_tags.imp_tag != -1)
+    {
+        if (asn1_tags.imp_class == V_ASN1_UNIVERSAL &&
+            (asn1_tags.imp_tag == V_ASN1_SEQUENCE || asn1_tags.imp_tag == V_ASN1_SET))
             hdr_constructed = V_ASN1_CONSTRUCTED;
-        ASN1_put_object(&p, hdr_constructed, hdr_len,
-                        asn1_tags.imp_tag, asn1_tags.imp_class);
+        ASN1_put_object(&p, hdr_constructed, hdr_len, asn1_tags.imp_tag, asn1_tags.imp_class);
     }
 
     /* Copy across original encoding */
@@ -230,12 +233,11 @@ static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
     /* Obtain new ASN1_TYPE structure */
     ret = d2i_ASN1_TYPE(NULL, &cp, len);
 
- err:
+err:
     OPENSSL_free(orig_der);
     OPENSSL_free(new_der);
 
     return ret;
-
 }
 
 static int asn1_cb(const char *elem, int len, void *bitstr)
@@ -251,9 +253,11 @@ static int asn1_cb(const char *elem, int len, void *bitstr)
     if (elem == NULL)
         return -1;
 
-    for (i = 0, p = elem; i < len; p++, i++) {
+    for (i = 0, p = elem; i < len; p++, i++)
+    {
         /* Look for the ':' in name value pairs */
-        if (*p == ':') {
+        if (*p == ':')
+        {
             vstart = p + 1;
             vlen = len - (int)(vstart - elem);
             len = (int)(p - elem);
@@ -263,28 +267,33 @@ static int asn1_cb(const char *elem, int len, void *bitstr)
 
     utype = asn1_str2tag(elem, len);
 
-    if (utype == -1) {
+    if (utype == -1)
+    {
         ERR_raise_data(ERR_LIB_ASN1, ASN1_R_UNKNOWN_TAG, "tag=%s", elem);
         return -1;
     }
 
     /* If this is not a modifier mark end of string and exit */
-    if (!(utype & ASN1_GEN_FLAG)) {
+    if (!(utype & ASN1_GEN_FLAG))
+    {
         arg->utype = utype;
         arg->str = vstart;
         /* If no value and not end of string, error */
-        if (!vstart && elem[len]) {
+        if (!vstart && elem[len])
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_MISSING_VALUE);
             return -1;
         }
         return 0;
     }
 
-    switch (utype) {
+    switch (utype)
+    {
 
     case ASN1_GEN_FLAG_IMP:
         /* Check for illegal multiple IMPLICIT tagging */
-        if (arg->imp_tag != -1) {
+        if (arg->imp_tag != -1)
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_NESTED_TAGGING);
             return -1;
         }
@@ -321,7 +330,8 @@ static int asn1_cb(const char *elem, int len, void *bitstr)
         break;
 
     case ASN1_GEN_FLAG_FORMAT:
-        if (!vstart) {
+        if (!vstart)
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_UNKNOWN_FORMAT);
             return -1;
         }
@@ -333,16 +343,15 @@ static int asn1_cb(const char *elem, int len, void *bitstr)
             arg->format = ASN1_GEN_FORMAT_HEX;
         else if (HAS_PREFIX(vstart, "BITLIST"))
             arg->format = ASN1_GEN_FORMAT_BITLIST;
-        else {
+        else
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_UNKNOWN_FORMAT);
             return -1;
         }
         break;
-
     }
 
     return 1;
-
 }
 
 static int parse_tagging(const char *vstart, int vlen, int *ptag, int *pclass)
@@ -355,7 +364,8 @@ static int parse_tagging(const char *vstart, int vlen, int *ptag, int *pclass)
     /* Check we haven't gone past max length: should be impossible */
     if (eptr && *eptr && (eptr > vstart + vlen))
         return 0;
-    if (tag_num < 0) {
+    if (tag_num < 0)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_INVALID_NUMBER);
         return 0;
     }
@@ -365,8 +375,10 @@ static int parse_tagging(const char *vstart, int vlen, int *ptag, int *pclass)
         vlen -= (int)(eptr - vstart);
     else
         vlen = 0;
-    if (vlen) {
-        switch (*eptr) {
+    if (vlen)
+    {
+        switch (*eptr)
+        {
 
         case 'U':
             *pclass = V_ASN1_UNIVERSAL;
@@ -385,22 +397,19 @@ static int parse_tagging(const char *vstart, int vlen, int *ptag, int *pclass)
             break;
 
         default:
-            ERR_raise_data(ERR_LIB_ASN1, ASN1_R_INVALID_MODIFIER,
-                           "Char=%c", *eptr);
+            ERR_raise_data(ERR_LIB_ASN1, ASN1_R_INVALID_MODIFIER, "Char=%c", *eptr);
             return 0;
-
         }
-    } else
+    }
+    else
         *pclass = V_ASN1_CONTEXT_SPECIFIC;
 
     return 1;
-
 }
 
 /* Handle multiple types: SET and SEQUENCE */
 
-static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
-                             int depth, int *perr)
+static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf, int depth, int *perr)
 {
     ASN1_TYPE *ret = NULL;
     STACK_OF(ASN1_TYPE) *sk = NULL;
@@ -411,16 +420,16 @@ static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
     sk = sk_ASN1_TYPE_new_null();
     if (!sk)
         goto bad;
-    if (section) {
+    if (section)
+    {
         if (!cnf)
             goto bad;
         sect = X509V3_get_section(cnf, (char *)section);
         if (!sect)
             goto bad;
-        for (i = 0; i < sk_CONF_VALUE_num(sect); i++) {
-            ASN1_TYPE *typ =
-                generate_v3(sk_CONF_VALUE_value(sect, i)->value, cnf,
-                            depth + 1, perr);
+        for (i = 0; i < sk_CONF_VALUE_num(sect); i++)
+        {
+            ASN1_TYPE *typ = generate_v3(sk_CONF_VALUE_value(sect, i)->value, cnf, depth + 1, perr);
             if (!typ)
                 goto bad;
             if (!sk_ASN1_TYPE_push(sk, typ))
@@ -450,7 +459,7 @@ static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
 
     der = NULL;
 
- bad:
+bad:
 
     OPENSSL_free(der);
 
@@ -460,17 +469,18 @@ static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
     return ret;
 }
 
-static int append_exp(tag_exp_arg *arg, int exp_tag, int exp_class,
-                      int exp_constructed, int exp_pad, int imp_ok)
+static int append_exp(tag_exp_arg *arg, int exp_tag, int exp_class, int exp_constructed, int exp_pad, int imp_ok)
 {
     tag_exp_type *exp_tmp;
     /* Can only have IMPLICIT if permitted */
-    if ((arg->imp_tag != -1) && !imp_ok) {
+    if ((arg->imp_tag != -1) && !imp_ok)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_IMPLICIT_TAG);
         return 0;
     }
 
-    if (arg->exp_count == ASN1_FLAG_EXP_MAX) {
+    if (arg->exp_count == ASN1_FLAG_EXP_MAX)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_DEPTH_EXCEEDED);
         return 0;
     }
@@ -481,12 +491,15 @@ static int append_exp(tag_exp_arg *arg, int exp_tag, int exp_class,
      * If IMPLICIT set tag to implicit value then reset implicit tag since it
      * has been used.
      */
-    if (arg->imp_tag != -1) {
+    if (arg->imp_tag != -1)
+    {
         exp_tmp->exp_tag = arg->imp_tag;
         exp_tmp->exp_class = arg->imp_class;
         arg->imp_tag = -1;
         arg->imp_class = -1;
-    } else {
+    }
+    else
+    {
         exp_tmp->exp_tag = exp_tag;
         exp_tmp->exp_class = exp_class;
     }
@@ -565,9 +578,9 @@ static int asn1_str2tag(const char *tagstr, int len)
         len = (int)strlen(tagstr);
 
     tntmp = tnst;
-    for (i = 0; i < OSSL_NELEM(tnst); i++, tntmp++) {
-        if ((len == tntmp->len)
-            && (OPENSSL_strncasecmp(tntmp->strnam, tagstr, len) == 0))
+    for (i = 0; i < OSSL_NELEM(tnst); i++, tntmp++)
+    {
+        if ((len == tntmp->len) && (OPENSSL_strncasecmp(tntmp->strnam, tagstr, len) == 0))
             return tntmp->tag;
     }
 
@@ -582,7 +595,8 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
     long rdlen;
     int no_unused = 1;
 
-    if ((atmp = ASN1_TYPE_new()) == NULL) {
+    if ((atmp = ASN1_TYPE_new()) == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
         return NULL;
     }
@@ -590,24 +604,28 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
     if (!str)
         str = "";
 
-    switch (utype) {
+    switch (utype)
+    {
 
     case V_ASN1_NULL:
-        if (str && *str) {
+        if (str && *str)
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_NULL_VALUE);
             goto bad_form;
         }
         break;
 
     case V_ASN1_BOOLEAN:
-        if (format != ASN1_GEN_FORMAT_ASCII) {
+        if (format != ASN1_GEN_FORMAT_ASCII)
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_NOT_ASCII_FORMAT);
             goto bad_form;
         }
         vtmp.name = NULL;
         vtmp.section = NULL;
         vtmp.value = (char *)str;
-        if (!X509V3_get_value_bool(&vtmp, &atmp->value.boolean)) {
+        if (!X509V3_get_value_bool(&vtmp, &atmp->value.boolean))
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_BOOLEAN);
             goto bad_str;
         }
@@ -615,23 +633,26 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
 
     case V_ASN1_INTEGER:
     case V_ASN1_ENUMERATED:
-        if (format != ASN1_GEN_FORMAT_ASCII) {
+        if (format != ASN1_GEN_FORMAT_ASCII)
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_INTEGER_NOT_ASCII_FORMAT);
             goto bad_form;
         }
-        if ((atmp->value.integer
-                    = s2i_ASN1_INTEGER(NULL, str)) == NULL) {
+        if ((atmp->value.integer = s2i_ASN1_INTEGER(NULL, str)) == NULL)
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_INTEGER);
             goto bad_str;
         }
         break;
 
     case V_ASN1_OBJECT:
-        if (format != ASN1_GEN_FORMAT_ASCII) {
+        if (format != ASN1_GEN_FORMAT_ASCII)
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_OBJECT_NOT_ASCII_FORMAT);
             goto bad_form;
         }
-        if ((atmp->value.object = OBJ_txt2obj(str, 0)) == NULL) {
+        if ((atmp->value.object = OBJ_txt2obj(str, 0)) == NULL)
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_OBJECT);
             goto bad_str;
         }
@@ -639,20 +660,24 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
 
     case V_ASN1_UTCTIME:
     case V_ASN1_GENERALIZEDTIME:
-        if (format != ASN1_GEN_FORMAT_ASCII) {
+        if (format != ASN1_GEN_FORMAT_ASCII)
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_TIME_NOT_ASCII_FORMAT);
             goto bad_form;
         }
-        if ((atmp->value.asn1_string = ASN1_STRING_new()) == NULL) {
+        if ((atmp->value.asn1_string = ASN1_STRING_new()) == NULL)
+        {
             ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
             goto bad_str;
         }
-        if (!ASN1_STRING_set(atmp->value.asn1_string, str, -1)) {
+        if (!ASN1_STRING_set(atmp->value.asn1_string, str, -1))
+        {
             ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
             goto bad_str;
         }
         atmp->value.asn1_string->type = utype;
-        if (!ASN1_TIME_check(atmp->value.asn1_string)) {
+        if (!ASN1_TIME_check(atmp->value.asn1_string))
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_TIME_VALUE);
             goto bad_str;
         }
@@ -672,13 +697,14 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
             format = MBSTRING_ASC;
         else if (format == ASN1_GEN_FORMAT_UTF8)
             format = MBSTRING_UTF8;
-        else {
+        else
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_FORMAT);
             goto bad_form;
         }
 
-        if (ASN1_mbstring_copy(&atmp->value.asn1_string, (unsigned char *)str,
-                               -1, format, ASN1_tag2bit(utype)) <= 0) {
+        if (ASN1_mbstring_copy(&atmp->value.asn1_string, (unsigned char *)str, -1, format, ASN1_tag2bit(utype)) <= 0)
+        {
             ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
             goto bad_str;
         }
@@ -687,34 +713,42 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
 
     case V_ASN1_BIT_STRING:
     case V_ASN1_OCTET_STRING:
-        if ((atmp->value.asn1_string = ASN1_STRING_new()) == NULL) {
+        if ((atmp->value.asn1_string = ASN1_STRING_new()) == NULL)
+        {
             ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
             goto bad_form;
         }
 
-        if (format == ASN1_GEN_FORMAT_HEX) {
-            if ((rdata = OPENSSL_hexstr2buf(str, &rdlen)) == NULL) {
+        if (format == ASN1_GEN_FORMAT_HEX)
+        {
+            if ((rdata = OPENSSL_hexstr2buf(str, &rdlen)) == NULL)
+            {
                 ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_HEX);
                 goto bad_str;
             }
             atmp->value.asn1_string->data = rdata;
             atmp->value.asn1_string->length = rdlen;
             atmp->value.asn1_string->type = utype;
-        } else if (format == ASN1_GEN_FORMAT_ASCII) {
-            if (!ASN1_STRING_set(atmp->value.asn1_string, str, -1)) {
+        }
+        else if (format == ASN1_GEN_FORMAT_ASCII)
+        {
+            if (!ASN1_STRING_set(atmp->value.asn1_string, str, -1))
+            {
                 ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
                 goto bad_str;
             }
-        } else if ((format == ASN1_GEN_FORMAT_BITLIST)
-                 && (utype == V_ASN1_BIT_STRING)) {
-            if (!CONF_parse_list
-                (str, ',', 1, bitstr_cb, atmp->value.bit_string)) {
+        }
+        else if ((format == ASN1_GEN_FORMAT_BITLIST) && (utype == V_ASN1_BIT_STRING))
+        {
+            if (!CONF_parse_list(str, ',', 1, bitstr_cb, atmp->value.bit_string))
+            {
                 ERR_raise(ERR_LIB_ASN1, ASN1_R_LIST_ERROR);
                 goto bad_str;
             }
             no_unused = 0;
-
-        } else {
+        }
+        else
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_BITSTRING_FORMAT);
             goto bad_form;
         }
@@ -732,13 +766,12 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
     atmp->type = utype;
     return atmp;
 
- bad_str:
+bad_str:
     ERR_add_error_data(2, "string=", str);
- bad_form:
+bad_form:
 
     ASN1_TYPE_free(atmp);
     return NULL;
-
 }
 
 static int bitstr_cb(const char *elem, int len, void *bitstr)
@@ -750,11 +783,13 @@ static int bitstr_cb(const char *elem, int len, void *bitstr)
     bitnum = strtoul(elem, &eptr, 10);
     if (eptr && *eptr && (eptr != elem + len))
         return 0;
-    if (bitnum < 0) {
+    if (bitnum < 0)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_INVALID_NUMBER);
         return 0;
     }
-    if (!ASN1_BIT_STRING_set_bit(bitstr, bitnum, 1)) {
+    if (!ASN1_BIT_STRING_set_bit(bitstr, bitnum, 1))
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
         return 0;
     }
@@ -767,7 +802,8 @@ static int mask_cb(const char *elem, int len, void *arg)
     int tag;
     if (elem == NULL)
         return 0;
-    if (len == 3 && HAS_PREFIX(elem, "DIR")) {
+    if (len == 3 && HAS_PREFIX(elem, "DIR"))
+    {
         *pmask |= B_ASN1_DIRECTORYSTRING;
         return 1;
     }

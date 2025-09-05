@@ -37,7 +37,8 @@ KDF_DATA *ossl_kdf_data_new(void *provctx)
     if (kdfdata == NULL)
         return NULL;
 
-    if (!CRYPTO_NEW_REF(&kdfdata->refcnt, 1)) {
+    if (!CRYPTO_NEW_REF(&kdfdata->refcnt, 1))
+    {
         OPENSSL_free(kdfdata);
         return NULL;
     }
@@ -94,9 +95,7 @@ static int kdf_has(const void *keydata, int selection)
     return 1; /* nothing is missing */
 }
 
-const OSSL_DISPATCH ossl_kdf_keymgmt_functions[] = {
-    { OSSL_FUNC_KEYMGMT_NEW, (void (*)(void))kdf_newdata },
-    { OSSL_FUNC_KEYMGMT_FREE, (void (*)(void))kdf_freedata },
-    { OSSL_FUNC_KEYMGMT_HAS, (void (*)(void))kdf_has },
-    OSSL_DISPATCH_END
-};
+const OSSL_DISPATCH ossl_kdf_keymgmt_functions[] = {{OSSL_FUNC_KEYMGMT_NEW, (void (*)(void))kdf_newdata},
+                                                    {OSSL_FUNC_KEYMGMT_FREE, (void (*)(void))kdf_freedata},
+                                                    {OSSL_FUNC_KEYMGMT_HAS, (void (*)(void))kdf_has},
+                                                    OSSL_DISPATCH_END};

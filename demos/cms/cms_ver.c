@@ -29,14 +29,16 @@ static void print_signingTime(CMS_ContentInfo *cms)
 
     b = BIO_new_fp(stdout, BIO_NOCLOSE | BIO_FP_TEXT);
     sis = CMS_get0_SignerInfos(cms);
-    for (i = 0; i < sk_CMS_SignerInfo_num(sis); i++) {
+    for (i = 0; i < sk_CMS_SignerInfo_num(sis); i++)
+    {
         si = sk_CMS_SignerInfo_value(sis, i);
         loc = CMS_signed_get_attr_by_NID(si, NID_pkcs9_signingTime, -1);
         attr = CMS_signed_get_attr(si, loc);
         t = X509_ATTRIBUTE_get0_type(attr, 0);
         if (t == NULL)
             continue;
-        switch (t->type) {
+        switch (t->type)
+        {
         case V_ASN1_UTCTIME:
             utctime = t->value.utctime;
             ASN1_UTCTIME_print(b, utctime);
@@ -106,7 +108,8 @@ int main(int argc, char **argv)
     if (out == NULL)
         goto err;
 
-    if (!CMS_verify(cms, NULL, st, cont, out, 0)) {
+    if (!CMS_verify(cms, NULL, st, cont, out, 0))
+    {
         fprintf(stderr, "Verification Failure\n");
         goto err;
     }
@@ -115,8 +118,9 @@ int main(int argc, char **argv)
 
     ret = EXIT_SUCCESS;
 
- err:
-    if (ret != EXIT_SUCCESS) {
+err:
+    if (ret != EXIT_SUCCESS)
+    {
         fprintf(stderr, "Error Verifying Data\n");
         ERR_print_errors_fp(stderr);
     }

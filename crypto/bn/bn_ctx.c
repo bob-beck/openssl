@@ -12,23 +12,25 @@
 #include "bn_local.h"
 
 /* How many bignums are in each "pool item"; */
-#define BN_CTX_POOL_SIZE        16
+#define BN_CTX_POOL_SIZE 16
 /* The stack frame info is resizing, set a first-time expansion size; */
-#define BN_CTX_START_FRAMES     32
+#define BN_CTX_START_FRAMES 32
 
 /***********/
 /* BN_POOL */
 /***********/
 
 /* A bundle of bignums that can be linked with other bundles */
-typedef struct bignum_pool_item {
+typedef struct bignum_pool_item
+{
     /* The bignum values */
     BIGNUM vals[BN_CTX_POOL_SIZE];
     /* Linked-list admin */
     struct bignum_pool_item *prev, *next;
 } BN_POOL_ITEM;
 /* A linked-list of bignums grouped in bundles */
-typedef struct bignum_pool {
+typedef struct bignum_pool
+{
     /* Linked-list admin */
     BN_POOL_ITEM *head, *current, *tail;
     /* Stack depth and allocation size */
@@ -44,7 +46,8 @@ static void BN_POOL_release(BN_POOL *, unsigned int);
 /************/
 
 /* A wrapper to manage the "stack frames" */
-typedef struct bignum_ctx_stack {
+typedef struct bignum_ctx_stack
+{
     /* Array of indexes into the bignum stack */
     unsigned int *indexes;
     /* Number of stack frames, and the size of the allocated array */
@@ -60,7 +63,8 @@ static unsigned int BN_STACK_pop(BN_STACK *);
 /**********/
 
 /* The opaque BN_CTX type */
-struct bignum_ctx {
+struct bignum_ctx
+{
     /* The bignum bundles */
     BN_POOL pool;
     /* The "stack frames", if you will */
@@ -86,17 +90,18 @@ static void ctxdbg(BIO *channel, const char *text, BN_CTX *ctx)
     BN_STACK *stack = &ctx->stack;
 
     BIO_printf(channel, "%s\n", text);
-    BIO_printf(channel, "  (%16p): ", (void*)ctx);
-    while (bnidx < ctx->used) {
-        BIO_printf(channel, "%03x ",
-                   item->vals[bnidx++ % BN_CTX_POOL_SIZE].dmax);
+    BIO_printf(channel, "  (%16p): ", (void *)ctx);
+    while (bnidx < ctx->used)
+    {
+        BIO_printf(channel, "%03x ", item->vals[bnidx++ % BN_CTX_POOL_SIZE].dmax);
         if (!(bnidx % BN_CTX_POOL_SIZE))
             item = item->next;
     }
     BIO_printf(channel, "\n");
     bnidx = 0;
     BIO_printf(channel, "   %16s : ", "");
-    while (fpidx < stack->depth) {
+    while (fpidx < stack->depth)
+    {
         while (bnidx++ < stack->indexes[fpidx])
             BIO_printf(channel, "    ");
         BIO_printf(channel, "^^^ ");
@@ -106,13 +111,18 @@ static void ctxdbg(BIO *channel, const char *text, BN_CTX *ctx)
     BIO_printf(channel, "\n");
 }
 
-# define CTXDBG(str, ctx)           \
-    OSSL_TRACE_BEGIN(BN_CTX) {      \
-        ctxdbg(trc_out, str, ctx);  \
-    } OSSL_TRACE_END(BN_CTX)
+#define CTXDBG(str, ctx)                                                                                               \
+    OSSL_TRACE_BEGIN(BN_CTX)                                                                                           \
+    {                                                                                                                  \
+        ctxdbg(trc_out, str, ctx);                                                                                     \
+    }                                                                                                                  \
+    OSSL_TRACE_END(BN_CTX)
 #else
 /* We do not want tracing in FIPS module */
-# define CTXDBG(str, ctx) do {} while(0)
+#define CTXDBG(str, ctx)                                                                                               \
+    do                                                                                                                 \
+    {                                                                                                                  \
+    } while (0)
 #endif /* FIPS_MODULE */
 
 BN_CTX *BN_CTX_new_ex(OSSL_LIB_CTX *ctx)
@@ -156,20 +166,21 @@ void BN_CTX_free(BN_CTX *ctx)
     if (ctx == NULL)
         return;
 #ifndef FIPS_MODULE
-    OSSL_TRACE_BEGIN(BN_CTX) {
+    OSSL_TRACE_BEGIN(BN_CTX)
+    {
         BN_POOL_ITEM *pool = ctx->pool.head;
-        BIO_printf(trc_out,
-                   "BN_CTX_free(): stack-size=%d, pool-bignums=%d\n",
-                   ctx->stack.size, ctx->pool.size);
+        BIO_printf(trc_out, "BN_CTX_free(): stack-size=%d, pool-bignums=%d\n", ctx->stack.size, ctx->pool.size);
         BIO_printf(trc_out, "  dmaxs: ");
-        while (pool) {
+        while (pool)
+        {
             unsigned loop = 0;
             while (loop < BN_CTX_POOL_SIZE)
                 BIO_printf(trc_out, "%02x ", pool->vals[loop++].dmax);
             pool = pool->next;
         }
         BIO_printf(trc_out, "\n");
-    } OSSL_TRACE_END(BN_CTX);
+    }
+    OSSL_TRACE_END(BN_CTX);
 #endif
     BN_STACK_finish(&ctx->stack);
     BN_POOL_finish(&ctx->pool);
@@ -183,7 +194,8 @@ void BN_CTX_start(BN_CTX *ctx)
     if (ctx->err_stack || ctx->too_many)
         ctx->err_stack++;
     /* (Try to) get a new frame pointer */
-    else if (!BN_STACK_push(&ctx->stack, ctx->used)) {
+    else if (!BN_STACK_push(&ctx->stack, ctx->used))
+    {
         ERR_raise(ERR_LIB_BN, BN_R_TOO_MANY_TEMPORARY_VARIABLES);
         ctx->err_stack++;
     }
@@ -197,7 +209,8 @@ void BN_CTX_end(BN_CTX *ctx)
     CTXDBG("ENTER BN_CTX_end()", ctx);
     if (ctx->err_stack)
         ctx->err_stack--;
-    else {
+    else
+    {
         unsigned int fp = BN_STACK_pop(&ctx->stack);
         /* Does this stack frame have anything to release? */
         if (fp < ctx->used)
@@ -216,7 +229,8 @@ BIGNUM *BN_CTX_get(BN_CTX *ctx)
     CTXDBG("ENTER BN_CTX_get()", ctx);
     if (ctx->err_stack || ctx->too_many)
         return NULL;
-    if ((ret = BN_POOL_get(&ctx->pool, ctx->flags)) == NULL) {
+    if ((ret = BN_POOL_get(&ctx->pool, ctx->flags)) == NULL)
+    {
         /*
          * Setting too_many prevents repeated "get" attempts from cluttering
          * the error stack.
@@ -257,13 +271,12 @@ static void BN_STACK_finish(BN_STACK *st)
     st->indexes = NULL;
 }
 
-
 static int BN_STACK_push(BN_STACK *st, unsigned int idx)
 {
-    if (st->depth == st->size) {
+    if (st->depth == st->size)
+    {
         /* Need to expand */
-        unsigned int newsize =
-            st->size ? (st->size * 3 / 2) : BN_CTX_START_FRAMES;
+        unsigned int newsize = st->size ? (st->size * 3 / 2) : BN_CTX_START_FRAMES;
         unsigned int *newitems;
 
         if ((newitems = OPENSSL_malloc_array(newsize, sizeof(*newitems))) == NULL)
@@ -298,7 +311,8 @@ static void BN_POOL_finish(BN_POOL *p)
     unsigned int loop;
     BIGNUM *bn;
 
-    while (p->head) {
+    while (p->head)
+    {
         for (loop = 0, bn = p->head->vals; loop++ < BN_CTX_POOL_SIZE; bn++)
             if (bn->d)
                 BN_clear_free(bn);
@@ -308,19 +322,20 @@ static void BN_POOL_finish(BN_POOL *p)
     }
 }
 
-
 static BIGNUM *BN_POOL_get(BN_POOL *p, int flag)
 {
     BIGNUM *bn;
     unsigned int loop;
 
     /* Full; allocate a new pool item and link it in. */
-    if (p->used == p->size) {
+    if (p->used == p->size)
+    {
         BN_POOL_ITEM *item;
 
         if ((item = OPENSSL_malloc(sizeof(*item))) == NULL)
             return NULL;
-        for (loop = 0, bn = item->vals; loop++ < BN_CTX_POOL_SIZE; bn++) {
+        for (loop = 0, bn = item->vals; loop++ < BN_CTX_POOL_SIZE; bn++)
+        {
             bn_init(bn);
             if ((flag & BN_FLG_SECURE) != 0)
                 BN_set_flags(bn, BN_FLG_SECURE);
@@ -330,7 +345,8 @@ static BIGNUM *BN_POOL_get(BN_POOL *p, int flag)
 
         if (p->head == NULL)
             p->head = p->current = p->tail = item;
-        else {
+        else
+        {
             p->tail->next = item;
             p->tail = item;
             p->current = item;
@@ -353,12 +369,15 @@ static void BN_POOL_release(BN_POOL *p, unsigned int num)
     unsigned int offset = (p->used - 1) % BN_CTX_POOL_SIZE;
 
     p->used -= num;
-    while (num--) {
+    while (num--)
+    {
         bn_check_top(p->current->vals + offset);
-        if (offset == 0) {
+        if (offset == 0)
+        {
             offset = BN_CTX_POOL_SIZE - 1;
             p->current = p->current->prev;
-        } else
+        }
+        else
             offset--;
     }
 }

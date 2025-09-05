@@ -16,7 +16,8 @@
 /**********************************************************************/
 /* The low-level handle type used to refer to a loaded shared library */
 
-struct dso_st {
+struct dso_st
+{
     DSO_METHOD *meth;
     /*
      * Standard dlopen uses a (void *). Win32 uses a HANDLE. VMS doesn't use
@@ -63,16 +64,17 @@ struct dso_st {
     char *loaded_filename;
 };
 
-struct dso_meth_st {
+struct dso_meth_st
+{
     const char *name;
     /*
      * Loads a shared library, NB: new DSO_METHODs must ensure that a
      * successful load populates the loaded_filename field, and likewise a
      * successful unload OPENSSL_frees and NULLs it out.
      */
-    int (*dso_load) (DSO *dso);
+    int (*dso_load)(DSO *dso);
     /* Unloads a shared library */
-    int (*dso_unload) (DSO *dso);
+    int (*dso_unload)(DSO *dso);
     /*
      * Binds a function - assumes a return type of DSO_FUNC_TYPE. This should
      * be cast to the real function prototype by the caller. Platforms that
@@ -80,12 +82,12 @@ struct dso_meth_st {
      * is possible within ANSI C) are highly unlikely to have shared
      * libraries at all, let alone a DSO_METHOD implemented for them.
      */
-    DSO_FUNC_TYPE (*dso_bind_func) (DSO *dso, const char *symname);
+    DSO_FUNC_TYPE (*dso_bind_func)(DSO *dso, const char *symname);
     /*
      * The generic (yuck) "ctrl()" function. NB: Negative return values
      * (rather than zero) indicate errors.
      */
-    long (*dso_ctrl) (DSO *dso, int cmd, long larg, void *parg);
+    long (*dso_ctrl)(DSO *dso, int cmd, long larg, void *parg);
     /*
      * The default DSO_METHOD-specific function for converting filenames to a
      * canonical native form.
@@ -97,10 +99,10 @@ struct dso_meth_st {
      */
     DSO_MERGER_FUNC dso_merger;
     /* [De]Initialisation handlers. */
-    int (*init) (DSO *dso);
-    int (*finish) (DSO *dso);
+    int (*init)(DSO *dso);
+    int (*finish)(DSO *dso);
     /* Return pathname of the module containing location */
-    int (*pathbyaddr) (void *addr, char *path, int sz);
+    int (*pathbyaddr)(void *addr, char *path, int sz);
     /* Perform global symbol lookup, i.e. among *all* modules */
-    void *(*globallookup) (const char *symname);
+    void *(*globallookup)(const char *symname);
 };

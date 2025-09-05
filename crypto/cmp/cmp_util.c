@@ -25,13 +25,13 @@ int OSSL_CMP_log_open(void) /* is designed to be idempotent */
 #ifdef OPENSSL_NO_TRACE
     return 1;
 #else
-# ifndef OPENSSL_NO_STDIO
+#ifndef OPENSSL_NO_STDIO
     BIO *bio = BIO_new_fp(stdout, BIO_NOCLOSE);
 
     if (bio != NULL && OSSL_trace_set_channel(OSSL_TRACE_CATEGORY_CMP, bio))
         return 1;
     BIO_free(bio);
-# endif
+#endif
     ERR_raise(ERR_LIB_CMP, CMP_R_NO_STDIO);
     return 0;
 #endif
@@ -59,21 +59,18 @@ static OSSL_CMP_severity parse_level(const char *level)
     if (len > max_level_len)
         return -1;
     OPENSSL_strlcpy(level_copy, level, len + 1);
-    return
-        strcmp(level_copy, "EMERG") == 0 ? OSSL_CMP_LOG_EMERG :
-        strcmp(level_copy, "ALERT") == 0 ? OSSL_CMP_LOG_ALERT :
-        strcmp(level_copy, "CRIT") == 0 ? OSSL_CMP_LOG_CRIT :
-        strcmp(level_copy, "ERROR") == 0 ? OSSL_CMP_LOG_ERR :
-        strcmp(level_copy, "WARN") == 0 ? OSSL_CMP_LOG_WARNING :
-        strcmp(level_copy, "NOTE") == 0 ? OSSL_CMP_LOG_NOTICE :
-        strcmp(level_copy, "INFO") == 0 ? OSSL_CMP_LOG_INFO :
-        strcmp(level_copy, "DEBUG") == 0 ? OSSL_CMP_LOG_DEBUG :
-        -1;
+    return strcmp(level_copy, "EMERG") == 0   ? OSSL_CMP_LOG_EMERG
+           : strcmp(level_copy, "ALERT") == 0 ? OSSL_CMP_LOG_ALERT
+           : strcmp(level_copy, "CRIT") == 0  ? OSSL_CMP_LOG_CRIT
+           : strcmp(level_copy, "ERROR") == 0 ? OSSL_CMP_LOG_ERR
+           : strcmp(level_copy, "WARN") == 0  ? OSSL_CMP_LOG_WARNING
+           : strcmp(level_copy, "NOTE") == 0  ? OSSL_CMP_LOG_NOTICE
+           : strcmp(level_copy, "INFO") == 0  ? OSSL_CMP_LOG_INFO
+           : strcmp(level_copy, "DEBUG") == 0 ? OSSL_CMP_LOG_DEBUG
+                                              : -1;
 }
 
-const char *ossl_cmp_log_parse_metadata(const char *buf,
-                                        OSSL_CMP_severity *level,
-                                        char **func, char **file, int *line)
+const char *ossl_cmp_log_parse_metadata(const char *buf, OSSL_CMP_severity *level, char **func, char **file, int *line)
 {
     const char *p_func = buf;
     const char *p_file = buf == NULL ? NULL : strchr(buf, ':');
@@ -85,17 +82,21 @@ const char *ossl_cmp_log_parse_metadata(const char *buf,
     *file = NULL;
     *line = 0;
 
-    if (p_file != NULL) {
+    if (p_file != NULL)
+    {
         const char *p_line = strchr(++p_file, ':');
 
-        if ((*level = parse_level(buf)) < 0 && p_line != NULL) {
+        if ((*level = parse_level(buf)) < 0 && p_line != NULL)
+        {
             /* check if buf contains location info and logging level */
             char *p_level_tmp = (char *)p_level;
             const long line_number = strtol(++p_line, &p_level_tmp, 10);
 
             p_level = p_level_tmp;
-            if (p_level > p_line && *(p_level++) == ':') {
-                if ((*level = parse_level(p_level)) >= 0) {
+            if (p_level > p_line && *(p_level++) == ':')
+            {
+                if ((*level = parse_level(p_level)) >= 0)
+                {
                     *func = OPENSSL_strndup(p_func, p_file - 1 - p_func);
                     *file = OPENSSL_strndup(p_file, p_line - 1 - p_file);
                     /* no real problem if OPENSSL_strndup() returns NULL */
@@ -120,30 +121,27 @@ static const char *improve_location_name(const char *func, const char *fallback)
     if (fallback == NULL)
         return func == NULL ? UNKNOWN_FUNC : func;
 
-    return func == NULL || *func == '\0' || strcmp(func, UNKNOWN_FUNC) == 0
-        ? fallback : func;
+    return func == NULL || *func == '\0' || strcmp(func, UNKNOWN_FUNC) == 0 ? fallback : func;
 }
 
-int OSSL_CMP_print_to_bio(BIO *bio, const char *component, const char *file,
-                          int line, OSSL_CMP_severity level, const char *msg)
+int OSSL_CMP_print_to_bio(BIO *bio, const char *component, const char *file, int line, OSSL_CMP_severity level,
+                          const char *msg)
 {
-    const char *level_string =
-        level == OSSL_CMP_LOG_EMERG ? "EMERG" :
-        level == OSSL_CMP_LOG_ALERT ? "ALERT" :
-        level == OSSL_CMP_LOG_CRIT ? "CRIT" :
-        level == OSSL_CMP_LOG_ERR ? "error" :
-        level == OSSL_CMP_LOG_WARNING ? "warning" :
-        level == OSSL_CMP_LOG_NOTICE ? "NOTE" :
-        level == OSSL_CMP_LOG_INFO ? "info" :
-        level == OSSL_CMP_LOG_DEBUG ? "DEBUG" : "(unknown level)";
+    const char *level_string = level == OSSL_CMP_LOG_EMERG     ? "EMERG"
+                               : level == OSSL_CMP_LOG_ALERT   ? "ALERT"
+                               : level == OSSL_CMP_LOG_CRIT    ? "CRIT"
+                               : level == OSSL_CMP_LOG_ERR     ? "error"
+                               : level == OSSL_CMP_LOG_WARNING ? "warning"
+                               : level == OSSL_CMP_LOG_NOTICE  ? "NOTE"
+                               : level == OSSL_CMP_LOG_INFO    ? "info"
+                               : level == OSSL_CMP_LOG_DEBUG   ? "DEBUG"
+                                                               : "(unknown level)";
 
 #ifndef NDEBUG
-    if (BIO_printf(bio, "%s:%s:%d:", improve_location_name(component, "CMP"),
-                   file, line) < 0)
+    if (BIO_printf(bio, "%s:%s:%d:", improve_location_name(component, "CMP"), file, line) < 0)
         return 0;
 #endif
-    return BIO_printf(bio, OSSL_CMP_LOG_PREFIX"%s: %s\n",
-                      level_string, msg) >= 0;
+    return BIO_printf(bio, OSSL_CMP_LOG_PREFIX "%s: %s\n", level_string, msg) >= 0;
 }
 
 #define ERR_PRINT_BUF_SIZE 4096
@@ -155,22 +153,26 @@ void OSSL_CMP_print_errors_cb(OSSL_CMP_log_cb_t log_fn)
     const char *file = NULL, *func = NULL, *data = NULL;
     int line, flags;
 
-    while ((err = ERR_get_error_all(&file, &line, &func, &data, &flags)) != 0) {
-        const char *component =
-            improve_location_name(func, ERR_lib_error_string(err));
+    while ((err = ERR_get_error_all(&file, &line, &func, &data, &flags)) != 0)
+    {
+        const char *component = improve_location_name(func, ERR_lib_error_string(err));
         unsigned long reason = ERR_GET_REASON(err);
         const char *rs = NULL;
         char rsbuf[256];
 
 #ifndef OPENSSL_NO_ERR
-        if (ERR_SYSTEM_ERROR(err)) {
+        if (ERR_SYSTEM_ERROR(err))
+        {
             if (openssl_strerror_r(reason, rsbuf, sizeof(rsbuf)))
                 rs = rsbuf;
-        } else {
+        }
+        else
+        {
             rs = ERR_reason_error_string(err);
         }
 #endif
-        if (rs == NULL) {
+        if (rs == NULL)
+        {
             BIO_snprintf(rsbuf, sizeof(rsbuf), "reason(%lu)", reason);
             rs = rsbuf;
         }
@@ -179,37 +181,41 @@ void OSSL_CMP_print_errors_cb(OSSL_CMP_log_cb_t log_fn)
         else
             BIO_snprintf(msg, sizeof(msg), "%s", rs);
 
-        if (log_fn == NULL) {
+        if (log_fn == NULL)
+        {
 #ifndef OPENSSL_NO_STDIO
             BIO *bio = BIO_new_fp(stderr, BIO_NOCLOSE);
 
-            if (bio != NULL) {
-                OSSL_CMP_print_to_bio(bio, component, file, line,
-                                      OSSL_CMP_LOG_ERR, msg);
+            if (bio != NULL)
+            {
+                OSSL_CMP_print_to_bio(bio, component, file, line, OSSL_CMP_LOG_ERR, msg);
                 BIO_free(bio);
             }
 #else
             /* ERR_raise(..., CMP_R_NO_STDIO) would make no sense here */
 #endif
-        } else {
+        }
+        else
+        {
             if (log_fn(component, file, line, OSSL_CMP_LOG_ERR, msg) <= 0)
                 break; /* abort outputting the error report */
         }
     }
 }
 
-int ossl_cmp_X509_STORE_add1_certs(X509_STORE *store, STACK_OF(X509) *certs,
-                                   int only_self_signed)
+int ossl_cmp_X509_STORE_add1_certs(X509_STORE *store, STACK_OF(X509) *certs, int only_self_signed)
 {
     int i;
 
-    if (store == NULL) {
+    if (store == NULL)
+    {
         ERR_raise(ERR_LIB_CMP, CMP_R_NULL_ARGUMENT);
         return 0;
     }
     if (certs == NULL)
         return 1;
-    for (i = 0; i < sk_X509_num(certs); i++) {
+    for (i = 0; i < sk_X509_num(certs); i++)
+    {
         X509 *cert = sk_X509_value(certs, i);
 
         if (!only_self_signed || X509_self_signed(cert, 0) == 1)
@@ -219,8 +225,7 @@ int ossl_cmp_X509_STORE_add1_certs(X509_STORE *store, STACK_OF(X509) *certs,
     return 1;
 }
 
-int ossl_cmp_sk_ASN1_UTF8STRING_push_str(STACK_OF(ASN1_UTF8STRING) *sk,
-                                         const char *text, int len)
+int ossl_cmp_sk_ASN1_UTF8STRING_push_str(STACK_OF(ASN1_UTF8STRING) *sk, const char *text, int len)
 {
     ASN1_UTF8STRING *utf8string;
 
@@ -234,27 +239,30 @@ int ossl_cmp_sk_ASN1_UTF8STRING_push_str(STACK_OF(ASN1_UTF8STRING) *sk,
         goto err;
     return 1;
 
- err:
+err:
     ASN1_UTF8STRING_free(utf8string);
     return 0;
 }
 
-int ossl_cmp_asn1_octet_string_set1(ASN1_OCTET_STRING **tgt,
-                                    const ASN1_OCTET_STRING *src)
+int ossl_cmp_asn1_octet_string_set1(ASN1_OCTET_STRING **tgt, const ASN1_OCTET_STRING *src)
 {
     ASN1_OCTET_STRING *new;
 
-    if (tgt == NULL) {
+    if (tgt == NULL)
+    {
         ERR_raise(ERR_LIB_CMP, CMP_R_NULL_ARGUMENT);
         return 0;
     }
     if (*tgt == src) /* self-assignment */
         return 1;
 
-    if (src != NULL) {
+    if (src != NULL)
+    {
         if ((new = ASN1_OCTET_STRING_dup(src)) == NULL)
             return 0;
-    } else {
+    }
+    else
+    {
         new = NULL;
     }
 
@@ -263,18 +271,19 @@ int ossl_cmp_asn1_octet_string_set1(ASN1_OCTET_STRING **tgt,
     return 1;
 }
 
-int ossl_cmp_asn1_octet_string_set1_bytes(ASN1_OCTET_STRING **tgt,
-                                          const unsigned char *bytes, int len)
+int ossl_cmp_asn1_octet_string_set1_bytes(ASN1_OCTET_STRING **tgt, const unsigned char *bytes, int len)
 {
     ASN1_OCTET_STRING *new = NULL;
 
-    if (tgt == NULL) {
+    if (tgt == NULL)
+    {
         ERR_raise(ERR_LIB_CMP, CMP_R_NULL_ARGUMENT);
         return 0;
     }
-    if (bytes != NULL) {
-        if ((new = ASN1_OCTET_STRING_new()) == NULL
-                || !(ASN1_OCTET_STRING_set(new, bytes, len))) {
+    if (bytes != NULL)
+    {
+        if ((new = ASN1_OCTET_STRING_new()) == NULL || !(ASN1_OCTET_STRING_set(new, bytes, len)))
+        {
             ASN1_OCTET_STRING_free(new);
             return 0;
         }

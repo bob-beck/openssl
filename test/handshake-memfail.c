@@ -53,17 +53,13 @@ static int do_handshake(OSSL_LIB_CTX *libctx)
     SSL *clientssl = NULL, *serverssl = NULL;
     int testresult = 0;
 
-    if (!TEST_true(create_ssl_ctx_pair(libctx, TLS_server_method(),
-                                       TLS_client_method(),
-                                       TLS1_VERSION, 0,
-                                       &sctx, &cctx, cert, privkey)))
+    if (!TEST_true(create_ssl_ctx_pair(libctx, TLS_server_method(), TLS_client_method(), TLS1_VERSION, 0, &sctx, &cctx,
+                                       cert, privkey)))
         return 0;
 
     /* Now do a handshake */
-    if (!TEST_true(create_ssl_objects(sctx, cctx, &serverssl,
-                                      &clientssl, NULL, NULL))
-            || !TEST_true(create_ssl_connection(serverssl, clientssl,
-                                                SSL_ERROR_NONE)))
+    if (!TEST_true(create_ssl_objects(sctx, cctx, &serverssl, &clientssl, NULL, NULL)) ||
+        !TEST_true(create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)))
         goto end;
 
     testresult = 1;
@@ -166,16 +162,19 @@ int setup_tests(void)
     if (privkey == NULL)
         goto err;
 
-    if (strcmp(opmode, "count") == 0) {
+    if (strcmp(opmode, "count") == 0)
+    {
         CRYPTO_get_alloc_counts(&scount, &rcount, &fcount);
         ADD_TEST(test_record_alloc_counts);
         ADD_TEST(test_report_alloc_counts);
-    } else {
+    }
+    else
+    {
         ADD_TEST(test_alloc_failures);
     }
     return 1;
 
- err:
+err:
     OPENSSL_free(cert);
     OPENSSL_free(privkey);
     return 0;

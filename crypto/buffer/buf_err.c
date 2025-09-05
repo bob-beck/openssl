@@ -14,9 +14,7 @@
 
 #ifndef OPENSSL_NO_ERR
 
-static const ERR_STRING_DATA BUF_str_reasons[] = {
-    {0, NULL}
-};
+static const ERR_STRING_DATA BUF_str_reasons[] = {{0, NULL}};
 
 #endif
 

@@ -30,11 +30,8 @@
 static const char message[] = "This is a test message.";
 
 /* Expected output when an output length of 20 bytes is used. */
-static const unsigned char known_answer[] = {
-  0x52, 0x97, 0x93, 0x78, 0x27, 0x58, 0x7d, 0x62,
-  0x8b, 0x00, 0x25, 0xb5, 0xec, 0x39, 0x5e, 0x2d,
-  0x7f, 0x3e, 0xd4, 0x19
-};
+static const unsigned char known_answer[] = {0x52, 0x97, 0x93, 0x78, 0x27, 0x58, 0x7d, 0x62, 0x8b, 0x00,
+                                             0x25, 0xb5, 0xec, 0x39, 0x5e, 0x2d, 0x7f, 0x3e, 0xd4, 0x19};
 
 /*
  * A property query used for selecting the SHAKE256 implementation.
@@ -52,9 +49,11 @@ int main(int argc, char **argv)
     unsigned char *digest = NULL;
 
     /* Allow digest length to be changed for demonstration purposes. */
-    if (argc > 1) {
+    if (argc > 1)
+    {
         digest_len_i = atoi(argv[1]);
-        if (digest_len_i <= 0) {
+        if (digest_len_i <= 0)
+        {
             fprintf(stderr, "Specify a non-negative digest length\n");
             goto end;
         }
@@ -67,20 +66,23 @@ int main(int argc, char **argv)
      * XOF.
      */
     md = EVP_MD_fetch(libctx, "SHAKE256", propq);
-    if (md == NULL) {
+    if (md == NULL)
+    {
         fprintf(stderr, "Failed to retrieve SHAKE256 algorithm\n");
         goto end;
     }
 
     /* Create context. */
     ctx = EVP_MD_CTX_new();
-    if (ctx == NULL) {
+    if (ctx == NULL)
+    {
         fprintf(stderr, "Failed to create digest context\n");
         goto end;
     }
 
     /* Initialize digest context. */
-    if (EVP_DigestInit(ctx, md) == 0) {
+    if (EVP_DigestInit(ctx, md) == 0)
+    {
         fprintf(stderr, "Failed to initialize digest\n");
         goto end;
     }
@@ -89,20 +91,23 @@ int main(int argc, char **argv)
      * Feed our message into the digest function.
      * This may be called multiple times.
      */
-    if (EVP_DigestUpdate(ctx, message, sizeof(message)) == 0) {
+    if (EVP_DigestUpdate(ctx, message, sizeof(message)) == 0)
+    {
         fprintf(stderr, "Failed to hash input message\n");
         goto end;
     }
 
     /* Allocate enough memory for our digest length. */
     digest = OPENSSL_malloc(digest_len);
-    if (digest == NULL) {
+    if (digest == NULL)
+    {
         fprintf(stderr, "Failed to allocate memory for digest\n");
         goto end;
     }
 
     /* Get computed digest. The digest will be of whatever length we specify. */
-    if (EVP_DigestFinalXOF(ctx, digest, digest_len) == 0) {
+    if (EVP_DigestFinalXOF(ctx, digest, digest_len) == 0)
+    {
         fprintf(stderr, "Failed to finalize hash\n");
         goto end;
     }
@@ -111,12 +116,14 @@ int main(int argc, char **argv)
     BIO_dump_indent_fp(stdout, digest, digest_len, 2);
 
     /* If digest length is 20 bytes, check it matches our known answer. */
-    if (digest_len == 20) {
+    if (digest_len == 20)
+    {
         /*
          * Always use a constant-time function such as CRYPTO_memcmp
          * when comparing cryptographic values. Do not use memcmp(3).
          */
-        if (CRYPTO_memcmp(digest, known_answer, sizeof(known_answer)) != 0) {
+        if (CRYPTO_memcmp(digest, known_answer, sizeof(known_answer)) != 0)
+        {
             fprintf(stderr, "Output does not match expected result\n");
             goto end;
         }

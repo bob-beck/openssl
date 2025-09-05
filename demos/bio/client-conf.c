@@ -29,7 +29,8 @@ int main(int argc, char **argv)
 
     conf = NCONF_new(NULL);
 
-    if (NCONF_load(conf, "connect.cnf", &errline) <= 0) {
+    if (NCONF_load(conf, "connect.cnf", &errline) <= 0)
+    {
         if (errline <= 0)
             fprintf(stderr, "Error processing config file\n");
         else
@@ -39,7 +40,8 @@ int main(int argc, char **argv)
 
     sect = NCONF_get_section(conf, "default");
 
-    if (sect == NULL) {
+    if (sect == NULL)
+    {
         fprintf(stderr, "Error retrieving default section\n");
         goto end;
     }
@@ -49,26 +51,31 @@ int main(int argc, char **argv)
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CLIENT);
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_FILE);
     SSL_CONF_CTX_set_ssl_ctx(cctx, ctx);
-    for (i = 0; i < sk_CONF_VALUE_num(sect); i++) {
+    for (i = 0; i < sk_CONF_VALUE_num(sect); i++)
+    {
         cnf = sk_CONF_VALUE_value(sect, i);
         rv = SSL_CONF_cmd(cctx, cnf->name, cnf->value);
         if (rv > 0)
             continue;
-        if (rv != -2) {
-            fprintf(stderr, "Error processing %s = %s\n",
-                    cnf->name, cnf->value);
+        if (rv != -2)
+        {
+            fprintf(stderr, "Error processing %s = %s\n", cnf->name, cnf->value);
             ERR_print_errors_fp(stderr);
             goto end;
         }
-        if (strcmp(cnf->name, "Connect") == 0) {
+        if (strcmp(cnf->name, "Connect") == 0)
+        {
             connect_str = cnf->value;
-        } else {
+        }
+        else
+        {
             fprintf(stderr, "Unknown configuration option %s\n", cnf->name);
             goto end;
         }
     }
 
-    if (!SSL_CONF_CTX_finish(cctx)) {
+    if (!SSL_CONF_CTX_finish(cctx))
+    {
         fprintf(stderr, "Finish error\n");
         ERR_print_errors_fp(stderr);
         goto end;
@@ -84,7 +91,8 @@ int main(int argc, char **argv)
 
     BIO_get_ssl(sbio, &ssl);
 
-    if (!ssl) {
+    if (!ssl)
+    {
         fprintf(stderr, "Can't locate SSL pointer\n");
         goto end;
     }
@@ -94,7 +102,8 @@ int main(int argc, char **argv)
     BIO_set_conn_hostname(sbio, connect_str);
 
     out = BIO_new_fp(stdout, BIO_NOCLOSE);
-    if (BIO_do_connect(sbio) <= 0) {
+    if (BIO_do_connect(sbio) <= 0)
+    {
         fprintf(stderr, "Error connecting to server\n");
         ERR_print_errors_fp(stderr);
         goto end;
@@ -103,7 +112,8 @@ int main(int argc, char **argv)
     /* Could examine ssl here to get connection info */
 
     BIO_puts(sbio, "GET / HTTP/1.0\n\n");
-    for (;;) {
+    for (;;)
+    {
         len = BIO_read(sbio, tmpbuf, 1024);
         if (len <= 0)
             break;
@@ -111,7 +121,7 @@ int main(int argc, char **argv)
     }
     ret = EXIT_SUCCESS;
 
- end:
+end:
     SSL_CONF_CTX_free(cctx);
     BIO_free_all(sbio);
     BIO_free(out);

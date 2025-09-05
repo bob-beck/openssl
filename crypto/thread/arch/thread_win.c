@@ -10,8 +10,8 @@
 #include <internal/thread_arch.h>
 
 #if defined(OPENSSL_THREADS_WINNT)
-# include <process.h>
-# include <windows.h>
+#include <process.h>
+#include <windows.h>
 
 static unsigned __stdcall thread_start_thunk(LPVOID vthread)
 {
@@ -61,7 +61,7 @@ int ossl_crypto_thread_native_perform_join(CRYPTO_THREAD *thread, CRYPTO_THREAD_
     if (thread == NULL || thread->handle == NULL)
         return 0;
 
-    handle = (HANDLE *) thread->handle;
+    handle = (HANDLE *)thread->handle;
     if (WaitForSingleObject(*handle, INFINITE) != WAIT_OBJECT_0)
         return 0;
 
@@ -147,7 +147,8 @@ static int determine_timeout(OSSL_TIME deadline, DWORD *w_timeout_p)
     OSSL_TIME now, delta;
     uint64_t ms;
 
-    if (ossl_time_is_infinite(deadline)) {
+    if (ossl_time_is_infinite(deadline))
+    {
         *w_timeout_p = INFINITE;
         return 1;
     }
@@ -172,8 +173,8 @@ static int determine_timeout(OSSL_TIME deadline, DWORD *w_timeout_p)
     return 1;
 }
 
-# if defined(OPENSSL_THREADS_WINNT_LEGACY)
-#  include <assert.h>
+#if defined(OPENSSL_THREADS_WINNT_LEGACY)
+#include <assert.h>
 
 /*
  * Win32, before Vista, did not have an OS-provided condition variable
@@ -279,10 +280,11 @@ static int determine_timeout(OSSL_TIME deadline, DWORD *w_timeout_p)
  *   on intensity of usage.
  *
  */
-typedef struct legacy_condvar_st {
-    CRYPTO_MUTEX    *int_m;       /* internal mutex */
-    HANDLE          sema;         /* main wait semaphore */
-    HANDLE          prewait_sema; /* prewait semaphore */
+typedef struct legacy_condvar_st
+{
+    CRYPTO_MUTEX *int_m; /* internal mutex */
+    HANDLE sema;         /* main wait semaphore */
+    HANDLE prewait_sema; /* prewait semaphore */
     /*
      * All of the following fields are protected by int_m.
      *
@@ -290,11 +292,11 @@ typedef struct legacy_condvar_st {
      * num_wait. num_wait can decrease for other reasons (for example due to a
      * wait operation timing out).
      */
-    size_t          num_wait;     /* Num. threads currently blocked */
-    size_t          num_wake;     /* Num. threads due to wake up */
-    size_t          num_prewait;  /* Num. threads in prewait */
-    size_t          gen;          /* Prewait generation */
-    int             closed;       /* Is closed? */
+    size_t num_wait;    /* Num. threads currently blocked */
+    size_t num_wake;    /* Num. threads due to wake up */
+    size_t num_prewait; /* Num. threads in prewait */
+    size_t gen;         /* Prewait generation */
+    int closed;         /* Is closed? */
 } LEGACY_CONDVAR;
 
 CRYPTO_CONDVAR *ossl_crypto_condvar_new(void)
@@ -304,35 +306,39 @@ CRYPTO_CONDVAR *ossl_crypto_condvar_new(void)
     if ((cv = OPENSSL_malloc(sizeof(LEGACY_CONDVAR))) == NULL)
         return NULL;
 
-    if ((cv->int_m = ossl_crypto_mutex_new()) == NULL) {
+    if ((cv->int_m = ossl_crypto_mutex_new()) == NULL)
+    {
         OPENSSL_free(cv);
         return NULL;
     }
 
-    if ((cv->sema = CreateSemaphoreA(NULL, 0, LONG_MAX, NULL)) == NULL) {
+    if ((cv->sema = CreateSemaphoreA(NULL, 0, LONG_MAX, NULL)) == NULL)
+    {
         ossl_crypto_mutex_free(&cv->int_m);
         OPENSSL_free(cv);
         return NULL;
     }
 
-    if ((cv->prewait_sema = CreateSemaphoreA(NULL, 0, LONG_MAX, NULL)) == NULL) {
+    if ((cv->prewait_sema = CreateSemaphoreA(NULL, 0, LONG_MAX, NULL)) == NULL)
+    {
         CloseHandle(cv->sema);
         ossl_crypto_mutex_free(&cv->int_m);
         OPENSSL_free(cv);
         return NULL;
     }
 
-    cv->num_wait      = 0;
-    cv->num_wake      = 0;
-    cv->num_prewait   = 0;
-    cv->closed        = 0;
+    cv->num_wait = 0;
+    cv->num_wake = 0;
+    cv->num_prewait = 0;
+    cv->closed = 0;
 
     return (CRYPTO_CONDVAR *)cv;
 }
 
 void ossl_crypto_condvar_free(CRYPTO_CONDVAR **cv_p)
 {
-    if (*cv_p != NULL) {
+    if (*cv_p != NULL)
+    {
         LEGACY_CONDVAR *cv = *(LEGACY_CONDVAR **)cv_p;
 
         CloseHandle(cv->sema);
@@ -354,8 +360,7 @@ static uint32_t obj_wait(HANDLE h, OSSL_TIME deadline)
     return WaitForSingleObject(h, timeout);
 }
 
-void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m,
-                                      OSSL_TIME deadline)
+void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m, OSSL_TIME deadline)
 {
     LEGACY_CONDVAR *cv = (LEGACY_CONDVAR *)cv_;
     int closed, set_prewait = 0, have_orig_gen = 0;
@@ -363,7 +368,8 @@ void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m,
     size_t orig_gen;
 
     /* Admission control - prewait until we can enter our actual wait phase. */
-    do {
+    do
+    {
         ossl_crypto_mutex_lock(cv->int_m);
 
         closed = cv->closed;
@@ -374,22 +380,29 @@ void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m,
          * to remove a value we added to num_prewait when exiting (e.g. due to
          * timeout or failure of WaitForSingleObject).
          */
-        if (!have_orig_gen) {
+        if (!have_orig_gen)
+        {
             orig_gen = cv->gen;
             have_orig_gen = 1;
-        } else if (cv->gen != orig_gen) {
+        }
+        else if (cv->gen != orig_gen)
+        {
             set_prewait = 0;
             orig_gen = cv->gen;
         }
 
-        if (!closed) {
+        if (!closed)
+        {
             /* We can now be admitted. */
             ++cv->num_wait;
-            if (set_prewait) {
+            if (set_prewait)
+            {
                 --cv->num_prewait;
                 set_prewait = 0;
             }
-        } else if (!set_prewait) {
+        }
+        else if (!set_prewait)
+        {
             ++cv->num_prewait;
             set_prewait = 1;
         }
@@ -397,7 +410,8 @@ void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m,
         ossl_crypto_mutex_unlock(cv->int_m);
 
         if (closed)
-            if (obj_wait(cv->prewait_sema, deadline) != WAIT_OBJECT_0) {
+            if (obj_wait(cv->prewait_sema, deadline) != WAIT_OBJECT_0)
+            {
                 /*
                  * If we got WAIT_OBJECT_0 we are safe - num_prewait has been
                  * set to 0 and the semaphore has been consumed. On the other
@@ -423,14 +437,16 @@ void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m,
      */
     ossl_crypto_mutex_unlock(ext_m);
 
-    for (;;) {
+    for (;;)
+    {
         /* Wait. */
         rc = obj_wait(cv->sema, deadline);
 
         /* Reacquire internal mutex and probe state. */
         ossl_crypto_mutex_lock(cv->int_m);
 
-        if (cv->num_wake > 0) {
+        if (cv->num_wake > 0)
+        {
             /*
              * A wake token is available, so we can wake up. Consume the token
              * and get out of here. We don't care what WaitForSingleObject
@@ -440,19 +456,23 @@ void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m,
              * this case we will just loop again.
              */
             --cv->num_wake;
-            if (cv->num_wake == 0 && cv->closed) {
+            if (cv->num_wake == 0 && cv->closed)
+            {
                 /*
                  * We consumed the last wake token, so we can now open the
                  * condition variable for new admissions.
                  */
                 cv->closed = 0;
-                if (cv->num_prewait > 0) {
+                if (cv->num_prewait > 0)
+                {
                     ReleaseSemaphore(cv->prewait_sema, (LONG)cv->num_prewait, NULL);
                     cv->num_prewait = 0;
                     ++cv->gen;
                 }
             }
-        } else if (rc == WAIT_OBJECT_0) {
+        }
+        else if (rc == WAIT_OBJECT_0)
+        {
             /*
              * We got a wakeup from the semaphore but we did not have any wake
              * tokens. This ideally does not happen, but might if during a
@@ -465,7 +485,9 @@ void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m,
              */
             ossl_crypto_mutex_unlock(cv->int_m);
             continue;
-        } else {
+        }
+        else
+        {
             /*
              * Assume we timed out. The WaitForSingleObject call may also have
              * failed for some other reason, which we treat as a timeout.
@@ -494,14 +516,15 @@ void ossl_crypto_condvar_broadcast(CRYPTO_CONDVAR *cv_)
     ossl_crypto_mutex_lock(cv->int_m);
 
     num_wake = cv->num_wait;
-    if (num_wake == 0) {
+    if (num_wake == 0)
+    {
         ossl_crypto_mutex_unlock(cv->int_m);
         return;
     }
 
-    cv->num_wake  += num_wake;
-    cv->num_wait  -= num_wake;
-    cv->closed     = 1;
+    cv->num_wake += num_wake;
+    cv->num_wait -= num_wake;
+    cv->closed = 1;
 
     ossl_crypto_mutex_unlock(cv->int_m);
     ReleaseSemaphore(cv->sema, (LONG)num_wake, NULL);
@@ -513,7 +536,8 @@ void ossl_crypto_condvar_signal(CRYPTO_CONDVAR *cv_)
 
     ossl_crypto_mutex_lock(cv->int_m);
 
-    if (cv->num_wait == 0) {
+    if (cv->num_wait == 0)
+    {
         ossl_crypto_mutex_unlock(cv->int_m);
         return;
     }
@@ -529,7 +553,7 @@ void ossl_crypto_condvar_signal(CRYPTO_CONDVAR *cv_)
     ReleaseSemaphore(cv->sema, 1, NULL);
 }
 
-# else
+#else
 
 CRYPTO_CONDVAR *ossl_crypto_condvar_new(void)
 {
@@ -551,8 +575,7 @@ void ossl_crypto_condvar_wait(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex)
     SleepConditionVariableCS(cv_p, mutex_p, INFINITE);
 }
 
-void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex,
-                                      OSSL_TIME deadline)
+void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex, OSSL_TIME deadline)
 {
     DWORD timeout;
     CONDITION_VARIABLE *cv_p = (CONDITION_VARIABLE *)cv;
@@ -589,7 +612,7 @@ void ossl_crypto_condvar_free(CRYPTO_CONDVAR **cv)
     *cv_p = NULL;
 }
 
-# endif
+#endif
 
 void ossl_crypto_mem_barrier(void)
 {

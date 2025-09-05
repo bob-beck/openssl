@@ -25,13 +25,16 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     int e, i, j;
     int used_ctx = 0;
 
-    if (!BN_is_odd(p) || BN_abs_is_word(p, 1)) {
-        if (BN_abs_is_word(p, 2)) {
+    if (!BN_is_odd(p) || BN_abs_is_word(p, 1))
+    {
+        if (BN_abs_is_word(p, 2))
+        {
             if (ret == NULL)
                 ret = BN_new();
             if (ret == NULL)
                 goto end;
-            if (!BN_set_word(ret, BN_is_bit_set(a, 0))) {
+            if (!BN_set_word(ret, BN_is_bit_set(a, 0)))
+            {
                 if (ret != in)
                     BN_free(ret);
                 return NULL;
@@ -44,12 +47,14 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         return NULL;
     }
 
-    if (BN_is_zero(a) || BN_is_one(a)) {
+    if (BN_is_zero(a) || BN_is_one(a))
+    {
         if (ret == NULL)
             ret = BN_new();
         if (ret == NULL)
             goto end;
-        if (!BN_set_word(ret, BN_is_one(a))) {
+        if (!BN_set_word(ret, BN_is_one(a)))
+        {
             if (ret != in)
                 BN_free(ret);
             return NULL;
@@ -84,7 +89,8 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         e++;
     /* we'll set  q  later (if needed) */
 
-    if (e == 1) {
+    if (e == 1)
+    {
         /*-
          * The easy case:  (|p|-1)/2  is odd, so 2 has an inverse
          * modulo  (|p|-1)/2,  and square roots can be computed
@@ -104,7 +110,8 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         goto vrfy;
     }
 
-    if (e == 2) {
+    if (e == 2)
+    {
         /*-
          * |p| == 5  (mod 8)
          *
@@ -171,22 +178,27 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
      * find some y that is not a square.
      */
     if (!BN_copy(q, p))
-        goto end;               /* use 'q' as temp */
+        goto end; /* use 'q' as temp */
     q->neg = 0;
     i = 2;
-    do {
+    do
+    {
         /*
          * For efficiency, try small numbers first; if this fails, try random
          * numbers.
          */
-        if (i < 22) {
+        if (i < 22)
+        {
             if (!BN_set_word(y, i))
                 goto end;
-        } else {
+        }
+        else
+        {
             if (!BN_priv_rand_ex(y, BN_num_bits(p), 0, 0, 0, ctx))
                 goto end;
-            if (BN_ucmp(y, p) >= 0) {
-                if (!(p->neg ? BN_add : BN_sub) (y, y, p))
+            if (BN_ucmp(y, p) >= 0)
+            {
+                if (!(p->neg ? BN_add : BN_sub)(y, y, p))
                     goto end;
             }
             /* now 0 <= y < |p| */
@@ -198,15 +210,16 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         r = BN_kronecker(y, q, ctx); /* here 'q' is |p| */
         if (r < -1)
             goto end;
-        if (r == 0) {
+        if (r == 0)
+        {
             /* m divides p */
             ERR_raise(ERR_LIB_BN, BN_R_P_IS_NOT_PRIME);
             goto end;
         }
-    }
-    while (r == 1 && ++i < 82);
+    } while (r == 1 && ++i < 82);
 
-    if (r != -1) {
+    if (r != -1)
+    {
         /*
          * Many rounds and still no non-square -- this is more likely a bug
          * than just bad luck. Even if p is not prime, we should have found
@@ -226,7 +239,8 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
      */
     if (!BN_mod_exp(y, y, q, p, ctx))
         goto end;
-    if (BN_is_one(y)) {
+    if (BN_is_one(y))
+    {
         ERR_raise(ERR_LIB_BN, BN_R_P_IS_NOT_PRIME);
         goto end;
     }
@@ -255,20 +269,26 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         goto end;
 
     /* x := a^((q-1)/2) */
-    if (BN_is_zero(t)) {        /* special case: p = 2^e + 1 */
+    if (BN_is_zero(t))
+    { /* special case: p = 2^e + 1 */
         if (!BN_nnmod(t, A, p, ctx))
             goto end;
-        if (BN_is_zero(t)) {
+        if (BN_is_zero(t))
+        {
             /* special case: a == 0  (mod p) */
             BN_zero(ret);
             err = 0;
             goto end;
-        } else if (!BN_one(x))
+        }
+        else if (!BN_one(x))
             goto end;
-    } else {
+    }
+    else
+    {
         if (!BN_mod_exp(x, A, t, p, ctx))
             goto end;
-        if (BN_is_zero(x)) {
+        if (BN_is_zero(x))
+        {
             /* special case: a == 0  (mod p) */
             BN_zero(ret);
             err = 0;
@@ -286,7 +306,8 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     if (!BN_mod_mul(x, x, A, p, ctx))
         goto end;
 
-    while (1) {
+    while (1)
+    {
         /*-
          * Now  b  is  a^q * y^k  for some even  k  (0 <= k < 2^E
          * where  E  refers to the original value of  e,  which we
@@ -297,7 +318,8 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
          *    b^2^(e-1) = 1.
          */
 
-        if (BN_is_one(b)) {
+        if (BN_is_one(b))
+        {
             if (!BN_copy(ret, x))
                 goto end;
             err = 0;
@@ -305,12 +327,15 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         }
 
         /* Find the smallest i, 0 < i < e, such that b^(2^i) = 1. */
-        for (i = 1; i < e; i++) {
-            if (i == 1) {
+        for (i = 1; i < e; i++)
+        {
+            if (i == 1)
+            {
                 if (!BN_mod_sqr(t, b, p, ctx))
                     goto end;
-
-            } else {
+            }
+            else
+            {
                 if (!BN_mod_mul(t, t, t, p, ctx))
                     goto end;
             }
@@ -318,7 +343,8 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
                 break;
         }
         /* If not found, a is not a square or p is not prime. */
-        if (i >= e) {
+        if (i >= e)
+        {
             ERR_raise(ERR_LIB_BN, BN_R_NOT_A_SQUARE);
             goto end;
         }
@@ -326,7 +352,8 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         /* t := y^2^(e - i - 1) */
         if (!BN_copy(t, y))
             goto end;
-        for (j = e - i - 1; j > 0; j--) {
+        for (j = e - i - 1; j > 0; j--)
+        {
             if (!BN_mod_sqr(t, t, p, ctx))
                 goto end;
         }
@@ -339,8 +366,9 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         e = i;
     }
 
- vrfy:
-    if (!err) {
+vrfy:
+    if (!err)
+    {
         /*
          * verify the result -- the input might have been not a square (test
          * added in 0.9.8)
@@ -349,14 +377,16 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         if (!BN_mod_sqr(x, ret, p, ctx))
             err = 1;
 
-        if (!err && 0 != BN_cmp(x, A)) {
+        if (!err && 0 != BN_cmp(x, A))
+        {
             ERR_raise(ERR_LIB_BN, BN_R_NOT_A_SQUARE);
             err = 1;
         }
     }
 
- end:
-    if (err) {
+end:
+    if (err)
+    {
         if (ret != in)
             BN_clear_free(ret);
         ret = NULL;

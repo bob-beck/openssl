@@ -28,7 +28,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     unsigned char *der = NULL;
 
     X509_ACERT *acert = d2i_X509_ACERT(NULL, &p, (long)len);
-    if (acert != NULL) {
+    if (acert != NULL)
+    {
         BIO *bio = BIO_new(BIO_s_null());
 
         X509_ACERT_print(bio, acert);

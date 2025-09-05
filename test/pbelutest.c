@@ -20,8 +20,10 @@ static int test_pbelu(void)
     int i, failed = 0;
     int pbe_type, pbe_nid, last_type = -1, last_nid = -1;
 
-    for (i = 0; EVP_PBE_get(&pbe_type, &pbe_nid, i) != 0; i++) {
-        if (!TEST_true(EVP_PBE_find(pbe_type, pbe_nid, NULL, NULL, 0))) {
+    for (i = 0; EVP_PBE_get(&pbe_type, &pbe_nid, i) != 0; i++)
+    {
+        if (!TEST_true(EVP_PBE_find(pbe_type, pbe_nid, NULL, NULL, 0)))
+        {
             TEST_note("i=%d, pbe_type=%d, pbe_nid=%d", i, pbe_type, pbe_nid);
             failed = 1;
             break;
@@ -32,11 +34,10 @@ static int test_pbelu(void)
         return 1;
 
     /* Error: print out whole table */
-    for (i = 0; EVP_PBE_get(&pbe_type, &pbe_nid, i) != 0; i++) {
-        failed = pbe_type < last_type
-                 || (pbe_type == last_type && pbe_nid < last_nid);
-        TEST_note("PBE type=%d %d (%s): %s\n", pbe_type, pbe_nid,
-                  OBJ_nid2sn(pbe_nid), failed ? "ERROR" : "OK");
+    for (i = 0; EVP_PBE_get(&pbe_type, &pbe_nid, i) != 0; i++)
+    {
+        failed = pbe_type < last_type || (pbe_type == last_type && pbe_nid < last_nid);
+        TEST_note("PBE type=%d %d (%s): %s\n", pbe_type, pbe_nid, OBJ_nid2sn(pbe_nid), failed ? "ERROR" : "OK");
         last_type = pbe_type;
         last_nid = pbe_nid;
     }

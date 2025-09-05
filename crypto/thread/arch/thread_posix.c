@@ -10,10 +10,10 @@
 #include <internal/thread_arch.h>
 
 #if defined(OPENSSL_THREADS_POSIX)
-# define _GNU_SOURCE
-# include <errno.h>
-# include <sys/types.h>
-# include <unistd.h>
+#define _GNU_SOURCE
+#include <errno.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 static void *thread_start_thunk(void *vthread)
 {
@@ -68,7 +68,7 @@ int ossl_crypto_thread_native_perform_join(CRYPTO_THREAD *thread, CRYPTO_THREAD_
     if (thread == NULL || thread->handle == NULL)
         return 0;
 
-    handle = (pthread_t *) thread->handle;
+    handle = (pthread_t *)thread->handle;
     if (pthread_join(*handle, &thread_retval) != 0)
         return 0;
 
@@ -99,7 +99,8 @@ CRYPTO_MUTEX *ossl_crypto_mutex_new(void)
 
     if ((mutex = OPENSSL_zalloc(sizeof(*mutex))) == NULL)
         return NULL;
-    if (pthread_mutex_init(mutex, NULL) != 0) {
+    if (pthread_mutex_init(mutex, NULL) != 0)
+    {
         OPENSSL_free(mutex);
         return NULL;
     }
@@ -158,11 +159,12 @@ CRYPTO_CONDVAR *ossl_crypto_condvar_new(void)
 
     if ((cv_p = OPENSSL_zalloc(sizeof(*cv_p))) == NULL)
         return NULL;
-    if (pthread_cond_init(cv_p, NULL) != 0) {
+    if (pthread_cond_init(cv_p, NULL) != 0)
+    {
         OPENSSL_free(cv_p);
         return NULL;
     }
-    return (CRYPTO_CONDVAR *) cv_p;
+    return (CRYPTO_CONDVAR *)cv_p;
 }
 
 void ossl_crypto_condvar_wait(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex)
@@ -175,26 +177,26 @@ void ossl_crypto_condvar_wait(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex)
     pthread_cond_wait(cv_p, mutex_p);
 }
 
-void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex,
-                                      OSSL_TIME deadline)
+void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex, OSSL_TIME deadline)
 {
     pthread_cond_t *cv_p = (pthread_cond_t *)cv;
     pthread_mutex_t *mutex_p = (pthread_mutex_t *)mutex;
 
-    if (ossl_time_is_infinite(deadline)) {
+    if (ossl_time_is_infinite(deadline))
+    {
         /*
          * No deadline. Some pthread implementations allow
          * pthread_cond_timedwait to work the same as pthread_cond_wait when
          * abstime is NULL, but it is unclear whether this is POSIXly correct.
          */
         pthread_cond_wait(cv_p, mutex_p);
-    } else {
+    }
+    else
+    {
         struct timespec deadline_ts;
 
-        deadline_ts.tv_sec
-            = ossl_time2seconds(deadline);
-        deadline_ts.tv_nsec
-            = (ossl_time2ticks(deadline) % OSSL_TIME_SECOND) / OSSL_TIME_NS;
+        deadline_ts.tv_sec = ossl_time2seconds(deadline);
+        deadline_ts.tv_nsec = (ossl_time2ticks(deadline) % OSSL_TIME_SECOND) / OSSL_TIME_NS;
 
         pthread_cond_timedwait(cv_p, mutex_p, &deadline_ts);
     }

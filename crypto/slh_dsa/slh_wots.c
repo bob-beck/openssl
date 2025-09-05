@@ -30,12 +30,12 @@
  * @param in_len The size of |in|.
  * @param out The returned array of nibbles, with a size of 2*|in_len|
  */
-static ossl_inline void slh_bytes_to_nibbles(const uint8_t *in, size_t in_len,
-                                             uint8_t *out)
+static ossl_inline void slh_bytes_to_nibbles(const uint8_t *in, size_t in_len, uint8_t *out)
 {
     size_t consumed = 0;
 
-    for (consumed = 0; consumed < in_len; consumed++) {
+    for (consumed = 0; consumed < in_len; consumed++)
+    {
         *out++ = (*in >> NIBBLE_SHIFT);
         *out++ = (*in++ & NIBBLE_MASK);
     }
@@ -48,8 +48,7 @@ static ossl_inline void slh_bytes_to_nibbles(const uint8_t *in, size_t in_len,
  * This is effectively a cutdown version of Algorithm 7: steps 3 to 6
  * which does a complicated base2^b(tobyte()) operation.
  */
-static ossl_inline void compute_checksum_nibbles(const uint8_t *in, size_t in_len,
-                                                 uint8_t *out)
+static ossl_inline void compute_checksum_nibbles(const uint8_t *in, size_t in_len, uint8_t *out)
 {
     size_t i;
     uint16_t csum = 0;
@@ -89,8 +88,7 @@ static ossl_inline void compute_checksum_nibbles(const uint8_t *in, size_t in_le
  * @params wpkt A WPACKET object to write the hash chain to (n bytes are written)
  * @returns 1 on success, or 0 on error.
  */
-static int slh_wots_chain(SLH_DSA_HASH_CTX *ctx, const uint8_t *in,
-                          uint8_t start_index, uint8_t steps,
+static int slh_wots_chain(SLH_DSA_HASH_CTX *ctx, const uint8_t *in, uint8_t start_index, uint8_t steps,
                           const uint8_t *pk_seed, uint8_t *adrs, WPACKET *wpkt)
 {
     const SLH_DSA_KEY *key = ctx->key;
@@ -114,7 +112,8 @@ static int slh_wots_chain(SLH_DSA_HASH_CTX *ctx, const uint8_t *in,
         return 0;
 
     end_index = start_index + steps;
-    for (; j < end_index; ++j) {
+    for (; j < end_index; ++j)
+    {
         set_hash_address(adrs, (uint32_t)j);
         if (!F(ctx, pk_seed, adrs, tmp, n, tmp, tmp_len))
             return 0;
@@ -135,9 +134,8 @@ static int slh_wots_chain(SLH_DSA_HASH_CTX *ctx, const uint8_t *in,
  * @param pk_out_len The maximum size of |pk_out|
  * @returns 1 on success, or 0 on error.
  */
-int ossl_slh_wots_pk_gen(SLH_DSA_HASH_CTX *ctx,
-                         const uint8_t *sk_seed, const uint8_t *pk_seed,
-                         uint8_t *adrs, uint8_t *pk_out, size_t pk_out_len)
+int ossl_slh_wots_pk_gen(SLH_DSA_HASH_CTX *ctx, const uint8_t *sk_seed, const uint8_t *pk_seed, uint8_t *adrs,
+                         uint8_t *pk_out, size_t pk_out_len)
 {
     int ret = 0;
     const SLH_DSA_KEY *key = ctx->key;
@@ -161,7 +159,8 @@ int ossl_slh_wots_pk_gen(SLH_DSA_HASH_CTX *ctx,
     adrsf->set_type_and_clear(sk_adrs, SLH_ADRS_TYPE_WOTS_PRF);
     adrsf->copy_keypair_address(sk_adrs, adrs);
 
-    for (i = 0; i < len; ++i) { /* len = 2n + 3 */
+    for (i = 0; i < len; ++i)
+    { /* len = 2n + 3 */
         set_chain_address(sk_adrs, (uint32_t)i);
         if (!PRF(ctx, pk_seed, sk_seed, sk_adrs, sk, sizeof(sk)))
             goto end;
@@ -200,8 +199,7 @@ end:
  * @param sig_wpkt A WPACKET object to write the signature to.
  * @returns 1 on success, or 0 on error.
  */
-int ossl_slh_wots_sign(SLH_DSA_HASH_CTX *ctx, const uint8_t *msg,
-                       const uint8_t *sk_seed, const uint8_t *pk_seed,
+int ossl_slh_wots_sign(SLH_DSA_HASH_CTX *ctx, const uint8_t *msg, const uint8_t *sk_seed, const uint8_t *pk_seed,
                        uint8_t *adrs, WPACKET *sig_wpkt)
 {
     int ret = 0;
@@ -210,8 +208,8 @@ int ossl_slh_wots_sign(SLH_DSA_HASH_CTX *ctx, const uint8_t *msg,
     uint8_t sk[SLH_MAX_N];
     size_t i;
     size_t n = key->params->n;
-    size_t len1 = SLH_WOTS_LEN1(n); /* 2 * n = the msg length in nibbles */
-    size_t len = len1 + SLH_WOTS_LEN2;  /* 2 * n + 3 (3 checksum nibbles) */
+    size_t len1 = SLH_WOTS_LEN1(n);    /* 2 * n = the msg length in nibbles */
+    size_t len = len1 + SLH_WOTS_LEN2; /* 2 * n + 3 (3 checksum nibbles) */
 
     SLH_ADRS_DECLARE(sk_adrs);
     SLH_HASH_FUNC_DECLARE(key, hashf);
@@ -231,15 +229,15 @@ int ossl_slh_wots_sign(SLH_DSA_HASH_CTX *ctx, const uint8_t *msg,
     adrsf->set_type_and_clear(sk_adrs, SLH_ADRS_TYPE_WOTS_PRF);
     adrsf->copy_keypair_address(sk_adrs, adrs);
 
-    for (i = 0; i < len; ++i) {
+    for (i = 0; i < len; ++i)
+    {
         set_chain_address(sk_adrs, (uint32_t)i);
         /* compute chain i secret */
         if (!PRF(ctx, pk_seed, sk_seed, sk_adrs, sk, sizeof(sk)))
             goto err;
         set_chain_address(adrs, (uint32_t)i);
         /* compute chain i signature */
-        if (!slh_wots_chain(ctx, sk, 0, msg_and_csum_nibbles[i],
-                            pk_seed, adrs, sig_wpkt))
+        if (!slh_wots_chain(ctx, sk, 0, msg_and_csum_nibbles[i], pk_seed, adrs, sig_wpkt))
             goto err;
     }
     ret = 1;
@@ -263,10 +261,8 @@ err:
  * @param pk_out_len The maximum size of |pk_out|
  * @returns 1 on success, or 0 on error.
  */
-int ossl_slh_wots_pk_from_sig(SLH_DSA_HASH_CTX *ctx,
-                              PACKET *sig_rpkt, const uint8_t *msg,
-                              const uint8_t *pk_seed, uint8_t *adrs,
-                              uint8_t *pk_out, size_t pk_out_len)
+int ossl_slh_wots_pk_from_sig(SLH_DSA_HASH_CTX *ctx, PACKET *sig_rpkt, const uint8_t *msg, const uint8_t *pk_seed,
+                              uint8_t *adrs, uint8_t *pk_out, size_t pk_out_len)
 {
     int ret = 0;
     const SLH_DSA_KEY *key = ctx->key;
@@ -275,7 +271,7 @@ int ossl_slh_wots_pk_from_sig(SLH_DSA_HASH_CTX *ctx,
     size_t n = key->params->n;
     size_t len1 = SLH_WOTS_LEN1(n);
     size_t len = len1 + SLH_WOTS_LEN2; /* 2n + 3 */
-    const uint8_t *sig_i;  /* Pointer into |sig_rpkt| buffer */
+    const uint8_t *sig_i;              /* Pointer into |sig_rpkt| buffer */
     uint8_t tmp[SLH_WOTS_LEN_MAX * SLH_MAX_N];
     WPACKET pkt, *tmp_pkt = &pkt;
     size_t tmp_len = 0;
@@ -292,12 +288,12 @@ int ossl_slh_wots_pk_from_sig(SLH_DSA_HASH_CTX *ctx,
     compute_checksum_nibbles(msg_and_csum_nibbles, len1, msg_and_csum_nibbles + len1);
 
     /* Compute the end nodes for each of the chains */
-    for (i = 0; i < len; ++i) {
+    for (i = 0; i < len; ++i)
+    {
         set_chain_address(adrs, (uint32_t)i);
-        if (!PACKET_get_bytes(sig_rpkt, &sig_i, n)
-                || !slh_wots_chain(ctx, sig_i, msg_and_csum_nibbles[i],
-                                   NIBBLE_MASK - msg_and_csum_nibbles[i],
-                                   pk_seed, adrs, tmp_pkt))
+        if (!PACKET_get_bytes(sig_rpkt, &sig_i, n) ||
+            !slh_wots_chain(ctx, sig_i, msg_and_csum_nibbles[i], NIBBLE_MASK - msg_and_csum_nibbles[i], pk_seed, adrs,
+                            tmp_pkt))
             goto err;
     }
     /* compress the computed public key value */
@@ -306,9 +302,8 @@ int ossl_slh_wots_pk_from_sig(SLH_DSA_HASH_CTX *ctx,
     adrsf->copy_keypair_address(wots_pk_adrs, adrs);
     if (!WPACKET_get_total_written(tmp_pkt, &tmp_len))
         goto err;
-    ret = hashf->T(ctx, pk_seed, wots_pk_adrs, tmp, tmp_len,
-                   pk_out, pk_out_len);
- err:
+    ret = hashf->T(ctx, pk_seed, wots_pk_adrs, tmp, tmp_len, pk_out, pk_out_len);
+err:
     if (!WPACKET_finish(tmp_pkt))
         ret = 0;
     return ret;

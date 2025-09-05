@@ -18,33 +18,36 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_OUT, OPT_ENGINE, OPT_BASE64, OPT_HEX,
-    OPT_R_ENUM, OPT_PROV_ENUM
+    OPT_OUT,
+    OPT_ENGINE,
+    OPT_BASE64,
+    OPT_HEX,
+    OPT_R_ENUM,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
-const OPTIONS rand_options[] = {
-    {OPT_HELP_STR, 1, '-', "Usage: %s [options] num[K|M|G|T]\n"},
+const OPTIONS rand_options[] = {{OPT_HELP_STR, 1, '-', "Usage: %s [options] num[K|M|G|T]\n"},
 
-    OPT_SECTION("General"),
-    {"help", OPT_HELP, '-', "Display this summary"},
+                                OPT_SECTION("General"),
+                                {"help", OPT_HELP, '-', "Display this summary"},
 #ifndef OPENSSL_NO_ENGINE
-    {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
+                                {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
 #endif
 
-    OPT_SECTION("Output"),
-    {"out", OPT_OUT, '>', "Output file"},
-    {"base64", OPT_BASE64, '-', "Base64 encode output"},
-    {"hex", OPT_HEX, '-', "Hex encode output"},
+                                OPT_SECTION("Output"),
+                                {"out", OPT_OUT, '>', "Output file"},
+                                {"base64", OPT_BASE64, '-', "Base64 encode output"},
+                                {"hex", OPT_HEX, '-', "Hex encode output"},
 
-    OPT_R_OPTIONS,
-    OPT_PROV_OPTIONS,
+                                OPT_R_OPTIONS,
+                                OPT_PROV_OPTIONS,
 
-    OPT_PARAMETERS(),
-    {"num", 0, 0, "Number of bytes to generate"},
-    {NULL}
-};
+                                OPT_PARAMETERS(),
+                                {"num", 0, 0, "Number of bytes to generate"},
+                                {NULL}};
 
 int rand_main(int argc, char **argv)
 {
@@ -59,11 +62,13 @@ int rand_main(int argc, char **argv)
     uint8_t *buf = NULL;
 
     prog = opt_init(argc, argv, rand_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -96,7 +101,8 @@ int rand_main(int argc, char **argv)
     /* Optional argument is number of bytes to generate. */
     argc = opt_num_rest();
     argv = opt_rest();
-    if (argc == 1) {
+    if (argc == 1)
+    {
         int factoridx = 0;
         int shift = 0;
 
@@ -104,13 +110,16 @@ int rand_main(int argc, char **argv)
          * special case for requesting the max allowed
          * number of random bytes to be generated
          */
-        if (!strcmp(argv[0], "max")) {
+        if (!strcmp(argv[0], "max"))
+        {
             /*
              * 2^61 bytes is the limit of random output
              * per drbg instantiation
              */
             scaled_num = UINT64_MAX >> 3;
-        } else {
+        }
+        else
+        {
             /*
              * iterate over the value and check to see if there are
              * any non-numerical chars
@@ -122,9 +131,12 @@ int rand_main(int argc, char **argv)
              * T = 1024^4 (1 << (10 * 4))
              * which can be achieved by bit-shifting the number
              */
-            while (argv[0][factoridx]) {
-                if (!isdigit((int)(argv[0][factoridx]))) {
-                    switch(argv[0][factoridx]) {
+            while (argv[0][factoridx])
+            {
+                if (!isdigit((int)(argv[0][factoridx])))
+                {
+                    switch (argv[0][factoridx])
+                    {
                     case 'K':
                         shift = 10;
                         break;
@@ -138,8 +150,7 @@ int rand_main(int argc, char **argv)
                         shift = 40;
                         break;
                     default:
-                        BIO_printf(bio_err, "Invalid size suffix %s\n",
-                                   &argv[0][factoridx]);
+                        BIO_printf(bio_err, "Invalid size suffix %s\n", &argv[0][factoridx]);
                         goto opthelp;
                     }
                     break;
@@ -147,9 +158,9 @@ int rand_main(int argc, char **argv)
                 factoridx++;
             }
 
-            if (shift != 0 && strlen(&argv[0][factoridx]) != 1) {
-                BIO_printf(bio_err, "Invalid size suffix %s\n",
-                           &argv[0][factoridx]);
+            if (shift != 0 && strlen(&argv[0][factoridx]) != 1)
+            {
+                BIO_printf(bio_err, "Invalid size suffix %s\n", &argv[0][factoridx]);
                 goto opthelp;
             }
         }
@@ -160,23 +171,29 @@ int rand_main(int argc, char **argv)
         if ((scaled_num == 0) && (!opt_long(argv[0], &num) || num <= 0))
             goto opthelp;
 
-        if (shift != 0) {
+        if (shift != 0)
+        {
             /* check for overflow */
-            if ((UINT64_MAX >> shift) < (size_t)num) {
-                BIO_printf(bio_err, "%lu bytes with suffix overflows\n",
-                           num);
+            if ((UINT64_MAX >> shift) < (size_t)num)
+            {
+                BIO_printf(bio_err, "%lu bytes with suffix overflows\n", num);
                 goto opthelp;
             }
             scaled_num = num << shift;
-            if (scaled_num > (UINT64_MAX >> 3)) {
+            if (scaled_num > (UINT64_MAX >> 3))
+            {
                 BIO_printf(bio_err, "Request exceeds max allowed output\n");
                 goto opthelp;
             }
-        } else {
+        }
+        else
+        {
             if (scaled_num == 0)
                 scaled_num = num;
         }
-    } else if (!opt_check_rest_arg(NULL)) {
+    }
+    else if (!opt_check_rest_arg(NULL))
+    {
         goto opthelp;
     }
 
@@ -187,7 +204,8 @@ int rand_main(int argc, char **argv)
     if (out == NULL)
         goto end;
 
-    if (format == FORMAT_BASE64) {
+    if (format == FORMAT_BASE64)
+    {
         BIO *b64 = BIO_new(BIO_f_base64());
         if (b64 == NULL)
             goto end;
@@ -195,17 +213,21 @@ int rand_main(int argc, char **argv)
     }
 
     buf = app_malloc(buflen, "buffer for output file");
-    while (scaled_num > 0) {
+    while (scaled_num > 0)
+    {
         int chunk;
 
         chunk = scaled_num > buflen ? (int)buflen : (int)scaled_num;
         r = RAND_bytes_ex(app_get0_libctx(), buf, chunk, 0);
         if (r <= 0)
             goto end;
-        if (format != FORMAT_TEXT) {
+        if (format != FORMAT_TEXT)
+        {
             if (BIO_write(out, buf, chunk) != chunk)
                 goto end;
-        } else {
+        }
+        else
+        {
             for (i = 0; i < chunk; i++)
                 if (BIO_printf(out, "%02x", buf[i]) != 2)
                     goto end;
@@ -219,7 +241,7 @@ int rand_main(int argc, char **argv)
 
     ret = 0;
 
- end:
+end:
     if (ret != 0)
         ERR_print_errors(bio_err);
     OPENSSL_free(buf);

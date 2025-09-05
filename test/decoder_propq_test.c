@@ -17,7 +17,8 @@ static OSSL_PROVIDER *libprov = NULL;
 static const char *filename = NULL;
 static pem_password_cb passcb;
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_ERR = -1,
     OPT_EOF = 0,
     OPT_CONFIG_FILE,
@@ -29,13 +30,10 @@ const OPTIONS *test_get_options(void)
 {
     static const OPTIONS test_options[] = {
         OPT_TEST_OPTIONS_WITH_EXTRA_USAGE("file\n"),
-        { "config", OPT_CONFIG_FILE, '<',
-          "The configuration file to use for the libctx" },
-        { "provider", OPT_PROVIDER_NAME, 's',
-          "The provider to load (The default value is 'default')" },
-        { OPT_HELP_STR, 1, '-', "file\tFile to decode.\n" },
-        { NULL }
-    };
+        {"config", OPT_CONFIG_FILE, '<', "The configuration file to use for the libctx"},
+        {"provider", OPT_PROVIDER_NAME, 's', "The provider to load (The default value is 'default')"},
+        {OPT_HELP_STR, 1, '-', "file\tFile to decode.\n"},
+        {NULL}};
     return test_options;
 }
 
@@ -87,8 +85,10 @@ int setup_tests(void)
     char *config_file = NULL;
     OPTION_CHOICE o;
 
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_PROVIDER_NAME:
             prov_name = opt_arg();
             break;
@@ -96,7 +96,7 @@ int setup_tests(void)
             config_file = opt_arg();
             break;
         case OPT_TEST_CASES:
-           break;
+            break;
         default:
         case OPT_ERR:
             return 0;

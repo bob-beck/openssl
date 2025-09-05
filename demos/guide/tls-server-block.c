@@ -16,12 +16,12 @@
 
 /* Include the appropriate header file for SOCK_STREAM */
 #ifdef _WIN32 /* Windows */
-# include <stdarg.h>
-# include <winsock2.h>
+#include <stdarg.h>
+#include <winsock2.h>
 #else /* Linux/Unix */
-# include <err.h>
-# include <sys/socket.h>
-# include <sys/select.h>
+#include <err.h>
+#include <sys/socket.h>
+#include <sys/select.h>
 #endif
 
 #include <openssl/bio.h>
@@ -81,7 +81,8 @@ int main(int argc, char *argv[])
      * subsequent per-client SSL connections.
      */
     ctx = SSL_CTX_new(TLS_server_method());
-    if (ctx == NULL) {
+    if (ctx == NULL)
+    {
         ERR_print_errors_fp(stderr);
         errx(res, "Failed to create server SSL_CTX");
     }
@@ -90,7 +91,8 @@ int main(int argc, char *argv[])
      * TLS versions older than TLS 1.2 are deprecated by IETF and SHOULD
      * be avoided if possible.
      */
-    if (!SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION)) {
+    if (!SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION))
+    {
         SSL_CTX_free(ctx);
         ERR_print_errors_fp(stderr);
         errx(res, "Failed to set the minimum TLS protocol version");
@@ -150,7 +152,8 @@ int main(int argc, char *argv[])
      * "make chain" in this directory.  If the server will be executed from some
      * other directory, move or copy the files there.
      */
-    if (SSL_CTX_use_certificate_chain_file(ctx, "chain.pem") <= 0) {
+    if (SSL_CTX_use_certificate_chain_file(ctx, "chain.pem") <= 0)
+    {
         SSL_CTX_free(ctx);
         ERR_print_errors_fp(stderr);
         errx(res, "Failed to load the server certificate chain file");
@@ -162,7 +165,8 @@ int main(int argc, char *argv[])
      * whether the certificate chain is valid, the certificates could be
      * expired, or may otherwise fail to form a chain that a client can validate.
      */
-    if (SSL_CTX_use_PrivateKey_file(ctx, "pkey.pem", SSL_FILETYPE_PEM) <= 0) {
+    if (SSL_CTX_use_PrivateKey_file(ctx, "pkey.pem", SSL_FILETYPE_PEM) <= 0)
+    {
         SSL_CTX_free(ctx);
         ERR_print_errors_fp(stderr);
         errx(res, "Error loading the server private key file, "
@@ -211,21 +215,24 @@ int main(int argc, char *argv[])
      * The first call to BIO_do_accept() initialises the socket
      */
     acceptor_bio = BIO_new_accept(hostport);
-    if (acceptor_bio == NULL) {
+    if (acceptor_bio == NULL)
+    {
         SSL_CTX_free(ctx);
         ERR_print_errors_fp(stderr);
         errx(res, "Error creating acceptor bio");
     }
 
     BIO_set_bind_mode(acceptor_bio, BIO_BIND_REUSEADDR);
-    if (BIO_do_accept(acceptor_bio) <= 0) {
+    if (BIO_do_accept(acceptor_bio) <= 0)
+    {
         SSL_CTX_free(ctx);
         ERR_print_errors_fp(stderr);
         errx(res, "Error setting up acceptor socket");
     }
 
     /* Wait for incoming connection */
-    for (;;) {
+    for (;;)
+    {
         BIO *client_bio;
         SSL *ssl;
         unsigned char buf[8192];
@@ -237,7 +244,8 @@ int main(int argc, char *argv[])
         ERR_clear_error();
 
         /* Wait for the next client to connect */
-        if (BIO_do_accept(acceptor_bio) <= 0) {
+        if (BIO_do_accept(acceptor_bio) <= 0)
+        {
             /* Client went away before we accepted the connection */
             continue;
         }
@@ -247,7 +255,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "New client connection accepted\n");
 
         /* Associate a new SSL handle with the new connection */
-        if ((ssl = SSL_new(ctx)) == NULL) {
+        if ((ssl = SSL_new(ctx)) == NULL)
+        {
             ERR_print_errors_fp(stderr);
             warnx("Error creating SSL handle for new connection");
             BIO_free(client_bio);
@@ -256,16 +265,18 @@ int main(int argc, char *argv[])
         SSL_set_bio(ssl, client_bio, client_bio);
 
         /* Attempt an SSL handshake with the client */
-        if (SSL_accept(ssl) <= 0) {
+        if (SSL_accept(ssl) <= 0)
+        {
             ERR_print_errors_fp(stderr);
             warnx("Error performing SSL handshake with client");
             SSL_free(ssl);
             continue;
         }
 
-        while (SSL_read_ex(ssl, buf, sizeof(buf), &nread) > 0) {
-            if (SSL_write_ex(ssl, buf, nread, &nwritten) > 0 &&
-                nwritten == nread) {
+        while (SSL_read_ex(ssl, buf, sizeof(buf), &nread) > 0)
+        {
+            if (SSL_write_ex(ssl, buf, nread, &nwritten) > 0 && nwritten == nread)
+            {
                 total += nwritten;
                 continue;
             }

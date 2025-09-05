@@ -21,53 +21,54 @@
  * accessing pollfd structures (see Github issue #24236). That interferes
  * with our use of these names here. We simply undef them.
  */
-# undef revents
-# undef events
+#undef revents
+#undef events
 #endif
 
-#define ITEM_N(items, stride, n) \
-    (*(SSL_POLL_ITEM *)((char *)(items) + (n)*(stride)))
+#define ITEM_N(items, stride, n) (*(SSL_POLL_ITEM *)((char *)(items) + (n) * (stride)))
 
-#define FAIL_FROM(n)                                                        \
-    do {                                                                    \
-        size_t j;                                                           \
-                                                                            \
-        for (j = (n); j < num_items; ++j)                                   \
-            ITEM_N(items, stride, j).revents = 0;                           \
-                                                                            \
-        ok = 0;                                                             \
-        goto out;                                                           \
+#define FAIL_FROM(n)                                                                                                   \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t j;                                                                                                      \
+                                                                                                                       \
+        for (j = (n); j < num_items; ++j)                                                                              \
+            ITEM_N(items, stride, j).revents = 0;                                                                      \
+                                                                                                                       \
+        ok = 0;                                                                                                        \
+        goto out;                                                                                                      \
     } while (0)
 
-#define FAIL_ITEM(idx)                                                      \
-    do {                                                                    \
-        size_t idx_ = (idx);                                                \
-                                                                            \
-        ITEM_N(items, stride, idx_).revents = SSL_POLL_EVENT_F;             \
-        ++result_count;                                                     \
-        FAIL_FROM(idx_ + 1);                                                \
+#define FAIL_ITEM(idx)                                                                                                 \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t idx_ = (idx);                                                                                           \
+                                                                                                                       \
+        ITEM_N(items, stride, idx_).revents = SSL_POLL_EVENT_F;                                                        \
+        ++result_count;                                                                                                \
+        FAIL_FROM(idx_ + 1);                                                                                           \
     } while (0)
 
 #ifndef OPENSSL_NO_QUIC
-static int poll_translate_ssl_quic(SSL *ssl,
-                                   QUIC_REACTOR_WAIT_CTX *wctx,
-                                   RIO_POLL_BUILDER *rpb,
-                                   uint64_t events,
+static int poll_translate_ssl_quic(SSL *ssl, QUIC_REACTOR_WAIT_CTX *wctx, RIO_POLL_BUILDER *rpb, uint64_t events,
                                    int *abort_blocking)
 {
     BIO_POLL_DESCRIPTOR rd, wd;
     int fd1 = -1, fd2 = -1, fd_nfy = -1;
     int fd1_r = 0, fd1_w = 0, fd2_w = 0;
 
-    if (SSL_net_read_desired(ssl)) {
-        if (!SSL_get_rpoll_descriptor(ssl, &rd)) {
+    if (SSL_net_read_desired(ssl))
+    {
+        if (!SSL_get_rpoll_descriptor(ssl, &rd))
+        {
             ERR_raise_data(ERR_LIB_SSL, SSL_R_POLL_REQUEST_NOT_SUPPORTED,
                            "SSL_poll requires the network BIOs underlying "
                            "a QUIC SSL object provide poll descriptors");
             return 0;
         }
 
-        if (rd.type != BIO_POLL_DESCRIPTOR_TYPE_SOCK_FD) {
+        if (rd.type != BIO_POLL_DESCRIPTOR_TYPE_SOCK_FD)
+        {
             ERR_raise_data(ERR_LIB_SSL, SSL_R_POLL_REQUEST_NOT_SUPPORTED,
                            "SSL_poll requires the poll descriptors of the "
                            "network BIOs underlying a QUIC SSL object be "
@@ -75,19 +76,22 @@ static int poll_translate_ssl_quic(SSL *ssl,
             return 0;
         }
 
-        fd1   = rd.value.fd;
+        fd1 = rd.value.fd;
         fd1_r = 1;
     }
 
-    if (SSL_net_write_desired(ssl)) {
-        if (!SSL_get_wpoll_descriptor(ssl, &wd)) {
+    if (SSL_net_write_desired(ssl))
+    {
+        if (!SSL_get_wpoll_descriptor(ssl, &wd))
+        {
             ERR_raise_data(ERR_LIB_SSL, SSL_R_POLL_REQUEST_NOT_SUPPORTED,
                            "SSL_poll requires the network BIOs underlying "
                            "a QUIC SSL object provide poll descriptors");
             return 0;
         }
 
-        if (wd.type != BIO_POLL_DESCRIPTOR_TYPE_SOCK_FD) {
+        if (wd.type != BIO_POLL_DESCRIPTOR_TYPE_SOCK_FD)
+        {
             ERR_raise_data(ERR_LIB_SSL, SSL_R_POLL_REQUEST_NOT_SUPPORTED,
                            "SSL_poll requires the poll descriptors of the "
                            "network BIOs underlying a QUIC SSL object be "
@@ -95,11 +99,12 @@ static int poll_translate_ssl_quic(SSL *ssl,
             return 0;
         }
 
-        fd2   = wd.value.fd;
+        fd2 = wd.value.fd;
         fd2_w = 1;
     }
 
-    if (fd2 == fd1) {
+    if (fd2 == fd1)
+    {
         fd2 = -1;
         fd1_w = fd2_w;
     }
@@ -109,7 +114,7 @@ static int poll_translate_ssl_quic(SSL *ssl,
             return 0;
 
     if (fd2 != -1 && fd2_w)
-        if (!ossl_rio_poll_builder_add_fd(rpb, fd2, /*r = */0, fd2_w))
+        if (!ossl_rio_poll_builder_add_fd(rpb, fd2, /*r = */ 0, fd2_w))
             return 0;
 
     /*
@@ -120,10 +125,11 @@ static int poll_translate_ssl_quic(SSL *ssl,
      * readable.
      */
     fd_nfy = ossl_quic_get_notifier_fd(ssl);
-    if (fd_nfy != -1) {
+    if (fd_nfy != -1)
+    {
         uint64_t revents = 0;
 
-        if (!ossl_rio_poll_builder_add_fd(rpb, fd_nfy, /*r = */1, /*w = */0))
+        if (!ossl_rio_poll_builder_add_fd(rpb, fd_nfy, /*r = */ 1, /*w = */ 0))
             return 0;
 
         /* Tell QUIC domain we need to receive notifications. */
@@ -137,12 +143,14 @@ static int poll_translate_ssl_quic(SSL *ssl,
          * we needed to block). We now need to do another readout, in which case
          * blocking is to be aborted.
          */
-        if (!ossl_quic_conn_poll_events(ssl, events, /*do_tick = */0, &revents)) {
+        if (!ossl_quic_conn_poll_events(ssl, events, /*do_tick = */ 0, &revents))
+        {
             ossl_quic_leave_blocking_section(ssl, wctx);
             return 0;
         }
 
-        if (revents != 0) {
+        if (revents != 0)
+        {
             ossl_quic_leave_blocking_section(ssl, wctx);
             *abort_blocking = 1;
             return 1;
@@ -152,39 +160,39 @@ static int poll_translate_ssl_quic(SSL *ssl,
     return 1;
 }
 
-static void postpoll_translation_cleanup_ssl_quic(SSL *ssl,
-                                                  QUIC_REACTOR_WAIT_CTX *wctx)
+static void postpoll_translation_cleanup_ssl_quic(SSL *ssl, QUIC_REACTOR_WAIT_CTX *wctx)
 {
     if (ossl_quic_get_notifier_fd(ssl) != -1)
         ossl_quic_leave_blocking_section(ssl, wctx);
 }
 
-static void postpoll_translation_cleanup(SSL_POLL_ITEM *items,
-                                         size_t num_items,
-                                         size_t stride,
+static void postpoll_translation_cleanup(SSL_POLL_ITEM *items, size_t num_items, size_t stride,
                                          QUIC_REACTOR_WAIT_CTX *wctx)
 {
     SSL_POLL_ITEM *item;
     SSL *ssl;
     size_t i;
 
-    for (i = 0; i < num_items; ++i) {
+    for (i = 0; i < num_items; ++i)
+    {
         item = &ITEM_N(items, stride, i);
 
-        switch (item->desc.type) {
+        switch (item->desc.type)
+        {
         case BIO_POLL_DESCRIPTOR_TYPE_SSL:
             ssl = item->desc.value.ssl;
             if (ssl == NULL)
                 break;
 
-            switch (ssl->type) {
-# ifndef OPENSSL_NO_QUIC
+            switch (ssl->type)
+            {
+#ifndef OPENSSL_NO_QUIC
             case SSL_TYPE_QUIC_LISTENER:
             case SSL_TYPE_QUIC_CONNECTION:
             case SSL_TYPE_QUIC_XSO:
                 postpoll_translation_cleanup_ssl_quic(ssl, wctx);
                 break;
-# endif
+#endif
             default:
                 break;
             }
@@ -195,13 +203,8 @@ static void postpoll_translation_cleanup(SSL_POLL_ITEM *items,
     }
 }
 
-static int poll_translate(SSL_POLL_ITEM *items,
-                          size_t num_items,
-                          size_t stride,
-                          QUIC_REACTOR_WAIT_CTX *wctx,
-                          RIO_POLL_BUILDER *rpb,
-                          OSSL_TIME *p_earliest_wakeup_deadline,
-                          int *abort_blocking,
+static int poll_translate(SSL_POLL_ITEM *items, size_t num_items, size_t stride, QUIC_REACTOR_WAIT_CTX *wctx,
+                          RIO_POLL_BUILDER *rpb, OSSL_TIME *p_earliest_wakeup_deadline, int *abort_blocking,
                           size_t *p_result_count)
 {
     int ok = 1;
@@ -213,23 +216,25 @@ static int poll_translate(SSL_POLL_ITEM *items,
     int is_infinite = 0;
     size_t i;
 
-    for (i = 0; i < num_items; ++i) {
+    for (i = 0; i < num_items; ++i)
+    {
         item = &ITEM_N(items, stride, i);
 
-        switch (item->desc.type) {
+        switch (item->desc.type)
+        {
         case BIO_POLL_DESCRIPTOR_TYPE_SSL:
             ssl = item->desc.value.ssl;
             if (ssl == NULL)
                 /* NULL items are no-ops and have revents reported as 0 */
                 break;
 
-            switch (ssl->type) {
-# ifndef OPENSSL_NO_QUIC
+            switch (ssl->type)
+            {
+#ifndef OPENSSL_NO_QUIC
             case SSL_TYPE_QUIC_LISTENER:
             case SSL_TYPE_QUIC_CONNECTION:
             case SSL_TYPE_QUIC_XSO:
-                if (!poll_translate_ssl_quic(ssl, wctx, rpb, item->events,
-                                             abort_blocking))
+                if (!poll_translate_ssl_quic(ssl, wctx, rpb, item->events, abort_blocking))
                     FAIL_ITEM(i);
 
                 if (*abort_blocking)
@@ -239,13 +244,11 @@ static int poll_translate(SSL_POLL_ITEM *items,
                     FAIL_ITEM(i++); /* need to clean up this item too */
 
                 if (!is_infinite)
-                    earliest_wakeup_deadline
-                        = ossl_time_min(earliest_wakeup_deadline,
-                                        ossl_time_add(ossl_time_now(),
-                                                      ossl_time_from_timeval(timeout)));
+                    earliest_wakeup_deadline = ossl_time_min(
+                        earliest_wakeup_deadline, ossl_time_add(ossl_time_now(), ossl_time_from_timeval(timeout)));
 
                 break;
-# endif
+#endif
 
             default:
                 ERR_raise_data(ERR_LIB_SSL, SSL_R_POLL_REQUEST_NOT_SUPPORTED,
@@ -264,7 +267,8 @@ static int poll_translate(SSL_POLL_ITEM *items,
         default:
             ERR_raise_data(ERR_LIB_SSL, SSL_R_POLL_REQUEST_NOT_SUPPORTED,
                            "SSL_poll does not support unknown poll descriptor "
-                           "type %d", item->desc.type);
+                           "type %d",
+                           item->desc.type);
             FAIL_ITEM(i);
         }
     }
@@ -278,10 +282,7 @@ out:
     return ok;
 }
 
-static int poll_block(SSL_POLL_ITEM *items,
-                      size_t num_items,
-                      size_t stride,
-                      OSSL_TIME user_deadline,
+static int poll_block(SSL_POLL_ITEM *items, size_t num_items, size_t stride, OSSL_TIME user_deadline,
                       size_t *p_result_count)
 {
     int ok = 0, abort_blocking = 0;
@@ -313,17 +314,14 @@ static int poll_block(SSL_POLL_ITEM *items,
     ossl_quic_reactor_wait_ctx_init(&wctx);
     ossl_rio_poll_builder_init(&rpb);
 
-    if (!poll_translate(items, num_items, stride, &wctx, &rpb,
-                        &earliest_wakeup_deadline,
-                        &abort_blocking,
+    if (!poll_translate(items, num_items, stride, &wctx, &rpb, &earliest_wakeup_deadline, &abort_blocking,
                         p_result_count))
         goto out;
 
     if (abort_blocking)
         goto out;
 
-    earliest_wakeup_deadline = ossl_time_min(earliest_wakeup_deadline,
-                                             user_deadline);
+    earliest_wakeup_deadline = ossl_time_min(earliest_wakeup_deadline, user_deadline);
 
     ok = ossl_rio_poll_builder_poll(&rpb, earliest_wakeup_deadline);
 
@@ -336,11 +334,7 @@ out:
 }
 #endif
 
-static int poll_readout(SSL_POLL_ITEM *items,
-                        size_t num_items,
-                        size_t stride,
-                        int do_tick,
-                        size_t *p_result_count)
+static int poll_readout(SSL_POLL_ITEM *items, size_t num_items, size_t stride, int do_tick, size_t *p_result_count)
 {
     int ok = 1;
     size_t i, result_count = 0;
@@ -351,21 +345,24 @@ static int poll_readout(SSL_POLL_ITEM *items,
 #endif
     uint64_t revents;
 
-    for (i = 0; i < num_items; ++i) {
-        item    = &ITEM_N(items, stride, i);
+    for (i = 0; i < num_items; ++i)
+    {
+        item = &ITEM_N(items, stride, i);
 #ifndef OPENSSL_NO_QUIC
-        events  = item->events;
+        events = item->events;
 #endif
         revents = 0;
 
-        switch (item->desc.type) {
+        switch (item->desc.type)
+        {
         case BIO_POLL_DESCRIPTOR_TYPE_SSL:
             ssl = item->desc.value.ssl;
             if (ssl == NULL)
                 /* NULL items are no-ops and have revents reported as 0 */
                 break;
 
-            switch (ssl->type) {
+            switch (ssl->type)
+            {
 #ifndef OPENSSL_NO_QUIC
             case SSL_TYPE_QUIC_LISTENER:
             case SSL_TYPE_QUIC_CONNECTION:
@@ -395,7 +392,8 @@ static int poll_readout(SSL_POLL_ITEM *items,
         default:
             ERR_raise_data(ERR_LIB_SSL, SSL_R_POLL_REQUEST_NOT_SUPPORTED,
                            "SSL_poll does not support unknown poll descriptor "
-                           "type %d", item->desc.type);
+                           "type %d",
+                           item->desc.type);
             FAIL_ITEM(i);
         }
 
@@ -409,11 +407,7 @@ out:
     return ok;
 }
 
-int SSL_poll(SSL_POLL_ITEM *items,
-             size_t num_items,
-             size_t stride,
-             const struct timeval *timeout,
-             uint64_t flags,
+int SSL_poll(SSL_POLL_ITEM *items, size_t num_items, size_t stride, const struct timeval *timeout, uint64_t flags,
              size_t *p_result_count)
 {
     int ok = 1;
@@ -422,7 +416,8 @@ int SSL_poll(SSL_POLL_ITEM *items,
     OSSL_TIME deadline;
 
     /* Trivial case. */
-    if (num_items == 0) {
+    if (num_items == 0)
+    {
         if (timeout == NULL)
             goto out;
         OSSL_sleep(ossl_time2ms(ossl_time_from_timeval(*timeout)));
@@ -435,13 +430,14 @@ int SSL_poll(SSL_POLL_ITEM *items,
     else if (timeout->tv_sec == 0 && timeout->tv_usec == 0)
         deadline = ossl_time_zero();
     else
-        deadline = ossl_time_add(ossl_time_now(),
-                                 ossl_time_from_timeval(*timeout));
+        deadline = ossl_time_add(ossl_time_now(), ossl_time_from_timeval(*timeout));
 
     /* Loop until we have something to report. */
-    for (;;) {
+    for (;;)
+    {
         /* Readout phase - poll current state of each item. */
-        if (!poll_readout(items, num_items, stride, do_tick, &result_count)) {
+        if (!poll_readout(items, num_items, stride, do_tick, &result_count))
+        {
             ok = 0;
             goto out;
         }
@@ -450,8 +446,7 @@ int SSL_poll(SSL_POLL_ITEM *items,
          * If we got anything, or we are in immediate mode (zero timeout), or
          * the deadline has expired, we're done.
          */
-        if (result_count > 0
-            || ossl_time_is_zero(deadline) /* (avoids now call) */
+        if (result_count > 0 || ossl_time_is_zero(deadline) /* (avoids now call) */
             || ossl_time_compare(ossl_time_now(), deadline) >= 0)
             goto out;
 
@@ -461,7 +456,8 @@ int SSL_poll(SSL_POLL_ITEM *items,
          */
         do_tick = 1;
 #ifndef OPENSSL_NO_QUIC
-        if (!poll_block(items, num_items, stride, deadline, &result_count)) {
+        if (!poll_block(items, num_items, stride, deadline, &result_count))
+        {
             ok = 0;
             goto out;
         }

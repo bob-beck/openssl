@@ -43,7 +43,8 @@ static int test_script(int idx)
 
 int setup_tests(void)
 {
-    if (!test_skip_common_options()) {
+    if (!test_skip_common_options())
+    {
         TEST_error("Error parsing test options\n");
         return 0;
     }

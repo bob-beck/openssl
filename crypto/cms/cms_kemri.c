@@ -20,11 +20,10 @@
 
 /* KEM Recipient Info (KEMRI) routines */
 
-int ossl_cms_RecipientInfo_kemri_get0_alg(CMS_RecipientInfo *ri,
-                                          uint32_t **pkekLength,
-                                          X509_ALGOR **pwrap)
+int ossl_cms_RecipientInfo_kemri_get0_alg(CMS_RecipientInfo *ri, uint32_t **pkekLength, X509_ALGOR **pwrap)
 {
-    if (ri->type != CMS_RECIPINFO_KEM) {
+    if (ri->type != CMS_RECIPINFO_KEM)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEM);
         return 0;
     }
@@ -37,7 +36,8 @@ int ossl_cms_RecipientInfo_kemri_get0_alg(CMS_RecipientInfo *ri,
 
 int CMS_RecipientInfo_kemri_cert_cmp(CMS_RecipientInfo *ri, X509 *cert)
 {
-    if (ri->type != CMS_RECIPINFO_KEM) {
+    if (ri->type != CMS_RECIPINFO_KEM)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEM);
         return -2;
     }
@@ -49,7 +49,8 @@ int CMS_RecipientInfo_kemri_set0_pkey(CMS_RecipientInfo *ri, EVP_PKEY *pk)
     EVP_PKEY_CTX *pctx = NULL;
     CMS_KEMRecipientInfo *kemri;
 
-    if (ri->type != CMS_RECIPINFO_KEM) {
+    if (ri->type != CMS_RECIPINFO_KEM)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEM);
         return 0;
     }
@@ -59,7 +60,8 @@ int CMS_RecipientInfo_kemri_set0_pkey(CMS_RecipientInfo *ri, EVP_PKEY *pk)
     EVP_PKEY_CTX_free(kemri->pctx);
     kemri->pctx = NULL;
 
-    if (pk != NULL) {
+    if (pk != NULL)
+    {
         pctx = EVP_PKEY_CTX_new_from_pkey(ossl_cms_ctx_get0_libctx(kemri->cms_ctx), pk,
                                           ossl_cms_ctx_get0_propq(kemri->cms_ctx));
         if (pctx == NULL || EVP_PKEY_decapsulate_init(pctx, NULL) <= 0)
@@ -76,8 +78,7 @@ err:
 
 /* Initialise a kemri based on passed certificate and key */
 
-int ossl_cms_RecipientInfo_kemri_init(CMS_RecipientInfo *ri, X509 *recip,
-                                      EVP_PKEY *recipPubKey, unsigned int flags,
+int ossl_cms_RecipientInfo_kemri_init(CMS_RecipientInfo *ri, X509 *recip, EVP_PKEY *recipPubKey, unsigned int flags,
                                       const CMS_CTX *ctx)
 {
     CMS_OtherRecipientInfo *ori;
@@ -121,9 +122,7 @@ int ossl_cms_RecipientInfo_kemri_init(CMS_RecipientInfo *ri, X509 *recip,
     if (!X509_ALGOR_copy(kemri->kem, x_alg))
         return 0;
 
-    kemri->pctx = EVP_PKEY_CTX_new_from_pkey(ossl_cms_ctx_get0_libctx(ctx),
-                                             recipPubKey,
-                                             ossl_cms_ctx_get0_propq(ctx));
+    kemri->pctx = EVP_PKEY_CTX_new_from_pkey(ossl_cms_ctx_get0_libctx(ctx), recipPubKey, ossl_cms_ctx_get0_propq(ctx));
     if (kemri->pctx == NULL)
         return 0;
     if (EVP_PKEY_encapsulate_init(kemri->pctx, NULL) <= 0)
@@ -146,19 +145,19 @@ X509_ALGOR *CMS_RecipientInfo_kemri_get0_kdf_alg(CMS_RecipientInfo *ri)
     return NULL;
 }
 
-int CMS_RecipientInfo_kemri_set_ukm(CMS_RecipientInfo *ri,
-                                    const unsigned char *ukm,
-                                    int ukmLength)
+int CMS_RecipientInfo_kemri_set_ukm(CMS_RecipientInfo *ri, const unsigned char *ukm, int ukmLength)
 {
     CMS_KEMRecipientInfo *kemri;
     ASN1_OCTET_STRING *ukm_str;
 
-    if (ri->type != CMS_RECIPINFO_KEM) {
+    if (ri->type != CMS_RECIPINFO_KEM)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEM);
         return 0;
     }
 
-    if (ukm == NULL && ukmLength != 0) {
+    if (ukm == NULL && ukmLength != 0)
+    {
         ERR_raise(ERR_LIB_CMS, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -168,7 +167,8 @@ int CMS_RecipientInfo_kemri_set_ukm(CMS_RecipientInfo *ri,
     ukm_str = ASN1_OCTET_STRING_new();
     if (ukm_str == NULL)
         return 0;
-    if (!ASN1_OCTET_STRING_set(ukm_str, ukm, ukmLength)) {
+    if (!ASN1_OCTET_STRING_set(ukm_str, ukm, ukmLength))
+    {
         ASN1_OCTET_STRING_free(ukm_str);
         return 0;
     }
@@ -192,15 +192,15 @@ static EVP_KDF_CTX *create_kdf_ctx(CMS_KEMRecipientInfo *kemri)
      * implemented.
      */
     X509_ALGOR_get0(&kdf_oid, &ptype, NULL, kemri->kdf);
-    if (ptype != V_ASN1_UNDEF && ptype != V_ASN1_NULL) {
+    if (ptype != V_ASN1_UNDEF && ptype != V_ASN1_NULL)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_UNSUPPORTED_KDF_ALGORITHM);
         goto err;
     }
     if (OBJ_obj2txt(kdf_alg, sizeof(kdf_alg), kdf_oid, 1) < 0)
         goto err;
 
-    kdf = EVP_KDF_fetch(ossl_cms_ctx_get0_libctx(kemri->cms_ctx), kdf_alg,
-                        ossl_cms_ctx_get0_propq(kemri->cms_ctx));
+    kdf = EVP_KDF_fetch(ossl_cms_ctx_get0_libctx(kemri->cms_ctx), kdf_alg, ossl_cms_ctx_get0_propq(kemri->cms_ctx));
     if (kdf == NULL)
         goto err;
 
@@ -210,8 +210,7 @@ err:
     return kctx;
 }
 
-static int kdf_derive(unsigned char *kek, size_t keklen,
-                      const unsigned char *ss, size_t sslen,
+static int kdf_derive(unsigned char *kek, size_t keklen, const unsigned char *ss, size_t sslen,
                       CMS_KEMRecipientInfo *kemri)
 {
     EVP_KDF_CTX *kctx = NULL;
@@ -220,8 +219,7 @@ static int kdf_derive(unsigned char *kek, size_t keklen,
     int infolen = 0;
     int rv = 0;
 
-    infolen = CMS_CMSORIforKEMOtherInfo_encode(&infoder, kemri->wrap, kemri->ukm,
-                                               kemri->kekLength);
+    infolen = CMS_CMSORIforKEMOtherInfo_encode(&infoder, kemri->wrap, kemri->ukm, kemri->kekLength);
     if (infolen <= 0)
         goto err;
 
@@ -229,10 +227,8 @@ static int kdf_derive(unsigned char *kek, size_t keklen,
     if (kctx == NULL)
         goto err;
 
-    params[0] = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_KEY,
-                                                  (unsigned char *)ss, sslen);
-    params[1] = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_INFO,
-                                                  (char *)infoder, infolen);
+    params[0] = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_KEY, (unsigned char *)ss, sslen);
+    params[1] = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_INFO, (char *)infoder, infolen);
     params[2] = OSSL_PARAM_construct_end();
 
     if (EVP_KDF_derive(kctx, kek, keklen, params) <= 0)
@@ -251,10 +247,8 @@ err:
  * or the encrypted CEK.
  */
 
-static int cms_kek_cipher(unsigned char **pout, size_t *poutlen,
-                          const unsigned char *ss, size_t sslen,
-                          const unsigned char *in, size_t inlen,
-                          CMS_KEMRecipientInfo *kemri, int enc)
+static int cms_kek_cipher(unsigned char **pout, size_t *poutlen, const unsigned char *ss, size_t sslen,
+                          const unsigned char *in, size_t inlen, CMS_KEMRecipientInfo *kemri, int enc)
 {
     /* Key encryption key */
     unsigned char kek[EVP_MAX_KEY_LENGTH];
@@ -263,7 +257,8 @@ static int cms_kek_cipher(unsigned char **pout, size_t *poutlen,
     int outlen = 0;
     int rv = 0;
 
-    if (keklen > sizeof(kek)) {
+    if (keklen > sizeof(kek))
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_INVALID_KEY_LENGTH);
         return 0;
     }
@@ -298,8 +293,7 @@ err:
 
 /* Encrypt content key in KEM recipient info */
 
-int ossl_cms_RecipientInfo_kemri_encrypt(const CMS_ContentInfo *cms,
-                                         CMS_RecipientInfo *ri)
+int ossl_cms_RecipientInfo_kemri_encrypt(const CMS_ContentInfo *cms, CMS_RecipientInfo *ri)
 {
     CMS_KEMRecipientInfo *kemri;
     CMS_EncryptedContentInfo *ec;
@@ -311,7 +305,8 @@ int ossl_cms_RecipientInfo_kemri_encrypt(const CMS_ContentInfo *cms,
     size_t enckeylen;
     int rv = 0;
 
-    if (ri->type != CMS_RECIPINFO_KEM) {
+    if (ri->type != CMS_RECIPINFO_KEM)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEM);
         return 0;
     }
@@ -340,8 +335,7 @@ int ossl_cms_RecipientInfo_kemri_encrypt(const CMS_ContentInfo *cms,
     ASN1_STRING_set0(kemri->kemct, kem_ct, (int)kem_ct_len);
     kem_ct = NULL;
 
-    if (!cms_kek_cipher(&enckey, &enckeylen, kem_secret, kem_secret_len, ec->key, ec->keylen,
-                        kemri, 1))
+    if (!cms_kek_cipher(&enckey, &enckeylen, kem_secret, kem_secret_len, ec->key, ec->keylen, kemri, 1))
         goto err;
     ASN1_STRING_set0(kemri->encryptedKey, enckey, (int)enckeylen);
 
@@ -352,8 +346,7 @@ err:
     return rv;
 }
 
-int ossl_cms_RecipientInfo_kemri_decrypt(const CMS_ContentInfo *cms,
-                                         CMS_RecipientInfo *ri)
+int ossl_cms_RecipientInfo_kemri_decrypt(const CMS_ContentInfo *cms, CMS_RecipientInfo *ri)
 {
     CMS_KEMRecipientInfo *kemri;
     CMS_EncryptedContentInfo *ec;
@@ -367,7 +360,8 @@ int ossl_cms_RecipientInfo_kemri_decrypt(const CMS_ContentInfo *cms,
     size_t ceklen;
     int ret = 0;
 
-    if (ri->type != CMS_RECIPINFO_KEM) {
+    if (ri->type != CMS_RECIPINFO_KEM)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEM);
         return 0;
     }
@@ -376,7 +370,8 @@ int ossl_cms_RecipientInfo_kemri_decrypt(const CMS_ContentInfo *cms,
 
     ec = ossl_cms_get0_env_enc_content(cms);
 
-    if (kemri->pctx == NULL) {
+    if (kemri->pctx == NULL)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NO_PRIVATE_KEY);
         return 0;
     }

@@ -29,7 +29,8 @@ HT_DEF_KEY_FIELD(fuzzkey, uint16_t)
 HT_END_KEY_DEFN(FUZZER_KEY)
 
 #define FZ_FLAG_ALLOCATED (1 << 0)
-typedef struct fuzzer_value_st {
+typedef struct fuzzer_value_st
+{
     uint64_t flags;
     uint64_t value;
 } FUZZER_VALUE;
@@ -52,13 +53,13 @@ static HT *fuzzer_table = NULL;
 /*
  * Operational values
  */
-#define OP_INSERT  0
-#define OP_DELETE  1
-#define OP_LOOKUP  2
-#define OP_FLUSH   3
+#define OP_INSERT 0
+#define OP_DELETE 1
+#define OP_LOOKUP 2
+#define OP_FLUSH 3
 #define OP_FOREACH 4
-#define OP_FILTER  5
-#define OP_END     6 
+#define OP_FILTER 5
+#define OP_END 6
 
 #define OP_MASK 0x3f
 #define INSERT_REPLACE_MASK 0x40
@@ -70,7 +71,8 @@ static int table_iterator(HT_VALUE *v, void *arg)
     uint16_t keyval = (*(uint16_t *)arg);
     FUZZER_VALUE *f = ossl_ht_fz_FUZZER_VALUE_from_value(v);
 
-    if (f != NULL && f == &prediction_table[keyval]) {
+    if (f != NULL && f == &prediction_table[keyval])
+    {
         valfound = 1;
         return 0;
     }
@@ -107,7 +109,8 @@ int FuzzerInitialize(int *argc, char ***argv)
     if (prediction_table == NULL)
         return -1;
     fuzzer_table = ossl_ht_new(&fuzz_conf);
-    if (fuzzer_table == NULL) {
+    if (fuzzer_table == NULL)
+    {
         OPENSSL_free(prediction_table);
         return -1;
     }
@@ -133,7 +136,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
      * 1 byte to detect the operation to perform, 2 bytes
      * for the lookup key, and 8 bytes of value
      */
-    if (len < 11) {
+    if (len < 11)
+    {
         skipped_values++;
         return -1;
     }
@@ -152,7 +156,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     /*
      * Now do our operation
      */
-    switch(OPERATION(op_flags)) {
+    switch (OPERATION(op_flags))
+    {
     case OP_INSERT:
         valptr = &prediction_table[keyval];
 
@@ -172,7 +177,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
          * of 1. On replacement, we expect it to succeed
          * always
          */
-        if (valptr->flags & FZ_FLAG_ALLOCATED) {
+        if (valptr->flags & FZ_FLAG_ALLOCATED)
+        {
             if (!IS_REPLACE(op_flags))
                 rc_prediction = 0;
         }
@@ -182,11 +188,9 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
          * do the insert/replace
          */
         if (IS_REPLACE(op_flags))
-            rc = ossl_ht_fz_FUZZER_VALUE_insert(fuzzer_table, TO_HT_KEY(&key),
-                                                valptr, &lval);
+            rc = ossl_ht_fz_FUZZER_VALUE_insert(fuzzer_table, TO_HT_KEY(&key), valptr, &lval);
         else
-            rc = ossl_ht_fz_FUZZER_VALUE_insert(fuzzer_table, TO_HT_KEY(&key),
-                                                valptr, NULL);
+            rc = ossl_ht_fz_FUZZER_VALUE_insert(fuzzer_table, TO_HT_KEY(&key), valptr, NULL);
 
         if (rc == -1)
             /* failed to grow the hash table due to too many collisions */
@@ -307,7 +311,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
          * if we expect a positive lookup, make sure that
          * we can use the _type and to_value functions
          */
-        if (valptr != NULL) {
+        if (valptr != NULL)
+        {
             OPENSSL_assert(ossl_ht_fz_FUZZER_VALUE_type(v) == 1);
 
             v = ossl_ht_fz_FUZZER_VALUE_to_value(lval, &tv);
@@ -324,9 +329,10 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 
     case OP_FLUSH:
         /*
-         * only flush the table rarely 
+         * only flush the table rarely
          */
-        if ((flushes % 100000) != 1) {
+        if ((flushes % 100000) != 1)
+        {
             skipped_values++;
             flushes++;
             return 0;
@@ -342,7 +348,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         /*
          * now check to make sure everything is free
          */
-       for (i = 0; i < USHRT_MAX; i++)
+        for (i = 0; i < USHRT_MAX; i++)
             OPENSSL_assert((prediction_table[i].flags & FZ_FLAG_ALLOCATED) == 0);
 
         /* good flush */

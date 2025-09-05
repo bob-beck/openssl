@@ -20,11 +20,20 @@
 #include <openssl/pkcs7.h>
 #include <openssl/pem.h>
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_INFORM, OPT_OUTFORM, OPT_IN, OPT_OUT, OPT_NOOUT,
-    OPT_TEXT, OPT_PRINT, OPT_PRINT_CERTS, OPT_QUIET,
-    OPT_ENGINE, OPT_PROV_ENUM
+    OPT_INFORM,
+    OPT_OUTFORM,
+    OPT_IN,
+    OPT_OUT,
+    OPT_NOOUT,
+    OPT_TEXT,
+    OPT_PRINT,
+    OPT_PRINT_CERTS,
+    OPT_QUIET,
+    OPT_ENGINE,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS pkcs7_options[] = {
@@ -44,14 +53,11 @@ const OPTIONS pkcs7_options[] = {
     {"noout", OPT_NOOUT, '-', "Don't output encoded data"},
     {"text", OPT_TEXT, '-', "Print full details of certificates"},
     {"print", OPT_PRINT, '-', "Print out all fields of the PKCS7 structure"},
-    {"print_certs", OPT_PRINT_CERTS, '-',
-     "Print_certs  print any certs or crl in the input"},
-    {"quiet", OPT_QUIET, '-',
-     "When used with -print_certs, it produces a cleaner output"},
+    {"print_certs", OPT_PRINT_CERTS, '-', "Print_certs  print any certs or crl in the input"},
+    {"quiet", OPT_QUIET, '-', "When used with -print_certs, it produces a cleaner output"},
 
     OPT_PROV_OPTIONS,
-    {NULL}
-};
+    {NULL}};
 
 int pkcs7_main(int argc, char **argv)
 {
@@ -65,11 +71,13 @@ int pkcs7_main(int argc, char **argv)
     OSSL_LIB_CTX *libctx = app_get0_libctx();
 
     prog = opt_init(argc, argv, pkcs7_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -124,7 +132,8 @@ int pkcs7_main(int argc, char **argv)
         goto end;
 
     p7 = PKCS7_new_ex(libctx, app_get0_propq());
-    if (p7 == NULL) {
+    if (p7 == NULL)
+    {
         BIO_printf(bio_err, "unable to allocate PKCS7 object\n");
         ERR_print_errors(bio_err);
         goto end;
@@ -134,7 +143,8 @@ int pkcs7_main(int argc, char **argv)
         p7i = d2i_PKCS7_bio(in, &p7);
     else
         p7i = PEM_read_bio_PKCS7(in, &p7, NULL, NULL);
-    if (p7i == NULL) {
+    if (p7i == NULL)
+    {
         BIO_printf(bio_err, "unable to load PKCS7 object\n");
         ERR_print_errors(bio_err);
         goto end;
@@ -147,20 +157,24 @@ int pkcs7_main(int argc, char **argv)
     if (p7_print)
         PKCS7_print_ctx(out, p7, 0, NULL);
 
-    if (print_certs) {
+    if (print_certs)
+    {
         STACK_OF(X509) *certs = NULL;
         STACK_OF(X509_CRL) *crls = NULL;
 
         i = OBJ_obj2nid(p7->type);
-        switch (i) {
+        switch (i)
+        {
         case NID_pkcs7_signed:
-            if (p7->d.sign != NULL) {
+            if (p7->d.sign != NULL)
+            {
                 certs = p7->d.sign->cert;
                 crls = p7->d.sign->crl;
             }
             break;
         case NID_pkcs7_signedAndEnveloped:
-            if (p7->d.signed_and_enveloped != NULL) {
+            if (p7->d.signed_and_enveloped != NULL)
+            {
                 certs = p7->d.signed_and_enveloped->cert;
                 crls = p7->d.signed_and_enveloped->crl;
             }
@@ -169,10 +183,12 @@ int pkcs7_main(int argc, char **argv)
             break;
         }
 
-        if (certs != NULL) {
+        if (certs != NULL)
+        {
             X509 *x;
 
-            for (i = 0; i < sk_X509_num(certs); i++) {
+            for (i = 0; i < sk_X509_num(certs); i++)
+            {
                 x = sk_X509_value(certs, i);
                 if (text)
                     X509_print(out, x);
@@ -184,10 +200,12 @@ int pkcs7_main(int argc, char **argv)
                 BIO_puts(out, "\n");
             }
         }
-        if (crls != NULL) {
+        if (crls != NULL)
+        {
             X509_CRL *crl;
 
-            for (i = 0; i < sk_X509_CRL_num(crls); i++) {
+            for (i = 0; i < sk_X509_CRL_num(crls); i++)
+            {
                 crl = sk_X509_CRL_value(crls, i);
 
                 X509_CRL_print_ex(out, crl, get_nameopt());
@@ -202,20 +220,22 @@ int pkcs7_main(int argc, char **argv)
         goto end;
     }
 
-    if (!noout) {
+    if (!noout)
+    {
         if (outformat == FORMAT_ASN1)
             i = i2d_PKCS7_bio(out, p7);
         else
             i = PEM_write_bio_PKCS7(out, p7);
 
-        if (!i) {
+        if (!i)
+        {
             BIO_printf(bio_err, "unable to write pkcs7 object\n");
             ERR_print_errors(bio_err);
             goto end;
         }
     }
     ret = 0;
- end:
+end:
     PKCS7_free(p7);
     release_engine(e);
     BIO_free(in);

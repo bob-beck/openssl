@@ -37,7 +37,8 @@ static int validate_argv(int argc)
 {
     static int size = 0;
 
-    if (argc >= size) {
+    if (argc >= size)
+    {
         char **ptr;
 
         while (argc >= size)
@@ -48,7 +49,9 @@ static int validate_argv(int argc)
             return 0;
 
         (newargv = ptr)[argc] = NULL;
-    } else {
+    }
+    else
+    {
         newargv[argc] = NULL;
     }
 
@@ -81,31 +84,31 @@ static int process_glob(WCHAR *wstr, int wlen)
             break;
 
     if (i == wlen)
-        return 0;   /* definitely not a glob */
+        return 0; /* definitely not a glob */
 
     saved_char = wstr[wlen];
     wstr[wlen] = L'\0';
     h = FindFirstFileW(wstr, &data);
     wstr[wlen] = saved_char;
     if (h == INVALID_HANDLE_VALUE)
-        return 0;   /* not a valid glob, just pass... */
+        return 0; /* not a valid glob, just pass... */
 
     if (slash)
-        udlen = WideCharToMultiByte(CP_UTF8, 0, wstr, slash,
-                                    NULL, 0, NULL, NULL);
+        udlen = WideCharToMultiByte(CP_UTF8, 0, wstr, slash, NULL, 0, NULL, NULL);
     else
         udlen = 0;
 
-    do {
+    do
+    {
         int uflen;
         char *arg;
 
         /*
          * skip over . and ..
          */
-        if (data.cFileName[0] == L'.') {
-            if ((data.cFileName[1] == L'\0') ||
-                (data.cFileName[1] == L'.' && data.cFileName[2] == L'\0'))
+        if (data.cFileName[0] == L'.')
+        {
+            if ((data.cFileName[1] == L'\0') || (data.cFileName[1] == L'.' && data.cFileName[2] == L'\0'))
                 continue;
         }
 
@@ -116,19 +119,16 @@ static int process_glob(WCHAR *wstr, int wlen)
          * -1 below means "scan for trailing '\0' *and* count it",
          * so that |uflen| covers even trailing '\0'.
          */
-        uflen = WideCharToMultiByte(CP_UTF8, 0, data.cFileName, -1,
-                                    NULL, 0, NULL, NULL);
+        uflen = WideCharToMultiByte(CP_UTF8, 0, data.cFileName, -1, NULL, 0, NULL, NULL);
 
         arg = malloc(udlen + uflen);
         if (arg == NULL)
             break;
 
         if (udlen)
-            WideCharToMultiByte(CP_UTF8, 0, wstr, slash,
-                                arg, udlen, NULL, NULL);
+            WideCharToMultiByte(CP_UTF8, 0, wstr, slash, arg, udlen, NULL, NULL);
 
-        WideCharToMultiByte(CP_UTF8, 0, data.cFileName, -1,
-                            arg + udlen, uflen, NULL, NULL);
+        WideCharToMultiByte(CP_UTF8, 0, data.cFileName, -1, arg + udlen, uflen, NULL, NULL);
 
         newargv[newargc++] = arg;
     } while (FindNextFileW(h, &data));
@@ -154,7 +154,8 @@ void win32_utf8argv(int *argc, char **argv[])
         return;
 
     wcmdline = GetCommandLineW();
-    if (wcmdline == NULL) return;
+    if (wcmdline == NULL)
+        return;
 
     /*
      * make a copy of the command line, since we might have to modify it...
@@ -163,10 +164,12 @@ void win32_utf8argv(int *argc, char **argv[])
     p = _alloca((wlen + 1) * sizeof(WCHAR));
     memcpy(p, wcmdline, (wlen + 1) * sizeof(WCHAR));
 
-    while (*p != L'\0') {
+    while (*p != L'\0')
+    {
         int in_quote = 0;
 
-        if (*p == L' ' || *p == L'\t') {
+        if (*p == L' ' || *p == L'\t')
+        {
             p++; /* skip over whitespace */
             continue;
         }
@@ -177,9 +180,10 @@ void win32_utf8argv(int *argc, char **argv[])
          * the number of characters will never expand.
          */
         warg = wend = p;
-        while (*p != L'\0'
-               && (in_quote || (*p != L' ' && *p != L'\t'))) {
-            switch (*p) {
+        while (*p != L'\0' && (in_quote || (*p != L' ' && *p != L'\t')))
+        {
+            switch (*p)
+            {
             case L'\\':
                 /*
                  * Microsoft documentation on how backslashes are treated
@@ -210,7 +214,8 @@ void win32_utf8argv(int *argc, char **argv[])
                     while (*p == L'\\')
                         p++;
 
-                    if (*p == L'"') {
+                    if (*p == L'"')
+                    {
                         for (i = (p - q) / 2; i > 0; i--)
                             *wend++ = L'\\';
 
@@ -220,7 +225,9 @@ void win32_utf8argv(int *argc, char **argv[])
                          */
                         if ((p - q) % 2 == 1)
                             *wend++ = *p++;
-                    } else {
+                    }
+                    else
+                    {
                         for (i = p - q; i > 0; i--)
                             *wend++ = L'\\';
                     }
@@ -248,36 +255,39 @@ void win32_utf8argv(int *argc, char **argv[])
 
         wlen = (int)(wend - warg);
 
-        if (wlen == 0 || !process_glob(warg, wlen)) {
-            if (!validate_argv(newargc + 1)) {
+        if (wlen == 0 || !process_glob(warg, wlen))
+        {
+            if (!validate_argv(newargc + 1))
+            {
                 valid = 0;
                 break;
             }
 
             ulen = 0;
-            if (wlen > 0) {
-                ulen = WideCharToMultiByte(CP_UTF8, 0, warg, wlen,
-                                           NULL, 0, NULL, NULL);
+            if (wlen > 0)
+            {
+                ulen = WideCharToMultiByte(CP_UTF8, 0, warg, wlen, NULL, 0, NULL, NULL);
                 if (ulen <= 0)
                     continue;
             }
 
             arg = malloc(ulen + 1);
-            if (arg == NULL) {
+            if (arg == NULL)
+            {
                 valid = 0;
                 break;
             }
 
             if (wlen > 0)
-                WideCharToMultiByte(CP_UTF8, 0, warg, wlen,
-                                    arg, ulen, NULL, NULL);
+                WideCharToMultiByte(CP_UTF8, 0, warg, wlen, arg, ulen, NULL, NULL);
             arg[ulen] = '\0';
 
             newargv[newargc++] = arg;
         }
     }
 
-    if (valid) {
+    if (valid)
+    {
         saved_cp = GetConsoleOutputCP();
         SetConsoleOutputCP(CP_UTF8);
 
@@ -285,7 +295,9 @@ void win32_utf8argv(int *argc, char **argv[])
         *argv = newargv;
 
         atexit(cleanup);
-    } else if (newargv != NULL) {
+    }
+    else if (newargv != NULL)
+    {
         int i;
 
         for (i = 0; i < newargc; i++)
@@ -301,5 +313,7 @@ void win32_utf8argv(int *argc, char **argv[])
 }
 #else
 void win32_utf8argv(int *argc, char **argv[])
-{   return;   }
+{
+    return;
+}
 #endif

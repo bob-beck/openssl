@@ -38,22 +38,23 @@ int main(int argc, char **argv)
     bld = OSSL_PARAM_BLD_new();
     if (bld == NULL)
         goto cleanup;
-    if (!OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_FFC_P, p)
-            || !OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_FFC_Q, q)
-            || !OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_FFC_G, g))
+    if (!OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_FFC_P, p) ||
+        !OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_FFC_Q, q) ||
+        !OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_FFC_G, g))
         goto cleanup;
     params = OSSL_PARAM_BLD_to_param(bld);
     if (params == NULL)
         goto cleanup;
 
     ctx = EVP_PKEY_CTX_new_from_name(libctx, "DSA", propq);
-    if (ctx == NULL) {
+    if (ctx == NULL)
+    {
         fprintf(stderr, "EVP_PKEY_CTX_new_from_name() failed\n");
         goto cleanup;
     }
 
-    if (EVP_PKEY_fromdata_init(ctx) <= 0
-            || EVP_PKEY_fromdata(ctx, &dsaparamkey, EVP_PKEY_KEY_PARAMETERS, params) <= 0) {
+    if (EVP_PKEY_fromdata_init(ctx) <= 0 || EVP_PKEY_fromdata(ctx, &dsaparamkey, EVP_PKEY_KEY_PARAMETERS, params) <= 0)
+    {
         fprintf(stderr, "EVP_PKEY_fromdata() failed\n");
         goto cleanup;
     }

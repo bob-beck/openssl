@@ -45,7 +45,8 @@ int STACK_OF_X509_cmp(const STACK_OF(X509) *sk1, const STACK_OF(X509) *sk2)
         return 1;
     if ((res = sk_X509_num(sk1) - sk_X509_num(sk2)))
         return res;
-    for (i = 0; i < sk_X509_num(sk1); i++) {
+    for (i = 0; i < sk_X509_num(sk1); i++)
+    {
         a = sk_X509_value(sk1, i);
         b = sk_X509_value(sk2, i);
         if (a != b)
@@ -74,8 +75,7 @@ int STACK_OF_X509_push1(STACK_OF(X509) *sk, X509 *cert)
     return res;
 }
 
-int print_to_bio_out(const char *func, const char *file, int line,
-                     OSSL_CMP_severity level, const char *msg)
+int print_to_bio_out(const char *func, const char *file, int line, OSSL_CMP_severity level, const char *msg)
 {
     return OSSL_CMP_print_to_bio(bio_out, func, file, line, level, msg);
 }

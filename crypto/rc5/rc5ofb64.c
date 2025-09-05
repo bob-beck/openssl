@@ -21,8 +21,7 @@
  * The extra state information to record how much of the 64bit block we have
  * used is contained in *num;
  */
-void RC5_32_ofb64_encrypt(const unsigned char *in, unsigned char *out,
-                          long length, RC5_32_KEY *schedule,
+void RC5_32_ofb64_encrypt(const unsigned char *in, unsigned char *out, long length, RC5_32_KEY *schedule,
                           unsigned char *ivec, int *num)
 {
     register unsigned long v0, v1, t;
@@ -42,8 +41,10 @@ void RC5_32_ofb64_encrypt(const unsigned char *in, unsigned char *out,
     dp = (char *)d;
     l2c(v0, dp);
     l2c(v1, dp);
-    while (l--) {
-        if (n == 0) {
+    while (l--)
+    {
+        if (n == 0)
+        {
             RC5_32_encrypt((unsigned long *)ti, schedule);
             dp = (char *)d;
             t = ti[0];
@@ -55,7 +56,8 @@ void RC5_32_ofb64_encrypt(const unsigned char *in, unsigned char *out,
         *(out++) = *(in++) ^ d[n];
         n = (n + 1) & 0x07;
     }
-    if (save) {
+    if (save)
+    {
         v0 = ti[0];
         v1 = ti[1];
         iv = (unsigned char *)ivec;

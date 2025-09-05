@@ -17,8 +17,7 @@
 #include <openssl/rc5.h>
 #include "rc5_local.h"
 
-void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
-                        long length, RC5_32_KEY *ks, unsigned char *iv,
+void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out, long length, RC5_32_KEY *ks, unsigned char *iv,
                         int encrypt)
 {
     register unsigned long tin0, tin1;
@@ -26,11 +25,13 @@ void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
     register long l = length;
     unsigned long tin[2];
 
-    if (encrypt) {
+    if (encrypt)
+    {
         c2l(iv, tout0);
         c2l(iv, tout1);
         iv -= 8;
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             c2l(in, tin0);
             c2l(in, tin1);
             tin0 ^= tout0;
@@ -43,7 +44,8 @@ void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
             tout1 = tin[1];
             l2c(tout1, out);
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             c2ln(in, tin0, tin1, l + 8);
             tin0 ^= tout0;
             tin1 ^= tout1;
@@ -57,11 +59,14 @@ void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
         }
         l2c(tout0, iv);
         l2c(tout1, iv);
-    } else {
+    }
+    else
+    {
         c2l(iv, xor0);
         c2l(iv, xor1);
         iv -= 8;
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             c2l(in, tin0);
             tin[0] = tin0;
             c2l(in, tin1);
@@ -74,7 +79,8 @@ void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
             xor0 = tin0;
             xor1 = tin1;
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             c2l(in, tin0);
             tin[0] = tin0;
             c2l(in, tin1);
@@ -109,12 +115,15 @@ void RC5_32_encrypt(unsigned long *d, RC5_32_KEY *key)
     E_RC5_32(a, b, s, 12);
     E_RC5_32(a, b, s, 14);
     E_RC5_32(a, b, s, 16);
-    if (key->rounds == 12) {
+    if (key->rounds == 12)
+    {
         E_RC5_32(a, b, s, 18);
         E_RC5_32(a, b, s, 20);
         E_RC5_32(a, b, s, 22);
         E_RC5_32(a, b, s, 24);
-    } else if (key->rounds == 16) {
+    }
+    else if (key->rounds == 16)
+    {
         /* Do a full expansion to avoid a jump */
         E_RC5_32(a, b, s, 18);
         E_RC5_32(a, b, s, 20);
@@ -137,7 +146,8 @@ void RC5_32_decrypt(unsigned long *d, RC5_32_KEY *key)
 
     a = d[0];
     b = d[1];
-    if (key->rounds == 16) {
+    if (key->rounds == 16)
+    {
         D_RC5_32(a, b, s, 32);
         D_RC5_32(a, b, s, 30);
         D_RC5_32(a, b, s, 28);
@@ -147,7 +157,9 @@ void RC5_32_decrypt(unsigned long *d, RC5_32_KEY *key)
         D_RC5_32(a, b, s, 22);
         D_RC5_32(a, b, s, 20);
         D_RC5_32(a, b, s, 18);
-    } else if (key->rounds == 12) {
+    }
+    else if (key->rounds == 12)
+    {
         D_RC5_32(a, b, s, 24);
         D_RC5_32(a, b, s, 22);
         D_RC5_32(a, b, s, 20);

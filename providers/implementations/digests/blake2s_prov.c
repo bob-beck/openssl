@@ -20,22 +20,15 @@
 #include "blake2_impl.h"
 #include "prov/blake2.h"
 
-static const uint32_t blake2s_IV[8] = {
-    0x6A09E667U, 0xBB67AE85U, 0x3C6EF372U, 0xA54FF53AU,
-    0x510E527FU, 0x9B05688CU, 0x1F83D9ABU, 0x5BE0CD19U
-};
+static const uint32_t blake2s_IV[8] = {0x6A09E667U, 0xBB67AE85U, 0x3C6EF372U, 0xA54FF53AU,
+                                       0x510E527FU, 0x9B05688CU, 0x1F83D9ABU, 0x5BE0CD19U};
 
 static const uint8_t blake2s_sigma[10][16] = {
-    {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15 } ,
-    { 14, 10,  4,  8,  9, 15, 13,  6,  1, 12,  0,  2, 11,  7,  5,  3 } ,
-    { 11,  8, 12,  0,  5,  2, 15, 13, 10, 14,  3,  6,  7,  1,  9,  4 } ,
-    {  7,  9,  3,  1, 13, 12, 11, 14,  2,  6,  5, 10,  4,  0, 15,  8 } ,
-    {  9,  0,  5,  7,  2,  4, 10, 15, 14,  1, 11, 12,  6,  8,  3, 13 } ,
-    {  2, 12,  6, 10,  0, 11,  8,  3,  4, 13,  7,  5, 15, 14,  1,  9 } ,
-    { 12,  5,  1, 15, 14, 13,  4, 10,  0,  7,  6,  3,  9,  2,  8, 11 } ,
-    { 13, 11,  7, 14, 12,  1,  3,  9,  5,  0, 15,  4,  8,  6,  2, 10 } ,
-    {  6, 15, 14,  9, 11,  3,  0,  8, 12,  2, 13,  7,  1,  4, 10,  5 } ,
-    { 10,  2,  8,  4,  7,  6,  1,  5, 15, 11,  9, 14,  3, 12, 13 , 0 } ,
+    {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, {14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3},
+    {11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4}, {7, 9, 3, 1, 13, 12, 11, 14, 2, 6, 5, 10, 4, 0, 15, 8},
+    {9, 0, 5, 7, 2, 4, 10, 15, 14, 1, 11, 12, 6, 8, 3, 13}, {2, 12, 6, 10, 0, 11, 8, 3, 4, 13, 7, 5, 15, 14, 1, 9},
+    {12, 5, 1, 15, 14, 13, 4, 10, 0, 7, 6, 3, 9, 2, 8, 11}, {13, 11, 7, 14, 12, 1, 3, 9, 5, 0, 15, 4, 8, 6, 2, 10},
+    {6, 15, 14, 9, 11, 3, 0, 8, 12, 2, 13, 7, 1, 4, 10, 5}, {10, 2, 8, 4, 7, 6, 1, 5, 15, 11, 9, 14, 3, 12, 13, 0},
 };
 
 /* Set that it's the last block we'll compress */
@@ -50,7 +43,8 @@ static ossl_inline void blake2s_init0(BLAKE2S_CTX *S)
     int i;
 
     memset(S, 0, sizeof(BLAKE2S_CTX));
-    for (i = 0; i < 8; ++i) {
+    for (i = 0; i < 8; ++i)
+    {
         S->h[i] = blake2s_IV[i];
     }
 }
@@ -68,22 +62,23 @@ static void blake2s_init_param(BLAKE2S_CTX *S, const BLAKE2S_PARAM *P)
      * every platform. */
     assert(sizeof(BLAKE2S_PARAM) == 32);
     /* IV XOR ParamBlock */
-    for (i = 0; i < 8; ++i) {
-        S->h[i] ^= load32(&p[i*4]);
+    for (i = 0; i < 8; ++i)
+    {
+        S->h[i] ^= load32(&p[i * 4]);
     }
 }
 
 void ossl_blake2s_param_init(BLAKE2S_PARAM *P)
 {
     P->digest_length = BLAKE2S_DIGEST_LENGTH;
-    P->key_length    = 0;
-    P->fanout        = 1;
-    P->depth         = 1;
+    P->key_length = 0;
+    P->fanout = 1;
+    P->depth = 1;
     store32(P->leaf_length, 0);
     store48(P->node_offset, 0);
-    P->node_depth    = 0;
-    P->inner_length  = 0;
-    memset(P->salt,     0, sizeof(P->salt));
+    P->node_depth = 0;
+    P->inner_length = 0;
+    memset(P->salt, 0, sizeof(P->salt));
     memset(P->personal, 0, sizeof(P->personal));
 }
 
@@ -97,18 +92,17 @@ void ossl_blake2s_param_set_key_length(BLAKE2S_PARAM *P, uint8_t keylen)
     P->key_length = keylen;
 }
 
-void ossl_blake2s_param_set_personal(BLAKE2S_PARAM *P, const uint8_t *personal,
-                                     size_t len)
+void ossl_blake2s_param_set_personal(BLAKE2S_PARAM *P, const uint8_t *personal, size_t len)
 {
     memcpy(P->personal, personal, len);
     memset(P->personal + len, 0, BLAKE2S_PERSONALBYTES - len);
 }
 
-void ossl_blake2s_param_set_salt(BLAKE2S_PARAM *P, const uint8_t *salt,
-                                 size_t len)
+void ossl_blake2s_param_set_salt(BLAKE2S_PARAM *P, const uint8_t *salt, size_t len)
 {
     memcpy(P->salt, salt, len);
-    memset(P->salt + len, 0, BLAKE2S_SALTBYTES - len);}
+    memset(P->salt + len, 0, BLAKE2S_SALTBYTES - len);
+}
 
 /*
  * Initialize the hashing context with the given parameter block.
@@ -124,8 +118,7 @@ int ossl_blake2s_init(BLAKE2S_CTX *c, const BLAKE2S_PARAM *P)
  * Initialize the hashing context with the given parameter block and key.
  * Always returns 1.
  */
-int ossl_blake2s_init_key(BLAKE2S_CTX *c, const BLAKE2S_PARAM *P,
-                          const void *key)
+int ossl_blake2s_init_key(BLAKE2S_CTX *c, const BLAKE2S_PARAM *P, const void *key)
 {
     blake2s_init_param(c, P);
 
@@ -142,9 +135,7 @@ int ossl_blake2s_init_key(BLAKE2S_CTX *c, const BLAKE2S_PARAM *P,
 }
 
 /* Permute the state while xoring in the block of data. */
-static void blake2s_compress(BLAKE2S_CTX *S,
-                            const uint8_t *blocks,
-                            size_t len)
+static void blake2s_compress(BLAKE2S_CTX *S, const uint8_t *blocks, size_t len)
 {
     uint32_t m[16];
     uint32_t v[16];
@@ -172,12 +163,15 @@ static void blake2s_compress(BLAKE2S_CTX *S,
      */
     increment = len < BLAKE2S_BLOCKBYTES ? (uint32_t)len : BLAKE2S_BLOCKBYTES;
 
-    for (i = 0; i < 8; ++i) {
+    for (i = 0; i < 8; ++i)
+    {
         v[i] = S->h[i];
     }
 
-    do {
-        for (i = 0; i < 16; ++i) {
+    do
+    {
+        for (i = 0; i < 16; ++i)
+        {
             m[i] = load32(blocks + i * sizeof(m[i]));
         }
 
@@ -185,39 +179,42 @@ static void blake2s_compress(BLAKE2S_CTX *S,
         S->t[0] += increment;
         S->t[1] += (S->t[0] < increment);
 
-        v[ 8] = blake2s_IV[0];
-        v[ 9] = blake2s_IV[1];
+        v[8] = blake2s_IV[0];
+        v[9] = blake2s_IV[1];
         v[10] = blake2s_IV[2];
         v[11] = blake2s_IV[3];
         v[12] = S->t[0] ^ blake2s_IV[4];
         v[13] = S->t[1] ^ blake2s_IV[5];
         v[14] = S->f[0] ^ blake2s_IV[6];
         v[15] = S->f[1] ^ blake2s_IV[7];
-#define G(r,i,a,b,c,d) \
-        do { \
-            a = a + b + m[blake2s_sigma[r][2*i+0]]; \
-            d = rotr32(d ^ a, 16); \
-            c = c + d; \
-            b = rotr32(b ^ c, 12); \
-            a = a + b + m[blake2s_sigma[r][2*i+1]]; \
-            d = rotr32(d ^ a, 8); \
-            c = c + d; \
-            b = rotr32(b ^ c, 7); \
-        } while (0)
-#define ROUND(r)  \
-        do { \
-            G(r,0,v[ 0],v[ 4],v[ 8],v[12]); \
-            G(r,1,v[ 1],v[ 5],v[ 9],v[13]); \
-            G(r,2,v[ 2],v[ 6],v[10],v[14]); \
-            G(r,3,v[ 3],v[ 7],v[11],v[15]); \
-            G(r,4,v[ 0],v[ 5],v[10],v[15]); \
-            G(r,5,v[ 1],v[ 6],v[11],v[12]); \
-            G(r,6,v[ 2],v[ 7],v[ 8],v[13]); \
-            G(r,7,v[ 3],v[ 4],v[ 9],v[14]); \
-        } while (0)
+#define G(r, i, a, b, c, d)                                                                                            \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        a = a + b + m[blake2s_sigma[r][2 * i + 0]];                                                                    \
+        d = rotr32(d ^ a, 16);                                                                                         \
+        c = c + d;                                                                                                     \
+        b = rotr32(b ^ c, 12);                                                                                         \
+        a = a + b + m[blake2s_sigma[r][2 * i + 1]];                                                                    \
+        d = rotr32(d ^ a, 8);                                                                                          \
+        c = c + d;                                                                                                     \
+        b = rotr32(b ^ c, 7);                                                                                          \
+    } while (0)
+#define ROUND(r)                                                                                                       \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        G(r, 0, v[0], v[4], v[8], v[12]);                                                                              \
+        G(r, 1, v[1], v[5], v[9], v[13]);                                                                              \
+        G(r, 2, v[2], v[6], v[10], v[14]);                                                                             \
+        G(r, 3, v[3], v[7], v[11], v[15]);                                                                             \
+        G(r, 4, v[0], v[5], v[10], v[15]);                                                                             \
+        G(r, 5, v[1], v[6], v[11], v[12]);                                                                             \
+        G(r, 6, v[2], v[7], v[8], v[13]);                                                                              \
+        G(r, 7, v[3], v[4], v[9], v[14]);                                                                              \
+    } while (0)
 #if defined(OPENSSL_SMALL_FOOTPRINT)
         /* almost 3x reduction on x86_64, 4.5x on ARMv8, 4x on ARMv4 */
-        for (i = 0; i < 10; i++) {
+        for (i = 0; i < 10; i++)
+        {
             ROUND(i);
         }
 #else
@@ -233,7 +230,8 @@ static void blake2s_compress(BLAKE2S_CTX *S,
         ROUND(9);
 #endif
 
-        for (i = 0; i < 8; ++i) {
+        for (i = 0; i < 8; ++i)
+        {
             S->h[i] = v[i] ^= v[i + 8] ^ S->h[i];
         }
 #undef G
@@ -258,15 +256,18 @@ int ossl_blake2s_update(BLAKE2S_CTX *c, const void *data, size_t datalen)
      * is the reason for why |datalen| is compared as >, and not >=.
      */
     fill = sizeof(c->buf) - c->buflen;
-    if (datalen > fill) {
-        if (c->buflen) {
+    if (datalen > fill)
+    {
+        if (c->buflen)
+        {
             memcpy(c->buf + c->buflen, in, fill); /* Fill buffer */
             blake2s_compress(c, c->buf, BLAKE2S_BLOCKBYTES);
             c->buflen = 0;
             in += fill;
             datalen -= fill;
         }
-        if (datalen > BLAKE2S_BLOCKBYTES) {
+        if (datalen > BLAKE2S_BLOCKBYTES)
+        {
             size_t stashlen = datalen % BLAKE2S_BLOCKBYTES;
             /*
              * If |datalen| is a multiple of the blocksize, stash
@@ -312,7 +313,8 @@ int ossl_blake2s_final(unsigned char *md, BLAKE2S_CTX *c)
     for (i = 0; i < iter; ++i)
         store32(target + sizeof(c->h[i]) * i, c->h[i]);
 
-    if (target != md) {
+    if (target != md)
+    {
         memcpy(md, target, c->outlen);
         OPENSSL_cleanse(target, sizeof(outbuffer));
     }

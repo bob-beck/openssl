@@ -19,19 +19,19 @@
 
 #if defined(OPENSSL_RAND_SEED_NONE)
 /* none means none */
-# undef OPENSSL_RAND_SEED_OS
+#undef OPENSSL_RAND_SEED_OS
 #endif
 
 #if defined(OPENSSL_RAND_SEED_OS)
-# if _WRS_VXWORKS_MAJOR >= 7
-#   define RAND_SEED_VXRANDLIB
-# else
-#   error "VxWorks <7 only support RAND_SEED_NONE"
-# endif
+#if _WRS_VXWORKS_MAJOR >= 7
+#define RAND_SEED_VXRANDLIB
+#else
+#error "VxWorks <7 only support RAND_SEED_NONE"
+#endif
 #endif
 
 #if defined(RAND_SEED_VXRANDLIB)
-# include <randomNumGen.h>
+#include <randomNumGen.h>
 #endif
 
 /* Macro to convert two thirty two bit values into a sixty four bit one */
@@ -78,7 +78,8 @@ void ossl_rand_pool_keep_random_devices_open(int keep)
 
 int ossl_pool_add_nonce_data(RAND_POOL *pool)
 {
-    struct {
+    struct
+    {
         pid_t pid;
         CRYPTO_THREAD_ID tid;
         uint64_t time;
@@ -105,17 +106,19 @@ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
     size_t bytes_needed;
 
     bytes_needed = ossl_rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
-    if (bytes_needed > 0) {
+    if (bytes_needed > 0)
+    {
         int retryCount = 0;
         STATUS result = ERROR;
         unsigned char *buffer;
 
         buffer = ossl_rand_pool_add_begin(pool, bytes_needed);
-        while ((result != OK) && (retryCount < 10)) {
+        while ((result != OK) && (retryCount < 10))
+        {
             RANDOM_NUM_GEN_STATUS status = randStatus();
 
-            if ((status == RANDOM_NUM_GEN_ENOUGH_ENTROPY)
-                    || (status == RANDOM_NUM_GEN_MAX_ENTROPY)) {
+            if ((status == RANDOM_NUM_GEN_ENOUGH_ENTROPY) || (status == RANDOM_NUM_GEN_MAX_ENTROPY))
+            {
                 result = randBytes(buffer, bytes_needed);
                 if (result == OK)
                     ossl_rand_pool_add_end(pool, bytes_needed, 8 * bytes_needed);
@@ -123,7 +126,9 @@ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
                  * no else here: randStatus said ok, if randBytes failed
                  * it will result in another loop or no entropy
                  */
-            } else {
+            }
+            else
+            {
                 /*
                  * give a minimum delay here to allow OS to collect more
                  * entropy. taskDelay duration will depend on the system tick,

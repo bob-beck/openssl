@@ -24,9 +24,12 @@ static ASN1_OCTET_STRING *mk_octet_string(void *value, size_t value_n)
 {
     ASN1_OCTET_STRING *v = ASN1_OCTET_STRING_new();
 
-    if (v == NULL) {
+    if (v == NULL)
+    {
         BIO_printf(bio_err, "error: allocation failed\n");
-    } else if (!ASN1_OCTET_STRING_set(v, value, (int)value_n)) {
+    }
+    else if (!ASN1_OCTET_STRING_set(v, value, (int)value_n))
+    {
         ASN1_OCTET_STRING_free(v);
         v = NULL;
     }
@@ -36,55 +39,54 @@ static ASN1_OCTET_STRING *mk_octet_string(void *value, size_t value_n)
 
 static int x509_ctrl(void *object, int cmd, void *value, size_t value_n)
 {
-    switch (cmd) {
+    switch (cmd)
+    {
 #ifdef EVP_PKEY_CTRL_SET1_ID
-    case EVP_PKEY_CTRL_SET1_ID:
+    case EVP_PKEY_CTRL_SET1_ID: {
+        ASN1_OCTET_STRING *v = mk_octet_string(value, value_n);
+
+        if (v == NULL)
         {
-            ASN1_OCTET_STRING *v = mk_octet_string(value, value_n);
-
-            if (v == NULL) {
-                BIO_printf(bio_err,
-                           "error: setting distinguishing ID in certificate failed\n");
-                return 0;
-            }
-
-            X509_set0_distinguishing_id(object, v);
-            return 1;
+            BIO_printf(bio_err, "error: setting distinguishing ID in certificate failed\n");
+            return 0;
         }
+
+        X509_set0_distinguishing_id(object, v);
+        return 1;
+    }
 #endif
     default:
         break;
     }
-    return -2;     /* typical EVP_PKEY return for "unsupported" */
+    return -2; /* typical EVP_PKEY return for "unsupported" */
 }
 
 static int x509_req_ctrl(void *object, int cmd, void *value, size_t value_n)
 {
-    switch (cmd) {
+    switch (cmd)
+    {
 #ifdef EVP_PKEY_CTRL_SET1_ID
-    case EVP_PKEY_CTRL_SET1_ID:
+    case EVP_PKEY_CTRL_SET1_ID: {
+        ASN1_OCTET_STRING *v = mk_octet_string(value, value_n);
+
+        if (v == NULL)
         {
-            ASN1_OCTET_STRING *v = mk_octet_string(value, value_n);
-
-            if (v == NULL) {
-                BIO_printf(bio_err,
-                           "error: setting distinguishing ID in certificate signing request failed\n");
-                return 0;
-            }
-
-            X509_REQ_set0_distinguishing_id(object, v);
-            return 1;
+            BIO_printf(bio_err, "error: setting distinguishing ID in certificate signing request failed\n");
+            return 0;
         }
+
+        X509_REQ_set0_distinguishing_id(object, v);
+        return 1;
+    }
 #endif
     default:
         break;
     }
-    return -2;     /* typical EVP_PKEY return for "unsupported" */
+    return -2; /* typical EVP_PKEY return for "unsupported" */
 }
 
-static int do_x509_ctrl_string(int (*ctrl)(void *object, int cmd,
-                                           void *value, size_t value_n),
-                               void *object, const char *value)
+static int do_x509_ctrl_string(int (*ctrl)(void *object, int cmd, void *value, size_t value_n), void *object,
+                               const char *value)
 {
     int rv = 0;
     char *stmp, *vtmp = NULL;
@@ -95,18 +97,23 @@ static int do_x509_ctrl_string(int (*ctrl)(void *object, int cmd,
     if (stmp == NULL)
         return -1;
     vtmp = strchr(stmp, ':');
-    if (vtmp != NULL) {
+    if (vtmp != NULL)
+    {
         *vtmp = 0;
         vtmp++;
         vtmp_len = strlen(vtmp);
     }
 
-    if (strcmp(stmp, "distid") == 0) {
+    if (strcmp(stmp, "distid") == 0)
+    {
 #ifdef EVP_PKEY_CTRL_SET1_ID
         cmd = EVP_PKEY_CTRL_SET1_ID; /* ... except we put it in X509 */
 #endif
-    } else if (strcmp(stmp, "hexdistid") == 0) {
-        if (vtmp != NULL) {
+    }
+    else if (strcmp(stmp, "hexdistid") == 0)
+    {
+        if (vtmp != NULL)
+        {
             void *hexid;
             long hexid_len = 0;
 

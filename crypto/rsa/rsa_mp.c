@@ -46,7 +46,7 @@ RSA_PRIME_INFO *ossl_rsa_multip_info_new(void)
 
     return pinfo;
 
- err:
+err:
     BN_free(pinfo->r);
     BN_free(pinfo->d);
     BN_free(pinfo->t);
@@ -63,7 +63,8 @@ int ossl_rsa_multip_calc_product(RSA *rsa)
     BN_CTX *ctx = NULL;
     int i, rv = 0, ex_primes;
 
-    if ((ex_primes = sk_RSA_PRIME_INFO_num(rsa->prime_infos)) <= 0) {
+    if ((ex_primes = sk_RSA_PRIME_INFO_num(rsa->prime_infos)) <= 0)
+    {
         /* invalid */
         goto err;
     }
@@ -75,9 +76,11 @@ int ossl_rsa_multip_calc_product(RSA *rsa)
     p1 = rsa->p;
     p2 = rsa->q;
 
-    for (i = 0; i < ex_primes; i++) {
+    for (i = 0; i < ex_primes; i++)
+    {
         pinfo = sk_RSA_PRIME_INFO_value(rsa->prime_infos, i);
-        if (pinfo->pp == NULL) {
+        if (pinfo->pp == NULL)
+        {
             pinfo->pp = BN_secure_new();
             if (pinfo->pp == NULL)
                 goto err;
@@ -90,7 +93,7 @@ int ossl_rsa_multip_calc_product(RSA *rsa)
     }
 
     rv = 1;
- err:
+err:
     BN_CTX_free(ctx);
     return rv;
 }

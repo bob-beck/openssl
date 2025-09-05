@@ -21,13 +21,15 @@ int main(int argc, char **argv)
     EVP_PKEY *pkey;
     X509 *cert;
     PKCS12 *p12;
-    if (argc != 5) {
+    if (argc != 5)
+    {
         fprintf(stderr, "Usage: pkwrite infile password name p12file\n");
         exit(EXIT_FAILURE);
     }
     OpenSSL_add_all_algorithms();
     ERR_load_crypto_strings();
-    if ((fp = fopen(argv[1], "r")) == NULL) {
+    if ((fp = fopen(argv[1], "r")) == NULL)
+    {
         fprintf(stderr, "Error opening file %s\n", argv[1]);
         exit(EXIT_FAILURE);
     }
@@ -36,12 +38,14 @@ int main(int argc, char **argv)
     pkey = PEM_read_PrivateKey(fp, NULL, NULL, NULL);
     fclose(fp);
     p12 = PKCS12_create(argv[2], argv[3], pkey, cert, NULL, 0, 0, 0, 0, 0);
-    if (!p12) {
+    if (!p12)
+    {
         fprintf(stderr, "Error creating PKCS#12 structure\n");
         ERR_print_errors_fp(stderr);
         exit(EXIT_FAILURE);
     }
-    if ((fp = fopen(argv[4], "wb")) == NULL) {
+    if ((fp = fopen(argv[4], "wb")) == NULL)
+    {
         fprintf(stderr, "Error opening file %s\n", argv[4]);
         ERR_print_errors_fp(stderr);
         exit(EXIT_FAILURE);

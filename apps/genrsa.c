@@ -29,49 +29,55 @@
 
 static int verbose = 0;
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
 #ifndef OPENSSL_NO_DEPRECATED_3_0
     OPT_3,
 #endif
-    OPT_F4, OPT_ENGINE,
-    OPT_OUT, OPT_PASSOUT, OPT_CIPHER, OPT_PRIMES, OPT_VERBOSE, OPT_QUIET,
-    OPT_R_ENUM, OPT_PROV_ENUM, OPT_TRADITIONAL
+    OPT_F4,
+    OPT_ENGINE,
+    OPT_OUT,
+    OPT_PASSOUT,
+    OPT_CIPHER,
+    OPT_PRIMES,
+    OPT_VERBOSE,
+    OPT_QUIET,
+    OPT_R_ENUM,
+    OPT_PROV_ENUM,
+    OPT_TRADITIONAL
 } OPTION_CHOICE;
 
-const OPTIONS genrsa_options[] = {
-    {OPT_HELP_STR, 1, '-', "Usage: %s [options] numbits\n"},
+const OPTIONS genrsa_options[] = {{OPT_HELP_STR, 1, '-', "Usage: %s [options] numbits\n"},
 
-    OPT_SECTION("General"),
-    {"help", OPT_HELP, '-', "Display this summary"},
+                                  OPT_SECTION("General"),
+                                  {"help", OPT_HELP, '-', "Display this summary"},
 #ifndef OPENSSL_NO_ENGINE
-    {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
+                                  {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
 #endif
 
-    OPT_SECTION("Input"),
+                                  OPT_SECTION("Input"),
 #ifndef OPENSSL_NO_DEPRECATED_3_0
-    {"3", OPT_3, '-', "(deprecated) Use 3 for the E value"},
+                                  {"3", OPT_3, '-', "(deprecated) Use 3 for the E value"},
 #endif
-    {"F4", OPT_F4, '-', "Use the Fermat number F4 (0x10001) for the E value"},
-    {"f4", OPT_F4, '-', "Use the Fermat number F4 (0x10001) for the E value"},
+                                  {"F4", OPT_F4, '-', "Use the Fermat number F4 (0x10001) for the E value"},
+                                  {"f4", OPT_F4, '-', "Use the Fermat number F4 (0x10001) for the E value"},
 
-    OPT_SECTION("Output"),
-    {"out", OPT_OUT, '>', "Output the key to specified file"},
-    {"passout", OPT_PASSOUT, 's', "Output file pass phrase source"},
-    {"primes", OPT_PRIMES, 'p', "Specify number of primes"},
-    {"verbose", OPT_VERBOSE, '-', "Verbose output"},
-    {"quiet", OPT_QUIET, '-', "Terse output"},
-    {"traditional", OPT_TRADITIONAL, '-',
-     "Use traditional format for private keys"},
-    {"", OPT_CIPHER, '-', "Encrypt the output with any supported cipher"},
+                                  OPT_SECTION("Output"),
+                                  {"out", OPT_OUT, '>', "Output the key to specified file"},
+                                  {"passout", OPT_PASSOUT, 's', "Output file pass phrase source"},
+                                  {"primes", OPT_PRIMES, 'p', "Specify number of primes"},
+                                  {"verbose", OPT_VERBOSE, '-', "Verbose output"},
+                                  {"quiet", OPT_QUIET, '-', "Terse output"},
+                                  {"traditional", OPT_TRADITIONAL, '-', "Use traditional format for private keys"},
+                                  {"", OPT_CIPHER, '-', "Encrypt the output with any supported cipher"},
 
-    OPT_R_OPTIONS,
-    OPT_PROV_OPTIONS,
+                                  OPT_R_OPTIONS,
+                                  OPT_PROV_OPTIONS,
 
-    OPT_PARAMETERS(),
-    {"numbits", 0, 0, "Size of key in bits"},
-    {NULL}
-};
+                                  OPT_PARAMETERS(),
+                                  {"numbits", 0, 0, "Size of key in bits"},
+                                  {NULL}};
 
 int genrsa_main(int argc, char **argv)
 {
@@ -94,11 +100,13 @@ int genrsa_main(int argc, char **argv)
 
     opt_set_unknown_name("cipher");
     prog = opt_init(argc, argv, genrsa_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
-opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -152,7 +160,8 @@ opthelp:
     argc = opt_num_rest();
     argv = opt_rest();
 
-    if (argc == 1) {
+    if (argc == 1)
+    {
         if (!opt_int(argv[0], &num) || num <= 0)
             goto end;
         if (num > OPENSSL_RSA_MAX_MODULUS_BITS)
@@ -160,7 +169,9 @@ opthelp:
                        "Warning: It is not recommended to use more than %d bit for RSA keys.\n"
                        "         Your key size is %d! Larger key size may behave not as expected.\n",
                        OPENSSL_RSA_MAX_MODULUS_BITS, num);
-    } else if (!opt_check_rest_arg(NULL)) {
+    }
+    else if (!opt_check_rest_arg(NULL))
+    {
         goto opthelp;
     }
 
@@ -170,7 +181,8 @@ opthelp:
     private = 1;
     if (!opt_cipher(ciphername, &enc))
         goto end;
-    if (!app_passwd(NULL, passoutarg, NULL, &passout)) {
+    if (!app_passwd(NULL, passoutarg, NULL, &passout))
+    {
         BIO_printf(bio_err, "Error getting password\n");
         goto end;
     }
@@ -179,27 +191,30 @@ opthelp:
     if (out == NULL)
         goto end;
 
-    if (!init_gen_str(&ctx, "RSA", eng, 0, app_get0_libctx(),
-                      app_get0_propq()))
+    if (!init_gen_str(&ctx, "RSA", eng, 0, app_get0_libctx(), app_get0_propq()))
         goto end;
 
     if (verbose)
         EVP_PKEY_CTX_set_cb(ctx, progress_cb);
     EVP_PKEY_CTX_set_app_data(ctx, bio_err);
 
-    if (EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, num) <= 0) {
+    if (EVP_PKEY_CTX_set_rsa_keygen_bits(ctx, num) <= 0)
+    {
         BIO_printf(bio_err, "Error setting RSA length\n");
         goto end;
     }
-    if (!BN_set_word(bn, f4)) {
+    if (!BN_set_word(bn, f4))
+    {
         BIO_printf(bio_err, "Error allocating RSA public exponent\n");
         goto end;
     }
-    if (EVP_PKEY_CTX_set1_rsa_keygen_pubexp(ctx, bn) <= 0) {
+    if (EVP_PKEY_CTX_set1_rsa_keygen_pubexp(ctx, bn) <= 0)
+    {
         BIO_printf(bio_err, "Error setting RSA public exponent\n");
         goto end;
     }
-    if (EVP_PKEY_CTX_set_rsa_keygen_primes(ctx, primes) <= 0) {
+    if (EVP_PKEY_CTX_set_rsa_keygen_primes(ctx, primes) <= 0)
+    {
         BIO_printf(bio_err, "Error setting number of primes\n");
         goto end;
     }
@@ -207,35 +222,40 @@ opthelp:
     if (pkey == NULL)
         goto end;
 
-    if (verbose) {
+    if (verbose)
+    {
         BIGNUM *e = NULL;
 
         /* Every RSA key has an 'e' */
         EVP_PKEY_get_bn_param(pkey, "e", &e);
-        if (e == NULL) {
+        if (e == NULL)
+        {
             BIO_printf(bio_err, "Error cannot access RSA e\n");
             goto end;
         }
         hexe = BN_bn2hex(e);
         dece = BN_bn2dec(e);
-        if (hexe && dece) {
+        if (hexe && dece)
+        {
             BIO_printf(bio_err, "e is %s (0x%s)\n", dece, hexe);
         }
         OPENSSL_free(hexe);
         OPENSSL_free(dece);
         BN_free(e);
     }
-    if (traditional) {
-        if (!PEM_write_bio_PrivateKey_traditional(out, pkey, enc, NULL, 0,
-                                                  NULL, passout))
+    if (traditional)
+    {
+        if (!PEM_write_bio_PrivateKey_traditional(out, pkey, enc, NULL, 0, NULL, passout))
             goto end;
-    } else {
+    }
+    else
+    {
         if (!PEM_write_bio_PrivateKey(out, pkey, enc, NULL, 0, NULL, passout))
             goto end;
     }
 
     ret = 0;
- end:
+end:
     BN_free(bn);
     BN_GENCB_free(cb);
     EVP_PKEY_CTX_free(ctx);
@@ -248,4 +268,3 @@ opthelp:
         ERR_print_errors(bio_err);
     return ret;
 }
-

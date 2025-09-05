@@ -8,9 +8,10 @@
  */
 
 #ifndef _CRYPTO_THREADS_COMMON_H_
-# define _CRYPTO_THREADS_COMMON_H_
+#define _CRYPTO_THREADS_COMMON_H_
 
-typedef enum {
+typedef enum
+{
     CRYPTO_THREAD_LOCAL_RCU_KEY = 0,
     CRYPTO_THREAD_LOCAL_DRBG_PRIV_KEY,
     CRYPTO_THREAD_LOCAL_DRBG_PUB_KEY,
@@ -23,13 +24,11 @@ typedef enum {
 
 #define CRYPTO_THREAD_NO_CONTEXT (void *)1
 
-void *CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
-                                 OSSL_LIB_CTX *ctx);
-int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
-                               OSSL_LIB_CTX *ctx, void *data);
+void *CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id, OSSL_LIB_CTX *ctx);
+int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id, OSSL_LIB_CTX *ctx, void *data);
 
-# ifdef FIPS_MODULE
+#ifdef FIPS_MODULE
 void CRYPTO_THREAD_clean_local_for_fips(void);
-# endif
+#endif
 
 #endif

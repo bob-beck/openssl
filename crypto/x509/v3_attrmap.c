@@ -12,10 +12,8 @@
 #include <crypto/x509.h>
 #include "ext_dat.h"
 
-ASN1_SEQUENCE(OSSL_ATAV) = {
-    ASN1_SIMPLE(OSSL_ATAV, type, ASN1_OBJECT),
-    ASN1_SIMPLE(OSSL_ATAV, value, ASN1_ANY)
-} ASN1_SEQUENCE_END(OSSL_ATAV)
+ASN1_SEQUENCE(OSSL_ATAV) = {ASN1_SIMPLE(OSSL_ATAV, type, ASN1_OBJECT),
+                            ASN1_SIMPLE(OSSL_ATAV, value, ASN1_ANY)} ASN1_SEQUENCE_END(OSSL_ATAV)
 
 ASN1_SEQUENCE(OSSL_ATTRIBUTE_TYPE_MAPPING) = {
     ASN1_IMP(OSSL_ATTRIBUTE_TYPE_MAPPING, local, ASN1_OBJECT, 0),
@@ -28,14 +26,12 @@ ASN1_SEQUENCE(OSSL_ATTRIBUTE_VALUE_MAPPING) = {
 } ASN1_SEQUENCE_END(OSSL_ATTRIBUTE_VALUE_MAPPING)
 
 ASN1_CHOICE(OSSL_ATTRIBUTE_MAPPING) = {
-    ASN1_IMP(OSSL_ATTRIBUTE_MAPPING, choice.typeMappings,
-             OSSL_ATTRIBUTE_TYPE_MAPPING, OSSL_ATTR_MAP_TYPE),
-    ASN1_IMP(OSSL_ATTRIBUTE_MAPPING, choice.typeValueMappings,
-             OSSL_ATTRIBUTE_VALUE_MAPPING, OSSL_ATTR_MAP_VALUE),
+    ASN1_IMP(OSSL_ATTRIBUTE_MAPPING, choice.typeMappings, OSSL_ATTRIBUTE_TYPE_MAPPING, OSSL_ATTR_MAP_TYPE),
+    ASN1_IMP(OSSL_ATTRIBUTE_MAPPING, choice.typeValueMappings, OSSL_ATTRIBUTE_VALUE_MAPPING, OSSL_ATTR_MAP_VALUE),
 } ASN1_CHOICE_END(OSSL_ATTRIBUTE_MAPPING)
 
-ASN1_ITEM_TEMPLATE(OSSL_ATTRIBUTE_MAPPINGS) =
-    ASN1_EX_TEMPLATE_TYPE(ASN1_TFLG_SET_OF, 0, OSSL_ATTRIBUTE_MAPPINGS, OSSL_ATTRIBUTE_MAPPING)
+ASN1_ITEM_TEMPLATE(OSSL_ATTRIBUTE_MAPPINGS) = ASN1_EX_TEMPLATE_TYPE(ASN1_TFLG_SET_OF, 0, OSSL_ATTRIBUTE_MAPPINGS,
+                                                                    OSSL_ATTRIBUTE_MAPPING)
 ASN1_ITEM_TEMPLATE_END(OSSL_ATTRIBUTE_MAPPINGS)
 
 IMPLEMENT_ASN1_FUNCTIONS(OSSL_ATAV)
@@ -44,15 +40,14 @@ IMPLEMENT_ASN1_FUNCTIONS(OSSL_ATTRIBUTE_VALUE_MAPPING)
 IMPLEMENT_ASN1_FUNCTIONS(OSSL_ATTRIBUTE_MAPPING)
 IMPLEMENT_ASN1_FUNCTIONS(OSSL_ATTRIBUTE_MAPPINGS)
 
-static int i2r_ATTRIBUTE_MAPPING(X509V3_EXT_METHOD *method,
-                                 OSSL_ATTRIBUTE_MAPPING *am,
-                                 BIO *out, int indent)
+static int i2r_ATTRIBUTE_MAPPING(X509V3_EXT_METHOD *method, OSSL_ATTRIBUTE_MAPPING *am, BIO *out, int indent)
 {
     ASN1_OBJECT *local_type, *remote_type;
     int local_attr_nid, remote_attr_nid;
     ASN1_TYPE *local_val, *remote_val;
 
-    switch (am->type) {
+    switch (am->type)
+    {
     case (OSSL_ATTR_MAP_TYPE):
         if (i2a_ASN1_OBJECT(out, am->choice.typeMappings->local) <= 0)
             return 0;
@@ -85,14 +80,13 @@ static int i2r_ATTRIBUTE_MAPPING(X509V3_EXT_METHOD *method,
     return 1;
 }
 
-static int i2r_ATTRIBUTE_MAPPINGS(X509V3_EXT_METHOD *method,
-                                  OSSL_ATTRIBUTE_MAPPINGS *ams,
-                                  BIO *out, int indent)
+static int i2r_ATTRIBUTE_MAPPINGS(X509V3_EXT_METHOD *method, OSSL_ATTRIBUTE_MAPPINGS *ams, BIO *out, int indent)
 {
     int i;
     OSSL_ATTRIBUTE_MAPPING *am;
 
-    for (i = 0; i < sk_OSSL_ATTRIBUTE_MAPPING_num(ams); i++) {
+    for (i = 0; i < sk_OSSL_ATTRIBUTE_MAPPING_num(ams); i++)
+    {
         am = sk_OSSL_ATTRIBUTE_MAPPING_value(ams, i);
         if (BIO_printf(out, "%*s", indent, "") <= 0)
             return 0;
@@ -104,14 +98,17 @@ static int i2r_ATTRIBUTE_MAPPINGS(X509V3_EXT_METHOD *method,
     return 1;
 }
 
-const X509V3_EXT_METHOD ossl_v3_attribute_mappings = {
-    NID_attribute_mappings, X509V3_EXT_MULTILINE,
-    ASN1_ITEM_ref(OSSL_ATTRIBUTE_MAPPINGS),
-    0, 0, 0, 0,
-    0, 0,
-    0,
-    0,
-    (X509V3_EXT_I2R)i2r_ATTRIBUTE_MAPPINGS,
-    0,
-    NULL
-};
+const X509V3_EXT_METHOD ossl_v3_attribute_mappings = {NID_attribute_mappings,
+                                                      X509V3_EXT_MULTILINE,
+                                                      ASN1_ITEM_ref(OSSL_ATTRIBUTE_MAPPINGS),
+                                                      0,
+                                                      0,
+                                                      0,
+                                                      0,
+                                                      0,
+                                                      0,
+                                                      0,
+                                                      0,
+                                                      (X509V3_EXT_I2R)i2r_ATTRIBUTE_MAPPINGS,
+                                                      0,
+                                                      NULL};

@@ -25,7 +25,8 @@ int ASN1_INTEGER_cmp(const ASN1_INTEGER *x, const ASN1_INTEGER *y)
     int neg, ret;
     /* Compare signs */
     neg = x->type & V_ASN1_NEG;
-    if (neg != (y->type & V_ASN1_NEG)) {
+    if (neg != (y->type & V_ASN1_NEG))
+    {
         if (neg)
             return -1;
         else
@@ -73,13 +74,13 @@ int ASN1_INTEGER_cmp(const ASN1_INTEGER *x, const ASN1_INTEGER *y)
  * does 0x80 followed by any number of zeros. These properties are
  * used elsewhere below...
  */
-static void twos_complement(unsigned char *dst, const unsigned char *src,
-                            size_t len, unsigned char pad)
+static void twos_complement(unsigned char *dst, const unsigned char *src, size_t len, unsigned char pad)
 {
     unsigned int carry = pad & 1;
 
     /* Begin at the end of the encoding */
-    if (len != 0) {
+    if (len != 0)
+    {
         /*
          * if len == 0 then src/dst could be NULL, and this would be undefined
          * behaviour.
@@ -88,30 +89,37 @@ static void twos_complement(unsigned char *dst, const unsigned char *src,
         src += len;
     }
     /* two's complement value: ~value + 1 */
-    while (len-- != 0) {
+    while (len-- != 0)
+    {
         *(--dst) = (unsigned char)(carry += *(--src) ^ pad);
         carry >>= 8;
     }
 }
 
-static size_t i2c_ibuf(const unsigned char *b, size_t blen, int neg,
-                       unsigned char **pp)
+static size_t i2c_ibuf(const unsigned char *b, size_t blen, int neg, unsigned char **pp)
 {
     unsigned int pad = 0;
     size_t ret, i;
     unsigned char *p, pb = 0;
 
-    if (b != NULL && blen) {
+    if (b != NULL && blen)
+    {
         ret = blen;
         i = b[0];
-        if (!neg && (i > 127)) {
+        if (!neg && (i > 127))
+        {
             pad = 1;
             pb = 0;
-        } else if (neg) {
+        }
+        else if (neg)
+        {
             pb = 0xFF;
-            if (i > 128) {
+            if (i > 128)
+            {
                 pad = 1;
-            } else if (i == 128) {
+            }
+            else if (i == 128)
+            {
                 /*
                  * Special case [of minimal negative for given length]:
                  * if any other bytes non zero we pad, otherwise we don't.
@@ -123,9 +131,11 @@ static size_t i2c_ibuf(const unsigned char *b, size_t blen, int neg,
             }
         }
         ret += pad;
-    } else {
+    }
+    else
+    {
         ret = 1;
-        blen = 0;   /* reduce '(b == NULL || blen == 0)' to '(blen == 0)' */
+        blen = 0; /* reduce '(b == NULL || blen == 0)' to '(blen == 0)' */
     }
 
     if (pp == NULL || (p = *pp) == NULL)
@@ -137,8 +147,8 @@ static size_t i2c_ibuf(const unsigned char *b, size_t blen, int neg,
      * by any number of zeros...
      */
     *p = pb;
-    p += pad;       /* yes, p[0] can be written twice, but it's little
-                     * price to pay for eliminated branches */
+    p += pad; /* yes, p[0] can be written twice, but it's little
+               * price to pay for eliminated branches */
     twos_complement(p, b, blen, pb);
 
     *pp += ret;
@@ -151,12 +161,12 @@ static size_t i2c_ibuf(const unsigned char *b, size_t blen, int neg,
  * NULL just return length.
  */
 
-static size_t c2i_ibuf(unsigned char *b, int *pneg,
-                       const unsigned char *p, size_t plen)
+static size_t c2i_ibuf(unsigned char *b, int *pneg, const unsigned char *p, size_t plen)
 {
     int neg, pad;
     /* Zero content length is illegal */
-    if (plen == 0) {
+    if (plen == 0)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_ZERO_CONTENT);
         return 0;
     }
@@ -164,8 +174,10 @@ static size_t c2i_ibuf(unsigned char *b, int *pneg,
     if (pneg)
         *pneg = neg;
     /* Handle common case where length is 1 octet separately */
-    if (plen == 1) {
-        if (b != NULL) {
+    if (plen == 1)
+    {
+        if (b != NULL)
+        {
             if (neg)
                 b[0] = (p[0] ^ 0xFF) + 1;
             else
@@ -175,9 +187,12 @@ static size_t c2i_ibuf(unsigned char *b, int *pneg,
     }
 
     pad = 0;
-    if (p[0] == 0) {
+    if (p[0] == 0)
+    {
         pad = 1;
-    } else if (p[0] == 0xFF) {
+    }
+    else if (p[0] == 0xFF)
+    {
         size_t i;
 
         /*
@@ -189,7 +204,8 @@ static size_t c2i_ibuf(unsigned char *b, int *pneg,
         pad = pad != 0 ? 1 : 0;
     }
     /* reject illegal padding: first two octets MSB can't match */
-    if (pad && (neg == (p[1] & 0x80))) {
+    if (pad && (neg == (p[1] & 0x80)))
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_PADDING);
         return 0;
     }
@@ -209,7 +225,8 @@ int ossl_i2c_ASN1_INTEGER(ASN1_INTEGER *a, unsigned char **pp)
     unsigned char *ptr = pp != NULL ? *pp : NULL;
     size_t ret = i2c_ibuf(a->data, a->length, a->type & V_ASN1_NEG, &ptr);
 
-    if (ret > INT_MAX) {
+    if (ret > INT_MAX)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_TOO_LARGE);
         return 0;
     }
@@ -224,13 +241,15 @@ static int asn1_get_uint64(uint64_t *pr, const unsigned char *b, size_t blen)
     size_t i;
     uint64_t r;
 
-    if (blen > sizeof(*pr)) {
+    if (blen > sizeof(*pr))
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_TOO_LARGE);
         return 0;
     }
     if (b == NULL)
         return 0;
-    for (r = 0, i = 0; i < blen; i++) {
+    for (r = 0, i = 0; i < blen; i++)
+    {
         r <<= 8;
         r |= b[i];
     }
@@ -247,7 +266,8 @@ static size_t asn1_put_uint64(unsigned char b[sizeof(uint64_t)], uint64_t r)
 {
     size_t off = sizeof(uint64_t);
 
-    do {
+    do
+    {
         b[--off] = (unsigned char)r;
     } while (r >>= 8);
 
@@ -261,33 +281,43 @@ static size_t asn1_put_uint64(unsigned char b[sizeof(uint64_t)], uint64_t r)
 #define ABS_INT64_MIN ((uint64_t)INT64_MAX + (-(INT64_MIN + INT64_MAX)))
 
 /* signed version of asn1_get_uint64 */
-static int asn1_get_int64(int64_t *pr, const unsigned char *b, size_t blen,
-                          int neg)
+static int asn1_get_int64(int64_t *pr, const unsigned char *b, size_t blen, int neg)
 {
     uint64_t r;
     if (asn1_get_uint64(&r, b, blen) == 0)
         return 0;
-    if (neg) {
-        if (r <= INT64_MAX) {
+    if (neg)
+    {
+        if (r <= INT64_MAX)
+        {
             /*
              * Most significant bit is guaranteed to be clear, negation
              * is guaranteed to be meaningful in platform-neutral sense.
              */
             *pr = -(int64_t)r;
-        } else if (r == ABS_INT64_MIN) {
+        }
+        else if (r == ABS_INT64_MIN)
+        {
             /*
              * This never happens if INT64_MAX == ABS_INT64_MIN, e.g.
              * on ones'-complement system.
              */
             *pr = (int64_t)(0 - r);
-        } else {
+        }
+        else
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_TOO_SMALL);
             return 0;
         }
-    } else {
-        if (r <= INT64_MAX) {
+    }
+    else
+    {
+        if (r <= INT64_MAX)
+        {
             *pr = (int64_t)r;
-        } else {
+        }
+        else
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_TOO_LARGE);
             return 0;
         }
@@ -296,8 +326,7 @@ static int asn1_get_int64(int64_t *pr, const unsigned char *b, size_t blen,
 }
 
 /* Convert ASN1 INTEGER content octets to ASN1_INTEGER structure */
-ASN1_INTEGER *ossl_c2i_ASN1_INTEGER(ASN1_INTEGER **a, const unsigned char **pp,
-                                    long len)
+ASN1_INTEGER *ossl_c2i_ASN1_INTEGER(ASN1_INTEGER **a, const unsigned char **pp, long len)
 {
     ASN1_INTEGER *ret = NULL;
     size_t r;
@@ -308,15 +337,18 @@ ASN1_INTEGER *ossl_c2i_ASN1_INTEGER(ASN1_INTEGER **a, const unsigned char **pp,
     if (r == 0)
         return NULL;
 
-    if ((a == NULL) || ((*a) == NULL)) {
+    if ((a == NULL) || ((*a) == NULL))
+    {
         ret = ASN1_INTEGER_new();
         if (ret == NULL)
             return NULL;
         ret->type = V_ASN1_INTEGER;
-    } else
+    }
+    else
         ret = *a;
 
-    if (r > INT_MAX || ASN1_STRING_set(ret, NULL, (int)r) == 0) {
+    if (r > INT_MAX || ASN1_STRING_set(ret, NULL, (int)r) == 0)
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
         goto err;
     }
@@ -332,7 +364,7 @@ ASN1_INTEGER *ossl_c2i_ASN1_INTEGER(ASN1_INTEGER **a, const unsigned char **pp,
     if (a != NULL)
         (*a) = ret;
     return ret;
- err:
+err:
     if (a == NULL || *a != ret)
         ASN1_INTEGER_free(ret);
     return NULL;
@@ -340,11 +372,13 @@ ASN1_INTEGER *ossl_c2i_ASN1_INTEGER(ASN1_INTEGER **a, const unsigned char **pp,
 
 static int asn1_string_get_int64(int64_t *pr, const ASN1_STRING *a, int itype)
 {
-    if (a == NULL) {
+    if (a == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if ((a->type & ~V_ASN1_NEG) != itype) {
+    if ((a->type & ~V_ASN1_NEG) != itype)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_WRONG_INTEGER_TYPE);
         return 0;
     }
@@ -357,7 +391,8 @@ static int asn1_string_set_int64(ASN1_STRING *a, int64_t r, int itype)
     size_t off;
 
     a->type = itype;
-    if (r < 0) {
+    if (r < 0)
+    {
         /*
          * Most obvious '-r' triggers undefined behaviour for most
          * common INT64_MIN. Even though below '0 - (uint64_t)r' can
@@ -367,25 +402,29 @@ static int asn1_string_set_int64(ASN1_STRING *a, int64_t r, int itype)
          */
         off = asn1_put_uint64(tbuf, 0 - (uint64_t)r);
         a->type |= V_ASN1_NEG;
-    } else {
+    }
+    else
+    {
         off = asn1_put_uint64(tbuf, r);
         a->type &= ~V_ASN1_NEG;
     }
     return ASN1_STRING_set(a, tbuf + off, (int)(sizeof(tbuf) - off));
 }
 
-static int asn1_string_get_uint64(uint64_t *pr, const ASN1_STRING *a,
-                                  int itype)
+static int asn1_string_get_uint64(uint64_t *pr, const ASN1_STRING *a, int itype)
 {
-    if (a == NULL) {
+    if (a == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if ((a->type & ~V_ASN1_NEG) != itype) {
+    if ((a->type & ~V_ASN1_NEG) != itype)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_WRONG_INTEGER_TYPE);
         return 0;
     }
-    if (a->type & V_ASN1_NEG) {
+    if (a->type & V_ASN1_NEG)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_NEGATIVE_VALUE);
         return 0;
     }
@@ -408,8 +447,7 @@ static int asn1_string_set_uint64(ASN1_STRING *a, uint64_t r, int itype)
  * set as negative (it doesn't add a padding zero).
  */
 
-ASN1_INTEGER *d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
-                                long length)
+ASN1_INTEGER *d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp, long length)
 {
     ASN1_INTEGER *ret = NULL;
     const unsigned char *p;
@@ -418,26 +456,31 @@ ASN1_INTEGER *d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
     int inf, tag, xclass;
     int i = 0;
 
-    if ((a == NULL) || ((*a) == NULL)) {
+    if ((a == NULL) || ((*a) == NULL))
+    {
         if ((ret = ASN1_INTEGER_new()) == NULL)
             return NULL;
         ret->type = V_ASN1_INTEGER;
-    } else
+    }
+    else
         ret = (*a);
 
     p = *pp;
     inf = ASN1_get_object(&p, &len, &tag, &xclass, length);
-    if (inf & 0x80) {
+    if (inf & 0x80)
+    {
         i = ASN1_R_BAD_OBJECT_HEADER;
         goto err;
     }
 
-    if (tag != V_ASN1_INTEGER) {
+    if (tag != V_ASN1_INTEGER)
+    {
         i = ASN1_R_EXPECTING_AN_INTEGER;
         goto err;
     }
 
-    if (len < 0) {
+    if (len < 0)
+    {
         i = ASN1_R_ILLEGAL_NEGATIVE_VALUE;
         goto err;
     }
@@ -449,8 +492,10 @@ ASN1_INTEGER *d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
     if (s == NULL)
         goto err;
     ret->type = V_ASN1_INTEGER;
-    if (len) {
-        if ((*p == 0) && (len != 1)) {
+    if (len)
+    {
+        if ((*p == 0) && (len != 1))
+        {
             p++;
             len--;
         }
@@ -463,7 +508,7 @@ ASN1_INTEGER *d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
         (*a) = ret;
     *pp = p;
     return ret;
- err:
+err:
     if (i != 0)
         ERR_raise(ERR_LIB_ASN1, i);
     if ((a == NULL) || (*a != ret))
@@ -471,20 +516,23 @@ ASN1_INTEGER *d2i_ASN1_UINTEGER(ASN1_INTEGER **a, const unsigned char **pp,
     return NULL;
 }
 
-static ASN1_STRING *bn_to_asn1_string(const BIGNUM *bn, ASN1_STRING *ai,
-                                      int atype)
+static ASN1_STRING *bn_to_asn1_string(const BIGNUM *bn, ASN1_STRING *ai, int atype)
 {
     ASN1_INTEGER *ret;
     int len;
 
-    if (ai == NULL) {
+    if (ai == NULL)
+    {
         ret = ASN1_STRING_type_new(atype);
-    } else {
+    }
+    else
+    {
         ret = ai;
         ret->type = atype;
     }
 
-    if (ret == NULL) {
+    if (ret == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_NESTED_ASN1_ERROR);
         goto err;
     }
@@ -497,7 +545,8 @@ static ASN1_STRING *bn_to_asn1_string(const BIGNUM *bn, ASN1_STRING *ai,
     if (len == 0)
         len = 1;
 
-    if (ASN1_STRING_set(ret, NULL, len) == 0) {
+    if (ASN1_STRING_set(ret, NULL, len) == 0)
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
         goto err;
     }
@@ -509,24 +558,25 @@ static ASN1_STRING *bn_to_asn1_string(const BIGNUM *bn, ASN1_STRING *ai,
         len = BN_bn2bin(bn, ret->data);
     ret->length = len;
     return ret;
- err:
+err:
     if (ret != ai)
         ASN1_INTEGER_free(ret);
     return NULL;
 }
 
-static BIGNUM *asn1_string_to_bn(const ASN1_INTEGER *ai, BIGNUM *bn,
-                                 int itype)
+static BIGNUM *asn1_string_to_bn(const ASN1_INTEGER *ai, BIGNUM *bn, int itype)
 {
     BIGNUM *ret;
 
-    if ((ai->type & ~V_ASN1_NEG) != itype) {
+    if ((ai->type & ~V_ASN1_NEG) != itype)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_WRONG_INTEGER_TYPE);
         return NULL;
     }
 
     ret = BN_bin2bn(ai->data, ai->length, bn);
-    if (ret == NULL) {
+    if (ret == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_BN_LIB);
         return NULL;
     }
@@ -628,8 +678,7 @@ BIGNUM *ASN1_ENUMERATED_to_BN(const ASN1_ENUMERATED *ai, BIGNUM *bn)
 }
 
 /* Internal functions used by x_int64.c */
-int ossl_c2i_uint64_int(uint64_t *ret, int *neg,
-                        const unsigned char **pp, long len)
+int ossl_c2i_uint64_int(uint64_t *ret, int *neg, const unsigned char **pp, long len)
 {
     unsigned char buf[sizeof(uint64_t)];
     size_t buflen;
@@ -637,7 +686,8 @@ int ossl_c2i_uint64_int(uint64_t *ret, int *neg,
     buflen = c2i_ibuf(NULL, NULL, *pp, len);
     if (buflen == 0)
         return 0;
-    if (buflen > sizeof(uint64_t)) {
+    if (buflen > sizeof(uint64_t))
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_TOO_LARGE);
         return 0;
     }
@@ -653,4 +703,3 @@ int ossl_i2c_uint64_int(unsigned char *p, uint64_t r, int neg)
     off = asn1_put_uint64(buf, r);
     return (int)i2c_ibuf(buf + off, sizeof(buf) - off, neg, &p);
 }
-

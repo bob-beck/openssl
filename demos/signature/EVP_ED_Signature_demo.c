@@ -19,17 +19,13 @@
 #include <openssl/core_names.h>
 
 /* A test message to be signed (TBS) */
-static const unsigned char hamlet[] =
-    "To be, or not to be, that is the question,\n"
-    "Whether tis nobler in the minde to suffer\n"
-    "The slings and arrowes of outragious fortune,\n"
-    "Or to take Armes again in a sea of troubles,\n";
+static const unsigned char hamlet[] = "To be, or not to be, that is the question,\n"
+                                      "Whether tis nobler in the minde to suffer\n"
+                                      "The slings and arrowes of outragious fortune,\n"
+                                      "Or to take Armes again in a sea of troubles,\n";
 
-static int demo_sign(EVP_PKEY *priv,
-                     const unsigned char *tbs, size_t tbs_len,
-                     OSSL_LIB_CTX *libctx,
-                     unsigned char **sig_out_value,
-                     size_t *sig_out_len)
+static int demo_sign(EVP_PKEY *priv, const unsigned char *tbs, size_t tbs_len, OSSL_LIB_CTX *libctx,
+                     unsigned char **sig_out_value, size_t *sig_out_len)
 {
     int ret = 0;
     size_t sig_len;
@@ -38,7 +34,8 @@ static int demo_sign(EVP_PKEY *priv,
 
     /* Create a signature context */
     sign_context = EVP_MD_CTX_new();
-    if (sign_context == NULL) {
+    if (sign_context == NULL)
+    {
         fprintf(stderr, "EVP_MD_CTX_new failed.\n");
         goto cleanup;
     }
@@ -51,23 +48,27 @@ static int demo_sign(EVP_PKEY *priv,
      * For more information, refer to doc/man7/EVP_SIGNATURE-ED25519.pod
      * "ED25519 and ED448 Signature Parameters"
      */
-    if (!EVP_DigestSignInit_ex(sign_context, NULL, NULL, libctx, NULL, priv, NULL)) {
+    if (!EVP_DigestSignInit_ex(sign_context, NULL, NULL, libctx, NULL, priv, NULL))
+    {
         fprintf(stderr, "EVP_DigestSignInit_ex failed.\n");
         goto cleanup;
     }
 
     /* Calculate the required size for the signature by passing a NULL buffer. */
-    if (!EVP_DigestSign(sign_context, NULL, &sig_len, tbs, tbs_len)) {
+    if (!EVP_DigestSign(sign_context, NULL, &sig_len, tbs, tbs_len))
+    {
         fprintf(stderr, "EVP_DigestSign using NULL buffer failed.\n");
         goto cleanup;
     }
     sig_value = OPENSSL_malloc(sig_len);
-    if (sig_value == NULL) {
+    if (sig_value == NULL)
+    {
         fprintf(stderr, "OPENSSL_malloc failed.\n");
         goto cleanup;
     }
     fprintf(stdout, "Generating signature:\n");
-    if (!EVP_DigestSign(sign_context, sig_value, &sig_len, tbs, tbs_len)) {
+    if (!EVP_DigestSign(sign_context, sig_value, &sig_len, tbs, tbs_len))
+    {
         fprintf(stderr, "EVP_DigestSign failed.\n");
         goto cleanup;
     }
@@ -84,10 +85,8 @@ cleanup:
     return ret;
 }
 
-static int demo_verify(EVP_PKEY *pub,
-                       const unsigned char *tbs, size_t tbs_len,
-                       const unsigned char *sig_value, size_t sig_len,
-                       OSSL_LIB_CTX *libctx)
+static int demo_verify(EVP_PKEY *pub, const unsigned char *tbs, size_t tbs_len, const unsigned char *sig_value,
+                       size_t sig_len, OSSL_LIB_CTX *libctx)
 {
     int ret = 0;
     EVP_MD_CTX *verify_context = NULL;
@@ -97,13 +96,14 @@ static int demo_verify(EVP_PKEY *pub,
      * during signature verification
      */
     verify_context = EVP_MD_CTX_new();
-    if (verify_context == NULL) {
+    if (verify_context == NULL)
+    {
         fprintf(stderr, "EVP_MD_CTX_new failed.\n");
         goto cleanup;
     }
     /* Initialize the verify context with a ED25519 public key */
-    if (!EVP_DigestVerifyInit_ex(verify_context, NULL, NULL,
-                                 libctx, NULL, pub, NULL)) {
+    if (!EVP_DigestVerifyInit_ex(verify_context, NULL, NULL, libctx, NULL, pub, NULL))
+    {
         fprintf(stderr, "EVP_DigestVerifyInit_ex failed.\n");
         goto cleanup;
     }
@@ -111,8 +111,8 @@ static int demo_verify(EVP_PKEY *pub,
      * ED25519 only supports the one shot interface using EVP_DigestVerify()
      * The streaming EVP_DigestVerifyUpdate() API is not supported.
      */
-    if (!EVP_DigestVerify(verify_context, sig_value, sig_len,
-                          tbs, tbs_len)) {
+    if (!EVP_DigestVerify(verify_context, sig_value, sig_len, tbs, tbs_len))
+    {
         fprintf(stderr, "EVP_DigestVerify() failed.\n");
         goto cleanup;
     }
@@ -124,8 +124,7 @@ cleanup:
     return ret;
 }
 
-static int create_key(OSSL_LIB_CTX *libctx,
-                      EVP_PKEY **privout, EVP_PKEY **pubout)
+static int create_key(OSSL_LIB_CTX *libctx, EVP_PKEY **privout, EVP_PKEY **pubout)
 {
     int ret = 0;
     EVP_PKEY *priv = NULL, *pub = NULL;
@@ -138,30 +137,32 @@ static int create_key(OSSL_LIB_CTX *libctx,
      * to create a key from raw data.
      */
     priv = EVP_PKEY_Q_keygen(libctx, NULL, "ED25519");
-    if (priv == NULL) {
+    if (priv == NULL)
+    {
         fprintf(stderr, "EVP_PKEY_Q_keygen() failed\n");
         goto end;
     }
 
-    if (!EVP_PKEY_get_octet_string_param(priv,
-                                         OSSL_PKEY_PARAM_PUB_KEY,
-                                         pubdata,
-                                         sizeof(pubdata),
-                                         &pubdata_len)) {
+    if (!EVP_PKEY_get_octet_string_param(priv, OSSL_PKEY_PARAM_PUB_KEY, pubdata, sizeof(pubdata), &pubdata_len))
+    {
         fprintf(stderr, "EVP_PKEY_get_octet_string_param() failed\n");
         goto end;
     }
     pub = EVP_PKEY_new_raw_public_key_ex(libctx, "ED25519", NULL, pubdata, pubdata_len);
-    if (pub == NULL) {
+    if (pub == NULL)
+    {
         fprintf(stderr, "EVP_PKEY_new_raw_public_key_ex() failed\n");
         goto end;
     }
     ret = 1;
 end:
-    if (ret) {
+    if (ret)
+    {
         *pubout = pub;
         *privout = priv;
-    } else {
+    }
+    else
+    {
         EVP_PKEY_free(priv);
     }
     return ret;
@@ -176,22 +177,24 @@ int main(void)
     EVP_PKEY *priv = NULL, *pub = NULL;
 
     libctx = OSSL_LIB_CTX_new();
-    if (libctx == NULL) {
+    if (libctx == NULL)
+    {
         fprintf(stderr, "OSSL_LIB_CTX_new() returned NULL\n");
         goto cleanup;
     }
-    if (!create_key(libctx, &priv, &pub)) {
+    if (!create_key(libctx, &priv, &pub))
+    {
         fprintf(stderr, "Failed to create key.\n");
         goto cleanup;
     }
 
-    if (!demo_sign(priv, hamlet, sizeof(hamlet), libctx,
-                   &sig_value, &sig_len)) {
+    if (!demo_sign(priv, hamlet, sizeof(hamlet), libctx, &sig_value, &sig_len))
+    {
         fprintf(stderr, "demo_sign failed.\n");
         goto cleanup;
     }
-    if (!demo_verify(pub, hamlet, sizeof(hamlet),
-                     sig_value, sig_len, libctx)) {
+    if (!demo_verify(pub, hamlet, sizeof(hamlet), sig_value, sig_len, libctx))
+    {
         fprintf(stderr, "demo_verify failed.\n");
         goto cleanup;
     }

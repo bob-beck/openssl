@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <openssl/bn.h>
 #ifndef FIPS_MODULE
-# include <openssl/engine.h>
+#include <openssl/engine.h>
 #endif
 #include <openssl/obj_mac.h>
 #include <openssl/core_names.h>
@@ -53,12 +53,12 @@ const DH_METHOD *ossl_dh_get_method(const DH *dh)
 {
     return dh->meth;
 }
-# ifndef OPENSSL_NO_DEPRECATED_3_0
+#ifndef OPENSSL_NO_DEPRECATED_3_0
 DH *DH_new(void)
 {
     return dh_new_intern(NULL, NULL);
 }
-# endif
+#endif
 
 DH *DH_new_method(ENGINE *engine)
 {
@@ -79,13 +79,15 @@ static DH *dh_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
         return NULL;
 
     ret->lock = CRYPTO_THREAD_lock_new();
-    if (ret->lock == NULL) {
+    if (ret->lock == NULL)
+    {
         ERR_raise(ERR_LIB_DH, ERR_R_CRYPTO_LIB);
         OPENSSL_free(ret);
         return NULL;
     }
 
-    if (!CRYPTO_NEW_REF(&ret->references, 1)) {
+    if (!CRYPTO_NEW_REF(&ret->references, 1))
+    {
         CRYPTO_THREAD_lock_free(ret->lock);
         OPENSSL_free(ret);
         return NULL;
@@ -94,18 +96,23 @@ static DH *dh_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
     ret->libctx = libctx;
     ret->meth = DH_get_default_method();
 #if !defined(FIPS_MODULE) && !defined(OPENSSL_NO_ENGINE)
-    ret->flags = ret->meth->flags;  /* early default init */
-    if (engine) {
-        if (!ENGINE_init(engine)) {
+    ret->flags = ret->meth->flags; /* early default init */
+    if (engine)
+    {
+        if (!ENGINE_init(engine))
+        {
             ERR_raise(ERR_LIB_DH, ERR_R_ENGINE_LIB);
             goto err;
         }
         ret->engine = engine;
-    } else
+    }
+    else
         ret->engine = ENGINE_get_default_DH();
-    if (ret->engine) {
+    if (ret->engine)
+    {
         ret->meth = ENGINE_get_DH(ret->engine);
-        if (ret->meth == NULL) {
+        if (ret->meth == NULL)
+        {
             ERR_raise(ERR_LIB_DH, ERR_R_ENGINE_LIB);
             goto err;
         }
@@ -121,14 +128,15 @@ static DH *dh_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
 
     ossl_ffc_params_init(&ret->params);
 
-    if ((ret->meth->init != NULL) && !ret->meth->init(ret)) {
+    if ((ret->meth->init != NULL) && !ret->meth->init(ret))
+    {
         ERR_raise(ERR_LIB_DH, ERR_R_INIT_FAIL);
         goto err;
     }
 
     return ret;
 
- err:
+err:
     DH_free(ret);
     return NULL;
 }
@@ -149,9 +157,9 @@ void DH_free(DH *r)
     if (r->meth != NULL && r->meth->finish != NULL)
         r->meth->finish(r);
 #if !defined(FIPS_MODULE)
-# if !defined(OPENSSL_NO_ENGINE)
+#if !defined(OPENSSL_NO_ENGINE)
     ENGINE_finish(r->engine);
-# endif
+#endif
     CRYPTO_free_ex_data(CRYPTO_EX_INDEX_DH, r, &r->ex_data);
 #endif
 
@@ -222,8 +230,7 @@ int DH_security_bits(const DH *dh)
     return -1;
 }
 
-void DH_get0_pqg(const DH *dh,
-                 const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
+void DH_get0_pqg(const DH *dh, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
 {
     ossl_ffc_params_get0_pqg(&dh->params, p, q, g);
 }
@@ -234,8 +241,7 @@ int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
      * If the fields p and g in dh are NULL, the corresponding input
      * parameters MUST be non-NULL.  q may remain NULL.
      */
-    if ((dh->params.p == NULL && p == NULL)
-        || (dh->params.g == NULL && g == NULL))
+    if ((dh->params.p == NULL && p == NULL) || (dh->params.g == NULL && g == NULL))
         return 0;
 
     ossl_ffc_params_set0_pqg(&dh->params, p, q, g);
@@ -266,11 +272,13 @@ void DH_get0_key(const DH *dh, const BIGNUM **pub_key, const BIGNUM **priv_key)
 
 int DH_set0_key(DH *dh, BIGNUM *pub_key, BIGNUM *priv_key)
 {
-    if (pub_key != NULL) {
+    if (pub_key != NULL)
+    {
         BN_clear_free(dh->pub_key);
         dh->pub_key = pub_key;
     }
-    if (priv_key != NULL) {
+    if (priv_key != NULL)
+    {
         BN_clear_free(dh->priv_key);
         dh->priv_key = priv_key;
     }

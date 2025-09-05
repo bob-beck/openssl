@@ -19,19 +19,23 @@ int BN_lshift1(BIGNUM *r, const BIGNUM *a)
     bn_check_top(r);
     bn_check_top(a);
 
-    if (r != a) {
+    if (r != a)
+    {
         r->neg = a->neg;
         if (bn_wexpand(r, a->top + 1) == NULL)
             return 0;
         r->top = a->top;
-    } else {
+    }
+    else
+    {
         if (bn_wexpand(r, a->top + 1) == NULL)
             return 0;
     }
     ap = a->d;
     rp = r->d;
     c = 0;
-    for (i = 0; i < a->top; i++) {
+    for (i = 0; i < a->top; i++)
+    {
         t = *(ap++);
         *(rp++) = ((t << 1) | c) & BN_MASK2;
         c = t >> (BN_BITS2 - 1);
@@ -50,13 +54,15 @@ int BN_rshift1(BIGNUM *r, const BIGNUM *a)
     bn_check_top(r);
     bn_check_top(a);
 
-    if (BN_is_zero(a)) {
+    if (BN_is_zero(a))
+    {
         BN_zero(r);
         return 1;
     }
     i = a->top;
     ap = a->d;
-    if (a != r) {
+    if (a != r)
+    {
         if (bn_wexpand(r, i) == NULL)
             return 0;
         r->neg = a->neg;
@@ -67,7 +73,8 @@ int BN_rshift1(BIGNUM *r, const BIGNUM *a)
     rp[i] = t >> 1;
     c = t << (BN_BITS2 - 1);
     r->top -= (t == 1);
-    while (i > 0) {
+    while (i > 0)
+    {
         t = ap[--i];
         rp[i] = ((t >> 1) & BN_MASK2) | c;
         c = t << (BN_BITS2 - 1);
@@ -82,7 +89,8 @@ int BN_lshift(BIGNUM *r, const BIGNUM *a, int n)
 {
     int ret;
 
-    if (n < 0) {
+    if (n < 0)
+    {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_SHIFT);
         return 0;
     }
@@ -117,23 +125,27 @@ int bn_lshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
     if (bn_wexpand(r, a->top + nw + 1) == NULL)
         return 0;
 
-    if (a->top != 0) {
+    if (a->top != 0)
+    {
         lb = (unsigned int)n % BN_BITS2;
         rb = BN_BITS2 - lb;
-        rb %= BN_BITS2;            /* say no to undefined behaviour */
-        rmask = (BN_ULONG)0 - rb;  /* rmask = 0 - (rb != 0) */
+        rb %= BN_BITS2;           /* say no to undefined behaviour */
+        rmask = (BN_ULONG)0 - rb; /* rmask = 0 - (rb != 0) */
         rmask |= rmask >> 8;
         f = &(a->d[0]);
         t = &(r->d[nw]);
         l = f[a->top - 1];
         t[a->top] = (l >> rb) & rmask;
-        for (i = a->top - 1; i > 0; i--) {
+        for (i = a->top - 1; i > 0; i--)
+        {
             m = l << lb;
             l = f[i - 1];
             t[i] = (m | ((l >> rb) & rmask)) & BN_MASK2;
         }
         t[0] = (l << lb) & BN_MASK2;
-    } else {
+    }
+    else
+    {
         /* shouldn't happen, but formally required */
         r->d[nw] = 0;
     }
@@ -151,7 +163,8 @@ int BN_rshift(BIGNUM *r, const BIGNUM *a, int n)
 {
     int ret = 0;
 
-    if (n < 0) {
+    if (n < 0)
+    {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_SHIFT);
         return 0;
     }
@@ -183,7 +196,8 @@ int bn_rshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
     assert(n >= 0);
 
     nw = n / BN_BITS2;
-    if (nw >= a->top) {
+    if (nw >= a->top)
+    {
         /* shouldn't happen, but formally required */
         BN_zero(r);
         return 1;
@@ -191,8 +205,8 @@ int bn_rshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
 
     rb = (unsigned int)n % BN_BITS2;
     lb = BN_BITS2 - rb;
-    lb %= BN_BITS2;            /* say no to undefined behaviour */
-    mask = (BN_ULONG)0 - lb;   /* mask = 0 - (lb != 0) */
+    lb %= BN_BITS2;          /* say no to undefined behaviour */
+    mask = (BN_ULONG)0 - lb; /* mask = 0 - (lb != 0) */
     mask |= mask >> 8;
     top = a->top - nw;
     if (r != a && bn_wexpand(r, top) == NULL)
@@ -201,7 +215,8 @@ int bn_rshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
     t = &(r->d[0]);
     f = &(a->d[nw]);
     l = f[0];
-    for (i = 0; i < top - 1; i++) {
+    for (i = 0; i < top - 1; i++)
+    {
         m = f[i + 1];
         t[i] = (l >> rb) | ((m << lb) & mask);
         l = m;

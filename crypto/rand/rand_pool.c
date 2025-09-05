@@ -19,8 +19,7 @@
 /*
  * Allocate memory and initialize a new random pool
  */
-RAND_POOL *ossl_rand_pool_new(int entropy_requested, int secure,
-                              size_t min_len, size_t max_len)
+RAND_POOL *ossl_rand_pool_new(int entropy_requested, int secure, size_t min_len, size_t max_len)
 {
     RAND_POOL *pool = OPENSSL_zalloc(sizeof(*pool));
     size_t min_alloc_size = RAND_POOL_MIN_ALLOCATION(secure);
@@ -29,8 +28,7 @@ RAND_POOL *ossl_rand_pool_new(int entropy_requested, int secure,
         return NULL;
 
     pool->min_len = min_len;
-    pool->max_len = (max_len > RAND_POOL_MAX_LENGTH) ?
-        RAND_POOL_MAX_LENGTH : max_len;
+    pool->max_len = (max_len > RAND_POOL_MAX_LENGTH) ? RAND_POOL_MAX_LENGTH : max_len;
     pool->alloc_len = min_len < min_alloc_size ? min_alloc_size : min_len;
     if (pool->alloc_len > pool->max_len)
         pool->alloc_len = pool->max_len;
@@ -58,8 +56,7 @@ err:
  * This function is intended to be used only for feeding random data
  * provided by RAND_add() and RAND_seed() into the <master> DRBG.
  */
-RAND_POOL *ossl_rand_pool_attach(const unsigned char *buffer, size_t len,
-                                 size_t entropy)
+RAND_POOL *ossl_rand_pool_attach(const unsigned char *buffer, size_t len, size_t entropy)
 {
     RAND_POOL *pool = OPENSSL_zalloc(sizeof(*pool));
 
@@ -71,7 +68,7 @@ RAND_POOL *ossl_rand_pool_attach(const unsigned char *buffer, size_t len,
      * modified (in contrary to allocated buffers which are zeroed and
      * freed in the end).
      */
-    pool->buffer = (unsigned char *) buffer;
+    pool->buffer = (unsigned char *)buffer;
     pool->len = len;
 
     pool->attached = 1;
@@ -96,7 +93,8 @@ void ossl_rand_pool_free(RAND_POOL *pool)
      * to ossl_rand_pool_attach() as `const unsigned char*`.
      * (see corresponding comment in ossl_rand_pool_attach()).
      */
-    if (!pool->attached) {
+    if (!pool->attached)
+    {
         if (pool->secure)
             OPENSSL_secure_clear_free(pool->buffer, pool->alloc_len);
         else
@@ -159,9 +157,7 @@ void ossl_rand_pool_reattach(RAND_POOL *pool, unsigned char *buffer)
  * If |entropy_factor| bits contain 1 bit of entropy, how many bytes does one
  * need to obtain at least |bits| bits of entropy?
  */
-#define ENTROPY_TO_BYTES(bits, entropy_factor) \
-    (((bits) * (entropy_factor) + 7) / 8)
-
+#define ENTROPY_TO_BYTES(bits, entropy_factor) (((bits) * (entropy_factor) + 7) / 8)
 
 /*
  * Checks whether the |pool|'s entropy is available to the caller.
@@ -198,12 +194,14 @@ size_t ossl_rand_pool_entropy_needed(RAND_POOL *pool)
 /* Increase the allocation size -- not usable for an attached pool */
 static int rand_pool_grow(RAND_POOL *pool, size_t len)
 {
-    if (len > pool->alloc_len - pool->len) {
+    if (len > pool->alloc_len - pool->len)
+    {
         unsigned char *p;
         const size_t limit = pool->max_len / 2;
         size_t newlen = pool->alloc_len;
 
-        if (pool->attached || len > pool->max_len - pool->len) {
+        if (pool->attached || len > pool->max_len - pool->len)
+        {
             ERR_raise(ERR_LIB_RAND, ERR_R_INTERNAL_ERROR);
             return 0;
         }
@@ -240,25 +238,25 @@ size_t ossl_rand_pool_bytes_needed(RAND_POOL *pool, unsigned int entropy_factor)
     size_t bytes_needed;
     size_t entropy_needed = ossl_rand_pool_entropy_needed(pool);
 
-    if (entropy_factor < 1) {
+    if (entropy_factor < 1)
+    {
         ERR_raise(ERR_LIB_RAND, RAND_R_ARGUMENT_OUT_OF_RANGE);
         return 0;
     }
 
     bytes_needed = ENTROPY_TO_BYTES(entropy_needed, entropy_factor);
 
-    if (bytes_needed > pool->max_len - pool->len) {
+    if (bytes_needed > pool->max_len - pool->len)
+    {
         /* not enough space left */
         ERR_raise_data(ERR_LIB_RAND, RAND_R_RANDOM_POOL_OVERFLOW,
                        "entropy_factor=%u, entropy_needed=%zu, bytes_needed=%zu,"
                        "pool->max_len=%zu, pool->len=%zu",
-                       entropy_factor, entropy_needed, bytes_needed,
-                       pool->max_len, pool->len);
+                       entropy_factor, entropy_needed, bytes_needed, pool->max_len, pool->len);
         return 0;
     }
 
-    if (pool->len < pool->min_len &&
-        bytes_needed < pool->min_len - pool->len)
+    if (pool->len < pool->min_len && bytes_needed < pool->min_len - pool->len)
         /* to meet the min_len requirement */
         bytes_needed = pool->min_len - pool->len;
 
@@ -274,7 +272,8 @@ size_t ossl_rand_pool_bytes_needed(RAND_POOL *pool, unsigned int entropy_factor)
      * This is not a concern for additional data, therefore that
      * is not needed if rand_pool_grow fails in other places.
      */
-    if (!rand_pool_grow(pool, bytes_needed)) {
+    if (!rand_pool_grow(pool, bytes_needed))
+    {
         /* persistent error for this pool */
         pool->max_len = pool->len = 0;
         return 0;
@@ -298,20 +297,22 @@ size_t ossl_rand_pool_bytes_remaining(RAND_POOL *pool)
  *
  * Returns 1 if the added amount is adequate, otherwise 0
  */
-int ossl_rand_pool_add(RAND_POOL *pool,
-                  const unsigned char *buffer, size_t len, size_t entropy)
+int ossl_rand_pool_add(RAND_POOL *pool, const unsigned char *buffer, size_t len, size_t entropy)
 {
-    if (len > pool->max_len - pool->len) {
+    if (len > pool->max_len - pool->len)
+    {
         ERR_raise(ERR_LIB_RAND, RAND_R_ENTROPY_INPUT_TOO_LONG);
         return 0;
     }
 
-    if (pool->buffer == NULL) {
+    if (pool->buffer == NULL)
+    {
         ERR_raise(ERR_LIB_RAND, ERR_R_INTERNAL_ERROR);
         return 0;
     }
 
-    if (len > 0) {
+    if (len > 0)
+    {
         /*
          * This is to protect us from accidentally passing the buffer
          * returned from ossl_rand_pool_add_begin.
@@ -320,7 +321,8 @@ int ossl_rand_pool_add(RAND_POOL *pool,
          * different, since that comparison would have an
          * indeterminate result.
          */
-        if (pool->alloc_len > pool->len && pool->buffer + pool->len == buffer) {
+        if (pool->alloc_len > pool->len && pool->buffer + pool->len == buffer)
+        {
             ERR_raise(ERR_LIB_RAND, ERR_R_INTERNAL_ERROR);
             return 0;
         }
@@ -358,12 +360,14 @@ unsigned char *ossl_rand_pool_add_begin(RAND_POOL *pool, size_t len)
     if (len == 0)
         return NULL;
 
-    if (len > pool->max_len - pool->len) {
+    if (len > pool->max_len - pool->len)
+    {
         ERR_raise(ERR_LIB_RAND, RAND_R_RANDOM_POOL_OVERFLOW);
         return NULL;
     }
 
-    if (pool->buffer == NULL) {
+    if (pool->buffer == NULL)
+    {
         ERR_raise(ERR_LIB_RAND, ERR_R_INTERNAL_ERROR);
         return NULL;
     }
@@ -394,12 +398,14 @@ unsigned char *ossl_rand_pool_add_begin(RAND_POOL *pool, size_t len)
  */
 int ossl_rand_pool_add_end(RAND_POOL *pool, size_t len, size_t entropy)
 {
-    if (len > pool->alloc_len - pool->len) {
+    if (len > pool->alloc_len - pool->len)
+    {
         ERR_raise(ERR_LIB_RAND, RAND_R_RANDOM_POOL_OVERFLOW);
         return 0;
     }
 
-    if (len > 0) {
+    if (len > 0)
+    {
         pool->len += len;
         pool->entropy += entropy;
     }
@@ -418,24 +424,26 @@ int ossl_rand_pool_add_end(RAND_POOL *pool, size_t len, size_t entropy)
  *         can be mixed in, 0 otherwise.
  */
 
-int ossl_rand_pool_adin_mix_in(RAND_POOL *pool, const unsigned char *adin,
-                               size_t adin_len)
+int ossl_rand_pool_adin_mix_in(RAND_POOL *pool, const unsigned char *adin, size_t adin_len)
 {
     if (adin == NULL || adin_len == 0)
         /* Nothing to mix in -> success */
         return 1;
 
-    if (pool->buffer == NULL) {
+    if (pool->buffer == NULL)
+    {
         ERR_raise(ERR_LIB_RAND, ERR_R_INTERNAL_ERROR);
         return 0;
     }
 
-    if (pool->len == 0) {
+    if (pool->len == 0)
+    {
         ERR_raise(ERR_LIB_RAND, RAND_R_RANDOM_POOL_IS_EMPTY);
         return 0;
     }
 
-    if (adin != NULL && adin_len > 0) {
+    if (adin != NULL && adin_len > 0)
+    {
         size_t i;
 
         /* xor the additional data into the pool */

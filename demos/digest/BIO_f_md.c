@@ -15,7 +15,8 @@
  * For example, contains these lines:
     Len = 80
     Msg = 1ca984dcc913344370cf
-    MD = 6915ea0eeffb99b9b246a0e34daf3947852684c3d618260119a22835659e4f23d4eb66a15d0affb8e93771578f5e8f25b7a5f2a55f511fb8b96325ba2cd14816
+    MD =
+ 6915ea0eeffb99b9b246a0e34daf3947852684c3d618260119a22835659e4f23d4eb66a15d0affb8e93771578f5e8f25b7a5f2a55f511fb8b96325ba2cd14816
  * use xxd convert the hex message string to binary input for BIO_f_md:
  * echo "1ca984dcc913344370cf" | xxd -r -p | ./BIO_f_md
  * and then verify the output matches MD above.
@@ -28,7 +29,7 @@
 #include <openssl/evp.h>
 
 #ifdef OPENSSL_SYS_WINDOWS
-# define fileno _fileno
+#define fileno _fileno
 #endif
 
 /*-
@@ -51,12 +52,14 @@ int main(int argc, char *argv[])
     int j;
 
     input = BIO_new_fd(fileno(stdin), 1);
-    if (input == NULL) {
+    if (input == NULL)
+    {
         fprintf(stderr, "BIO_new_fd() for stdin returned NULL\n");
         goto cleanup;
     }
     library_context = OSSL_LIB_CTX_new();
-    if (library_context == NULL) {
+    if (library_context == NULL)
+    {
         fprintf(stderr, "OSSL_LIB_CTX_new() returned NULL\n");
         goto cleanup;
     }
@@ -67,31 +70,36 @@ int main(int argc, char *argv[])
      * See providers(7) for details about algorithm fetching
      */
     md = EVP_MD_fetch(library_context, "SHA3-512", NULL);
-    if (md == NULL) {
+    if (md == NULL)
+    {
         fprintf(stderr, "EVP_MD_fetch did not find SHA3-512.\n");
         goto cleanup;
     }
     digest_size = EVP_MD_get_size(md);
-    if (digest_size <= 0) {
+    if (digest_size <= 0)
+    {
         fprintf(stderr, "EVP_MD_get_size returned invalid size.\n");
         goto cleanup;
     }
 
     digest_value = OPENSSL_malloc(digest_size);
-    if (digest_value == NULL) {
+    if (digest_value == NULL)
+    {
         fprintf(stderr, "Can't allocate %lu bytes for the digest value.\n", (unsigned long)digest_size);
         goto cleanup;
     }
     /* Make a bio that uses the digest */
     bio_digest = BIO_new(BIO_f_md());
-    if (bio_digest == NULL) {
+    if (bio_digest == NULL)
+    {
         fprintf(stderr, "BIO_new(BIO_f_md()) returned NULL\n");
         goto cleanup;
     }
     /* set our bio_digest BIO to digest data */
-    if (BIO_set_md(bio_digest, md) != 1) {
-           fprintf(stderr, "BIO_set_md failed.\n");
-           goto cleanup;
+    if (BIO_set_md(bio_digest, md) != 1)
+    {
+        fprintf(stderr, "BIO_set_md failed.\n");
+        goto cleanup;
     }
     /*-
      * We will use BIO chaining so that as we read, the digest gets updated
@@ -106,11 +114,13 @@ int main(int argc, char *argv[])
      * BIO_gets must be used to calculate the final
      * digest value and then copy it to digest_value.
      */
-    if (BIO_gets(bio_digest, digest_value, digest_size) != digest_size) {
+    if (BIO_gets(bio_digest, digest_value, digest_size) != digest_size)
+    {
         fprintf(stderr, "BIO_gets(bio_digest) failed\n");
         goto cleanup;
     }
-    for (j = 0; j < digest_size; j++) {
+    for (j = 0; j < digest_size; j++)
+    {
         fprintf(stdout, "%02x", (unsigned char)digest_value[j]);
     }
     fprintf(stdout, "\n");

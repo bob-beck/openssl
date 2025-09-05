@@ -16,9 +16,9 @@
 
 /* Include the appropriate header file for SOCK_STREAM */
 #ifdef _WIN32 /* Windows */
-# include <winsock2.h>
+#include <winsock2.h>
 #else /* Linux/Unix */
-# include <sys/socket.h>
+#include <sys/socket.h>
 #endif
 
 #include <openssl/bio.h>
@@ -36,15 +36,15 @@ static BIO *create_socket_bio(const char *hostname, const char *port, int family
     /*
      * Lookup IP address info for the server.
      */
-    if (!BIO_lookup_ex(hostname, port, BIO_LOOKUP_CLIENT, family, SOCK_STREAM, 0,
-                       &res))
+    if (!BIO_lookup_ex(hostname, port, BIO_LOOKUP_CLIENT, family, SOCK_STREAM, 0, &res))
         return NULL;
 
     /*
      * Loop through all the possible addresses for the server and find one
      * we can connect to.
      */
-    for (ai = res; ai != NULL; ai = BIO_ADDRINFO_next(ai)) {
+    for (ai = res; ai != NULL; ai = BIO_ADDRINFO_next(ai))
+    {
         /*
          * Create a TCP socket. We could equally use non-OpenSSL calls such
          * as "socket" here for this and the subsequent connect and close
@@ -57,7 +57,8 @@ static BIO *create_socket_bio(const char *hostname, const char *port, int family
             continue;
 
         /* Connect the socket to the server's address */
-        if (!BIO_connect(sock, BIO_ADDRINFO_address(ai), BIO_SOCK_NODELAY)) {
+        if (!BIO_connect(sock, BIO_ADDRINFO_address(ai), BIO_SOCK_NODELAY))
+        {
             BIO_closesocket(sock);
             sock = -1;
             continue;
@@ -76,7 +77,8 @@ static BIO *create_socket_bio(const char *hostname, const char *port, int family
 
     /* Create a BIO to wrap the socket */
     bio = BIO_new(BIO_s_socket());
-    if (bio == NULL) {
+    if (bio == NULL)
+    {
         BIO_closesocket(sock);
         return NULL;
     }
@@ -112,13 +114,16 @@ int main(int argc, char *argv[])
     int argnext = 1;
     int ipv6 = 0;
 
-    if (argc < 3) {
+    if (argc < 3)
+    {
         printf("Usage: tls-client-block [-6]  hostname port\n");
         goto end;
     }
 
-    if (!strcmp(argv[argnext], "-6")) {
-        if (argc < 4) {
+    if (!strcmp(argv[argnext], "-6"))
+    {
+        if (argc < 4)
+        {
             printf("Usage: tls-client-block [-6]  hostname port\n");
             goto end;
         }
@@ -134,7 +139,8 @@ int main(int argc, char *argv[])
      * here.
      */
     ctx = SSL_CTX_new(TLS_client_method());
-    if (ctx == NULL) {
+    if (ctx == NULL)
+    {
         printf("Failed to create the SSL_CTX\n");
         goto end;
     }
@@ -147,7 +153,8 @@ int main(int argc, char *argv[])
     SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
 
     /* Use the default trusted certificate store */
-    if (!SSL_CTX_set_default_verify_paths(ctx)) {
+    if (!SSL_CTX_set_default_verify_paths(ctx))
+    {
         printf("Failed to set the default trusted certificate store\n");
         goto end;
     }
@@ -156,14 +163,16 @@ int main(int argc, char *argv[])
      * TLSv1.1 or earlier are deprecated by IETF and are generally to be
      * avoided if possible. We require a minimum TLS version of TLSv1.2.
      */
-    if (!SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION)) {
+    if (!SSL_CTX_set_min_proto_version(ctx, TLS1_2_VERSION))
+    {
         printf("Failed to set the minimum TLS protocol version\n");
         goto end;
     }
 
     /* Create an SSL object to represent the TLS connection */
     ssl = SSL_new(ctx);
-    if (ssl == NULL) {
+    if (ssl == NULL)
+    {
         printf("Failed to create the SSL object\n");
         goto end;
     }
@@ -173,7 +182,8 @@ int main(int argc, char *argv[])
      * connection.
      */
     bio = create_socket_bio(hostname, port, ipv6 ? AF_INET6 : AF_INET);
-    if (bio == NULL) {
+    if (bio == NULL)
+    {
         printf("Failed to create the BIO\n");
         goto end;
     }
@@ -183,7 +193,8 @@ int main(int argc, char *argv[])
      * Tell the server during the handshake which hostname we are attempting
      * to connect to in case the server supports multiple hosts.
      */
-    if (!SSL_set_tlsext_host_name(ssl, hostname)) {
+    if (!SSL_set_tlsext_host_name(ssl, hostname))
+    {
         printf("Failed to set the SNI hostname\n");
         goto end;
     }
@@ -194,34 +205,38 @@ int main(int argc, char *argv[])
      * Virtually all clients should do this unless you really know what you
      * are doing.
      */
-    if (!SSL_set1_host(ssl, hostname)) {
+    if (!SSL_set1_host(ssl, hostname))
+    {
         printf("Failed to set the certificate verification hostname");
         goto end;
     }
 
     /* Do the handshake with the server */
-    if (SSL_connect(ssl) < 1) {
+    if (SSL_connect(ssl) < 1)
+    {
         printf("Failed to connect to the server\n");
         /*
          * If the failure is due to a verification error we can get more
          * information about it from SSL_get_verify_result().
          */
         if (SSL_get_verify_result(ssl) != X509_V_OK)
-            printf("Verify error: %s\n",
-                X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
+            printf("Verify error: %s\n", X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
         goto end;
     }
 
     /* Write an HTTP GET request to the peer */
-    if (!SSL_write_ex(ssl, request_start, strlen(request_start), &written)) {
+    if (!SSL_write_ex(ssl, request_start, strlen(request_start), &written))
+    {
         printf("Failed to write start of HTTP request\n");
         goto end;
     }
-    if (!SSL_write_ex(ssl, hostname, strlen(hostname), &written)) {
+    if (!SSL_write_ex(ssl, hostname, strlen(hostname), &written))
+    {
         printf("Failed to write hostname in HTTP request\n");
         goto end;
     }
-    if (!SSL_write_ex(ssl, request_end, strlen(request_end), &written)) {
+    if (!SSL_write_ex(ssl, request_end, strlen(request_end), &written))
+    {
         printf("Failed to write end of HTTP request\n");
         goto end;
     }
@@ -230,14 +245,15 @@ int main(int argc, char *argv[])
      * Get up to sizeof(buf) bytes of the response. We keep reading until the
      * server closes the connection.
      */
-    while (SSL_read_ex(ssl, buf, sizeof(buf), &readbytes)) {
+    while (SSL_read_ex(ssl, buf, sizeof(buf), &readbytes))
+    {
         /*
-        * OpenSSL does not guarantee that the returned data is a string or
-        * that it is NUL terminated so we use fwrite() to write the exact
-        * number of bytes that we read. The data could be non-printable or
-        * have NUL characters in the middle of it. For this simple example
-        * we're going to print it to stdout anyway.
-        */
+         * OpenSSL does not guarantee that the returned data is a string or
+         * that it is NUL terminated so we use fwrite() to write the exact
+         * number of bytes that we read. The data could be non-printable or
+         * have NUL characters in the middle of it. For this simple example
+         * we're going to print it to stdout anyway.
+         */
         fwrite(buf, 1, readbytes, stdout);
     }
     /* In case the response didn't finish with a newline we add one now */
@@ -249,12 +265,13 @@ int main(int argc, char *argv[])
      * code we received from the SSL_read_ex() call. It must be 0 in order
      * to get here. Normal completion is indicated by SSL_ERROR_ZERO_RETURN.
      */
-    if (SSL_get_error(ssl, 0) != SSL_ERROR_ZERO_RETURN) {
+    if (SSL_get_error(ssl, 0) != SSL_ERROR_ZERO_RETURN)
+    {
         /*
          * Some error occurred other than a graceful close down by the
          * peer.
          */
-        printf ("Failed reading remaining data\n");
+        printf("Failed reading remaining data\n");
         goto end;
     }
 
@@ -263,7 +280,8 @@ int main(int argc, char *argv[])
      * SSL_ERROR_ZERO_RETURN above). We should do the same back.
      */
     ret = SSL_shutdown(ssl);
-    if (ret < 1) {
+    if (ret < 1)
+    {
         /*
          * ret < 0 indicates an error. ret == 0 would be unexpected here
          * because that means "we've sent a close_notify and we're waiting
@@ -276,7 +294,7 @@ int main(int argc, char *argv[])
 
     /* Success! */
     res = EXIT_SUCCESS;
- end:
+end:
     /*
      * If something bad happened then we will dump the contents of the
      * OpenSSL error stack to stderr. There might be some useful diagnostic

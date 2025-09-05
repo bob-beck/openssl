@@ -15,9 +15,7 @@
 
 int ASN1_TYPE_get(const ASN1_TYPE *a)
 {
-    if (a->type == V_ASN1_BOOLEAN
-            || a->type == V_ASN1_NULL
-            || a->value.ptr != NULL)
+    if (a->type == V_ASN1_BOOLEAN || a->type == V_ASN1_NULL || a->value.ptr != NULL)
         return a->type;
     else
         return 0;
@@ -25,9 +23,8 @@ int ASN1_TYPE_get(const ASN1_TYPE *a)
 
 void ASN1_TYPE_set(ASN1_TYPE *a, int type, void *value)
 {
-    if (a->type != V_ASN1_BOOLEAN
-            && a->type != V_ASN1_NULL
-            && a->value.ptr != NULL) {
+    if (a->type != V_ASN1_BOOLEAN && a->type != V_ASN1_NULL && a->value.ptr != NULL)
+    {
         ASN1_TYPE **tmp_a = &a;
         ossl_asn1_primitive_free((ASN1_VALUE **)tmp_a, NULL, 0);
     }
@@ -40,16 +37,21 @@ void ASN1_TYPE_set(ASN1_TYPE *a, int type, void *value)
 
 int ASN1_TYPE_set1(ASN1_TYPE *a, int type, const void *value)
 {
-    if (!value || (type == V_ASN1_BOOLEAN)) {
+    if (!value || (type == V_ASN1_BOOLEAN))
+    {
         void *p = (void *)value;
         ASN1_TYPE_set(a, type, p);
-    } else if (type == V_ASN1_OBJECT) {
+    }
+    else if (type == V_ASN1_OBJECT)
+    {
         ASN1_OBJECT *odup;
         odup = OBJ_dup(value);
         if (!odup)
             return 0;
         ASN1_TYPE_set(a, type, odup);
-    } else {
+    }
+    else
+    {
         ASN1_STRING *sdup;
         sdup = ASN1_STRING_dup(value);
         if (!sdup)
@@ -67,7 +69,8 @@ int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
     if (!a || !b || a->type != b->type)
         return -1;
 
-    switch (a->type) {
+    switch (a->type)
+    {
     case V_ASN1_OBJECT:
         result = OBJ_cmp(a->value.object, b->value.object);
         break;
@@ -75,7 +78,7 @@ int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
         result = a->value.boolean - b->value.boolean;
         break;
     case V_ASN1_NULL:
-        result = 0;             /* They do not have content. */
+        result = 0; /* They do not have content. */
         break;
     case V_ASN1_INTEGER:
     case V_ASN1_ENUMERATED:
@@ -98,8 +101,7 @@ int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
     case V_ASN1_UTF8STRING:
     case V_ASN1_OTHER:
     default:
-        result = ASN1_STRING_cmp((ASN1_STRING *)a->value.ptr,
-                                 (ASN1_STRING *)b->value.ptr);
+        result = ASN1_STRING_cmp((ASN1_STRING *)a->value.ptr, (ASN1_STRING *)b->value.ptr);
         break;
     }
 
@@ -115,11 +117,15 @@ ASN1_TYPE *ASN1_TYPE_pack_sequence(const ASN1_ITEM *it, void *s, ASN1_TYPE **t)
     if (oct == NULL)
         return NULL;
 
-    if (t && *t) {
+    if (t && *t)
+    {
         rt = *t;
-    } else {
+    }
+    else
+    {
         rt = ASN1_TYPE_new();
-        if (rt == NULL) {
+        if (rt == NULL)
+        {
             ASN1_OCTET_STRING_free(oct);
             return NULL;
         }

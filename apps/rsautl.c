@@ -16,22 +16,39 @@
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
 
-#define RSA_SIGN        1
-#define RSA_VERIFY      2
-#define RSA_ENCRYPT     3
-#define RSA_DECRYPT     4
+#define RSA_SIGN 1
+#define RSA_VERIFY 2
+#define RSA_ENCRYPT 3
+#define RSA_DECRYPT 4
 
-#define KEY_PRIVKEY     1
-#define KEY_PUBKEY      2
-#define KEY_CERT        3
+#define KEY_PRIVKEY 1
+#define KEY_PUBKEY 2
+#define KEY_CERT 3
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_ENGINE, OPT_IN, OPT_OUT, OPT_ASN1PARSE, OPT_HEXDUMP,
-    OPT_RSA_RAW, OPT_OAEP, OPT_PKCS, OPT_X931,
-    OPT_SIGN, OPT_VERIFY, OPT_REV, OPT_ENCRYPT, OPT_DECRYPT,
-    OPT_PUBIN, OPT_CERTIN, OPT_INKEY, OPT_PASSIN, OPT_KEYFORM,
-    OPT_R_ENUM, OPT_PROV_ENUM
+    OPT_ENGINE,
+    OPT_IN,
+    OPT_OUT,
+    OPT_ASN1PARSE,
+    OPT_HEXDUMP,
+    OPT_RSA_RAW,
+    OPT_OAEP,
+    OPT_PKCS,
+    OPT_X931,
+    OPT_SIGN,
+    OPT_VERIFY,
+    OPT_REV,
+    OPT_ENCRYPT,
+    OPT_DECRYPT,
+    OPT_PUBIN,
+    OPT_CERTIN,
+    OPT_INKEY,
+    OPT_PASSIN,
+    OPT_KEYFORM,
+    OPT_R_ENUM,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS rsautl_options[] = {
@@ -60,14 +77,12 @@ const OPTIONS rsautl_options[] = {
     {"pkcs", OPT_PKCS, '-', "Use PKCS#1 v1.5 padding (default)"},
     {"x931", OPT_X931, '-', "Use ANSI X9.31 padding"},
     {"oaep", OPT_OAEP, '-', "Use PKCS#1 OAEP"},
-    {"asn1parse", OPT_ASN1PARSE, '-',
-     "Run output through asn1parse; useful with -verify"},
+    {"asn1parse", OPT_ASN1PARSE, '-', "Run output through asn1parse; useful with -verify"},
     {"hexdump", OPT_HEXDUMP, '-', "Hex dump output"},
 
     OPT_R_OPTIONS,
     OPT_PROV_OPTIONS,
-    {NULL}
-};
+    {NULL}};
 
 int rsautl_main(int argc, char **argv)
 {
@@ -86,11 +101,13 @@ int rsautl_main(int argc, char **argv)
     OPTION_CHOICE o;
 
     prog = opt_init(argc, argv, rsautl_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -175,17 +192,20 @@ int rsautl_main(int argc, char **argv)
     if (!app_RAND_load())
         goto end;
 
-    if (need_priv && (key_type != KEY_PRIVKEY)) {
+    if (need_priv && (key_type != KEY_PRIVKEY))
+    {
         BIO_printf(bio_err, "A private key is needed for this operation\n");
         goto end;
     }
 
-    if (!app_passwd(passinarg, NULL, &passin, NULL)) {
+    if (!app_passwd(passinarg, NULL, &passin, NULL))
+    {
         BIO_printf(bio_err, "Error getting password\n");
         goto end;
     }
 
-    switch (key_type) {
+    switch (key_type)
+    {
     case KEY_PRIVKEY:
         pkey = load_key(keyfile, keyformat, 0, passin, e, "private key");
         break;
@@ -196,7 +216,8 @@ int rsautl_main(int argc, char **argv)
 
     case KEY_CERT:
         x = load_cert(keyfile, FORMAT_UNDEF, "Certificate");
-        if (x) {
+        if (x)
+        {
             pkey = X509_get_pubkey(x);
             X509_free(x);
         }
@@ -221,16 +242,19 @@ int rsautl_main(int argc, char **argv)
 
     /* Read the input data */
     rv = BIO_read(in, rsa_in, keysize * 2);
-    if (rv < 0) {
+    if (rv < 0)
+    {
         BIO_printf(bio_err, "Error reading input Data\n");
         goto end;
     }
     rsa_inlen = rv;
-    if (rev) {
+    if (rev)
+    {
         size_t i;
         unsigned char ctmp;
 
-        for (i = 0; i < rsa_inlen / 2; i++) {
+        for (i = 0; i < rsa_inlen / 2; i++)
+        {
             ctmp = rsa_in[i];
             rsa_in[i] = rsa_in[rsa_inlen - 1 - i];
             rsa_in[rsa_inlen - 1 - i] = ctmp;
@@ -240,46 +264,49 @@ int rsautl_main(int argc, char **argv)
     if ((ctx = EVP_PKEY_CTX_new_from_pkey(NULL, pkey, NULL)) == NULL)
         goto end;
 
-    switch (rsa_mode) {
+    switch (rsa_mode)
+    {
     case RSA_VERIFY:
-        rv = EVP_PKEY_verify_recover_init(ctx) > 0
-            && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
-            && EVP_PKEY_verify_recover(ctx, rsa_out, &rsa_outlen,
-                                       rsa_in, rsa_inlen) > 0;
+        rv = EVP_PKEY_verify_recover_init(ctx) > 0 && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0 &&
+             EVP_PKEY_verify_recover(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
         break;
     case RSA_SIGN:
-        rv = EVP_PKEY_sign_init(ctx) > 0
-            && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
-            && EVP_PKEY_sign(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
+        rv = EVP_PKEY_sign_init(ctx) > 0 && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0 &&
+             EVP_PKEY_sign(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
         break;
     case RSA_ENCRYPT:
-        rv = EVP_PKEY_encrypt_init(ctx) > 0
-            && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
-            && EVP_PKEY_encrypt(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
+        rv = EVP_PKEY_encrypt_init(ctx) > 0 && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0 &&
+             EVP_PKEY_encrypt(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
         break;
     case RSA_DECRYPT:
-        rv = EVP_PKEY_decrypt_init(ctx) > 0
-            && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
-            && EVP_PKEY_decrypt(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
+        rv = EVP_PKEY_decrypt_init(ctx) > 0 && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0 &&
+             EVP_PKEY_decrypt(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
         break;
     }
 
-    if (!rv) {
+    if (!rv)
+    {
         BIO_printf(bio_err, "RSA operation error\n");
         ERR_print_errors(bio_err);
         goto end;
     }
     ret = 0;
-    if (asn1parse) {
-        if (!ASN1_parse_dump(out, rsa_out, (long)rsa_outlen, 1, -1)) {
+    if (asn1parse)
+    {
+        if (!ASN1_parse_dump(out, rsa_out, (long)rsa_outlen, 1, -1))
+        {
             ERR_print_errors(bio_err);
         }
-    } else if (hexdump) {
+    }
+    else if (hexdump)
+    {
         BIO_dump(out, (char *)rsa_out, (int)rsa_outlen);
-    } else {
+    }
+    else
+    {
         BIO_write(out, rsa_out, (int)rsa_outlen);
     }
- end:
+end:
     EVP_PKEY_CTX_free(ctx);
     EVP_PKEY_free(pkey);
     release_engine(e);

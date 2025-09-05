@@ -21,7 +21,8 @@ int X509_CRL_print_fp(FILE *fp, X509_CRL *x)
     BIO *b;
     int ret;
 
-    if ((b = BIO_new(BIO_s_file())) == NULL) {
+    if ((b = BIO_new(BIO_s_file())) == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_BUF_LIB);
         return 0;
     }
@@ -34,7 +35,7 @@ int X509_CRL_print_fp(FILE *fp, X509_CRL *x)
 
 int X509_CRL_print(BIO *out, X509_CRL *x)
 {
-  return X509_CRL_print_ex(out, x, XN_FLAG_COMPAT);
+    return X509_CRL_print_ex(out, x, XN_FLAG_COMPAT);
 }
 
 int X509_CRL_print_ex(BIO *out, X509_CRL *x, unsigned long nmflag)
@@ -48,7 +49,8 @@ int X509_CRL_print_ex(BIO *out, X509_CRL *x, unsigned long nmflag)
     char mlch = ' ';
     int nmindent = 0;
 
-    if ((nmflag & XN_FLAG_SEP_MASK) == XN_FLAG_SEP_MULTILINE) {
+    if ((nmflag & XN_FLAG_SEP_MASK) == XN_FLAG_SEP_MULTILINE)
+    {
         mlch = '\n';
         nmindent = 8;
     }
@@ -73,8 +75,7 @@ int X509_CRL_print_ex(BIO *out, X509_CRL *x, unsigned long nmflag)
         BIO_printf(out, "NONE");
     BIO_printf(out, "\n");
 
-    X509V3_extensions_print(out, "CRL extensions",
-                            X509_CRL_get0_extensions(x), 0, 4);
+    X509V3_extensions_print(out, "CRL extensions", X509_CRL_get0_extensions(x), 0, 4);
 
     rev = X509_CRL_get_REVOKED(x);
 
@@ -83,18 +84,17 @@ int X509_CRL_print_ex(BIO *out, X509_CRL *x, unsigned long nmflag)
     else
         BIO_printf(out, "No Revoked Certificates.\n");
 
-    for (i = 0; i < sk_X509_REVOKED_num(rev); i++) {
+    for (i = 0; i < sk_X509_REVOKED_num(rev); i++)
+    {
         r = sk_X509_REVOKED_value(rev, i);
         BIO_printf(out, "    Serial Number: ");
         i2a_ASN1_INTEGER(out, X509_REVOKED_get0_serialNumber(r));
         BIO_printf(out, "\n        Revocation Date: ");
         ASN1_TIME_print(out, X509_REVOKED_get0_revocationDate(r));
         BIO_printf(out, "\n");
-        X509V3_extensions_print(out, "CRL entry extensions",
-                                X509_REVOKED_get0_extensions(r), 0, 8);
+        X509V3_extensions_print(out, "CRL entry extensions", X509_REVOKED_get0_extensions(r), 0, 8);
     }
     X509_signature_print(out, sig_alg, sig);
 
     return 1;
-
 }

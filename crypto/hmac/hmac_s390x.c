@@ -16,7 +16,7 @@
 #include "openssl/evp.h"
 #include "openssl/err.h"
 #if !defined(OPENSSL_NO_ENGINE) && !defined(FIPS_MODULE)
-# include <openssl/engine.h>
+#include <openssl/engine.h>
 #endif
 
 #ifdef OPENSSL_HMAC_S390X
@@ -52,7 +52,8 @@ static void s390x_call_kmac(HMAC_CTX *ctx, const unsigned char *in, size_t len)
     if (ctx->plat.s390x.iimp)
         fc |= S390X_KMAC_IIMP;
 
-    switch (ctx->plat.s390x.fc) {
+    switch (ctx->plat.s390x.fc)
+    {
     case S390X_HMAC_SHA_224:
     case S390X_HMAC_SHA_256:
         ctx->plat.s390x.param.hmac_224_256.imbl += ((uint64_t)len * 8);
@@ -72,13 +73,16 @@ static void s390x_call_kmac(HMAC_CTX *ctx, const unsigned char *in, size_t len)
 
 static int s390x_check_engine_used(const EVP_MD *md, ENGINE *impl)
 {
-# if !defined(OPENSSL_NO_ENGINE) && !defined(FIPS_MODULE)
+#if !defined(OPENSSL_NO_ENGINE) && !defined(FIPS_MODULE)
     const EVP_MD *d;
 
-    if (impl != NULL) {
+    if (impl != NULL)
+    {
         if (!ENGINE_init(impl))
             return 0;
-    } else {
+    }
+    else
+    {
         impl = ENGINE_get_digest_engine(EVP_MD_get_type(md));
     }
 
@@ -90,7 +94,7 @@ static int s390x_check_engine_used(const EVP_MD *md, ENGINE *impl)
 
     if (d != NULL)
         return 1;
-# endif
+#endif
 
     return 0;
 }
@@ -104,7 +108,8 @@ int s390x_HMAC_init(HMAC_CTX *ctx, const void *key, int key_len, ENGINE *impl)
     if (ctx->plat.s390x.fc == 0)
         return -1; /* Not supported by kmac instruction */
 
-    if (s390x_check_engine_used(ctx->md, impl)) {
+    if (s390x_check_engine_used(ctx->md, impl))
+    {
         ctx->plat.s390x.fc = 0;
         return -1; /* An engine handles the digest, disable acceleration */
     }
@@ -113,52 +118,49 @@ int s390x_HMAC_init(HMAC_CTX *ctx, const void *key, int key_len, ENGINE *impl)
     if (ctx->plat.s390x.blk_size < 0)
         return 0;
 
-    if (ctx->plat.s390x.size !=
-        (size_t)(ctx->plat.s390x.blk_size * HMAC_S390X_BUF_NUM_BLOCKS)) {
+    if (ctx->plat.s390x.size != (size_t)(ctx->plat.s390x.blk_size * HMAC_S390X_BUF_NUM_BLOCKS))
+    {
         OPENSSL_clear_free(ctx->plat.s390x.buf, ctx->plat.s390x.size);
         ctx->plat.s390x.size = 0;
-        ctx->plat.s390x.buf = OPENSSL_calloc(HMAC_S390X_BUF_NUM_BLOCKS,
-                                             ctx->plat.s390x.blk_size);
+        ctx->plat.s390x.buf = OPENSSL_calloc(HMAC_S390X_BUF_NUM_BLOCKS, ctx->plat.s390x.blk_size);
         if (ctx->plat.s390x.buf == NULL)
             return 0;
-        ctx->plat.s390x.size = ctx->plat.s390x.blk_size *
-            HMAC_S390X_BUF_NUM_BLOCKS;
+        ctx->plat.s390x.size = ctx->plat.s390x.blk_size * HMAC_S390X_BUF_NUM_BLOCKS;
     }
     ctx->plat.s390x.num = 0;
 
     ctx->plat.s390x.ikp = 0;
     ctx->plat.s390x.iimp = 1;
 
-    switch (ctx->plat.s390x.fc) {
+    switch (ctx->plat.s390x.fc)
+    {
     case S390X_HMAC_SHA_224:
     case S390X_HMAC_SHA_256:
         ctx->plat.s390x.param.hmac_224_256.imbl = 0;
-        OPENSSL_cleanse(ctx->plat.s390x.param.hmac_224_256.h,
-                        sizeof(ctx->plat.s390x.param.hmac_224_256.h));
+        OPENSSL_cleanse(ctx->plat.s390x.param.hmac_224_256.h, sizeof(ctx->plat.s390x.param.hmac_224_256.h));
         break;
     case S390X_HMAC_SHA_384:
     case S390X_HMAC_SHA_512:
         ctx->plat.s390x.param.hmac_384_512.imbl = 0;
-        OPENSSL_cleanse(ctx->plat.s390x.param.hmac_384_512.h,
-                        sizeof(ctx->plat.s390x.param.hmac_384_512.h));
+        OPENSSL_cleanse(ctx->plat.s390x.param.hmac_384_512.h, sizeof(ctx->plat.s390x.param.hmac_384_512.h));
         break;
     default:
         return 0;
     }
 
-    if (key != NULL) {
-        switch (ctx->plat.s390x.fc) {
+    if (key != NULL)
+    {
+        switch (ctx->plat.s390x.fc)
+        {
         case S390X_HMAC_SHA_224:
         case S390X_HMAC_SHA_256:
-            OPENSSL_cleanse(&ctx->plat.s390x.param.hmac_224_256.key,
-                            sizeof(ctx->plat.s390x.param.hmac_224_256.key));
+            OPENSSL_cleanse(&ctx->plat.s390x.param.hmac_224_256.key, sizeof(ctx->plat.s390x.param.hmac_224_256.key));
             key_param = ctx->plat.s390x.param.hmac_224_256.key;
             key_param_len = sizeof(ctx->plat.s390x.param.hmac_224_256.key);
             break;
         case S390X_HMAC_SHA_384:
         case S390X_HMAC_SHA_512:
-            OPENSSL_cleanse(&ctx->plat.s390x.param.hmac_384_512.key,
-                            sizeof(ctx->plat.s390x.param.hmac_384_512.key));
+            OPENSSL_cleanse(&ctx->plat.s390x.param.hmac_384_512.key, sizeof(ctx->plat.s390x.param.hmac_384_512.key));
             key_param = ctx->plat.s390x.param.hmac_384_512.key;
             key_param_len = sizeof(ctx->plat.s390x.param.hmac_384_512.key);
             break;
@@ -169,13 +171,14 @@ int s390x_HMAC_init(HMAC_CTX *ctx, const void *key, int key_len, ENGINE *impl)
         if (!ossl_assert(ctx->plat.s390x.blk_size <= (int)key_param_len))
             return 0;
 
-        if (key_len > ctx->plat.s390x.blk_size) {
-            if (!EVP_DigestInit_ex(ctx->md_ctx, ctx->md, impl)
-                    || !EVP_DigestUpdate(ctx->md_ctx, key, key_len)
-                    || !EVP_DigestFinal_ex(ctx->md_ctx, key_param,
-                                           &key_param_len))
+        if (key_len > ctx->plat.s390x.blk_size)
+        {
+            if (!EVP_DigestInit_ex(ctx->md_ctx, ctx->md, impl) || !EVP_DigestUpdate(ctx->md_ctx, key, key_len) ||
+                !EVP_DigestFinal_ex(ctx->md_ctx, key_param, &key_param_len))
                 return 0;
-        } else {
+        }
+        else
+        {
             if (key_len < 0 || key_len > (int)key_param_len)
                 return 0;
             memcpy(key_param, key, key_len);
@@ -190,7 +193,8 @@ int s390x_HMAC_update(HMAC_CTX *ctx, const unsigned char *data, size_t len)
 {
     size_t remain, num;
 
-    if (ctx->plat.s390x.iimp != 1) {
+    if (ctx->plat.s390x.iimp != 1)
+    {
         ERR_raise(ERR_LIB_EVP, EVP_R_UPDATE_ERROR);
         return 0;
     }
@@ -199,16 +203,19 @@ int s390x_HMAC_update(HMAC_CTX *ctx, const unsigned char *data, size_t len)
         return 1;
 
     /* buffer is full, process it now */
-    if (ctx->plat.s390x.num == ctx->plat.s390x.size) {
+    if (ctx->plat.s390x.num == ctx->plat.s390x.size)
+    {
         s390x_call_kmac(ctx, ctx->plat.s390x.buf, ctx->plat.s390x.num);
 
         ctx->plat.s390x.num = 0;
     }
 
     remain = ctx->plat.s390x.size - ctx->plat.s390x.num;
-    if (len > remain) {
+    if (len > remain)
+    {
         /* data does not fit into buffer */
-        if (ctx->plat.s390x.num > 0) {
+        if (ctx->plat.s390x.num > 0)
+        {
             /* first fill buffer and process it */
             memcpy(&ctx->plat.s390x.buf[ctx->plat.s390x.num], data, remain);
             ctx->plat.s390x.num += remain;
@@ -224,7 +231,8 @@ int s390x_HMAC_update(HMAC_CTX *ctx, const unsigned char *data, size_t len)
         if (!ossl_assert(ctx->plat.s390x.num == 0))
             return 0;
 
-        if (len > ctx->plat.s390x.size) {
+        if (len > ctx->plat.s390x.size)
+        {
             /*
              * remaining data is still larger than buffer, process remaining
              * full blocks of input directly
@@ -243,7 +251,8 @@ int s390x_HMAC_update(HMAC_CTX *ctx, const unsigned char *data, size_t len)
     if (!ossl_assert(len <= ctx->plat.s390x.size))
         return 0;
 
-    if (len > 0) {
+    if (len > 0)
+    {
         memcpy(&ctx->plat.s390x.buf[ctx->plat.s390x.num], data, len);
         ctx->plat.s390x.num += len;
     }
@@ -256,7 +265,8 @@ int s390x_HMAC_final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len)
     void *result;
     unsigned int res_len;
 
-    if (ctx->plat.s390x.iimp != 1) {
+    if (ctx->plat.s390x.iimp != 1)
+    {
         ERR_raise(ERR_LIB_EVP, EVP_R_FINAL_ERROR);
         return 0;
     }
@@ -266,7 +276,8 @@ int s390x_HMAC_final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len)
 
     ctx->plat.s390x.num = 0;
 
-    switch (ctx->plat.s390x.fc) {
+    switch (ctx->plat.s390x.fc)
+    {
     case S390X_HMAC_SHA_224:
         result = &ctx->plat.s390x.param.hmac_224_256.h[0];
         res_len = SHA224_DIGEST_LENGTH;
@@ -301,14 +312,13 @@ int s390x_HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx)
     dctx->plat.s390x.ikp = sctx->plat.s390x.ikp;
     dctx->plat.s390x.iimp = sctx->plat.s390x.iimp;
 
-    memcpy(&dctx->plat.s390x.param, &sctx->plat.s390x.param,
-           sizeof(dctx->plat.s390x.param));
+    memcpy(&dctx->plat.s390x.param, &sctx->plat.s390x.param, sizeof(dctx->plat.s390x.param));
 
     OPENSSL_clear_free(dctx->plat.s390x.buf, dctx->plat.s390x.size);
     dctx->plat.s390x.buf = NULL;
-    if (sctx->plat.s390x.buf != NULL) {
-        dctx->plat.s390x.buf = OPENSSL_memdup(sctx->plat.s390x.buf,
-                                              sctx->plat.s390x.size);
+    if (sctx->plat.s390x.buf != NULL)
+    {
+        dctx->plat.s390x.buf = OPENSSL_memdup(sctx->plat.s390x.buf, sctx->plat.s390x.size);
         if (dctx->plat.s390x.buf == NULL)
             return 0;
     }

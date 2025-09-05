@@ -27,7 +27,8 @@ X509_REQ *X509_to_X509_REQ(X509 *x, EVP_PKEY *pkey, const EVP_MD *md)
     EVP_PKEY *pktmp;
 
     ret = X509_REQ_new_ex(x->libctx, x->propq);
-    if (ret == NULL) {
+    if (ret == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_ASN1_LIB);
         goto err;
     }
@@ -38,7 +39,7 @@ X509_REQ *X509_to_X509_REQ(X509 *x, EVP_PKEY *pkey, const EVP_MD *md)
     ri->version->data = OPENSSL_malloc(1);
     if (ri->version->data == NULL)
         goto err;
-    ri->version->data[0] = 0;   /* version == 0 */
+    ri->version->data[0] = 0; /* version == 0 */
 
     if (!X509_REQ_set_subject_name(ret, X509_get_subject_name(x)))
         goto err;
@@ -50,12 +51,13 @@ X509_REQ *X509_to_X509_REQ(X509 *x, EVP_PKEY *pkey, const EVP_MD *md)
     if (!i)
         goto err;
 
-    if (pkey != NULL) {
+    if (pkey != NULL)
+    {
         if (!X509_REQ_sign(ret, pkey, md))
             goto err;
     }
     return ret;
- err:
+err:
     X509_REQ_free(ret);
     return NULL;
 }
@@ -90,7 +92,7 @@ int X509_REQ_check_private_key(const X509_REQ *req, EVP_PKEY *pkey)
  * used and there may be more: so the list is configurable.
  */
 
-static int ext_nid_list[] = { NID_ext_req, NID_ms_ext_req, NID_undef };
+static int ext_nid_list[] = {NID_ext_req, NID_ms_ext_req, NID_undef};
 
 static int *ext_nids = ext_nid_list;
 
@@ -98,7 +100,8 @@ int X509_REQ_extension_nid(int req_nid)
 {
     int i, nid;
 
-    for (i = 0;; i++) {
+    for (i = 0;; i++)
+    {
         nid = ext_nids[i];
         if (nid == NID_undef)
             return 0;
@@ -117,8 +120,7 @@ void X509_REQ_set_extension_nids(int *nids)
     ext_nids = nids;
 }
 
-static STACK_OF(X509_EXTENSION) *get_extensions_by_nid(const X509_REQ *req,
-                                                       int nid)
+static STACK_OF(X509_EXTENSION) *get_extensions_by_nid(const X509_REQ *req, int nid)
 {
     X509_ATTRIBUTE *attr;
     ASN1_TYPE *ext = NULL;
@@ -129,14 +131,14 @@ static STACK_OF(X509_EXTENSION) *get_extensions_by_nid(const X509_REQ *req,
         return sk_X509_EXTENSION_new_null();
     attr = X509_REQ_get_attr(req, idx);
     ext = X509_ATTRIBUTE_get0_type(attr, 0);
-    if (ext == NULL || ext->type != V_ASN1_SEQUENCE) {
+    if (ext == NULL || ext->type != V_ASN1_SEQUENCE)
+    {
         ERR_raise(ERR_LIB_X509, X509_R_WRONG_TYPE);
         return NULL;
     }
     p = ext->value.sequence->data;
-    return (STACK_OF(X509_EXTENSION) *)
-        ASN1_item_d2i(NULL, &p, ext->value.sequence->length,
-                      ASN1_ITEM_rptr(X509_EXTENSIONS));
+    return (STACK_OF(X509_EXTENSION) *)ASN1_item_d2i(NULL, &p, ext->value.sequence->length,
+                                                     ASN1_ITEM_rptr(X509_EXTENSIONS));
 }
 
 STACK_OF(X509_EXTENSION) *X509_REQ_get_extensions(OSSL_FUTURE_CONST X509_REQ *req)
@@ -146,7 +148,8 @@ STACK_OF(X509_EXTENSION) *X509_REQ_get_extensions(OSSL_FUTURE_CONST X509_REQ *re
 
     if (req == NULL || ext_nids == NULL)
         return NULL;
-    for (pnid = ext_nids; *pnid != NID_undef; pnid++) {
+    for (pnid = ext_nids; *pnid != NID_undef; pnid++)
+    {
         exts = get_extensions_by_nid(req, *pnid);
         if (exts == NULL)
             return NULL;
@@ -162,8 +165,7 @@ STACK_OF(X509_EXTENSION) *X509_REQ_get_extensions(OSSL_FUTURE_CONST X509_REQ *re
  * Add a STACK_OF extensions to a certificate request: allow alternative OIDs
  * in case we want to create a non standard one.
  */
-int X509_REQ_add_extensions_nid(X509_REQ *req,
-                                const STACK_OF(X509_EXTENSION) *exts, int nid)
+int X509_REQ_add_extensions_nid(X509_REQ *req, const STACK_OF(X509_EXTENSION) *exts, int nid)
 {
     int extlen;
     int rv = 0;
@@ -175,7 +177,8 @@ int X509_REQ_add_extensions_nid(X509_REQ *req,
         return 1; /* adding NULL or empty list of exts is a no-op */
 
     loc = X509at_get_attr_by_NID(req->req_info.attributes, nid, -1);
-    if (loc != -1) {
+    if (loc != -1)
+    {
         if ((mod_exts = get_extensions_by_nid(req, nid)) == NULL)
             return 0;
         if (X509v3_add_extensions(&mod_exts, exts) == NULL)
@@ -183,12 +186,12 @@ int X509_REQ_add_extensions_nid(X509_REQ *req,
     }
 
     /* Generate encoding of extensions */
-    extlen = ASN1_item_i2d((const ASN1_VALUE *)
-                           (mod_exts == NULL ? exts : mod_exts),
-                           &ext, ASN1_ITEM_rptr(X509_EXTENSIONS));
+    extlen =
+        ASN1_item_i2d((const ASN1_VALUE *)(mod_exts == NULL ? exts : mod_exts), &ext, ASN1_ITEM_rptr(X509_EXTENSIONS));
     if (extlen <= 0)
         goto end;
-    if (mod_exts != NULL) {
+    if (mod_exts != NULL)
+    {
         X509_ATTRIBUTE *att = X509at_delete_attr(req->req_info.attributes, loc);
 
         if (att == NULL)
@@ -199,7 +202,7 @@ int X509_REQ_add_extensions_nid(X509_REQ *req,
     rv = X509_REQ_add1_attr_by_NID(req, nid, V_ASN1_SEQUENCE, ext, extlen);
     OPENSSL_free(ext);
 
- end:
+end:
     sk_X509_EXTENSION_pop_free(mod_exts, X509_EXTENSION_free);
     return rv;
 }
@@ -222,8 +225,7 @@ int X509_REQ_get_attr_by_NID(const X509_REQ *req, int nid, int lastpos)
     return X509at_get_attr_by_NID(req->req_info.attributes, nid, lastpos);
 }
 
-int X509_REQ_get_attr_by_OBJ(const X509_REQ *req, const ASN1_OBJECT *obj,
-                             int lastpos)
+int X509_REQ_get_attr_by_OBJ(const X509_REQ *req, const ASN1_OBJECT *obj, int lastpos)
 {
     return X509at_get_attr_by_OBJ(req->req_info.attributes, obj, lastpos);
 }
@@ -237,7 +239,8 @@ X509_ATTRIBUTE *X509_REQ_delete_attr(X509_REQ *req, int loc)
 {
     X509_ATTRIBUTE *attr;
 
-    if (req == NULL) {
+    if (req == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_PASSED_NULL_PARAMETER);
         return NULL;
     }
@@ -249,7 +252,8 @@ X509_ATTRIBUTE *X509_REQ_delete_attr(X509_REQ *req, int loc)
 
 int X509_REQ_add1_attr(X509_REQ *req, X509_ATTRIBUTE *attr)
 {
-    if (req == NULL) {
+    if (req == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
@@ -259,46 +263,40 @@ int X509_REQ_add1_attr(X509_REQ *req, X509_ATTRIBUTE *attr)
     return 1;
 }
 
-int X509_REQ_add1_attr_by_OBJ(X509_REQ *req,
-                              const ASN1_OBJECT *obj, int type,
-                              const unsigned char *bytes, int len)
+int X509_REQ_add1_attr_by_OBJ(X509_REQ *req, const ASN1_OBJECT *obj, int type, const unsigned char *bytes, int len)
 {
-    if (req == NULL) {
+    if (req == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (!X509at_add1_attr_by_OBJ(&req->req_info.attributes, obj,
-                                 type, bytes, len))
+    if (!X509at_add1_attr_by_OBJ(&req->req_info.attributes, obj, type, bytes, len))
         return 0;
     req->req_info.enc.modified = 1;
     return 1;
 }
 
-int X509_REQ_add1_attr_by_NID(X509_REQ *req,
-                              int nid, int type,
-                              const unsigned char *bytes, int len)
+int X509_REQ_add1_attr_by_NID(X509_REQ *req, int nid, int type, const unsigned char *bytes, int len)
 {
-    if (req == NULL) {
+    if (req == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (!X509at_add1_attr_by_NID(&req->req_info.attributes, nid,
-                                 type, bytes, len))
+    if (!X509at_add1_attr_by_NID(&req->req_info.attributes, nid, type, bytes, len))
         return 0;
     req->req_info.enc.modified = 1;
     return 1;
 }
 
-int X509_REQ_add1_attr_by_txt(X509_REQ *req,
-                              const char *attrname, int type,
-                              const unsigned char *bytes, int len)
+int X509_REQ_add1_attr_by_txt(X509_REQ *req, const char *attrname, int type, const unsigned char *bytes, int len)
 {
-    if (req == NULL) {
+    if (req == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (!X509at_add1_attr_by_txt(&req->req_info.attributes, attrname,
-                                 type, bytes, len))
+    if (!X509at_add1_attr_by_txt(&req->req_info.attributes, attrname, type, bytes, len))
         return 0;
     req->req_info.enc.modified = 1;
     return 1;
@@ -314,8 +312,7 @@ X509_NAME *X509_REQ_get_subject_name(const X509_REQ *req)
     return req->req_info.subject;
 }
 
-void X509_REQ_get0_signature(const X509_REQ *req, const ASN1_BIT_STRING **psig,
-                             const X509_ALGOR **palg)
+void X509_REQ_get0_signature(const X509_REQ *req, const ASN1_BIT_STRING **psig, const X509_ALGOR **palg)
 {
     if (psig != NULL)
         *psig = req->signature;
@@ -342,7 +339,8 @@ int X509_REQ_get_signature_nid(const X509_REQ *req)
 
 int i2d_re_X509_REQ_tbs(X509_REQ *req, unsigned char **pp)
 {
-    if (req == NULL) {
+    if (req == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }

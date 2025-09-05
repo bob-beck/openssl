@@ -16,12 +16,12 @@
 #include "ml_dsa_sign.h"
 #include "internal/packet.h"
 
-#define POLY_COEFF_NUM_BYTES(bits)  ((bits) * (ML_DSA_NUM_POLY_COEFFICIENTS / 8))
+#define POLY_COEFF_NUM_BYTES(bits) ((bits) * (ML_DSA_NUM_POLY_COEFFICIENTS / 8))
 /* Cast mod_sub result in support of left-shifts that create 64-bit values. */
-#define mod_sub_64(a, b) ((uint64_t) mod_sub(a, b))
+#define mod_sub_64(a, b) ((uint64_t)mod_sub(a, b))
 
-typedef int (ENCODE_FN)(const POLY *s, WPACKET *pkt);
-typedef int (DECODE_FN)(POLY *s, PACKET *pkt);
+typedef int(ENCODE_FN)(const POLY *s, WPACKET *pkt);
+typedef int(DECODE_FN)(POLY *s, PACKET *pkt);
 
 static ENCODE_FN poly_encode_signed_2;
 static ENCODE_FN poly_encode_signed_4;
@@ -58,7 +58,8 @@ static int poly_encode_4_bits(const POLY *p, WPACKET *pkt)
     if (!WPACKET_allocate_bytes(pkt, POLY_COEFF_NUM_BYTES(4), &out))
         return 0;
 
-    do {
+    do
+    {
         uint32_t z0 = *in++;
         uint32_t z1 = *in++;
 
@@ -95,7 +96,8 @@ static int poly_encode_6_bits(const POLY *p, WPACKET *pkt)
     if (!WPACKET_allocate_bytes(pkt, POLY_COEFF_NUM_BYTES(6), &out))
         return 0;
 
-    do {
+    do
+    {
         uint32_t c0 = *in++;
         uint32_t c1 = *in++;
         uint32_t c2 = *in++;
@@ -135,7 +137,8 @@ static int poly_encode_10_bits(const POLY *p, WPACKET *pkt)
     if (!WPACKET_allocate_bytes(pkt, POLY_COEFF_NUM_BYTES(10), &out))
         return 0;
 
-    do {
+    do
+    {
         uint32_t c0 = *in++;
         uint32_t c1 = *in++;
         uint32_t c2 = *in++;
@@ -165,7 +168,8 @@ static int poly_decode_10_bits(POLY *p, PACKET *pkt)
     uint32_t v, w, mask = 0x3ff; /* 10 bits */
     uint32_t *out = p->coeff, *end = out + ML_DSA_NUM_POLY_COEFFICIENTS;
 
-    do {
+    do
+    {
         if (!PACKET_get_bytes(pkt, &in, 5))
             return 0;
 
@@ -204,7 +208,8 @@ static int poly_encode_signed_4(const POLY *p, WPACKET *pkt)
     if (!WPACKET_allocate_bytes(pkt, 32 * 4, &out))
         return 0;
 
-    do {
+    do
+    {
         uint32_t z = mod_sub(4, *in++);
 
         *out++ = z | (mod_sub(4, *in++) << 4);
@@ -229,7 +234,8 @@ static int poly_decode_signed_4(POLY *p, PACKET *pkt)
     const uint8_t *in;
     uint32_t msbs, mask;
 
-    for (i = 0; i < (ML_DSA_NUM_POLY_COEFFICIENTS / 8); i++) {
+    for (i = 0; i < (ML_DSA_NUM_POLY_COEFFICIENTS / 8); i++)
+    {
         if (!PACKET_get_bytes(pkt, &in, 4))
             goto err;
         in = OPENSSL_load_u32_le(&v, in);
@@ -258,7 +264,7 @@ static int poly_decode_signed_4(POLY *p, PACKET *pkt)
         *out++ = mod_sub(4, v >> 28);
     }
     ret = 1;
- err:
+err:
     return ret;
 }
 
@@ -292,7 +298,8 @@ static int poly_encode_signed_2(const POLY *p, WPACKET *pkt)
     if (!WPACKET_allocate_bytes(pkt, POLY_COEFF_NUM_BYTES(3), &out))
         return 0;
 
-    do {
+    do
+    {
         uint32_t z;
 
         z = mod_sub(2, *in++);
@@ -304,8 +311,8 @@ static int poly_encode_signed_2(const POLY *p, WPACKET *pkt)
         z |= mod_sub(2, *in++) << 18;
         z |= mod_sub(2, *in++) << 21;
 
-        out = OPENSSL_store_u16_le(out, (uint16_t) z);
-        *out++ = (uint8_t) (z >> 16);
+        out = OPENSSL_store_u16_le(out, (uint16_t)z);
+        *out++ = (uint8_t)(z >> 16);
     } while (in < end);
     return 1;
 }
@@ -327,7 +334,8 @@ static int poly_decode_signed_2(POLY *p, PACKET *pkt)
     uint32_t msbs, mask;
     const uint8_t *in;
 
-    for (i = 0; i < (ML_DSA_NUM_POLY_COEFFICIENTS / 8); i++) {
+    for (i = 0; i < (ML_DSA_NUM_POLY_COEFFICIENTS / 8); i++)
+    {
         if (!PACKET_get_bytes(pkt, &in, 3))
             goto err;
         memcpy(&u, in, 3);
@@ -358,7 +366,7 @@ static int poly_decode_signed_2(POLY *p, PACKET *pkt)
         *out++ = mod_sub(2, (v >> 21) & 7);
     }
     ret = 1;
- err:
+err:
     return ret;
 }
 
@@ -388,7 +396,8 @@ static int poly_encode_signed_two_to_power_12(const POLY *p, WPACKET *pkt)
     static const uint32_t range = 1u << 12;
     const uint32_t *in = p->coeff, *end = in + ML_DSA_NUM_POLY_COEFFICIENTS;
 
-    do {
+    do
+    {
         uint8_t *out;
         uint64_t a1, a2;
 
@@ -405,8 +414,8 @@ static int poly_encode_signed_two_to_power_12(const POLY *p, WPACKET *pkt)
         a2 |= mod_sub_64(range, *in++) << 27;
 
         out = OPENSSL_store_u64_le(out, a1);
-        out = OPENSSL_store_u32_le(out, (uint32_t) a2);
-        *out = (uint8_t) (a2 >> 32);
+        out = OPENSSL_store_u32_le(out, (uint32_t)a2);
+        *out = (uint8_t)(a2 >> 32);
     } while (in < end);
     return 1;
 }
@@ -428,7 +437,8 @@ static int poly_decode_signed_two_to_power_12(POLY *p, PACKET *pkt)
     static const uint32_t range = 1u << 12;
     static const uint32_t mask_13_bits = (1u << 13) - 1;
 
-    for (i = 0; i < (ML_DSA_NUM_POLY_COEFFICIENTS / 8); i++) {
+    for (i = 0; i < (ML_DSA_NUM_POLY_COEFFICIENTS / 8); i++)
+    {
         uint64_t a1;
         uint32_t a2, b13;
 
@@ -436,7 +446,7 @@ static int poly_decode_signed_two_to_power_12(POLY *p, PACKET *pkt)
             goto err;
         in = OPENSSL_load_u64_le(&a1, in);
         in = OPENSSL_load_u32_le(&a2, in);
-        b13 = (uint32_t) *in;
+        b13 = (uint32_t)*in;
 
         *out++ = mod_sub(range, a1 & mask_13_bits);
         *out++ = mod_sub(range, (a1 >> 13) & mask_13_bits);
@@ -448,7 +458,7 @@ static int poly_decode_signed_two_to_power_12(POLY *p, PACKET *pkt)
         *out++ = mod_sub(range, (a2 >> 27) | (b13 << 5));
     }
     ret = 1;
- err:
+err:
     return ret;
 }
 
@@ -477,7 +487,8 @@ static int poly_encode_signed_two_to_power_19(const POLY *p, WPACKET *pkt)
     static const uint32_t range = 1u << 19;
     const uint32_t *in = p->coeff, *end = in + ML_DSA_NUM_POLY_COEFFICIENTS;
 
-    do {
+    do
+    {
         uint32_t z0, z1, z2;
         uint8_t *out;
 
@@ -491,7 +502,7 @@ static int poly_encode_signed_two_to_power_19(const POLY *p, WPACKET *pkt)
 
         out = OPENSSL_store_u32_le(out, z0);
         out = OPENSSL_store_u32_le(out, z1);
-        out = OPENSSL_store_u16_le(out, (uint16_t) (z2 >> 4));
+        out = OPENSSL_store_u16_le(out, (uint16_t)(z2 >> 4));
     } while (in < end);
     return 1;
 }
@@ -513,7 +524,8 @@ static int poly_decode_signed_two_to_power_19(POLY *p, PACKET *pkt)
     static const uint32_t range = 1u << 19;
     static const uint32_t mask_20_bits = (1u << 20) - 1;
 
-    for (i = 0; i < (ML_DSA_NUM_POLY_COEFFICIENTS / 4); i++) {
+    for (i = 0; i < (ML_DSA_NUM_POLY_COEFFICIENTS / 4); i++)
+    {
         uint32_t a1, a2;
         uint16_t a3;
 
@@ -529,7 +541,7 @@ static int poly_decode_signed_two_to_power_19(POLY *p, PACKET *pkt)
         *out++ = mod_sub(range, (a2 >> 28) | (a3 << 4));
     }
     ret = 1;
- err:
+err:
     return ret;
 }
 
@@ -558,7 +570,8 @@ static int poly_encode_signed_two_to_power_17(const POLY *p, WPACKET *pkt)
     static const uint32_t range = 1u << 17;
     const uint32_t *in = p->coeff, *end = in + ML_DSA_NUM_POLY_COEFFICIENTS;
 
-    do {
+    do
+    {
         uint8_t *out;
         uint32_t z0, z1, z2;
 
@@ -594,14 +607,15 @@ static int poly_decode_signed_two_to_power_17(POLY *p, PACKET *pkt)
     static const uint32_t range = 1u << 17;
     static const uint32_t mask_18_bits = (1u << 18) - 1;
 
-    do {
+    do
+    {
         uint32_t a1, a2, a3;
 
         if (!PACKET_get_bytes(pkt, &in, 9))
             return 0;
         in = OPENSSL_load_u32_le(&a1, in);
         in = OPENSSL_load_u32_le(&a2, in);
-        a3 = (uint32_t) *in;
+        a3 = (uint32_t)*in;
 
         *out++ = mod_sub(range, a1 & mask_18_bits);
         *out++ = mod_sub(range, (a1 >> 18) | ((a2 & 0xF) << 14));
@@ -632,14 +646,12 @@ int ossl_ml_dsa_pk_encode(ML_DSA_KEY *key)
     if (enc == NULL)
         return 0;
 
-    if (!WPACKET_init_static_len(&pkt, enc, enc_len, 0)
-            || !WPACKET_memcpy(&pkt, key->rho, sizeof(key->rho)))
+    if (!WPACKET_init_static_len(&pkt, enc, enc_len, 0) || !WPACKET_memcpy(&pkt, key->rho, sizeof(key->rho)))
         goto err;
     for (i = 0; i < t1_len; i++)
         if (!poly_encode_10_bits(t1 + i, &pkt))
             goto err;
-    if (!WPACKET_get_total_written(&pkt, &written)
-            || written != enc_len)
+    if (!WPACKET_get_total_written(&pkt, &written) || written != enc_len)
         goto err;
     OPENSSL_free(key->pub_encoding);
     key->pub_encoding = enc;
@@ -678,8 +690,7 @@ int ossl_ml_dsa_pk_decode(ML_DSA_KEY *key, const uint8_t *in, size_t in_len)
     ctx = EVP_MD_CTX_new();
     if (ctx == NULL)
         goto err;
-    if (!PACKET_buf_init(&pkt, in, in_len)
-            || !PACKET_copy_bytes(&pkt, key->rho, sizeof(key->rho)))
+    if (!PACKET_buf_init(&pkt, in, in_len) || !PACKET_copy_bytes(&pkt, key->rho, sizeof(key->rho)))
         goto err;
     for (i = 0; i < key->t1.num_poly; i++)
         if (!poly_decode_10_bits(key->t1.poly + i, &pkt))
@@ -724,10 +735,8 @@ int ossl_ml_dsa_sk_encode(ML_DSA_KEY *key)
     else
         encode_fn = poly_encode_signed_2;
 
-    if (!WPACKET_init_static_len(&pkt, enc, enc_len, 0)
-            || !WPACKET_memcpy(&pkt, key->rho, sizeof(key->rho))
-            || !WPACKET_memcpy(&pkt, key->K, sizeof(key->K))
-            || !WPACKET_memcpy(&pkt, key->tr, sizeof(key->tr)))
+    if (!WPACKET_init_static_len(&pkt, enc, enc_len, 0) || !WPACKET_memcpy(&pkt, key->rho, sizeof(key->rho)) ||
+        !WPACKET_memcpy(&pkt, key->K, sizeof(key->K)) || !WPACKET_memcpy(&pkt, key->tr, sizeof(key->tr)))
         goto err;
     for (i = 0; i < l; ++i)
         if (!encode_fn(key->s1.poly + i, &pkt))
@@ -738,8 +747,7 @@ int ossl_ml_dsa_sk_encode(ML_DSA_KEY *key)
     for (i = 0; i < k; ++i)
         if (!poly_encode_signed_two_to_power_12(t0++, &pkt))
             goto err;
-    if (!WPACKET_get_total_written(&pkt, &written)
-            || written != enc_len)
+    if (!WPACKET_get_total_written(&pkt, &written) || written != enc_len)
         goto err;
     OPENSSL_secure_clear_free(key->priv_encoding, enc_len);
     key->priv_encoding = enc;
@@ -774,8 +782,7 @@ int ossl_ml_dsa_sk_decode(ML_DSA_KEY *key, const uint8_t *in, size_t in_len)
     key->seed = NULL;
 
     /* Allow the key encoding to be already set to the provided pointer */
-    if ((key->priv_encoding != NULL && key->priv_encoding != in)
-        || key->pub_encoding != NULL)
+    if ((key->priv_encoding != NULL && key->priv_encoding != in) || key->pub_encoding != NULL)
         return 0; /* Do not allow key mutation */
     if (in_len != key->params->sk_len)
         return 0;
@@ -788,10 +795,8 @@ int ossl_ml_dsa_sk_decode(ML_DSA_KEY *key, const uint8_t *in, size_t in_len)
     else
         decode_fn = poly_decode_signed_2;
 
-    if (!PACKET_buf_init(&pkt, in, in_len)
-            || !PACKET_copy_bytes(&pkt, key->rho, sizeof(key->rho))
-            || !PACKET_copy_bytes(&pkt, key->K, sizeof(key->K))
-            || !PACKET_copy_bytes(&pkt, input_tr, sizeof(input_tr)))
+    if (!PACKET_buf_init(&pkt, in, in_len) || !PACKET_copy_bytes(&pkt, key->rho, sizeof(key->rho)) ||
+        !PACKET_copy_bytes(&pkt, key->K, sizeof(key->K)) || !PACKET_copy_bytes(&pkt, input_tr, sizeof(input_tr)))
         return 0;
 
     for (i = 0; i < l; ++i)
@@ -805,7 +810,8 @@ int ossl_ml_dsa_sk_decode(ML_DSA_KEY *key, const uint8_t *in, size_t in_len)
             goto err;
     if (PACKET_remaining(&pkt) != 0)
         goto err;
-    if (key->priv_encoding == NULL) {
+    if (key->priv_encoding == NULL)
+    {
         key->priv_encoding = OPENSSL_secure_malloc(in_len);
         if (key->priv_encoding == NULL)
             goto err;
@@ -815,17 +821,16 @@ int ossl_ml_dsa_sk_decode(ML_DSA_KEY *key, const uint8_t *in, size_t in_len)
      * Computing the public key also computes its hash, which must be equal to
      * the |tr| value in the private key, else the key was corrupted.
      */
-    if (!ossl_ml_dsa_key_public_from_private(key)
-            || memcmp(input_tr, key->tr, sizeof(input_tr)) != 0) {
-        ERR_raise_data(ERR_LIB_PROV, PROV_R_INVALID_KEY,
-                       "%s private key does not match its pubkey part",
+    if (!ossl_ml_dsa_key_public_from_private(key) || memcmp(input_tr, key->tr, sizeof(input_tr)) != 0)
+    {
+        ERR_raise_data(ERR_LIB_PROV, PROV_R_INVALID_KEY, "%s private key does not match its pubkey part",
                        key->params->alg);
         ossl_ml_dsa_key_reset(key);
         goto err;
     }
 
     return 1;
- err:
+err:
     return 0;
 }
 
@@ -848,7 +853,8 @@ static int hint_bits_encode(const VECTOR *hint, WPACKET *pkt, uint32_t omega)
         return 0;
     memset(data, 0, omega + k);
 
-    for (i = 0; i < k; i++, p++) {
+    for (i = 0; i < k; i++, p++)
+    {
         for (j = 0; j < ML_DSA_NUM_POLY_COEFFICIENTS; j++)
             if (p->coeff[j] != 0)
                 data[coeff_index++] = j;
@@ -870,20 +876,21 @@ static int hint_bits_decode(VECTOR *hint, PACKET *pkt, uint32_t omega)
     const uint8_t *in, *limits;
     POLY *p = hint->poly, *end = p + k;
 
-    if (!PACKET_get_bytes(pkt, &in, omega)
-            || !PACKET_get_bytes(pkt, &limits, k))
+    if (!PACKET_get_bytes(pkt, &in, omega) || !PACKET_get_bytes(pkt, &limits, k))
         return 0;
 
     vector_zero(hint); /* Set all coefficients to zero */
 
-    do {
+    do
+    {
         const uint32_t limit = *limits++;
         int last = -1;
 
         if (limit < coeff_index || limit > omega)
             return 0;
 
-        while (coeff_index < limit) {
+        while (coeff_index < limit)
+        {
             int byte = in[coeff_index++];
 
             if (last >= 0 && byte <= last)
@@ -907,8 +914,7 @@ static int hint_bits_decode(VECTOR *hint, PACKET *pkt, uint32_t omega)
  * @param
  * @returns 1 if the signature was encoded successfully or 0 otherwise.
  */
-int ossl_ml_dsa_sig_encode(const ML_DSA_SIG *sig, const ML_DSA_PARAMS *params,
-                           uint8_t *out)
+int ossl_ml_dsa_sig_encode(const ML_DSA_SIG *sig, const ML_DSA_PARAMS *params, uint8_t *out)
 {
     int ret = 0;
     size_t i;
@@ -923,8 +929,8 @@ int ossl_ml_dsa_sig_encode(const ML_DSA_SIG *sig, const ML_DSA_PARAMS *params,
     else
         encode_fn = poly_encode_signed_two_to_power_17;
 
-    if (!WPACKET_init_static_len(&pkt, out, params->sig_len, 0)
-            || !WPACKET_memcpy(&pkt, sig->c_tilde, sig->c_tilde_len))
+    if (!WPACKET_init_static_len(&pkt, out, params->sig_len, 0) ||
+        !WPACKET_memcpy(&pkt, sig->c_tilde, sig->c_tilde_len))
         goto err;
 
     for (i = 0; i < sig->z.num_poly; ++i)
@@ -945,8 +951,7 @@ err:
  * @param params contains constants for an ML-DSA algorithm (such as gamma1)
  * @returns 1 if the signature was successfully decoded or 0 otherwise.
  */
-int ossl_ml_dsa_sig_decode(ML_DSA_SIG *sig, const uint8_t *in, size_t in_len,
-                           const ML_DSA_PARAMS *params)
+int ossl_ml_dsa_sig_decode(ML_DSA_SIG *sig, const uint8_t *in, size_t in_len, const ML_DSA_PARAMS *params)
 {
     int ret = 0;
     size_t i;
@@ -958,24 +963,20 @@ int ossl_ml_dsa_sig_decode(ML_DSA_SIG *sig, const uint8_t *in, size_t in_len,
     else
         decode_fn = poly_decode_signed_two_to_power_17;
 
-    if (!PACKET_buf_init(&pkt, in, in_len)
-            || !PACKET_copy_bytes(&pkt, sig->c_tilde, sig->c_tilde_len))
+    if (!PACKET_buf_init(&pkt, in, in_len) || !PACKET_copy_bytes(&pkt, sig->c_tilde, sig->c_tilde_len))
         goto err;
     for (i = 0; i < sig->z.num_poly; ++i)
         if (!decode_fn(sig->z.poly + i, &pkt))
             goto err;
 
-    if (!hint_bits_decode(&sig->hint, &pkt, params->omega)
-            || PACKET_remaining(&pkt) != 0)
+    if (!hint_bits_decode(&sig->hint, &pkt, params->omega) || PACKET_remaining(&pkt) != 0)
         goto err;
     ret = 1;
 err:
     return ret;
 }
 
-int ossl_ml_dsa_poly_decode_expand_mask(POLY *out,
-                                        const uint8_t *in, size_t in_len,
-                                        uint32_t gamma1)
+int ossl_ml_dsa_poly_decode_expand_mask(POLY *out, const uint8_t *in, size_t in_len, uint32_t gamma1)
 {
     PACKET pkt;
 
@@ -998,8 +999,7 @@ int ossl_ml_dsa_poly_decode_expand_mask(POLY *out,
  * @param gamma2 either ML_DSA_GAMMA2_Q_MINUS1_DIV32 or ML_DSA_GAMMA2_Q_MINUS1_DIV88
  * @returns 1 if the signature was encoded successfully or 0 otherwise.
  */
-int ossl_ml_dsa_w1_encode(const VECTOR *w1, uint32_t gamma2,
-                          uint8_t *out, size_t out_len)
+int ossl_ml_dsa_w1_encode(const VECTOR *w1, uint32_t gamma2, uint8_t *out, size_t out_len)
 {
     WPACKET pkt;
     ENCODE_FN *encode_fn;

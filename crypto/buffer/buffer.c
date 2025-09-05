@@ -42,7 +42,8 @@ void BUF_MEM_free(BUF_MEM *a)
 {
     if (a == NULL)
         return;
-    if (a->data != NULL) {
+    if (a->data != NULL)
+    {
         if (a->flags & BUF_MEM_FLAG_SECURE)
             OPENSSL_secure_clear_free(a->data, a->max);
         else
@@ -58,8 +59,10 @@ static char *sec_alloc_realloc(BUF_MEM *str, size_t len)
     char *ret;
 
     ret = OPENSSL_secure_malloc(len);
-    if (str->data != NULL) {
-        if (ret != NULL) {
+    if (str->data != NULL)
+    {
+        if (ret != NULL)
+        {
             memcpy(ret, str->data, str->length);
             OPENSSL_secure_clear_free(str->data, str->length);
             str->data = NULL;
@@ -73,18 +76,21 @@ size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
     char *ret;
     size_t n;
 
-    if (str->length >= len) {
+    if (str->length >= len)
+    {
         str->length = len;
         return len;
     }
-    if (str->max >= len) {
+    if (str->max >= len)
+    {
         if (str->data != NULL)
             memset(&str->data[str->length], 0, len - str->length);
         str->length = len;
         return len;
     }
     /* This limit is sufficient to ensure (len+3)/3*4 < 2**31 */
-    if (len > LIMIT_BEFORE_EXPANSION) {
+    if (len > LIMIT_BEFORE_EXPANSION)
+    {
         ERR_raise(ERR_LIB_BUF, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -93,9 +99,12 @@ size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
         ret = sec_alloc_realloc(str, n);
     else
         ret = OPENSSL_realloc(str->data, n);
-    if (ret == NULL) {
+    if (ret == NULL)
+    {
         len = 0;
-    } else {
+    }
+    else
+    {
         str->data = ret;
         str->max = n;
         memset(&str->data[str->length], 0, len - str->length);
@@ -109,19 +118,22 @@ size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
     char *ret;
     size_t n;
 
-    if (str->length >= len) {
+    if (str->length >= len)
+    {
         if (str->data != NULL)
             memset(&str->data[len], 0, str->length - len);
         str->length = len;
         return len;
     }
-    if (str->max >= len) {
+    if (str->max >= len)
+    {
         memset(&str->data[str->length], 0, len - str->length);
         str->length = len;
         return len;
     }
     /* This limit is sufficient to ensure (len+3)/3*4 < 2**31 */
-    if (len > LIMIT_BEFORE_EXPANSION) {
+    if (len > LIMIT_BEFORE_EXPANSION)
+    {
         ERR_raise(ERR_LIB_BUF, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -130,9 +142,12 @@ size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
         ret = sec_alloc_realloc(str, n);
     else
         ret = OPENSSL_clear_realloc(str->data, str->max, n);
-    if (ret == NULL) {
+    if (ret == NULL)
+    {
         len = 0;
-    } else {
+    }
+    else
+    {
         str->data = ret;
         str->max = n;
         memset(&str->data[str->length], 0, len - str->length);
@@ -144,15 +159,19 @@ size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
 void BUF_reverse(unsigned char *out, const unsigned char *in, size_t size)
 {
     size_t i;
-    if (in) {
+    if (in)
+    {
         out += size - 1;
         for (i = 0; i < size; i++)
             *out-- = *in++;
-    } else {
+    }
+    else
+    {
         unsigned char *q;
         char c;
         q = out + size - 1;
-        for (i = 0; i < size / 2; i++) {
+        for (i = 0; i < size / 2; i++)
+        {
             c = *q;
             *q-- = *out;
             *out++ = c;

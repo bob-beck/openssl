@@ -27,7 +27,8 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
     int bit, next_bit, mask;
     size_t len = 0, j;
 
-    if (BN_is_zero(scalar)) {
+    if (BN_is_zero(scalar))
+    {
         r = OPENSSL_malloc(1);
         if (r == NULL)
             goto err;
@@ -36,20 +37,23 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
         return r;
     }
 
-    if (w <= 0 || w > 7) {      /* 'signed char' can represent integers with
-                                 * absolute values less than 2^7 */
+    if (w <= 0 || w > 7)
+    { /* 'signed char' can represent integers with
+       * absolute values less than 2^7 */
         ERR_raise(ERR_LIB_BN, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    bit = 1 << w;               /* at most 128 */
-    next_bit = bit << 1;        /* at most 256 */
-    mask = next_bit - 1;        /* at most 255 */
+    bit = 1 << w;        /* at most 128 */
+    next_bit = bit << 1; /* at most 256 */
+    mask = next_bit - 1; /* at most 255 */
 
-    if (BN_is_negative(scalar)) {
+    if (BN_is_negative(scalar))
+    {
         sign = -1;
     }
 
-    if (scalar->d == NULL || scalar->top == 0) {
+    if (scalar->d == NULL || scalar->top == 0)
+    {
         ERR_raise(ERR_LIB_BN, ERR_R_INTERNAL_ERROR);
         goto err;
     }
@@ -64,21 +68,25 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
         goto err;
     window_val = scalar->d[0] & mask;
     j = 0;
-    while ((window_val != 0) || (j + w + 1 < len)) { /* if j+w+1 >= len,
-                                                      * window_val will not
-                                                      * increase */
+    while ((window_val != 0) || (j + w + 1 < len))
+    { /* if j+w+1 >= len,
+       * window_val will not
+       * increase */
         int digit = 0;
 
         /* 0 <= window_val <= 2^(w+1) */
 
-        if (window_val & 1) {
+        if (window_val & 1)
+        {
             /* 0 < window_val < 2^(w+1) */
 
-            if (window_val & bit) {
+            if (window_val & bit)
+            {
                 digit = window_val - next_bit; /* -2^w < digit < 0 */
 
-#if 1                           /* modified wNAF */
-                if (j + w + 1 >= len) {
+#if 1 /* modified wNAF */
+                if (j + w + 1 >= len)
+                {
                     /*
                      * Special case for generating modified wNAFs:
                      * no new bits will be added into window_val,
@@ -89,11 +97,14 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
                     digit = window_val & (mask >> 1); /* 0 < digit < 2^w */
                 }
 #endif
-            } else {
+            }
+            else
+            {
                 digit = window_val; /* 0 < digit < 2^w */
             }
 
-            if (digit <= -bit || digit >= bit || !(digit & 1)) {
+            if (digit <= -bit || digit >= bit || !(digit & 1))
+            {
                 ERR_raise(ERR_LIB_BN, ERR_R_INTERNAL_ERROR);
                 goto err;
             }
@@ -104,8 +115,8 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
              * now window_val is 0 or 2^(w+1) in standard wNAF generation;
              * for modified window NAFs, it may also be 2^w
              */
-            if (window_val != 0 && window_val != next_bit
-                && window_val != bit) {
+            if (window_val != 0 && window_val != next_bit && window_val != bit)
+            {
                 ERR_raise(ERR_LIB_BN, ERR_R_INTERNAL_ERROR);
                 goto err;
             }
@@ -116,20 +127,22 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
         window_val >>= 1;
         window_val += bit * BN_is_bit_set(scalar, (int)(j + w));
 
-        if (window_val > next_bit) {
+        if (window_val > next_bit)
+        {
             ERR_raise(ERR_LIB_BN, ERR_R_INTERNAL_ERROR);
             goto err;
         }
     }
 
-    if (j > len + 1) {
+    if (j > len + 1)
+    {
         ERR_raise(ERR_LIB_BN, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     *ret_len = j;
     return r;
 
- err:
+err:
     OPENSSL_free(r);
     return NULL;
 }
@@ -183,7 +196,8 @@ void bn_set_static_words(BIGNUM *a, const BN_ULONG *words, int size)
 
 int bn_set_words(BIGNUM *a, const BN_ULONG *words, int num_words)
 {
-    if (bn_wexpand(a, num_words) == NULL) {
+    if (bn_wexpand(a, num_words) == NULL)
+    {
         ERR_raise(ERR_LIB_BN, ERR_R_BN_LIB);
         return 0;
     }

@@ -18,18 +18,26 @@ int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     bn_check_top(a);
     bn_check_top(b);
 
-    if (a->neg == b->neg) {
+    if (a->neg == b->neg)
+    {
         r_neg = a->neg;
         ret = BN_uadd(r, a, b);
-    } else {
+    }
+    else
+    {
         cmp_res = BN_ucmp(a, b);
-        if (cmp_res > 0) {
+        if (cmp_res > 0)
+        {
             r_neg = a->neg;
             ret = BN_usub(r, a, b);
-        } else if (cmp_res < 0) {
+        }
+        else if (cmp_res < 0)
+        {
             r_neg = b->neg;
             ret = BN_usub(r, b, a);
-        } else {
+        }
+        else
+        {
             r_neg = 0;
             BN_zero(r);
             ret = 1;
@@ -49,18 +57,26 @@ int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     bn_check_top(a);
     bn_check_top(b);
 
-    if (a->neg != b->neg) {
+    if (a->neg != b->neg)
+    {
         r_neg = a->neg;
         ret = BN_uadd(r, a, b);
-    } else {
+    }
+    else
+    {
         cmp_res = BN_ucmp(a, b);
-        if (cmp_res > 0) {
+        if (cmp_res > 0)
+        {
             r_neg = a->neg;
             ret = BN_usub(r, a, b);
-        } else if (cmp_res < 0) {
+        }
+        else if (cmp_res < 0)
+        {
             r_neg = !b->neg;
             ret = BN_usub(r, b, a);
-        } else {
+        }
+        else
+        {
             r_neg = 0;
             BN_zero(r);
             ret = 1;
@@ -82,7 +98,8 @@ int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     bn_check_top(a);
     bn_check_top(b);
 
-    if (a->top < b->top) {
+    if (a->top < b->top)
+    {
         const BIGNUM *tmp;
 
         tmp = a;
@@ -106,7 +123,8 @@ int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     rp += min;
     ap += min;
 
-    while (dif) {
+    while (dif)
+    {
         dif--;
         t1 = *(ap++);
         t2 = (t1 + carry) & BN_MASK2;
@@ -135,7 +153,8 @@ int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     min = b->top;
     dif = max - min;
 
-    if (dif < 0) {              /* hmm... should not be happening */
+    if (dif < 0)
+    { /* hmm... should not be happening */
         ERR_raise(ERR_LIB_BN, BN_R_ARG2_LT_ARG3);
         return 0;
     }
@@ -151,7 +170,8 @@ int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     ap += min;
     rp += min;
 
-    while (dif) {
+    while (dif)
+    {
         dif--;
         t1 = *(ap++);
         t2 = (t1 - borrow) & BN_MASK2;
@@ -168,4 +188,3 @@ int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 
     return 1;
 }
-

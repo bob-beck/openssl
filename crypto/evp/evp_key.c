@@ -15,7 +15,7 @@
 #include <openssl/ui.h>
 
 #ifndef BUFSIZ
-# define BUFSIZ 256
+#define BUFSIZ 256
 #endif
 
 /* should be init to zeros. */
@@ -25,7 +25,8 @@ void EVP_set_pw_prompt(const char *prompt)
 {
     if (prompt == NULL)
         prompt_string[0] = '\0';
-    else {
+    else
+    {
         strncpy(prompt_string, prompt, 79);
         prompt_string[79] = '\0';
     }
@@ -49,8 +50,7 @@ int EVP_read_pw_string(char *buf, int len, const char *prompt, int verify)
     return EVP_read_pw_string_min(buf, 0, len, prompt, verify);
 }
 
-int EVP_read_pw_string_min(char *buf, int min, int len, const char *prompt,
-                           int verify)
+int EVP_read_pw_string_min(char *buf, int min, int len, const char *prompt, int verify)
 {
     int ret = -1;
     char buff[BUFSIZ];
@@ -61,24 +61,18 @@ int EVP_read_pw_string_min(char *buf, int min, int len, const char *prompt,
     ui = UI_new();
     if (ui == NULL)
         return ret;
-    if (UI_add_input_string(ui, prompt, 0, buf, min,
-                            (len >= BUFSIZ) ? BUFSIZ - 1 : len) < 0
-        || (verify
-            && UI_add_verify_string(ui, prompt, 0, buff, min,
-                                    (len >= BUFSIZ) ? BUFSIZ - 1 : len,
-                                    buf) < 0))
+    if (UI_add_input_string(ui, prompt, 0, buf, min, (len >= BUFSIZ) ? BUFSIZ - 1 : len) < 0 ||
+        (verify && UI_add_verify_string(ui, prompt, 0, buff, min, (len >= BUFSIZ) ? BUFSIZ - 1 : len, buf) < 0))
         goto end;
     ret = UI_process(ui);
     OPENSSL_cleanse(buff, BUFSIZ);
- end:
+end:
     UI_free(ui);
     return ret;
 }
 
-int EVP_BytesToKey(const EVP_CIPHER *type, const EVP_MD *md,
-                   const unsigned char *salt, const unsigned char *data,
-                   int datal, int count, unsigned char *key,
-                   unsigned char *iv)
+int EVP_BytesToKey(const EVP_CIPHER *type, const EVP_MD *md, const unsigned char *salt, const unsigned char *data,
+                   int datal, int count, unsigned char *key, unsigned char *iv)
 {
     EVP_MD_CTX *c;
     unsigned char md_buf[EVP_MAX_MD_SIZE];
@@ -96,7 +90,8 @@ int EVP_BytesToKey(const EVP_CIPHER *type, const EVP_MD *md,
     c = EVP_MD_CTX_new();
     if (c == NULL)
         goto err;
-    for (;;) {
+    for (;;)
+    {
         if (!EVP_DigestInit_ex(c, md, NULL))
             goto err;
         if (addmd++)
@@ -110,7 +105,8 @@ int EVP_BytesToKey(const EVP_CIPHER *type, const EVP_MD *md,
         if (!EVP_DigestFinal_ex(c, &(md_buf[0]), &mds))
             goto err;
 
-        for (i = 1; i < (unsigned int)count; i++) {
+        for (i = 1; i < (unsigned int)count; i++)
+        {
             if (!EVP_DigestInit_ex(c, md, NULL))
                 goto err;
             if (!EVP_DigestUpdate(c, &(md_buf[0]), mds))
@@ -119,8 +115,10 @@ int EVP_BytesToKey(const EVP_CIPHER *type, const EVP_MD *md,
                 goto err;
         }
         i = 0;
-        if (nkey) {
-            for (;;) {
+        if (nkey)
+        {
+            for (;;)
+            {
                 if (nkey == 0)
                     break;
                 if (i == mds)
@@ -131,8 +129,10 @@ int EVP_BytesToKey(const EVP_CIPHER *type, const EVP_MD *md,
                 i++;
             }
         }
-        if (niv && (i != mds)) {
-            for (;;) {
+        if (niv && (i != mds))
+        {
+            for (;;)
+            {
                 if (niv == 0)
                     break;
                 if (i == mds)
@@ -147,7 +147,7 @@ int EVP_BytesToKey(const EVP_CIPHER *type, const EVP_MD *md,
             break;
     }
     rv = EVP_CIPHER_get_key_length(type);
- err:
+err:
     EVP_MD_CTX_free(c);
     OPENSSL_cleanse(md_buf, sizeof(md_buf));
     return rv;

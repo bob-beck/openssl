@@ -19,7 +19,7 @@
 #include "bio_local.h"
 #include "internal/cryptlib.h"
 
-#define DEFAULT_BUFFER_SIZE     4096
+#define DEFAULT_BUFFER_SIZE 4096
 
 static int readbuffer_write(BIO *h, const char *buf, int num);
 static int readbuffer_read(BIO *h, char *buf, int size);
@@ -31,18 +31,8 @@ static int readbuffer_free(BIO *data);
 static long readbuffer_callback_ctrl(BIO *h, int cmd, BIO_info_cb *fp);
 
 static const BIO_METHOD methods_readbuffer = {
-    BIO_TYPE_BUFFER,
-    "readbuffer",
-    bwrite_conv,
-    readbuffer_write,
-    bread_conv,
-    readbuffer_read,
-    readbuffer_puts,
-    readbuffer_gets,
-    readbuffer_ctrl,
-    readbuffer_new,
-    readbuffer_free,
-    readbuffer_callback_ctrl,
+    BIO_TYPE_BUFFER, "readbuffer",    bwrite_conv,     readbuffer_write, bread_conv,      readbuffer_read,
+    readbuffer_puts, readbuffer_gets, readbuffer_ctrl, readbuffer_new,   readbuffer_free, readbuffer_callback_ctrl,
 };
 
 const BIO_METHOD *BIO_f_readbuffer(void)
@@ -58,7 +48,8 @@ static int readbuffer_new(BIO *bi)
         return 0;
     ctx->ibuf_size = DEFAULT_BUFFER_SIZE;
     ctx->ibuf = OPENSSL_zalloc(DEFAULT_BUFFER_SIZE);
-    if (ctx->ibuf == NULL) {
+    if (ctx->ibuf == NULL)
+    {
         OPENSSL_free(ctx);
         return 0;
     }
@@ -93,7 +84,8 @@ static int readbuffer_resize(BIO_F_BUFFER_CTX *ctx, int sz)
     sz = DEFAULT_BUFFER_SIZE * (sz / DEFAULT_BUFFER_SIZE);
 
     /* Resize if the buffer is not big enough */
-    if (sz > ctx->ibuf_size) {
+    if (sz > ctx->ibuf_size)
+    {
         tmp = OPENSSL_realloc(ctx->ibuf, sz);
         if (tmp == NULL)
             return 0;
@@ -116,10 +108,12 @@ static int readbuffer_read(BIO *b, char *out, int outl)
         return 0;
     BIO_clear_retry_flags(b);
 
-    for (;;) {
+    for (;;)
+    {
         i = ctx->ibuf_len;
         /* If there is something in the buffer just read it. */
-        if (i != 0) {
+        if (i != 0)
+        {
             if (i > outl)
                 i = outl;
             memcpy(out, &(ctx->ibuf[ctx->ibuf_off]), i);
@@ -139,7 +133,8 @@ static int readbuffer_read(BIO *b, char *out, int outl)
 
         /* Do some buffering by reading from the next bio */
         i = BIO_read(b->next_bio, ctx->ibuf + ctx->ibuf_off, outl);
-        if (i <= 0) {
+        if (i <= 0)
+        {
             BIO_copy_next_retry(b);
             if (i < 0)
                 return ((num > 0) ? num : i);
@@ -166,7 +161,8 @@ static long readbuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
 
     ctx = (BIO_F_BUFFER_CTX *)b->ptr;
 
-    switch (cmd) {
+    switch (cmd)
+    {
     case BIO_CTRL_EOF:
         if (ctx->ibuf_len > 0)
             return 0;
@@ -191,7 +187,8 @@ static long readbuffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         break;
     case BIO_CTRL_PENDING:
         ret = (long)ctx->ibuf_len;
-        if (ret == 0) {
+        if (ret == 0)
+        {
             if (b->next_bio == NULL)
                 return 0;
             ret = BIO_ctrl(b->next_bio, cmd, num, ptr);
@@ -232,14 +229,15 @@ static int readbuffer_gets(BIO *b, char *buf, int size)
     BIO_clear_retry_flags(b);
 
     /* If data is already buffered then use this first */
-    if (ctx->ibuf_len > 0) {
+    if (ctx->ibuf_len > 0)
+    {
         p = ctx->ibuf + ctx->ibuf_off;
         found_newline = 0;
-        for (num_chars = 0;
-             (num_chars < ctx->ibuf_len) && (num_chars < size);
-             num_chars++) {
+        for (num_chars = 0; (num_chars < ctx->ibuf_len) && (num_chars < size); num_chars++)
+        {
             *buf++ = p[num_chars];
-            if (p[num_chars] == '\n') {
+            if (p[num_chars] == '\n')
+            {
                 found_newline = 1;
                 num_chars++;
                 break;
@@ -249,7 +247,8 @@ static int readbuffer_gets(BIO *b, char *buf, int size)
         size -= num_chars;
         ctx->ibuf_len -= num_chars;
         ctx->ibuf_off += num_chars;
-        if (found_newline || size == 0) {
+        if (found_newline || size == 0)
+        {
             *buf = '\0';
             return num;
         }
@@ -259,33 +258,35 @@ static int readbuffer_gets(BIO *b, char *buf, int size)
      * next bio.
      */
 
-     /* Resize if we have to */
-     if (!readbuffer_resize(ctx, 1 + size))
-         return 0;
-     /*
-      * Read more data from the next bio using BIO_read_ex:
-      * Note we cannot use BIO_gets() here as it does not work on a
-      * binary stream that contains 0x00. (Since strlen() will stop at
-      * any 0x00 not at the last read '\n' in a FILE bio).
-      * Also note that some applications open and close the file bio
-      * multiple times and need to read the next available block when using
-      * stdin - so we need to READ one byte at a time!
-      */
-     p = ctx->ibuf + ctx->ibuf_off;
-     for (i = 0; i < size; ++i) {
-         j = BIO_read(b->next_bio, p, 1);
-         if (j <= 0) {
-             BIO_copy_next_retry(b);
-             *buf = '\0';
-             return num > 0 ? num : j;
-         }
-         *buf++ = *p;
-         num++;
-         ctx->ibuf_off++;
-         if (*p == '\n')
-             break;
-         ++p;
-     }
-     *buf = '\0';
-     return num;
+    /* Resize if we have to */
+    if (!readbuffer_resize(ctx, 1 + size))
+        return 0;
+    /*
+     * Read more data from the next bio using BIO_read_ex:
+     * Note we cannot use BIO_gets() here as it does not work on a
+     * binary stream that contains 0x00. (Since strlen() will stop at
+     * any 0x00 not at the last read '\n' in a FILE bio).
+     * Also note that some applications open and close the file bio
+     * multiple times and need to read the next available block when using
+     * stdin - so we need to READ one byte at a time!
+     */
+    p = ctx->ibuf + ctx->ibuf_off;
+    for (i = 0; i < size; ++i)
+    {
+        j = BIO_read(b->next_bio, p, 1);
+        if (j <= 0)
+        {
+            BIO_copy_next_retry(b);
+            *buf = '\0';
+            return num > 0 ? num : j;
+        }
+        *buf++ = *p;
+        num++;
+        ctx->ibuf_off++;
+        if (*p == '\n')
+            break;
+        ++p;
+    }
+    *buf = '\0';
+    return num;
 }

@@ -15,21 +15,23 @@
 #include "crypto/asn1.h"
 #include "crypto/evp.h"
 
-EVP_PKEY *d2i_KeyParams(int type, EVP_PKEY **a, const unsigned char **pp,
-                        long length)
+EVP_PKEY *d2i_KeyParams(int type, EVP_PKEY **a, const unsigned char **pp, long length)
 {
     EVP_PKEY *ret = NULL;
 
-    if ((a == NULL) || (*a == NULL)) {
+    if ((a == NULL) || (*a == NULL))
+    {
         if ((ret = EVP_PKEY_new()) == NULL)
             return NULL;
-    } else
+    }
+    else
         ret = *a;
 
     if (type != EVP_PKEY_get_id(ret) && !EVP_PKEY_set_type(ret, type))
         goto err;
 
-    if (ret->ameth == NULL || ret->ameth->param_decode == NULL) {
+    if (ret->ameth == NULL || ret->ameth->param_decode == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_UNSUPPORTED_TYPE);
         goto err;
     }

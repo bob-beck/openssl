@@ -23,7 +23,8 @@ static int replace_gentime(ASN1_STRING **dest, const ASN1_GENERALIZEDTIME *src)
         return 1;
 
     s = ASN1_STRING_dup(src);
-    if (s == NULL) {
+    if (s == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_ASN1_LIB);
         return 0;
     }
@@ -40,22 +41,26 @@ static int replace_dirName(GENERAL_NAMES **names, const X509_NAME *dirName)
     STACK_OF(GENERAL_NAME) *new_names = NULL;
     X509_NAME *name_copy;
 
-    if ((name_copy = X509_NAME_dup(dirName)) == NULL) {
+    if ((name_copy = X509_NAME_dup(dirName)) == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_ASN1_LIB);
         goto err;
     }
 
-    if ((new_names = sk_GENERAL_NAME_new_null()) == NULL) {
+    if ((new_names = sk_GENERAL_NAME_new_null()) == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_ASN1_LIB);
         goto err;
     }
 
-    if ((gen_name = GENERAL_NAME_new()) == NULL) {
+    if ((gen_name = GENERAL_NAME_new()) == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_ASN1_LIB);
         goto err;
     }
 
-    if (sk_GENERAL_NAME_push(new_names, gen_name) <= 0) {
+    if (sk_GENERAL_NAME_push(new_names, gen_name) <= 0)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_CRYPTO_LIB);
         goto err;
     }
@@ -74,9 +79,7 @@ err:
     return 0;
 }
 
-int OSSL_OBJECT_DIGEST_INFO_set1_digest(OSSL_OBJECT_DIGEST_INFO *o,
-                                        int digestedObjectType,
-                                        X509_ALGOR *digestAlgorithm,
+int OSSL_OBJECT_DIGEST_INFO_set1_digest(OSSL_OBJECT_DIGEST_INFO *o, int digestedObjectType, X509_ALGOR *digestAlgorithm,
                                         ASN1_BIT_STRING *digest)
 {
 
@@ -92,24 +95,22 @@ int OSSL_OBJECT_DIGEST_INFO_set1_digest(OSSL_OBJECT_DIGEST_INFO *o,
     return 1;
 }
 
-int OSSL_ISSUER_SERIAL_set1_issuer(OSSL_ISSUER_SERIAL *isss,
-                                   const X509_NAME *issuer)
+int OSSL_ISSUER_SERIAL_set1_issuer(OSSL_ISSUER_SERIAL *isss, const X509_NAME *issuer)
 {
     return replace_dirName(&isss->issuer, issuer);
 }
 
-int OSSL_ISSUER_SERIAL_set1_serial(OSSL_ISSUER_SERIAL *isss,
-                                   const ASN1_INTEGER *serial)
+int OSSL_ISSUER_SERIAL_set1_serial(OSSL_ISSUER_SERIAL *isss, const ASN1_INTEGER *serial)
 {
     return ASN1_STRING_copy(&isss->serial, serial);
 }
 
-int OSSL_ISSUER_SERIAL_set1_issuerUID(OSSL_ISSUER_SERIAL *isss,
-                                      const ASN1_BIT_STRING *uid)
+int OSSL_ISSUER_SERIAL_set1_issuerUID(OSSL_ISSUER_SERIAL *isss, const ASN1_BIT_STRING *uid)
 {
     ASN1_BIT_STRING_free(isss->issuerUID);
     isss->issuerUID = ASN1_STRING_dup(uid);
-    if (isss->issuerUID == NULL) {
+    if (isss->issuerUID == NULL)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_ASN1_LIB);
         return 0;
     }
@@ -127,15 +128,13 @@ void X509_ACERT_set0_holder_entityName(X509_ACERT *x, GENERAL_NAMES *names)
     x->acinfo->holder.entityName = names;
 }
 
-void X509_ACERT_set0_holder_baseCertId(X509_ACERT *x,
-                                       OSSL_ISSUER_SERIAL *isss)
+void X509_ACERT_set0_holder_baseCertId(X509_ACERT *x, OSSL_ISSUER_SERIAL *isss)
 {
     OSSL_ISSUER_SERIAL_free(x->acinfo->holder.baseCertificateID);
     x->acinfo->holder.baseCertificateID = isss;
 }
 
-void X509_ACERT_set0_holder_digest(X509_ACERT *x,
-                                   OSSL_OBJECT_DIGEST_INFO *dinfo)
+void X509_ACERT_set0_holder_digest(X509_ACERT *x, OSSL_OBJECT_DIGEST_INFO *dinfo)
 {
     OSSL_OBJECT_DIGEST_INFO_free(x->acinfo->holder.objectDigestInfo);
     x->acinfo->holder.objectDigestInfo = dinfo;
@@ -148,9 +147,11 @@ int X509_ACERT_set1_issuerName(X509_ACERT *x, const X509_NAME *name)
     v2Form = x->acinfo->issuer.u.v2Form;
 
     /* only v2Form is supported, so always create that version */
-    if (v2Form == NULL) {
+    if (v2Form == NULL)
+    {
         v2Form = X509_ACERT_ISSUER_V2FORM_new();
-        if (v2Form == NULL) {
+        if (v2Form == NULL)
+        {
             ERR_raise(ERR_LIB_X509, ERR_R_ASN1_LIB);
             return 0;
         }

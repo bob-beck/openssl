@@ -14,7 +14,8 @@
 static OSSL_LIB_CTX *libctx = NULL;
 static OSSL_PROVIDER *libprov = NULL;
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_ERR = -1,
     OPT_EOF = 0,
     OPT_CONFIG_FILE,
@@ -25,10 +26,8 @@ const OPTIONS *test_get_options(void)
 {
     static const OPTIONS test_options[] = {
         OPT_TEST_OPTIONS_DEFAULT_USAGE,
-        { "config", OPT_CONFIG_FILE, '<',
-          "The configuration file to use for the libctx" },
-        { NULL }
-    };
+        {"config", OPT_CONFIG_FILE, '<', "The configuration file to use for the libctx"},
+        {NULL}};
     return test_options;
 }
 
@@ -47,13 +46,15 @@ int setup_tests(void)
     OPTION_CHOICE o;
     size_t n;
 
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_CONFIG_FILE:
             config_file = opt_arg();
             break;
         case OPT_TEST_CASES:
-           break;
+            break;
         default:
         case OPT_ERR:
             return 0;

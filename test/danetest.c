@@ -20,7 +20,7 @@
 #include <openssl/err.h>
 #include <openssl/conf.h>
 #ifndef OPENSSL_NO_ENGINE
-# include <openssl/engine.h>
+#include <openssl/engine.h>
 #endif
 #include "testutil.h"
 
@@ -60,18 +60,14 @@ static int verify_chain(SSL *ssl, STACK_OF(X509) *chain)
     int ret = 0;
     int store_ctx_idx = SSL_get_ex_data_X509_STORE_CTX_idx();
 
-    if (!TEST_ptr(store_ctx = X509_STORE_CTX_new())
-            || !TEST_ptr(ssl_ctx = SSL_get_SSL_CTX(ssl))
-            || !TEST_ptr(store = SSL_CTX_get_cert_store(ssl_ctx))
-            || !TEST_true(X509_STORE_CTX_init(store_ctx, store, NULL, chain))
-            || !TEST_true(X509_STORE_CTX_set_ex_data(store_ctx, store_ctx_idx,
-                                                     ssl)))
+    if (!TEST_ptr(store_ctx = X509_STORE_CTX_new()) || !TEST_ptr(ssl_ctx = SSL_get_SSL_CTX(ssl)) ||
+        !TEST_ptr(store = SSL_CTX_get_cert_store(ssl_ctx)) ||
+        !TEST_true(X509_STORE_CTX_init(store_ctx, store, NULL, chain)) ||
+        !TEST_true(X509_STORE_CTX_set_ex_data(store_ctx, store_ctx_idx, ssl)))
         goto end;
 
-    X509_STORE_CTX_set_default(store_ctx, SSL_is_server(ssl)
-                               ? "ssl_client" : "ssl_server");
-    X509_VERIFY_PARAM_set1(X509_STORE_CTX_get0_param(store_ctx),
-                           SSL_get0_param(ssl));
+    X509_STORE_CTX_set_default(store_ctx, SSL_is_server(ssl) ? "ssl_client" : "ssl_server");
+    X509_VERIFY_PARAM_set1(X509_STORE_CTX_get0_param(store_ctx), SSL_get0_param(ssl));
     store_ctx_dane_init(store_ctx, ssl);
 
     if (SSL_get_verify_callback(ssl) != NULL)
@@ -102,27 +98,26 @@ static STACK_OF(X509) *load_chain(BIO *fp, int nelem)
     if (!TEST_ptr(chain = sk_X509_new_null()))
         goto err;
 
-    for (count = 0;
-         count < nelem && errtype == 0
-         && PEM_read_bio(fp, &name, &header, &data, &len) == 1;
-         ++count) {
-        if (strcmp(name, PEM_STRING_X509) == 0
-                || strcmp(name, PEM_STRING_X509_TRUSTED) == 0
-                || strcmp(name, PEM_STRING_X509_OLD) == 0) {
-            d2i_X509_t d = strcmp(name, PEM_STRING_X509_TRUSTED) != 0
-                ? d2i_X509_AUX : d2i_X509;
+    for (count = 0; count < nelem && errtype == 0 && PEM_read_bio(fp, &name, &header, &data, &len) == 1; ++count)
+    {
+        if (strcmp(name, PEM_STRING_X509) == 0 || strcmp(name, PEM_STRING_X509_TRUSTED) == 0 ||
+            strcmp(name, PEM_STRING_X509_OLD) == 0)
+        {
+            d2i_X509_t d = strcmp(name, PEM_STRING_X509_TRUSTED) != 0 ? d2i_X509_AUX : d2i_X509;
             X509 *cert;
             const unsigned char *p = data;
 
-            if (!TEST_ptr(cert = d(0, &p, len))
-                    || !TEST_long_eq((long)(p - data), len)) {
+            if (!TEST_ptr(cert = d(0, &p, len)) || !TEST_long_eq((long)(p - data), len))
+            {
                 TEST_info("Certificate parsing error");
                 goto err;
             }
 
             if (!TEST_true(sk_X509_push(chain, cert)))
                 goto err;
-        } else {
+        }
+        else
+        {
             TEST_info("Unknown chain file object %s", name);
             goto err;
         }
@@ -134,7 +129,8 @@ static STACK_OF(X509) *load_chain(BIO *fp, int nelem)
         data = NULL;
     }
 
-    if (count == nelem) {
+    if (count == nelem)
+    {
         ERR_clear_error();
         return chain;
     }
@@ -156,7 +152,8 @@ static char *read_to_eol(BIO *f)
         return NULL;
 
     n = (int)strlen(buf);
-    if (buf[n - 1] != '\n') {
+    if (buf[n - 1] != '\n')
+    {
         if (n + 1 == sizeof(buf))
             TEST_error("input too long");
         else
@@ -186,25 +183,31 @@ static ossl_ssize_t hexdecode(const char *in, void *result)
         return -1;
     cp = ret;
 
-    for (byte = 0; *in; ++in) {
+    for (byte = 0; *in; ++in)
+    {
         int x;
 
         if (isspace(_UC(*in)))
             continue;
         x = OPENSSL_hexchar2int(*in);
-        if (x < 0) {
+        if (x < 0)
+        {
             OPENSSL_free(ret);
             return 0;
         }
         byte |= (char)x;
-        if ((nibble ^= 1) == 0) {
+        if ((nibble ^= 1) == 0)
+        {
             *cp++ = byte;
             byte = 0;
-        } else {
+        }
+        else
+        {
             byte <<= 4;
         }
     }
-    if (nibble != 0) {
+    if (nibble != 0)
+    {
         OPENSSL_free(ret);
         return 0;
     }
@@ -224,9 +227,9 @@ static ossl_ssize_t checked_uint8(const char *in, void *out)
     v = strtol(cp, &endp, 10);
     e = restore_errno();
 
-    if (((v == LONG_MIN || v == LONG_MAX) && e == ERANGE) ||
-        endp == cp || !isspace(_UC(*endp)) ||
-        v != (*(uint8_t *)result = (uint8_t) v)) {
+    if (((v == LONG_MIN || v == LONG_MAX) && e == ERANGE) || endp == cp || !isspace(_UC(*endp)) ||
+        v != (*(uint8_t *)result = (uint8_t)v))
+    {
         return -1;
     }
     for (cp = endp; isspace(_UC(*cp)); ++cp)
@@ -234,7 +237,8 @@ static ossl_ssize_t checked_uint8(const char *in, void *out)
     return cp - in;
 }
 
-struct tlsa_field {
+struct tlsa_field
+{
     void *var;
     const char *name;
     ossl_ssize_t (*parser)(const char *, void *);
@@ -246,20 +250,22 @@ static int tlsa_import_rr(SSL *ssl, const char *rrdata)
     static uint8_t selector;
     static uint8_t mtype;
     static unsigned char *data = NULL;
-    static struct tlsa_field tlsa_fields[] = {
-        { &usage, "usage", checked_uint8 },
-        { &selector, "selector", checked_uint8 },
-        { &mtype, "mtype", checked_uint8 },
-        { &data, "data", hexdecode },
-        { NULL, }
-    };
+    static struct tlsa_field tlsa_fields[] = {{&usage, "usage", checked_uint8},
+                                              {&selector, "selector", checked_uint8},
+                                              {&mtype, "mtype", checked_uint8},
+                                              {&data, "data", hexdecode},
+                                              {
+                                                  NULL,
+                                              }};
     int ret;
     struct tlsa_field *f;
     const char *cp = rrdata;
     ossl_ssize_t len = 0;
 
-    for (f = tlsa_fields; f->var; ++f) {
-        if ((len = f->parser(cp += len, f->var)) <= 0) {
+    for (f = tlsa_fields; f->var; ++f)
+    {
+        if ((len = f->parser(cp += len, f->var)) <= 0)
+        {
             TEST_info("bad TLSA %s field in: %s", f->name, rrdata);
             return 0;
         }
@@ -267,11 +273,13 @@ static int tlsa_import_rr(SSL *ssl, const char *rrdata)
 
     ret = SSL_dane_tlsa_add(ssl, usage, selector, mtype, data, len);
     OPENSSL_free(data);
-    if (ret == 0) {
+    if (ret == 0)
+    {
         TEST_info("unusable TLSA rrdata: %s", rrdata);
         return 0;
     }
-    if (ret < 0) {
+    if (ret < 0)
+    {
         TEST_info("error loading TLSA rrdata: %s", rrdata);
         return 0;
     }
@@ -287,15 +295,15 @@ static int allws(const char *cp)
     return 1;
 }
 
-static int test_tlsafile(SSL_CTX *ctx, const char *base_name,
-                         BIO *f, const char *path)
+static int test_tlsafile(SSL_CTX *ctx, const char *base_name, BIO *f, const char *path)
 {
     char *line;
     int testno = 0;
     int ret = 1;
     SSL *ssl;
 
-    while (ret > 0 && (line = read_to_eol(f)) != NULL) {
+    while (ret > 0 && (line = read_to_eol(f)) != NULL)
+    {
         STACK_OF(X509) *chain;
         int ntlsa;
         int ncert;
@@ -312,9 +320,9 @@ static int test_tlsafile(SSL_CTX *ctx, const char *base_name,
             continue;
 
         ++testno;
-        if (sscanf(line, "%d %d %d %d %d%n",
-                   &ntlsa, &ncert, &noncheck, &want, &want_depth, &off) != 5
-            || !allws(line + off)) {
+        if (sscanf(line, "%d %d %d %d %d%n", &ntlsa, &ncert, &noncheck, &want, &want_depth, &off) != 5 ||
+            !allws(line + off))
+        {
             TEST_error("Malformed line for test %d", testno);
             return 0;
         }
@@ -322,15 +330,18 @@ static int test_tlsafile(SSL_CTX *ctx, const char *base_name,
         if (!TEST_ptr(ssl = SSL_new(ctx)))
             return 0;
         SSL_set_connect_state(ssl);
-        if (SSL_dane_enable(ssl, base_name) <= 0) {
+        if (SSL_dane_enable(ssl, base_name) <= 0)
+        {
             SSL_free(ssl);
             return 0;
         }
         if (noncheck)
             SSL_dane_set_flags(ssl, DANE_FLAG_NO_DANE_EE_NAMECHECKS);
 
-        for (i = 0; i < ntlsa; ++i) {
-            if ((line = read_to_eol(f)) == NULL || !tlsa_import_rr(ssl, line)) {
+        for (i = 0; i < ntlsa; ++i)
+        {
+            if ((line = read_to_eol(f)) == NULL || !tlsa_import_rr(ssl, line))
+            {
                 SSL_free(ssl);
                 return 0;
             }
@@ -338,7 +349,8 @@ static int test_tlsafile(SSL_CTX *ctx, const char *base_name,
 
         /* Don't report old news */
         ERR_clear_error();
-        if (!TEST_ptr(chain = load_chain(f, ncert))) {
+        if (!TEST_ptr(chain = load_chain(f, ncert)))
+        {
             SSL_free(ssl);
             return 0;
         }
@@ -357,21 +369,23 @@ static int test_tlsafile(SSL_CTX *ctx, const char *base_name,
         SSL_set_verify_result(ssl, err);
         SSL_free(ssl);
 
-        if (!TEST_int_eq(err, want)) {
+        if (!TEST_int_eq(err, want))
+        {
             if (want == X509_V_OK)
-                TEST_info("Verification failure in test %d: %d=%s",
-                          testno, err, X509_verify_cert_error_string(err));
+                TEST_info("Verification failure in test %d: %d=%s", testno, err, X509_verify_cert_error_string(err));
             else
                 TEST_info("Unexpected error in test %d", testno);
             ret = 0;
             continue;
         }
-        if (!TEST_false(want == 0 && ok == 0)) {
+        if (!TEST_false(want == 0 && ok == 0))
+        {
             TEST_info("Verification failure in test %d: ok=0", testno);
             ret = 0;
             continue;
         }
-        if (!TEST_int_eq(mdpth, want_depth)) {
+        if (!TEST_int_eq(mdpth, want_depth))
+        {
             TEST_info("In test test %d", testno);
             ret = 0;
         }
@@ -387,13 +401,11 @@ static int run_tlsatest(void)
     BIO *f = NULL;
     int ret = 0;
 
-    if (!TEST_ptr(f = BIO_new_file(tlsafile, "r"))
-            || !TEST_ptr(ctx = SSL_CTX_new(TLS_client_method()))
-            || !TEST_int_gt(SSL_CTX_dane_enable(ctx), 0)
-            || !TEST_true(SSL_CTX_load_verify_file(ctx, CAfile))
-            || !TEST_int_gt(SSL_CTX_dane_mtype_set(ctx, EVP_sha512(), 2, 1), 0)
-            || !TEST_int_gt(SSL_CTX_dane_mtype_set(ctx, EVP_sha256(), 1, 2), 0)
-            || !TEST_int_gt(test_tlsafile(ctx, basedomain, f, tlsafile), 0))
+    if (!TEST_ptr(f = BIO_new_file(tlsafile, "r")) || !TEST_ptr(ctx = SSL_CTX_new(TLS_client_method())) ||
+        !TEST_int_gt(SSL_CTX_dane_enable(ctx), 0) || !TEST_true(SSL_CTX_load_verify_file(ctx, CAfile)) ||
+        !TEST_int_gt(SSL_CTX_dane_mtype_set(ctx, EVP_sha512(), 2, 1), 0) ||
+        !TEST_int_gt(SSL_CTX_dane_mtype_set(ctx, EVP_sha256(), 1, 2), 0) ||
+        !TEST_int_gt(test_tlsafile(ctx, basedomain, f, tlsafile), 0))
         goto end;
     ret = 1;
 
@@ -408,14 +420,14 @@ OPT_TEST_DECLARE_USAGE("basedomain CAfile tlsafile\n")
 
 int setup_tests(void)
 {
-    if (!test_skip_common_options()) {
+    if (!test_skip_common_options())
+    {
         TEST_error("Error parsing test options\n");
         return 0;
     }
 
-    if (!TEST_ptr(basedomain = test_get_argument(0))
-            || !TEST_ptr(CAfile = test_get_argument(1))
-            || !TEST_ptr(tlsafile = test_get_argument(2)))
+    if (!TEST_ptr(basedomain = test_get_argument(0)) || !TEST_ptr(CAfile = test_get_argument(1)) ||
+        !TEST_ptr(tlsafile = test_get_argument(2)))
         return 0;
 
     ADD_TEST(run_tlsatest);

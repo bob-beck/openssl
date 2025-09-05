@@ -42,7 +42,8 @@ void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed
     else
         asn1_cb = 0;
 
-    switch (it->itype) {
+    switch (it->itype)
+    {
 
     case ASN1_ITYPE_PRIMITIVE:
         if (it->templates)
@@ -56,13 +57,15 @@ void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed
         break;
 
     case ASN1_ITYPE_CHOICE:
-        if (asn1_cb) {
+        if (asn1_cb)
+        {
             i = asn1_cb(ASN1_OP_FREE_PRE, pval, it, NULL);
             if (i == 2)
                 return;
         }
         i = ossl_asn1_get_choice_selector(pval, it);
-        if ((i >= 0) && (i < it->tcount)) {
+        if ((i >= 0) && (i < it->tcount))
+        {
             ASN1_VALUE **pchval;
 
             tt = it->templates + i;
@@ -71,7 +74,8 @@ void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed
         }
         if (asn1_cb)
             asn1_cb(ASN1_OP_FREE_POST, pval, it, NULL);
-        if (embed == 0) {
+        if (embed == 0)
+        {
             OPENSSL_free(*pval);
             *pval = NULL;
         }
@@ -85,13 +89,15 @@ void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed
 
     case ASN1_ITYPE_NDEF_SEQUENCE:
     case ASN1_ITYPE_SEQUENCE:
-        if (ossl_asn1_do_lock(pval, -1, it) != 0) {
+        if (ossl_asn1_do_lock(pval, -1, it) != 0)
+        {
             /* if error or ref-counter > 0 */
             OPENSSL_assert(embed == 0);
             *pval = NULL;
             return;
         }
-        if (asn1_cb) {
+        if (asn1_cb)
+        {
             i = asn1_cb(ASN1_OP_FREE_PRE, pval, it, NULL);
             if (i == 2)
                 return;
@@ -103,7 +109,8 @@ void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed
          * defines. So free up in reverse order.
          */
         tt = it->templates + it->tcount;
-        for (i = 0; i < it->tcount; i++) {
+        for (i = 0; i < it->tcount; i++)
+        {
             ASN1_VALUE **pseqval;
 
             tt--;
@@ -115,7 +122,8 @@ void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed
         }
         if (asn1_cb)
             asn1_cb(ASN1_OP_FREE_POST, pval, it, NULL);
-        if (embed == 0) {
+        if (embed == 0)
+        {
             OPENSSL_free(*pval);
             *pval = NULL;
         }
@@ -127,22 +135,27 @@ void ossl_asn1_template_free(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
 {
     int embed = tt->flags & ASN1_TFLG_EMBED;
     ASN1_VALUE *tval;
-    if (embed) {
+    if (embed)
+    {
         tval = (ASN1_VALUE *)pval;
         pval = &tval;
     }
-    if (tt->flags & ASN1_TFLG_SK_MASK) {
+    if (tt->flags & ASN1_TFLG_SK_MASK)
+    {
         STACK_OF(ASN1_VALUE) *sk = (STACK_OF(ASN1_VALUE) *)*pval;
         int i;
 
-        for (i = 0; i < sk_ASN1_VALUE_num(sk); i++) {
+        for (i = 0; i < sk_ASN1_VALUE_num(sk); i++)
+        {
             ASN1_VALUE *vtmp = sk_ASN1_VALUE_value(sk, i);
 
             ossl_asn1_item_embed_free(&vtmp, ASN1_ITEM_ptr(tt->item), embed);
         }
         sk_ASN1_VALUE_free(sk);
         *pval = NULL;
-    } else {
+    }
+    else
+    {
         ossl_asn1_item_embed_free(pval, ASN1_ITEM_ptr(tt->item), embed);
     }
 }
@@ -152,39 +165,50 @@ void ossl_asn1_primitive_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
     int utype;
 
     /* Special case: if 'it' is a primitive with a free_func, use that. */
-    if (it) {
+    if (it)
+    {
         const ASN1_PRIMITIVE_FUNCS *pf = it->funcs;
 
-        if (embed) {
-            if (pf && pf->prim_clear) {
+        if (embed)
+        {
+            if (pf && pf->prim_clear)
+            {
                 pf->prim_clear(pval, it);
                 return;
             }
-        } else if (pf && pf->prim_free) {
+        }
+        else if (pf && pf->prim_free)
+        {
             pf->prim_free(pval, it);
             return;
         }
     }
 
     /* Special case: if 'it' is NULL, free contents of ASN1_TYPE */
-    if (!it) {
+    if (!it)
+    {
         ASN1_TYPE *typ = (ASN1_TYPE *)*pval;
 
         utype = typ->type;
         pval = &typ->value.asn1_value;
         if (*pval == NULL)
             return;
-    } else if (it->itype == ASN1_ITYPE_MSTRING) {
+    }
+    else if (it->itype == ASN1_ITYPE_MSTRING)
+    {
         utype = -1;
         if (*pval == NULL)
             return;
-    } else {
+    }
+    else
+    {
         utype = it->utype;
         if ((utype != V_ASN1_BOOLEAN) && *pval == NULL)
             return;
     }
 
-    switch (utype) {
+    switch (utype)
+    {
     case V_ASN1_OBJECT:
         ASN1_OBJECT_free((ASN1_OBJECT *)*pval);
         break;

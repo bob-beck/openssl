@@ -20,13 +20,10 @@ static int test_bio_meth(void)
     if (!TEST_int_eq(id, BIO_TYPE_START + 1))
         goto err;
 
-    if (!TEST_ptr(meth1 = BIO_meth_new(id, "Method1"))
-        || !TEST_ptr(meth2 = BIO_meth_new(BIO_TYPE_NONE, "Method2"))
-        || !TEST_ptr(meth3 = BIO_meth_new(BIO_TYPE_NONE|BIO_TYPE_FILTER, "Method3"))
-        || !TEST_ptr(bio1 = BIO_new(meth1))
-        || !TEST_ptr(bio2 = BIO_new(meth2))
-        || !TEST_ptr(bio3 = BIO_new(meth3))
-        || !TEST_ptr(membio = BIO_new(BIO_s_mem())))
+    if (!TEST_ptr(meth1 = BIO_meth_new(id, "Method1")) || !TEST_ptr(meth2 = BIO_meth_new(BIO_TYPE_NONE, "Method2")) ||
+        !TEST_ptr(meth3 = BIO_meth_new(BIO_TYPE_NONE | BIO_TYPE_FILTER, "Method3")) ||
+        !TEST_ptr(bio1 = BIO_new(meth1)) || !TEST_ptr(bio2 = BIO_new(meth2)) || !TEST_ptr(bio3 = BIO_new(meth3)) ||
+        !TEST_ptr(membio = BIO_new(BIO_s_mem())))
         goto err;
 
     BIO_set_next(bio3, bio2);
@@ -34,7 +31,8 @@ static int test_bio_meth(void)
     BIO_set_next(bio1, membio);
 
     /* Check that we get an error if we exhaust BIO_get_new_index() */
-    for (i = id + 1; i <= BIO_TYPE_MASK; ++i) {
+    for (i = id + 1; i <= BIO_TYPE_MASK; ++i)
+    {
         if (!TEST_int_eq(BIO_get_new_index(), i))
             goto err;
     }
@@ -42,8 +40,7 @@ static int test_bio_meth(void)
         goto err;
 
     /* test searching works */
-    if (!TEST_ptr_eq(BIO_find_type(bio3, BIO_TYPE_MEM), membio)
-        || !TEST_ptr_eq(BIO_find_type(bio3, id), bio1))
+    if (!TEST_ptr_eq(BIO_find_type(bio3, BIO_TYPE_MEM), membio) || !TEST_ptr_eq(BIO_find_type(bio3, id), bio1))
         goto err;
 
     /* Check searching for BIO_TYPE_NONE returns NULL */

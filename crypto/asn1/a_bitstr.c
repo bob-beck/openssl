@@ -28,18 +28,26 @@ int ossl_i2c_ASN1_BIT_STRING(ASN1_BIT_STRING *a, unsigned char **pp)
 
     len = a->length;
 
-    if (len > 0) {
-        if (a->flags & ASN1_STRING_FLAG_BITS_LEFT) {
+    if (len > 0)
+    {
+        if (a->flags & ASN1_STRING_FLAG_BITS_LEFT)
+        {
             bits = (int)a->flags & 0x07;
-        } else {
-            for (; len > 0; len--) {
+        }
+        else
+        {
+            for (; len > 0; len--)
+            {
                 if (a->data[len - 1])
                     break;
             }
 
-            if (len == 0) {
+            if (len == 0)
+            {
                 bits = 0;
-            } else {
+            }
+            else
+            {
                 j = a->data[len - 1];
                 if (j & 0x01)
                     bits = 0;
@@ -58,10 +66,11 @@ int ossl_i2c_ASN1_BIT_STRING(ASN1_BIT_STRING *a, unsigned char **pp)
                 else if (j & 0x80)
                     bits = 7;
                 else
-                    bits = 0;       /* should not happen */
+                    bits = 0; /* should not happen */
             }
         }
-    } else
+    }
+    else
         bits = 0;
 
     ret = 1 + len;
@@ -72,7 +81,8 @@ int ossl_i2c_ASN1_BIT_STRING(ASN1_BIT_STRING *a, unsigned char **pp)
 
     *(p++) = (unsigned char)bits;
     d = a->data;
-    if (len > 0) {
+    if (len > 0)
+    {
         memcpy(p, d, len);
         p += len;
         p[-1] &= (0xff << bits);
@@ -81,33 +91,37 @@ int ossl_i2c_ASN1_BIT_STRING(ASN1_BIT_STRING *a, unsigned char **pp)
     return ret;
 }
 
-ASN1_BIT_STRING *ossl_c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a,
-                                          const unsigned char **pp, long len)
+ASN1_BIT_STRING *ossl_c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a, const unsigned char **pp, long len)
 {
     ASN1_BIT_STRING *ret = NULL;
     const unsigned char *p;
     unsigned char *s;
     int i = 0;
 
-    if (len < 1) {
+    if (len < 1)
+    {
         i = ASN1_R_STRING_TOO_SHORT;
         goto err;
     }
 
-    if (len > INT_MAX) {
+    if (len > INT_MAX)
+    {
         i = ASN1_R_STRING_TOO_LONG;
         goto err;
     }
 
-    if ((a == NULL) || ((*a) == NULL)) {
+    if ((a == NULL) || ((*a) == NULL))
+    {
         if ((ret = ASN1_BIT_STRING_new()) == NULL)
             return NULL;
-    } else
+    }
+    else
         ret = (*a);
 
     p = *pp;
     i = *(p++);
-    if (i > 7) {
+    if (i > 7)
+    {
         i = ASN1_R_INVALID_BIT_STRING_BITS_LEFT;
         goto err;
     }
@@ -117,15 +131,18 @@ ASN1_BIT_STRING *ossl_c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a,
      */
     ossl_asn1_string_set_bits_left(ret, i);
 
-    if (len-- > 1) {            /* using one because of the bits left byte */
+    if (len-- > 1)
+    { /* using one because of the bits left byte */
         s = OPENSSL_malloc((int)len);
-        if (s == NULL) {
+        if (s == NULL)
+        {
             goto err;
         }
         memcpy(s, p, (int)len);
         s[len - 1] &= (0xff << i);
         p += len;
-    } else
+    }
+    else
         s = NULL;
 
     ASN1_STRING_set0(ret, s, (int)len);
@@ -134,7 +151,7 @@ ASN1_BIT_STRING *ossl_c2i_ASN1_BIT_STRING(ASN1_BIT_STRING **a,
         (*a) = ret;
     *pp = p;
     return ret;
- err:
+err:
     if (i != 0)
         ERR_raise(ERR_LIB_ASN1, i);
     if ((a == NULL) || (*a != ret))
@@ -164,9 +181,10 @@ int ASN1_BIT_STRING_set_bit(ASN1_BIT_STRING *a, int n, int value)
 
     a->flags &= ~(ASN1_STRING_FLAG_BITS_LEFT | 0x07); /* clear, set on write */
 
-    if ((a->length < (w + 1)) || (a->data == NULL)) {
+    if ((a->length < (w + 1)) || (a->data == NULL))
+    {
         if (!value)
-            return 1;         /* Don't need to set */
+            return 1; /* Don't need to set */
         c = OPENSSL_clear_realloc(a->data, a->length, w + 1);
         if (c == NULL)
             return 0;
@@ -201,8 +219,7 @@ int ASN1_BIT_STRING_get_bit(const ASN1_BIT_STRING *a, int n)
  * which is not specified in 'flags', 1 otherwise.
  * 'len' is the length of 'flags'.
  */
-int ASN1_BIT_STRING_check(const ASN1_BIT_STRING *a,
-                          const unsigned char *flags, int flags_len)
+int ASN1_BIT_STRING_check(const ASN1_BIT_STRING *a, const unsigned char *flags, int flags_len)
 {
     int i, ok;
     /* Check if there is one bit set at all. */
@@ -213,7 +230,8 @@ int ASN1_BIT_STRING_check(const ASN1_BIT_STRING *a,
      * Check each byte of the internal representation of the bit string.
      */
     ok = 1;
-    for (i = 0; i < a->length && ok; ++i) {
+    for (i = 0; i < a->length && ok; ++i)
+    {
         unsigned char mask = i < flags_len ? ~flags[i] : 0xff;
         /* We are done if there is an unneeded bit set. */
         ok = (a->data[i] & mask) == 0;

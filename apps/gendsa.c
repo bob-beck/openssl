@@ -22,34 +22,39 @@
 #include <openssl/x509.h>
 #include <openssl/pem.h>
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_OUT, OPT_PASSOUT, OPT_ENGINE, OPT_CIPHER, OPT_VERBOSE, OPT_QUIET,
-    OPT_R_ENUM, OPT_PROV_ENUM
+    OPT_OUT,
+    OPT_PASSOUT,
+    OPT_ENGINE,
+    OPT_CIPHER,
+    OPT_VERBOSE,
+    OPT_QUIET,
+    OPT_R_ENUM,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
-const OPTIONS gendsa_options[] = {
-    {OPT_HELP_STR, 1, '-', "Usage: %s [options] dsaparam-file\n"},
+const OPTIONS gendsa_options[] = {{OPT_HELP_STR, 1, '-', "Usage: %s [options] dsaparam-file\n"},
 
-    OPT_SECTION("General"),
-    {"help", OPT_HELP, '-', "Display this summary"},
+                                  OPT_SECTION("General"),
+                                  {"help", OPT_HELP, '-', "Display this summary"},
 #ifndef OPENSSL_NO_ENGINE
-    {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
+                                  {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
 #endif
 
-    OPT_SECTION("Output"),
-    {"out", OPT_OUT, '>', "Output the key to the specified file"},
-    {"passout", OPT_PASSOUT, 's', "Output file pass phrase source"},
-    OPT_R_OPTIONS,
-    OPT_PROV_OPTIONS,
-    {"", OPT_CIPHER, '-', "Encrypt the output with any supported cipher"},
-    {"verbose", OPT_VERBOSE, '-', "Verbose output"},
-    {"quiet", OPT_QUIET, '-', "Terse output"},
+                                  OPT_SECTION("Output"),
+                                  {"out", OPT_OUT, '>', "Output the key to the specified file"},
+                                  {"passout", OPT_PASSOUT, 's', "Output file pass phrase source"},
+                                  OPT_R_OPTIONS,
+                                  OPT_PROV_OPTIONS,
+                                  {"", OPT_CIPHER, '-', "Encrypt the output with any supported cipher"},
+                                  {"verbose", OPT_VERBOSE, '-', "Verbose output"},
+                                  {"quiet", OPT_QUIET, '-', "Terse output"},
 
-    OPT_PARAMETERS(),
-    {"dsaparam-file", 0, 0, "File containing DSA parameters"},
-    {NULL}
-};
+                                  OPT_PARAMETERS(),
+                                  {"dsaparam-file", 0, 0, "File containing DSA parameters"},
+                                  {NULL}};
 
 int gendsa_main(int argc, char **argv)
 {
@@ -65,11 +70,13 @@ int gendsa_main(int argc, char **argv)
 
     opt_set_unknown_name("cipher");
     prog = opt_init(argc, argv, gendsa_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -118,7 +125,8 @@ int gendsa_main(int argc, char **argv)
         goto end;
     private = 1;
 
-    if (!app_passwd(NULL, passoutarg, NULL, &passout)) {
+    if (!app_passwd(NULL, passoutarg, NULL, &passout))
+    {
         BIO_printf(bio_err, "Error getting password\n");
         goto end;
     }
@@ -137,13 +145,15 @@ int gendsa_main(int argc, char **argv)
                    OPENSSL_DSA_MAX_MODULUS_BITS, EVP_PKEY_get_bits(pkey));
 
     ctx = EVP_PKEY_CTX_new_from_pkey(app_get0_libctx(), pkey, app_get0_propq());
-    if (ctx == NULL) {
+    if (ctx == NULL)
+    {
         BIO_printf(bio_err, "unable to create PKEY context\n");
         goto end;
     }
     EVP_PKEY_free(pkey);
     pkey = NULL;
-    if (EVP_PKEY_keygen_init(ctx) <= 0) {
+    if (EVP_PKEY_keygen_init(ctx) <= 0)
+    {
         BIO_printf(bio_err, "unable to set up for key generation\n");
         goto end;
     }
@@ -152,15 +162,16 @@ int gendsa_main(int argc, char **argv)
         goto end;
 
     assert(private);
-    if (!PEM_write_bio_PrivateKey(out, pkey, enc, NULL, 0, NULL, passout)) {
+    if (!PEM_write_bio_PrivateKey(out, pkey, enc, NULL, 0, NULL, passout))
+    {
         BIO_printf(bio_err, "unable to output generated key\n");
         goto end;
     }
     ret = 0;
- end:
+end:
     if (ret != 0)
         ERR_print_errors(bio_err);
- end2:
+end2:
     BIO_free(in);
     BIO_free_all(out);
     EVP_PKEY_free(pkey);

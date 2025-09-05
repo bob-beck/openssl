@@ -41,15 +41,15 @@ static const char delimiter = '-';
  *  return k + (((base - tmin + 1) * delta) div (delta + skew))
  */
 
-static int adapt(unsigned int delta, unsigned int numpoints,
-                 unsigned int firsttime)
+static int adapt(unsigned int delta, unsigned int numpoints, unsigned int firsttime)
 {
     unsigned int k = 0;
 
     delta = (firsttime) ? delta / damp : delta / 2;
     delta = delta + delta / numpoints;
 
-    while (delta > ((base - tmin) * tmax) / 2) {
+    while (delta > ((base - tmin) * tmax) / 2)
+    {
         delta = delta / (base - tmin);
         k = k + base;
     }
@@ -116,8 +116,7 @@ static ossl_inline int digit_decoded(const unsigned char a)
  *  end
  */
 
-int ossl_punycode_decode(const char *pEncoded, const size_t enc_len,
-                         unsigned int *pDecoded, unsigned int *pout_length)
+int ossl_punycode_decode(const char *pEncoded, const size_t enc_len, unsigned int *pDecoded, unsigned int *pout_length)
 {
     unsigned int n = initial_n;
     unsigned int i = 0;
@@ -130,16 +129,19 @@ int ossl_punycode_decode(const char *pEncoded, const size_t enc_len,
 
     if (enc_len >= UINT_MAX)
         return 0;
-    for (loop = 0; loop < (unsigned int)enc_len; loop++) {
+    for (loop = 0; loop < (unsigned int)enc_len; loop++)
+    {
         if (pEncoded[loop] == delimiter)
             basic_count = loop;
     }
 
-    if (basic_count > 0) {
+    if (basic_count > 0)
+    {
         if (basic_count > max_out)
             return 0;
 
-        for (loop = 0; loop < basic_count; loop++) {
+        for (loop = 0; loop < basic_count; loop++)
+        {
             if (is_basic(pEncoded[loop]) == 0)
                 return 0;
 
@@ -149,13 +151,15 @@ int ossl_punycode_decode(const char *pEncoded, const size_t enc_len,
         processed_in = basic_count + 1;
     }
 
-    for (loop = processed_in; loop < (unsigned int)enc_len;) {
+    for (loop = processed_in; loop < (unsigned int)enc_len;)
+    {
         unsigned int oldi = i;
         unsigned int w = 1;
         unsigned int k, t;
         int digit;
 
-        for (k = base;; k += base) {
+        for (k = base;; k += base)
+        {
             if (loop >= enc_len)
                 return 0;
 
@@ -187,8 +191,7 @@ int ossl_punycode_decode(const char *pEncoded, const size_t enc_len,
         if (written_out >= max_out)
             return 0;
 
-        memmove(pDecoded + i + 1, pDecoded + i,
-                (written_out - i) * sizeof(*pDecoded));
+        memmove(pDecoded + i + 1, pDecoded + i, (written_out - i) * sizeof(*pDecoded));
         pDecoded[i] = n;
         i++;
         written_out++;
@@ -205,25 +208,32 @@ int ossl_punycode_decode(const char *pEncoded, const size_t enc_len,
  */
 static int codepoint2utf8(unsigned char *out, unsigned long utf)
 {
-    if (utf <= 0x7F) {
+    if (utf <= 0x7F)
+    {
         /* Plain ASCII */
         out[0] = (unsigned char)utf;
         out[1] = 0;
         return 1;
-    } else if (utf <= 0x07FF) {
+    }
+    else if (utf <= 0x07FF)
+    {
         /* 2-byte unicode */
         out[0] = (unsigned char)(((utf >> 6) & 0x1F) | 0xC0);
         out[1] = (unsigned char)(((utf >> 0) & 0x3F) | 0x80);
         out[2] = 0;
         return 2;
-    } else if (utf <= 0xFFFF) {
+    }
+    else if (utf <= 0xFFFF)
+    {
         /* 3-byte unicode */
         out[0] = (unsigned char)(((utf >> 12) & 0x0F) | 0xE0);
         out[1] = (unsigned char)(((utf >> 6) & 0x3F) | 0x80);
         out[2] = (unsigned char)(((utf >> 0) & 0x3F) | 0x80);
         out[3] = 0;
         return 3;
-    } else if (utf <= 0x10FFFF) {
+    }
+    else if (utf <= 0x10FFFF)
+    {
         /* 4-byte unicode */
         out[0] = (unsigned char)(((utf >> 18) & 0x07) | 0xF0);
         out[1] = (unsigned char)(((utf >> 12) & 0x3F) | 0x80);
@@ -231,7 +241,9 @@ static int codepoint2utf8(unsigned char *out, unsigned long utf)
         out[3] = (unsigned char)(((utf >> 0) & 0x3F) | 0x80);
         out[4] = 0;
         return 4;
-    } else {
+    }
+    else
+    {
         /* error - use replacement character */
         out[0] = (unsigned char)0xEF;
         out[1] = (unsigned char)0xBF;
@@ -259,7 +271,7 @@ int ossl_a2ulabel(const char *in, char *out, size_t outlen)
     const char *inptr = in;
     int result = 1;
     unsigned int i;
-    unsigned int buf[LABEL_BUF_SIZE];      /* It's a hostname */
+    unsigned int buf[LABEL_BUF_SIZE]; /* It's a hostname */
     WPACKET pkt;
 
     /* Internal API, so should not fail */
@@ -269,26 +281,33 @@ int ossl_a2ulabel(const char *in, char *out, size_t outlen)
     if (!WPACKET_init_static_len(&pkt, (unsigned char *)out, outlen, 0))
         return -1;
 
-    while (1) {
+    while (1)
+    {
         char *tmpptr = strchr(inptr, '.');
         size_t delta = tmpptr != NULL ? (size_t)(tmpptr - inptr) : strlen(inptr);
 
-        if (!HAS_PREFIX(inptr, "xn--")) {
+        if (!HAS_PREFIX(inptr, "xn--"))
+        {
             if (!WPACKET_memcpy(&pkt, inptr, delta))
                 result = 0;
-        } else {
+        }
+        else
+        {
             unsigned int bufsize = LABEL_BUF_SIZE;
 
-            if (ossl_punycode_decode(inptr + 4, delta - 4, buf, &bufsize) <= 0) {
+            if (ossl_punycode_decode(inptr + 4, delta - 4, buf, &bufsize) <= 0)
+            {
                 result = -1;
                 goto end;
             }
 
-            for (i = 0; i < bufsize; i++) {
+            for (i = 0; i < bufsize; i++)
+            {
                 unsigned char seed[6];
                 size_t utfsize = codepoint2utf8(seed, buf[i]);
 
-                if (utfsize == 0) {
+                if (utfsize == 0)
+                {
                     result = -1;
                     goto end;
                 }
@@ -309,7 +328,7 @@ int ossl_a2ulabel(const char *in, char *out, size_t outlen)
 
     if (!WPACKET_put_bytes_u8(&pkt, '\0'))
         result = 0;
- end:
+end:
     WPACKET_cleanup(&pkt);
     return result;
 }

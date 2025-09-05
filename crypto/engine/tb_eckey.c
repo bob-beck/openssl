@@ -28,9 +28,7 @@ static void engine_unregister_all_EC(void)
 int ENGINE_register_EC(ENGINE *e)
 {
     if (e->ec_meth != NULL)
-        return engine_table_register(&dh_table,
-                                     engine_unregister_all_EC, e, &dummy_nid,
-                                     1, 0);
+        return engine_table_register(&dh_table, engine_unregister_all_EC, e, &dummy_nid, 1, 0);
     return 1;
 }
 
@@ -45,9 +43,7 @@ void ENGINE_register_all_EC(void)
 int ENGINE_set_default_EC(ENGINE *e)
 {
     if (e->ec_meth != NULL)
-        return engine_table_register(&dh_table,
-                                     engine_unregister_all_EC, e, &dummy_nid,
-                                     1, 1);
+        return engine_table_register(&dh_table, engine_unregister_all_EC, e, &dummy_nid, 1, 1);
     return 1;
 }
 
@@ -58,8 +54,7 @@ int ENGINE_set_default_EC(ENGINE *e)
  */
 ENGINE *ENGINE_get_default_EC(void)
 {
-    return ossl_engine_table_select(&dh_table, dummy_nid,
-                                    OPENSSL_FILE, OPENSSL_LINE);
+    return ossl_engine_table_select(&dh_table, dummy_nid, OPENSSL_FILE, OPENSSL_LINE);
 }
 
 /* Obtains an EC_KEY implementation from an ENGINE functional reference */

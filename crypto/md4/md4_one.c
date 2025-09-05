@@ -19,7 +19,7 @@
 #include <openssl/crypto.h>
 
 #ifdef CHARSET_EBCDIC
-# include <openssl/ebcdic.h>
+#include <openssl/ebcdic.h>
 #endif
 
 unsigned char *MD4(const unsigned char *d, size_t n, unsigned char *md)
@@ -38,7 +38,8 @@ unsigned char *MD4(const unsigned char *d, size_t n, unsigned char *md)
         char temp[1024];
         unsigned long chunk;
 
-        while (n > 0) {
+        while (n > 0)
+        {
             chunk = (n > sizeof(temp)) ? sizeof(temp) : n;
             ebcdic2ascii(temp, d, chunk);
             MD4_Update(&c, temp, chunk);

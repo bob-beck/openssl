@@ -17,13 +17,13 @@
 #include <openssl/opensslv.h>
 #include <openssl/bio.h>
 
-
 const char *DES_options(void)
 {
     static int init = 1;
     static char buf[12];
 
-    if (init) {
+    if (init)
+    {
         if (sizeof(DES_LONG) != sizeof(long))
             OPENSSL_strlcpy(buf, "des(int)", sizeof(buf));
         else
@@ -33,8 +33,7 @@ const char *DES_options(void)
     return buf;
 }
 
-void DES_ecb_encrypt(const_DES_cblock *input, DES_cblock *output,
-                     DES_key_schedule *ks, int enc)
+void DES_ecb_encrypt(const_DES_cblock *input, DES_cblock *output, DES_key_schedule *ks, int enc)
 {
     register DES_LONG l;
     DES_LONG ll[2];

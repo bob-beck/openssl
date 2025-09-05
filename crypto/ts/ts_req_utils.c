@@ -31,7 +31,8 @@ int TS_REQ_set_msg_imprint(TS_REQ *a, TS_MSG_IMPRINT *msg_imprint)
     if (a->msg_imprint == msg_imprint)
         return 1;
     new_msg_imprint = TS_MSG_IMPRINT_dup(msg_imprint);
-    if (new_msg_imprint == NULL) {
+    if (new_msg_imprint == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_TS_LIB);
         return 0;
     }
@@ -52,7 +53,8 @@ int TS_MSG_IMPRINT_set_algo(TS_MSG_IMPRINT *a, X509_ALGOR *alg)
     if (a->hash_algo == alg)
         return 1;
     new_alg = X509_ALGOR_dup(alg);
-    if (new_alg == NULL) {
+    if (new_alg == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_ASN1_LIB);
         return 0;
     }
@@ -83,7 +85,8 @@ int TS_REQ_set_policy_id(TS_REQ *a, const ASN1_OBJECT *policy)
     if (a->policy_id == policy)
         return 1;
     new_policy = OBJ_dup(policy);
-    if (new_policy == NULL) {
+    if (new_policy == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_OBJ_LIB);
         return 0;
     }
@@ -104,7 +107,8 @@ int TS_REQ_set_nonce(TS_REQ *a, const ASN1_INTEGER *nonce)
     if (a->nonce == nonce)
         return 1;
     new_nonce = ASN1_INTEGER_dup(nonce);
-    if (new_nonce == NULL) {
+    if (new_nonce == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_ASN1_LIB);
         return 0;
     }

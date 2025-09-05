@@ -49,16 +49,17 @@
 #include <str$routines.h>
 #include <stsdef.h>
 #ifndef LPDIR_H
-# include "LPdir.h"
+#include "LPdir.h"
 #endif
 #include "vms_rms.h"
 
 /* Some compiler options hide EVMSERR. */
 #ifndef EVMSERR
-# define EVMSERR        65535   /* error for non-translatable VMS errors */
+#define EVMSERR 65535 /* error for non-translatable VMS errors */
 #endif
 
-struct LP_dir_context_st {
+struct LP_dir_context_st
+{
     unsigned long VMS_context;
     char filespec[NAMX_MAXRSS + 1];
     char result[NAMX_MAXRSS + 1];
@@ -75,49 +76,53 @@ const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
 
 /* Arrange 32-bit pointer to (copied) string storage, if needed. */
 #if __INITIAL_POINTER_SIZE == 64
-# pragma pointer_size save
-# pragma pointer_size 32
+#pragma pointer_size save
+#pragma pointer_size 32
     char *ctx_filespec_32p;
-# pragma pointer_size restore
+#pragma pointer_size restore
     char ctx_filespec_32[NAMX_MAXRSS + 1];
-#endif                          /* __INITIAL_POINTER_SIZE == 64 */
+#endif /* __INITIAL_POINTER_SIZE == 64 */
 
 #ifdef NAML$C_MAXRSS
     flags |= LIB$M_FIL_LONG_NAMES;
 #endif
 
-    if (ctx == NULL || directory == NULL) {
+    if (ctx == NULL || directory == NULL)
+    {
         errno = EINVAL;
         return 0;
     }
 
     errno = 0;
-    if (*ctx == NULL) {
+    if (*ctx == NULL)
+    {
         size_t filespeclen = strlen(directory);
         char *filespec = NULL;
 
-        if (filespeclen == 0) {
+        if (filespeclen == 0)
+        {
             errno = ENOENT;
             return 0;
         }
 
         /* MUST be a VMS directory specification!  Let's estimate if it is. */
-        if (directory[filespeclen - 1] != ']'
-            && directory[filespeclen - 1] != '>'
-            && directory[filespeclen - 1] != ':') {
+        if (directory[filespeclen - 1] != ']' && directory[filespeclen - 1] != '>' && directory[filespeclen - 1] != ':')
+        {
             errno = EINVAL;
             return 0;
         }
 
-        filespeclen += 4;       /* "*.*;" */
+        filespeclen += 4; /* "*.*;" */
 
-        if (filespeclen > NAMX_MAXRSS) {
+        if (filespeclen > NAMX_MAXRSS)
+        {
             errno = ENAMETOOLONG;
             return 0;
         }
 
         *ctx = malloc(sizeof(**ctx));
-        if (*ctx == NULL) {
+        if (*ctx == NULL)
+        {
             errno = ENOMEM;
             return 0;
         }
@@ -128,13 +133,13 @@ const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
 
 /* Arrange 32-bit pointer to (copied) string storage, if needed. */
 #if __INITIAL_POINTER_SIZE == 64
-# define CTX_FILESPEC ctx_filespec_32p
+#define CTX_FILESPEC ctx_filespec_32p
         /* Copy the file name to storage with a 32-bit pointer. */
         ctx_filespec_32p = ctx_filespec_32;
         strcpy(ctx_filespec_32p, (*ctx)->filespec);
-#else                           /* __INITIAL_POINTER_SIZE == 64 */
-# define CTX_FILESPEC (*ctx)->filespec
-#endif                          /* __INITIAL_POINTER_SIZE == 64 [else] */
+#else /* __INITIAL_POINTER_SIZE == 64 */
+#define CTX_FILESPEC (*ctx)->filespec
+#endif /* __INITIAL_POINTER_SIZE == 64 [else] */
 
         (*ctx)->filespec_dsc.dsc$w_length = filespeclen;
         (*ctx)->filespec_dsc.dsc$b_dtype = DSC$K_DTYPE_T;
@@ -147,16 +152,17 @@ const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
     (*ctx)->result_dsc.dsc$b_class = DSC$K_CLASS_D;
     (*ctx)->result_dsc.dsc$a_pointer = 0;
 
-    status = lib$find_file(&(*ctx)->filespec_dsc, &(*ctx)->result_dsc,
-                           &(*ctx)->VMS_context, 0, 0, 0, &flags);
+    status = lib$find_file(&(*ctx)->filespec_dsc, &(*ctx)->result_dsc, &(*ctx)->VMS_context, 0, 0, 0, &flags);
 
-    if (status == RMS$_NMF) {
+    if (status == RMS$_NMF)
+    {
         errno = 0;
         vaxc$errno = status;
         return NULL;
     }
 
-    if (!$VMS_STATUS_SUCCESS(status)) {
+    if (!$VMS_STATUS_SUCCESS(status))
+    {
         errno = EVMSERR;
         vaxc$errno = status;
         return NULL;
@@ -169,13 +175,19 @@ const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
     l = (*ctx)->result_dsc.dsc$w_length;
     p = (*ctx)->result_dsc.dsc$a_pointer;
     r = p;
-    for (; *p; p++) {
-        if (*p == '^' && p[1] != '\0') { /* Take care of ODS-5 escapes */
+    for (; *p; p++)
+    {
+        if (*p == '^' && p[1] != '\0')
+        { /* Take care of ODS-5 escapes */
             p++;
-        } else if (*p == ':' || *p == '>' || *p == ']') {
+        }
+        else if (*p == ':' || *p == '>' || *p == ']')
+        {
             l -= p + 1 - r;
             r = p + 1;
-        } else if (*p == ';') {
+        }
+        else if (*p == ';')
+        {
             l = p - r;
             break;
         }
@@ -190,12 +202,14 @@ const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
 
 int LP_find_file_end(LP_DIR_CTX **ctx)
 {
-    if (ctx != NULL && *ctx != NULL) {
+    if (ctx != NULL && *ctx != NULL)
+    {
         int status = lib$find_file_end(&(*ctx)->VMS_context);
 
         free(*ctx);
 
-        if (!$VMS_STATUS_SUCCESS(status)) {
+        if (!$VMS_STATUS_SUCCESS(status))
+        {
             errno = EVMSERR;
             vaxc$errno = status;
             return 0;

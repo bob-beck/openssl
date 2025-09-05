@@ -37,20 +37,30 @@ static int test_x509_check_cert_pkey(void)
      * we check them first thus if fails we don't need to do
      * those PEM parsing operations.
      */
-    if (strcmp(t, "cert") == 0) {
+    if (strcmp(t, "cert") == 0)
+    {
         type = 1;
-    } else if (strcmp(t, "req") == 0) {
+    }
+    else if (strcmp(t, "req") == 0)
+    {
         type = 2;
-    } else {
+    }
+    else
+    {
         TEST_error("invalid 'type'");
         goto failed;
     }
 
-    if (strcmp(e, "ok") == 0) {
+    if (strcmp(e, "ok") == 0)
+    {
         expected = 1;
-    } else if (strcmp(e, "failed") == 0) {
+    }
+    else if (strcmp(e, "failed") == 0)
+    {
         expected = 0;
-    } else {
+    }
+    else
+    {
         TEST_error("invalid 'expected'");
         goto failed;
     }
@@ -68,10 +78,12 @@ static int test_x509_check_cert_pkey(void)
     if (!TEST_ptr(bio = BIO_new_file(c, "r")))
         goto failed;
 
-    switch (type) {
+    switch (type)
+    {
     case 1:
         x509 = PEM_read_bio_X509(bio, NULL, NULL, NULL);
-        if (x509 == NULL) {
+        if (x509 == NULL)
+        {
             TEST_error("read PEM x509 failed");
             goto failed;
         }
@@ -80,7 +92,8 @@ static int test_x509_check_cert_pkey(void)
         break;
     case 2:
         x509_req = PEM_read_bio_X509_REQ(bio, NULL, NULL, NULL);
-        if (x509_req == NULL) {
+        if (x509_req == NULL)
+        {
             TEST_error("read PEM x509 req failed");
             goto failed;
         }
@@ -92,7 +105,8 @@ static int test_x509_check_cert_pkey(void)
         break;
     }
 
-    if (!TEST_int_eq(result, expected)) {
+    if (!TEST_int_eq(result, expected))
+    {
         TEST_error("check private key: expected: %d, got: %d", expected, result);
         goto failed;
     }
@@ -120,7 +134,8 @@ static int test_PEM_X509_INFO_read_bio(void)
         return 0;
     sk = PEM_X509_INFO_read_bio(in, NULL, NULL, "");
     BIO_free(in);
-    for (i = 0; i < sk_X509_INFO_num(sk); i++) {
+    for (i = 0; i < sk_X509_INFO_num(sk); i++)
+    {
         it = sk_X509_INFO_value(sk, i);
         if (it->x509 != NULL)
             count++;
@@ -135,33 +150,36 @@ static int test_PEM_X509_INFO_read_bio(void)
 
 const OPTIONS *test_get_options(void)
 {
-    enum { OPT_TEST_ENUM };
+    enum
+    {
+        OPT_TEST_ENUM
+    };
     static const OPTIONS test_options[] = {
         OPT_TEST_OPTIONS_WITH_EXTRA_USAGE("cert key type expected\n"
                                           "     or [options] file num\n"),
-        { OPT_HELP_STR, 1, '-', "cert\tcertificate or CSR filename in PEM\n" },
-        { OPT_HELP_STR, 1, '-', "key\tprivate key filename in PEM\n" },
-        { OPT_HELP_STR, 1, '-', "type\t\tvalue must be 'cert' or 'req'\n" },
-        { OPT_HELP_STR, 1, '-', "expected\tthe expected return value, either 'ok' or 'failed'\n" },
-        { OPT_HELP_STR, 1, '-', "file\tPEM format file containing certs, keys, and/OR CRLs\n" },
-        { OPT_HELP_STR, 1, '-', "num\texpected number of credentials to be loaded from file\n" },
-        { NULL }
-    };
+        {OPT_HELP_STR, 1, '-', "cert\tcertificate or CSR filename in PEM\n"},
+        {OPT_HELP_STR, 1, '-', "key\tprivate key filename in PEM\n"},
+        {OPT_HELP_STR, 1, '-', "type\t\tvalue must be 'cert' or 'req'\n"},
+        {OPT_HELP_STR, 1, '-', "expected\tthe expected return value, either 'ok' or 'failed'\n"},
+        {OPT_HELP_STR, 1, '-', "file\tPEM format file containing certs, keys, and/OR CRLs\n"},
+        {OPT_HELP_STR, 1, '-', "num\texpected number of credentials to be loaded from file\n"},
+        {NULL}};
     return test_options;
 }
 
 int setup_tests(void)
 {
-    if (!test_skip_common_options()) {
+    if (!test_skip_common_options())
+    {
         TEST_error("Error parsing test options\n");
         return 0;
     }
 
-    if (test_get_argument_count() == 2) {
-        const char *num;  /* expected number of certs/CRLs/keys included */
+    if (test_get_argument_count() == 2)
+    {
+        const char *num; /* expected number of certs/CRLs/keys included */
 
-        if (!TEST_ptr(file = test_get_argument(0))
-                || !TEST_ptr(num = test_get_argument(1)))
+        if (!TEST_ptr(file = test_get_argument(0)) || !TEST_ptr(num = test_get_argument(1)))
             return 0;
         if (!TEST_int_eq(sscanf(num, "%d", &expected), 1))
             return 0;
@@ -169,10 +187,9 @@ int setup_tests(void)
         return 1;
     }
 
-    if (!TEST_ptr(c = test_get_argument(0))
-            || !TEST_ptr(k = test_get_argument(1))
-            || !TEST_ptr(t = test_get_argument(2))
-            || !TEST_ptr(e = test_get_argument(3))) {
+    if (!TEST_ptr(c = test_get_argument(0)) || !TEST_ptr(k = test_get_argument(1)) ||
+        !TEST_ptr(t = test_get_argument(2)) || !TEST_ptr(e = test_get_argument(3)))
+    {
         return 0;
     }
 

@@ -23,10 +23,8 @@ static int test_rsa_x931_keygen(void)
     BIGNUM *e = NULL;
     RSA *rsa = NULL;
 
-    ret = TEST_ptr(rsa = ossl_rsa_new_with_ctx(libctx))
-          && TEST_ptr(e = BN_new())
-          && TEST_int_eq(BN_set_word(e, RSA_F4), 1)
-          && TEST_int_eq(RSA_X931_generate_key_ex(rsa, 1024, e, NULL), 1);
+    ret = TEST_ptr(rsa = ossl_rsa_new_with_ctx(libctx)) && TEST_ptr(e = BN_new()) &&
+          TEST_int_eq(BN_set_word(e, RSA_F4), 1) && TEST_int_eq(RSA_X931_generate_key_ex(rsa, 1024, e, NULL), 1);
     BN_free(e);
     RSA_free(rsa);
     return ret;

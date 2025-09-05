@@ -34,7 +34,8 @@ static int int_ctrl_cmd_is_null(const ENGINE_CMD_DEFN *defn)
 static int int_ctrl_cmd_by_name(const ENGINE_CMD_DEFN *defn, const char *s)
 {
     int idx = 0;
-    while (!int_ctrl_cmd_is_null(defn) && (strcmp(defn->cmd_name, s) != 0)) {
+    while (!int_ctrl_cmd_is_null(defn) && (strcmp(defn->cmd_name, s) != 0))
+    {
         idx++;
         defn++;
     }
@@ -51,7 +52,8 @@ static int int_ctrl_cmd_by_num(const ENGINE_CMD_DEFN *defn, unsigned int num)
      * NB: It is stipulated that 'cmd_defn' lists are ordered by cmd_num. So
      * our searches don't need to take any longer than necessary.
      */
-    while (!int_ctrl_cmd_is_null(defn) && (defn->cmd_num < num)) {
+    while (!int_ctrl_cmd_is_null(defn) && (defn->cmd_num < num))
+    {
         idx++;
         defn++;
     }
@@ -61,32 +63,34 @@ static int int_ctrl_cmd_by_num(const ENGINE_CMD_DEFN *defn, unsigned int num)
     return -1;
 }
 
-static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
-                           void (*f) (void))
+static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p, void (*f)(void))
 {
     int idx;
     char *s = (char *)p;
     const ENGINE_CMD_DEFN *cdp;
 
     /* Take care of the easy one first (eg. it requires no searches) */
-    if (cmd == ENGINE_CTRL_GET_FIRST_CMD_TYPE) {
+    if (cmd == ENGINE_CTRL_GET_FIRST_CMD_TYPE)
+    {
         if ((e->cmd_defns == NULL) || int_ctrl_cmd_is_null(e->cmd_defns))
             return 0;
         return e->cmd_defns->cmd_num;
     }
     /* One or two commands require that "p" be a valid string buffer */
-    if ((cmd == ENGINE_CTRL_GET_CMD_FROM_NAME) ||
-        (cmd == ENGINE_CTRL_GET_NAME_FROM_CMD) ||
-        (cmd == ENGINE_CTRL_GET_DESC_FROM_CMD)) {
-        if (s == NULL) {
+    if ((cmd == ENGINE_CTRL_GET_CMD_FROM_NAME) || (cmd == ENGINE_CTRL_GET_NAME_FROM_CMD) ||
+        (cmd == ENGINE_CTRL_GET_DESC_FROM_CMD))
+    {
+        if (s == NULL)
+        {
             ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
             return -1;
         }
     }
     /* Now handle cmd_name -> cmd_num conversion */
-    if (cmd == ENGINE_CTRL_GET_CMD_FROM_NAME) {
-        if ((e->cmd_defns == NULL)
-            || ((idx = int_ctrl_cmd_by_name(e->cmd_defns, s)) < 0)) {
+    if (cmd == ENGINE_CTRL_GET_CMD_FROM_NAME)
+    {
+        if ((e->cmd_defns == NULL) || ((idx = int_ctrl_cmd_by_name(e->cmd_defns, s)) < 0))
+        {
             ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INVALID_CMD_NAME);
             return -1;
         }
@@ -96,14 +100,15 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
      * For the rest of the commands, the 'long' argument must specify a valid
      * command number - so we need to conduct a search.
      */
-    if ((e->cmd_defns == NULL)
-        || ((idx = int_ctrl_cmd_by_num(e->cmd_defns, (unsigned int)i)) < 0)) {
+    if ((e->cmd_defns == NULL) || ((idx = int_ctrl_cmd_by_num(e->cmd_defns, (unsigned int)i)) < 0))
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INVALID_CMD_NUMBER);
         return -1;
     }
     /* Now the logic splits depending on command type */
     cdp = &e->cmd_defns[idx];
-    switch (cmd) {
+    switch (cmd)
+    {
     case ENGINE_CTRL_GET_NEXT_CMD_TYPE:
         cdp++;
         return int_ctrl_cmd_is_null(cdp) ? 0 : cdp->cmd_num;
@@ -112,11 +117,9 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
     case ENGINE_CTRL_GET_NAME_FROM_CMD:
         return (int)strlen(strcpy(s, cdp->cmd_name));
     case ENGINE_CTRL_GET_DESC_LEN_FROM_CMD:
-        return (int)strlen(cdp->cmd_desc == NULL ? int_no_description
-                                                 : cdp->cmd_desc);
+        return (int)strlen(cdp->cmd_desc == NULL ? int_no_description : cdp->cmd_desc);
     case ENGINE_CTRL_GET_DESC_FROM_CMD:
-        return (int)strlen(strcpy(s, cdp->cmd_desc == NULL ? int_no_description
-                                                           : cdp->cmd_desc));
+        return (int)strlen(strcpy(s, cdp->cmd_desc == NULL ? int_no_description : cdp->cmd_desc));
     case ENGINE_CTRL_GET_CMD_FLAGS:
         return cdp->cmd_flags;
     }
@@ -125,11 +128,12 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
     return -1;
 }
 
-int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
+int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f)(void))
 {
     int ctrl_exists;
 
-    if (e == NULL) {
+    if (e == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
@@ -140,7 +144,8 @@ int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
      * Intercept any "root-level" commands before trying to hand them on to
      * ctrl() handlers.
      */
-    switch (cmd) {
+    switch (cmd)
+    {
     case ENGINE_CTRL_HAS_CTRL_FUNCTION:
         return ctrl_exists;
     case ENGINE_CTRL_GET_FIRST_CMD_TYPE:
@@ -153,7 +158,8 @@ int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
     case ENGINE_CTRL_GET_CMD_FLAGS:
         if (ctrl_exists && !(e->flags & ENGINE_FLAGS_MANUAL_CMD_CTRL))
             return int_ctrl_helper(e, cmd, i, p, f);
-        if (!ctrl_exists) {
+        if (!ctrl_exists)
+        {
             ERR_raise(ERR_LIB_ENGINE, ENGINE_R_NO_CONTROL_FUNCTION);
             /*
              * For these cmd-related functions, failure is indicated by a -1
@@ -166,7 +172,8 @@ int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
         break;
     }
     /* Anything else requires a ctrl() handler to exist. */
-    if (!ctrl_exists) {
+    if (!ctrl_exists)
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_NO_CONTROL_FUNCTION);
         return 0;
     }
@@ -176,30 +183,27 @@ int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
 int ENGINE_cmd_is_executable(ENGINE *e, int cmd)
 {
     int flags;
-    if ((flags =
-         ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FLAGS, cmd, NULL, NULL)) < 0) {
+    if ((flags = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FLAGS, cmd, NULL, NULL)) < 0)
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INVALID_CMD_NUMBER);
         return 0;
     }
-    if (!(flags & ENGINE_CMD_FLAG_NO_INPUT) &&
-        !(flags & ENGINE_CMD_FLAG_NUMERIC) &&
-        !(flags & ENGINE_CMD_FLAG_STRING))
+    if (!(flags & ENGINE_CMD_FLAG_NO_INPUT) && !(flags & ENGINE_CMD_FLAG_NUMERIC) && !(flags & ENGINE_CMD_FLAG_STRING))
         return 0;
     return 1;
 }
 
-int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
-                    long i, void *p, void (*f) (void), int cmd_optional)
+int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name, long i, void *p, void (*f)(void), int cmd_optional)
 {
     int num;
 
-    if (e == NULL || cmd_name == NULL) {
+    if (e == NULL || cmd_name == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (e->ctrl == NULL
-        || (num = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME,
-                              0, (void *)cmd_name, NULL)) <= 0) {
+    if (e->ctrl == NULL || (num = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME, 0, (void *)cmd_name, NULL)) <= 0)
+    {
         /*
          * If the command didn't *have* to be supported, we fake success.
          * This allows certain settings to be specified for multiple ENGINEs
@@ -208,7 +212,8 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
          * back to the regular software ENGINE without editing the config
          * file, etc.
          */
-        if (cmd_optional) {
+        if (cmd_optional)
+        {
             ERR_clear_error();
             return 1;
         }
@@ -224,20 +229,19 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
     return 0;
 }
 
-int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
-                           int cmd_optional)
+int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg, int cmd_optional)
 {
     int num, flags;
     long l;
     char *ptr;
 
-    if (e == NULL || cmd_name == NULL) {
+    if (e == NULL || cmd_name == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (e->ctrl == NULL
-        || (num = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME,
-                              0, (void *)cmd_name, NULL)) <= 0) {
+    if (e->ctrl == NULL || (num = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME, 0, (void *)cmd_name, NULL)) <= 0)
+    {
         /*
          * If the command didn't *have* to be supported, we fake success.
          * This allows certain settings to be specified for multiple ENGINEs
@@ -246,20 +250,23 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
          * back to the regular software ENGINE without editing the config
          * file, etc.
          */
-        if (cmd_optional) {
+        if (cmd_optional)
+        {
             ERR_clear_error();
             return 1;
         }
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INVALID_CMD_NAME);
         return 0;
     }
-    if (!ENGINE_cmd_is_executable(e, num)) {
+    if (!ENGINE_cmd_is_executable(e, num))
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_CMD_NOT_EXECUTABLE);
         return 0;
     }
 
     flags = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FLAGS, num, NULL, NULL);
-    if (flags < 0) {
+    if (flags < 0)
+    {
         /*
          * Shouldn't happen, given that ENGINE_cmd_is_executable() returned
          * success.
@@ -270,8 +277,10 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
     /*
      * If the command takes no input, there must be no input. And vice versa.
      */
-    if (flags & ENGINE_CMD_FLAG_NO_INPUT) {
-        if (arg != NULL) {
+    if (flags & ENGINE_CMD_FLAG_NO_INPUT)
+    {
+        if (arg != NULL)
+        {
             ERR_raise(ERR_LIB_ENGINE, ENGINE_R_COMMAND_TAKES_NO_INPUT);
             return 0;
         }
@@ -286,12 +295,14 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
         return 0;
     }
     /* So, we require input */
-    if (arg == NULL) {
+    if (arg == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_COMMAND_TAKES_INPUT);
         return 0;
     }
     /* If it takes string input, that's easy */
-    if (flags & ENGINE_CMD_FLAG_STRING) {
+    if (flags & ENGINE_CMD_FLAG_STRING)
+    {
         /* Same explanation as above */
         if (ENGINE_ctrl(e, num, 0, (void *)arg, NULL) > 0)
             return 1;
@@ -303,12 +314,14 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
      * should never happen though, because ENGINE_cmd_is_executable() was
      * used.
      */
-    if (!(flags & ENGINE_CMD_FLAG_NUMERIC)) {
+    if (!(flags & ENGINE_CMD_FLAG_NUMERIC))
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INTERNAL_LIST_ERROR);
         return 0;
     }
     l = strtol(arg, &ptr, 10);
-    if ((arg == ptr) || (*ptr != '\0')) {
+    if ((arg == ptr) || (*ptr != '\0'))
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_ARGUMENT_IS_NOT_A_NUMBER);
         return 0;
     }

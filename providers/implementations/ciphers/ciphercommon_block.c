@@ -36,9 +36,8 @@
  * the remaining amount of data in *in. Returns the largest value <= *inlen
  * which is a multiple of the blocksize.
  */
-size_t ossl_cipher_fillblock(unsigned char *buf, size_t *buflen,
-                             size_t blocksize,
-                             const unsigned char **in, size_t *inlen)
+size_t ossl_cipher_fillblock(unsigned char *buf, size_t *buflen, size_t blocksize, const unsigned char **in,
+                             size_t *inlen)
 {
     size_t blockmask = ~(blocksize - 1);
     size_t bufremain = blocksize - *buflen;
@@ -60,13 +59,14 @@ size_t ossl_cipher_fillblock(unsigned char *buf, size_t *buflen,
  * Fills the buffer with trailing data from an encryption/decryption that didn't
  * fit into a full block.
  */
-int ossl_cipher_trailingdata(unsigned char *buf, size_t *buflen, size_t blocksize,
-                             const unsigned char **in, size_t *inlen)
+int ossl_cipher_trailingdata(unsigned char *buf, size_t *buflen, size_t blocksize, const unsigned char **in,
+                             size_t *inlen)
 {
     if (*inlen == 0)
         return 1;
 
-    if (*buflen + *inlen > blocksize) {
+    if (*buflen + *inlen > blocksize)
+    {
         ERR_raise(ERR_LIB_PROV, ERR_R_INTERNAL_ERROR);
         return 0;
     }
@@ -93,7 +93,8 @@ int ossl_cipher_unpadblock(unsigned char *buf, size_t *buflen, size_t blocksize)
     size_t pad, i;
     size_t len = *buflen;
 
-    if (len != blocksize) {
+    if (len != blocksize)
+    {
         ERR_raise(ERR_LIB_PROV, ERR_R_INTERNAL_ERROR);
         return 0;
     }
@@ -103,12 +104,15 @@ int ossl_cipher_unpadblock(unsigned char *buf, size_t *buflen, size_t blocksize)
      * Otherwise it provides a padding oracle.
      */
     pad = buf[blocksize - 1];
-    if (pad == 0 || pad > blocksize) {
+    if (pad == 0 || pad > blocksize)
+    {
         ERR_raise(ERR_LIB_PROV, PROV_R_BAD_DECRYPT);
         return 0;
     }
-    for (i = 0; i < pad; i++) {
-        if (buf[--len] != pad) {
+    for (i = 0; i < pad; i++)
+    {
+        if (buf[--len] != pad)
+        {
             ERR_raise(ERR_LIB_PROV, PROV_R_BAD_DECRYPT);
             return 0;
         }
@@ -138,19 +142,15 @@ int ossl_cipher_unpadblock(unsigned char *buf, size_t *buflen, size_t blocksize)
  *   1: (in constant time) Record is publicly valid. If padding is invalid then
  *      the mac is random
  */
-int ossl_cipher_tlsunpadblock(OSSL_LIB_CTX *libctx, unsigned int tlsversion,
-                              unsigned char *buf, size_t *buflen,
-                              size_t blocksize,
-                              unsigned char **mac, int *alloced, size_t macsize,
-                              int aead)
+int ossl_cipher_tlsunpadblock(OSSL_LIB_CTX *libctx, unsigned int tlsversion, unsigned char *buf, size_t *buflen,
+                              size_t blocksize, unsigned char **mac, int *alloced, size_t macsize, int aead)
 {
     int ret;
 
-    switch (tlsversion) {
+    switch (tlsversion)
+    {
     case SSL3_VERSION:
-        return ssl3_cbc_remove_padding_and_mac(buflen, *buflen, buf, mac,
-                                               alloced, blocksize, macsize,
-                                               libctx);
+        return ssl3_cbc_remove_padding_and_mac(buflen, *buflen, buf, mac, alloced, blocksize, macsize, libctx);
 
     case TLS1_2_VERSION:
     case DTLS1_2_VERSION:
@@ -162,9 +162,7 @@ int ossl_cipher_tlsunpadblock(OSSL_LIB_CTX *libctx, unsigned int tlsversion,
         *buflen -= blocksize;
         /* Fall through */
     case TLS1_VERSION:
-        ret = tls1_cbc_remove_padding_and_mac(buflen, *buflen, buf, mac,
-                                              alloced, blocksize, macsize,
-                                              aead, libctx);
+        ret = tls1_cbc_remove_padding_and_mac(buflen, *buflen, buf, mac, alloced, blocksize, macsize, aead, libctx);
         return ret;
 
     default:

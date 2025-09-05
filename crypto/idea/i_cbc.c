@@ -17,20 +17,21 @@
 #include <openssl/idea.h>
 #include "idea_local.h"
 
-void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
-                      long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
-                      int encrypt)
+void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out, long length, IDEA_KEY_SCHEDULE *ks,
+                      unsigned char *iv, int encrypt)
 {
     register unsigned long tin0, tin1;
     register unsigned long tout0, tout1, xor0, xor1;
     register long l = length;
     unsigned long tin[2];
 
-    if (encrypt) {
+    if (encrypt)
+    {
         n2l(iv, tout0);
         n2l(iv, tout1);
         iv -= 8;
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             n2l(in, tin0);
             n2l(in, tin1);
             tin0 ^= tout0;
@@ -43,7 +44,8 @@ void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
             tout1 = tin[1];
             l2n(tout1, out);
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             n2ln(in, tin0, tin1, l + 8);
             tin0 ^= tout0;
             tin1 ^= tout1;
@@ -57,11 +59,14 @@ void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
         }
         l2n(tout0, iv);
         l2n(tout1, iv);
-    } else {
+    }
+    else
+    {
         n2l(iv, xor0);
         n2l(iv, xor1);
         iv -= 8;
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             n2l(in, tin0);
             tin[0] = tin0;
             n2l(in, tin1);
@@ -74,7 +79,8 @@ void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
             xor0 = tin0;
             xor1 = tin1;
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             n2l(in, tin0);
             tin[0] = tin0;
             n2l(in, tin1);

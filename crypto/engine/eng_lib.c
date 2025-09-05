@@ -28,19 +28,22 @@ ENGINE *ENGINE_new(void)
 {
     ENGINE *ret;
 
-    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init)) {
+    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init))
+    {
         /* Maybe this should be raised in do_engine_lock_init() */
         ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
         return 0;
     }
     if ((ret = OPENSSL_zalloc(sizeof(*ret))) == NULL)
         return NULL;
-    if (!CRYPTO_NEW_REF(&ret->struct_ref, 1)) {
+    if (!CRYPTO_NEW_REF(&ret->struct_ref, 1))
+    {
         OPENSSL_free(ret);
         return NULL;
     }
     ENGINE_REF_PRINT(ret, 0, 1);
-    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_ENGINE, ret, &ret->ex_data)) {
+    if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_ENGINE, ret, &ret->ex_data))
+    {
         CRYPTO_FREE_REF(&ret->struct_ref);
         OPENSSL_free(ret);
         return NULL;
@@ -142,7 +145,8 @@ int engine_cleanup_add_first(ENGINE_CLEANUP_CB *cb)
     if (!int_cleanup_check(1))
         return 0;
     item = int_cleanup_item(cb);
-    if (item != NULL) {
+    if (item != NULL)
+    {
         if (sk_ENGINE_CLEANUP_ITEM_insert(cleanup_stack, item, 0))
             return 1;
         OPENSSL_free(item);
@@ -157,7 +161,8 @@ int engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb)
     if (!int_cleanup_check(1))
         return 0;
     item = int_cleanup_item(cb);
-    if (item != NULL) {
+    if (item != NULL)
+    {
         if (sk_ENGINE_CLEANUP_ITEM_push(cleanup_stack, item) > 0)
             return 1;
         OPENSSL_free(item);
@@ -168,15 +173,15 @@ int engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb)
 /* The API function that performs all cleanup */
 static void engine_cleanup_cb_free(ENGINE_CLEANUP_ITEM *item)
 {
-    (*(item->cb)) ();
+    (*(item->cb))();
     OPENSSL_free(item);
 }
 
 void engine_cleanup_int(void)
 {
-    if (int_cleanup_check(0)) {
-        sk_ENGINE_CLEANUP_ITEM_pop_free(cleanup_stack,
-                                        engine_cleanup_cb_free);
+    if (int_cleanup_check(0))
+    {
+        sk_ENGINE_CLEANUP_ITEM_pop_free(cleanup_stack, engine_cleanup_cb_free);
         cleanup_stack = NULL;
     }
     CRYPTO_THREAD_lock_free(global_engine_lock);
@@ -202,7 +207,8 @@ void *ENGINE_get_ex_data(const ENGINE *e, int idx)
 
 int ENGINE_set_id(ENGINE *e, const char *id)
 {
-    if (id == NULL) {
+    if (id == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
@@ -212,7 +218,8 @@ int ENGINE_set_id(ENGINE *e, const char *id)
 
 int ENGINE_set_name(ENGINE *e, const char *name)
 {
-    if (name == NULL) {
+    if (name == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }

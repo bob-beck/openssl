@@ -24,18 +24,14 @@
  * the soliloquy from Hamlet scene 1 act 3
  */
 
-static const char *hamlet_1 =
-    "To be, or not to be, that is the question,\n"
-    "Whether tis nobler in the minde to suffer\n"
-    "The slings and arrowes of outragious fortune,\n"
-    "Or to take Armes again in a sea of troubles,\n"
-;
-static const char *hamlet_2 =
-    "And by opposing, end them, to die to sleep;\n"
-    "No more, and by a sleep, to say we end\n"
-    "The heart-ache, and the thousand natural shocks\n"
-    "That flesh is heir to? tis a consumation\n"
-;
+static const char *hamlet_1 = "To be, or not to be, that is the question,\n"
+                              "Whether tis nobler in the minde to suffer\n"
+                              "The slings and arrowes of outragious fortune,\n"
+                              "Or to take Armes again in a sea of troubles,\n";
+static const char *hamlet_2 = "And by opposing, end them, to die to sleep;\n"
+                              "No more, and by a sleep, to say we end\n"
+                              "The heart-ache, and the thousand natural shocks\n"
+                              "That flesh is heir to? tis a consumation\n";
 
 /*
  * For demo_sign, load EC private key priv_key from priv_key_der[].
@@ -44,22 +40,24 @@ static const char *hamlet_2 =
 static EVP_PKEY *get_key(OSSL_LIB_CTX *libctx, const char *propq, int public)
 {
     OSSL_DECODER_CTX *dctx = NULL;
-    EVP_PKEY  *pkey = NULL;
+    EVP_PKEY *pkey = NULL;
     int selection;
     const unsigned char *data;
     size_t data_len;
 
-    if (public) {
+    if (public)
+    {
         selection = EVP_PKEY_PUBLIC_KEY;
-        data =  pub_key_der;
+        data = pub_key_der;
         data_len = sizeof(pub_key_der);
-    } else {
-        selection =  EVP_PKEY_KEYPAIR;
+    }
+    else
+    {
+        selection = EVP_PKEY_KEYPAIR;
         data = priv_key_der;
         data_len = sizeof(priv_key_der);
     }
-    dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, "DER", NULL, "EC",
-                                         selection, libctx, propq);
+    dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, "DER", NULL, "EC", selection, libctx, propq);
     (void)OSSL_DECODER_from_data(dctx, &data, &data_len);
     OSSL_DECODER_CTX_free(dctx);
     if (pkey == NULL)
@@ -67,8 +65,7 @@ static EVP_PKEY *get_key(OSSL_LIB_CTX *libctx, const char *propq, int public)
     return pkey;
 }
 
-static int demo_sign(OSSL_LIB_CTX *libctx,  const char *sig_name,
-                     size_t *sig_out_len, unsigned char **sig_out_value)
+static int demo_sign(OSSL_LIB_CTX *libctx, const char *sig_name, size_t *sig_out_len, unsigned char **sig_out_value)
 {
     int ret = 0, public = 0;
     size_t sig_len;
@@ -79,7 +76,8 @@ static int demo_sign(OSSL_LIB_CTX *libctx,  const char *sig_name,
 
     /* Get private key */
     priv_key = get_key(libctx, propq, public);
-    if (priv_key == NULL) {
+    if (priv_key == NULL)
+    {
         fprintf(stderr, "Get private key failed.\n");
         goto cleanup;
     }
@@ -88,7 +86,8 @@ static int demo_sign(OSSL_LIB_CTX *libctx,  const char *sig_name,
      * during signature creation
      */
     sign_context = EVP_MD_CTX_new();
-    if (sign_context == NULL) {
+    if (sign_context == NULL)
+    {
         fprintf(stderr, "EVP_MD_CTX_new failed.\n");
         goto cleanup;
     }
@@ -96,8 +95,8 @@ static int demo_sign(OSSL_LIB_CTX *libctx,  const char *sig_name,
      * Initialize the sign context to use the fetched
      * sign provider.
      */
-    if (!EVP_DigestSignInit_ex(sign_context, NULL, sig_name,
-                              libctx, NULL, priv_key, NULL)) {
+    if (!EVP_DigestSignInit_ex(sign_context, NULL, sig_name, libctx, NULL, priv_key, NULL))
+    {
         fprintf(stderr, "EVP_DigestSignInit_ex failed.\n");
         goto cleanup;
     }
@@ -105,29 +104,35 @@ static int demo_sign(OSSL_LIB_CTX *libctx,  const char *sig_name,
      * EVP_DigestSignUpdate() can be called several times on the same context
      * to include additional data.
      */
-    if (!EVP_DigestSignUpdate(sign_context, hamlet_1, strlen(hamlet_1))) {
+    if (!EVP_DigestSignUpdate(sign_context, hamlet_1, strlen(hamlet_1)))
+    {
         fprintf(stderr, "EVP_DigestSignUpdate(hamlet_1) failed.\n");
         goto cleanup;
     }
-    if (!EVP_DigestSignUpdate(sign_context, hamlet_2, strlen(hamlet_2))) {
+    if (!EVP_DigestSignUpdate(sign_context, hamlet_2, strlen(hamlet_2)))
+    {
         fprintf(stderr, "EVP_DigestSignUpdate(hamlet_2) failed.\n");
         goto cleanup;
     }
     /* Call EVP_DigestSignFinal to get signature length sig_len */
-    if (!EVP_DigestSignFinal(sign_context, NULL, &sig_len)) {
+    if (!EVP_DigestSignFinal(sign_context, NULL, &sig_len))
+    {
         fprintf(stderr, "EVP_DigestSignFinal failed.\n");
         goto cleanup;
     }
-    if (sig_len <= 0) {
+    if (sig_len <= 0)
+    {
         fprintf(stderr, "EVP_DigestSignFinal returned invalid signature length.\n");
         goto cleanup;
     }
     sig_value = OPENSSL_malloc(sig_len);
-    if (sig_value == NULL) {
+    if (sig_value == NULL)
+    {
         fprintf(stderr, "No memory.\n");
         goto cleanup;
     }
-    if (!EVP_DigestSignFinal(sign_context, sig_value, &sig_len)) {
+    if (!EVP_DigestSignFinal(sign_context, sig_value, &sig_len))
+    {
         fprintf(stderr, "EVP_DigestSignFinal failed.\n");
         goto cleanup;
     }
@@ -147,8 +152,7 @@ cleanup:
     return ret;
 }
 
-static int demo_verify(OSSL_LIB_CTX *libctx, const char *sig_name,
-                       size_t sig_len, unsigned char *sig_value)
+static int demo_verify(OSSL_LIB_CTX *libctx, const char *sig_name, size_t sig_len, unsigned char *sig_value)
 {
     int ret = 0, public = 1;
     const char *propq = NULL;
@@ -160,19 +164,21 @@ static int demo_verify(OSSL_LIB_CTX *libctx, const char *sig_name,
      * during signature verification
      */
     verify_context = EVP_MD_CTX_new();
-    if (verify_context == NULL) {
+    if (verify_context == NULL)
+    {
         fprintf(stderr, "EVP_MD_CTX_new failed.\n");
         goto cleanup;
     }
     /* Get public key */
     pub_key = get_key(libctx, propq, public);
-    if (pub_key == NULL) {
+    if (pub_key == NULL)
+    {
         fprintf(stderr, "Get public key failed.\n");
         goto cleanup;
     }
     /* Verify */
-    if (!EVP_DigestVerifyInit_ex(verify_context, NULL, sig_name,
-                                libctx, NULL, pub_key, NULL)) {
+    if (!EVP_DigestVerifyInit_ex(verify_context, NULL, sig_name, libctx, NULL, pub_key, NULL))
+    {
         fprintf(stderr, "EVP_DigestVerifyInit failed.\n");
         goto cleanup;
     }
@@ -180,15 +186,18 @@ static int demo_verify(OSSL_LIB_CTX *libctx, const char *sig_name,
      * EVP_DigestVerifyUpdate() can be called several times on the same context
      * to include additional data.
      */
-    if (!EVP_DigestVerifyUpdate(verify_context, hamlet_1, strlen(hamlet_1))) {
+    if (!EVP_DigestVerifyUpdate(verify_context, hamlet_1, strlen(hamlet_1)))
+    {
         fprintf(stderr, "EVP_DigestVerifyUpdate(hamlet_1) failed.\n");
         goto cleanup;
     }
-    if (!EVP_DigestVerifyUpdate(verify_context, hamlet_2, strlen(hamlet_2))) {
+    if (!EVP_DigestVerifyUpdate(verify_context, hamlet_2, strlen(hamlet_2)))
+    {
         fprintf(stderr, "EVP_DigestVerifyUpdate(hamlet_2) failed.\n");
         goto cleanup;
     }
-    if (EVP_DigestVerifyFinal(verify_context, sig_value, sig_len) <= 0) {
+    if (EVP_DigestVerifyFinal(verify_context, sig_value, sig_len) <= 0)
+    {
         fprintf(stderr, "EVP_DigestVerifyFinal failed.\n");
         goto cleanup;
     }
@@ -211,15 +220,18 @@ int main(void)
     int ret = EXIT_FAILURE;
 
     libctx = OSSL_LIB_CTX_new();
-    if (libctx == NULL) {
+    if (libctx == NULL)
+    {
         fprintf(stderr, "OSSL_LIB_CTX_new() returned NULL\n");
         goto cleanup;
     }
-    if (!demo_sign(libctx, sig_name, &sig_len, &sig_value)) {
+    if (!demo_sign(libctx, sig_name, &sig_len, &sig_value))
+    {
         fprintf(stderr, "demo_sign failed.\n");
         goto cleanup;
     }
-    if (!demo_verify(libctx, sig_name, sig_len, sig_value)) {
+    if (!demo_verify(libctx, sig_name, sig_len, sig_value))
+    {
         fprintf(stderr, "demo_verify failed.\n");
         goto cleanup;
     }

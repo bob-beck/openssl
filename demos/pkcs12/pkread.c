@@ -27,13 +27,14 @@ static char *find_friendly_name(PKCS12 *p12)
     if ((safes = PKCS12_unpack_authsafes(p12)) == NULL)
         return NULL;
 
-    for (n = 0; n < sk_PKCS7_num(safes) && name == NULL; n++) {
+    for (n = 0; n < sk_PKCS7_num(safes) && name == NULL; n++)
+    {
         safe = sk_PKCS7_value(safes, n);
-        if (OBJ_obj2nid(safe->type) != NID_pkcs7_data
-                || (bags = PKCS12_unpack_p7data(safe)) == NULL)
+        if (OBJ_obj2nid(safe->type) != NID_pkcs7_data || (bags = PKCS12_unpack_p7data(safe)) == NULL)
             continue;
 
-        for (m = 0; m < sk_PKCS12_SAFEBAG_num(bags) && name == NULL; m++) {
+        for (m = 0; m < sk_PKCS12_SAFEBAG_num(bags) && name == NULL; m++)
+        {
             bag = sk_PKCS12_SAFEBAG_value(bags, m);
             name = PKCS12_get_friendlyname(bag);
         }
@@ -55,44 +56,52 @@ int main(int argc, char **argv)
     char *name = NULL;
     int i, ret = EXIT_FAILURE;
 
-    if (argc != 4) {
+    if (argc != 4)
+    {
         fprintf(stderr, "Usage: pkread p12file password opfile\n");
         exit(EXIT_FAILURE);
     }
 
-    if ((fp = fopen(argv[1], "rb")) == NULL) {
+    if ((fp = fopen(argv[1], "rb")) == NULL)
+    {
         fprintf(stderr, "Error opening file %s\n", argv[1]);
         exit(EXIT_FAILURE);
     }
     p12 = d2i_PKCS12_fp(fp, NULL);
     fclose(fp);
-    if (p12 == NULL) {
+    if (p12 == NULL)
+    {
         fprintf(stderr, "Error reading PKCS#12 file\n");
         ERR_print_errors_fp(stderr);
         goto err;
     }
-    if (!PKCS12_parse(p12, argv[2], &pkey, &cert, &ca)) {
+    if (!PKCS12_parse(p12, argv[2], &pkey, &cert, &ca))
+    {
         fprintf(stderr, "Error parsing PKCS#12 file\n");
         ERR_print_errors_fp(stderr);
         goto err;
     }
     name = find_friendly_name(p12);
     PKCS12_free(p12);
-    if ((fp = fopen(argv[3], "w")) == NULL) {
+    if ((fp = fopen(argv[3], "w")) == NULL)
+    {
         fprintf(stderr, "Error opening file %s\n", argv[3]);
         goto err;
     }
     if (name != NULL)
         fprintf(fp, "***Friendly Name***\n%s\n", name);
-    if (pkey != NULL) {
+    if (pkey != NULL)
+    {
         fprintf(fp, "***Private Key***\n");
         PEM_write_PrivateKey(fp, pkey, NULL, NULL, 0, NULL, NULL);
     }
-    if (cert != NULL) {
+    if (cert != NULL)
+    {
         fprintf(fp, "***User Certificate***\n");
         PEM_write_X509_AUX(fp, cert);
     }
-    if (ca != NULL && sk_X509_num(ca) > 0) {
+    if (ca != NULL && sk_X509_num(ca) > 0)
+    {
         fprintf(fp, "***Other Certificates***\n");
         for (i = 0; i < sk_X509_num(ca); i++)
             PEM_write_X509_AUX(fp, sk_X509_value(ca, i));
@@ -101,7 +110,7 @@ int main(int argc, char **argv)
 
     ret = EXIT_SUCCESS;
 
- err:
+err:
     OPENSSL_free(name);
     X509_free(cert);
     EVP_PKEY_free(pkey);

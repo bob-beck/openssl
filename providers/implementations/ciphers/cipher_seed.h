@@ -10,8 +10,9 @@
 #include <openssl/seed.h>
 #include "prov/ciphercommon.h"
 
-typedef struct prov_seed_ctx_st {
-    PROV_CIPHER_CTX base;      /* Must be first */
+typedef struct prov_seed_ctx_st
+{
+    PROV_CIPHER_CTX base; /* Must be first */
     union {
         OSSL_UNION_ALIGN;
         SEED_KEY_SCHEDULE ks;

@@ -26,7 +26,8 @@ int ossl_rsa_key_op_get_protect(const RSA *rsa, int operation, int *outprotect)
 {
     int protect = 0;
 
-    switch (operation) {
+    switch (operation)
+    {
     case EVP_PKEY_OP_SIGN:
     case EVP_PKEY_OP_SIGNMSG:
         protect = 1;
@@ -41,17 +42,14 @@ int ossl_rsa_key_op_get_protect(const RSA *rsa, int operation, int *outprotect)
     case EVP_PKEY_OP_VERIFYRECOVER:
     case EVP_PKEY_OP_DECAPSULATE:
     case EVP_PKEY_OP_DECRYPT:
-        if (RSA_test_flags(rsa,
-                           RSA_FLAG_TYPE_MASK) == RSA_FLAG_TYPE_RSASSAPSS) {
-            ERR_raise_data(ERR_LIB_PROV,
-                           PROV_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE,
-                           "operation: %d", operation);
+        if (RSA_test_flags(rsa, RSA_FLAG_TYPE_MASK) == RSA_FLAG_TYPE_RSASSAPSS)
+        {
+            ERR_raise_data(ERR_LIB_PROV, PROV_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE, "operation: %d", operation);
             return 0;
         }
         break;
     default:
-        ERR_raise_data(ERR_LIB_PROV, ERR_R_INTERNAL_ERROR,
-                       "invalid operation: %d", operation);
+        ERR_raise_data(ERR_LIB_PROV, ERR_R_INTERNAL_ERROR, "invalid operation: %d", operation);
         return 0;
     }
     *outprotect = protect;
@@ -171,17 +169,18 @@ int ossl_dsa_check_key(const DSA *dsa, int sign)
      * For example a L = 256, N = 160 key *would* be allowed by SP 800-131Ar2
      * but we don't.
      */
-    if (!sign) {
+    if (!sign)
+    {
         if (L < 512 || N < 160)
             return 0;
         if (L < 2048 || N < 224)
             return 1;
     }
 
-     /* Valid sizes for both sign and verify */
-    if (L == 2048 && (N == 224 || N == 256))    /* 112 bits */
+    /* Valid sizes for both sign and verify */
+    if (L == 2048 && (N == 224 || N == 256)) /* 112 bits */
         return 1;
-    return (L == 3072 && N == 256);             /* 128 bits */
+    return (L == 3072 && N == 256); /* 128 bits */
 }
 #endif /* OPENSSL_NO_DSA */
 

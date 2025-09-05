@@ -44,10 +44,10 @@
 
 /* Include the appropriate header file for SOCK_DGRAM */
 #ifdef _WIN32 /* Windows */
-# include <winsock2.h>
+#include <winsock2.h>
 #else /* Linux/Unix */
-# include <sys/socket.h>
-# include <sys/select.h>
+#include <sys/socket.h>
+#include <sys/select.h>
 #endif
 
 #include <openssl/bio.h>
@@ -97,8 +97,7 @@ static BIO *session_bio = NULL;
  *       ensures that any resources allocated during the process are properly
  *       freed.
  */
-static BIO *create_socket_bio(const char *hostname, const char *port,
-                              BIO_ADDR **peer_addr)
+static BIO *create_socket_bio(const char *hostname, const char *port, BIO_ADDR **peer_addr)
 {
     int sock = -1;
     BIO_ADDRINFO *res;
@@ -108,15 +107,15 @@ static BIO *create_socket_bio(const char *hostname, const char *port,
     /*
      * Lookup IP address info for the server.
      */
-    if (!BIO_lookup_ex(hostname, port, BIO_LOOKUP_CLIENT, AF_UNSPEC, SOCK_DGRAM,
-                       0, &res))
+    if (!BIO_lookup_ex(hostname, port, BIO_LOOKUP_CLIENT, AF_UNSPEC, SOCK_DGRAM, 0, &res))
         return NULL;
 
     /*
      * Loop through all the possible addresses for the server and find one
      * we can connect to.
      */
-    for (ai = res; ai != NULL; ai = BIO_ADDRINFO_next(ai)) {
+    for (ai = res; ai != NULL; ai = BIO_ADDRINFO_next(ai))
+    {
         /*
          * Create a UDP socket. We could equally use non-OpenSSL calls such
          * as "socket" here for this and the subsequent connect and close
@@ -129,7 +128,8 @@ static BIO *create_socket_bio(const char *hostname, const char *port,
             continue;
 
         /* Connect the socket to the server's address */
-        if (!BIO_connect(sock, BIO_ADDRINFO_address(ai), 0)) {
+        if (!BIO_connect(sock, BIO_ADDRINFO_address(ai), 0))
+        {
             BIO_closesocket(sock);
             sock = -1;
             continue;
@@ -140,7 +140,8 @@ static BIO *create_socket_bio(const char *hostname, const char *port,
          * Note: This function returns a range of errors
          * <= 0 if something goes wrong, so catch them all here
          */
-        if (BIO_socket_nbio(sock, 1) <= 0) {
+        if (BIO_socket_nbio(sock, 1) <= 0)
+        {
             BIO_closesocket(sock);
             sock = -1;
             continue;
@@ -149,9 +150,11 @@ static BIO *create_socket_bio(const char *hostname, const char *port,
         break;
     }
 
-    if (sock != -1) {
+    if (sock != -1)
+    {
         *peer_addr = BIO_ADDR_dup(BIO_ADDRINFO_address(ai));
-        if (*peer_addr == NULL) {
+        if (*peer_addr == NULL)
+        {
             BIO_closesocket(sock);
             return NULL;
         }
@@ -166,7 +169,8 @@ static BIO *create_socket_bio(const char *hostname, const char *port,
 
     /* Create a BIO to wrap the socket */
     bio = BIO_new(BIO_s_datagram());
-    if (bio == NULL) {
+    if (bio == NULL)
+    {
         BIO_closesocket(sock);
         return NULL;
     }
@@ -178,7 +182,8 @@ static BIO *create_socket_bio(const char *hostname, const char *port,
      * case you must close the socket explicitly when it is no longer
      * needed.
      */
-    if (BIO_set_fd(bio, sock, BIO_CLOSE) <= 0) {
+    if (BIO_set_fd(bio, sock, BIO_CLOSE) <= 0)
+    {
         BIO_closesocket(sock);
         BIO_free(bio);
         return NULL;
@@ -282,7 +287,8 @@ static void wait_for_activity(SSL *ssl)
  */
 static int handle_io_failure(SSL *ssl, int res)
 {
-    switch (SSL_get_error(ssl, res)) {
+    switch (SSL_get_error(ssl, res))
+    {
     case SSL_ERROR_WANT_READ:
     case SSL_ERROR_WANT_WRITE:
         /* Temporary failure. Wait until we can read/write and try again */
@@ -302,7 +308,8 @@ static int handle_io_failure(SSL *ssl, int res)
          * stream reset - or some failure occurred on the underlying
          * connection.
          */
-        switch (SSL_get_stream_read_state(ssl)) {
+        switch (SSL_get_stream_read_state(ssl))
+        {
         case SSL_STREAM_STATE_RESET_REMOTE:
             fprintf(stderr, "Stream reset occurred\n");
             /*
@@ -325,8 +332,7 @@ static int handle_io_failure(SSL *ssl, int res)
          * information about it from SSL_get_verify_result().
          */
         if (SSL_get_verify_result(ssl) != X509_V_OK)
-            fprintf(stderr, "Verify error: %s\n",
-                    X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
+            fprintf(stderr, "Verify error: %s\n", X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
         return -1;
 
     default:
@@ -401,22 +407,22 @@ static int setup_session_cache(SSL *ssl, SSL_CTX *ctx, const char *filename)
     int rc = 0;
     int new_cache = 0;
 
-    /* 
-     * Because we cache sessions to a file in this client, we don't 
+    /*
+     * Because we cache sessions to a file in this client, we don't
      * actualy need to internally store sessions, because we restore them
      * from the file with SSL_set_session below, but we want to ensure
      * that caching is enabled so that the session cache callbacks get called
      * properly.  The documentation is a bit unclear under what conditions
      * the callback is made, so play it safe here, by enforcing enablement
      */
-    if (!SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_CLIENT |
-                                             SSL_SESS_CACHE_NO_INTERNAL_STORE |
-                                             SSL_SESS_CACHE_NO_AUTO_CLEAR))
+    if (!SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_CLIENT | SSL_SESS_CACHE_NO_INTERNAL_STORE |
+                                                 SSL_SESS_CACHE_NO_AUTO_CLEAR))
         return rc;
 
     /* open our cache file */
     session_bio = BIO_new_file(filename, "r+");
-    if (session_bio == NULL) {
+    if (session_bio == NULL)
+    {
         /* file might need to be created */
         session_bio = BIO_new_file(filename, "w+");
         if (session_bio == NULL)
@@ -424,14 +430,18 @@ static int setup_session_cache(SSL *ssl, SSL_CTX *ctx, const char *filename)
         new_cache = 1;
     }
 
-    if (new_cache == 0) {
+    if (new_cache == 0)
+    {
         /* read in our cached session */
-        if (PEM_read_bio_SSL_SESSION(session_bio, &sess, NULL, NULL)) {
+        if (PEM_read_bio_SSL_SESSION(session_bio, &sess, NULL, NULL))
+        {
             /* set our session */
             if (!SSL_set_session(ssl, sess))
                 goto err;
         }
-    } else {
+    }
+    else
+    {
         /* Set the callback to store new sessions */
         SSL_CTX_sess_set_new_cb(ctx, cache_new_session);
     }
@@ -535,7 +545,8 @@ static size_t build_request_set(SSL *ssl)
     /*
      * Free any previous poll list
      */
-    for (poll_idx = 0; poll_idx < poll_count; poll_idx++) {
+    for (poll_idx = 0; poll_idx < poll_count; poll_idx++)
+    {
         (void)BIO_flush(outbiolist[poll_idx]);
         BIO_free(outbiolist[poll_idx]);
         SSL_free(poll_list[poll_idx].desc.value.ssl);
@@ -558,7 +569,8 @@ static size_t build_request_set(SSL *ssl)
      * note req_idx may start at a non-zero value if
      * multiple calls to build_request_list are made
      */
-    while (req_idx < total_requests) {
+    while (req_idx < total_requests)
+    {
         req = req_array[req_idx];
         /* Up our poll count and set our poll_list index */
         poll_count++;
@@ -567,22 +579,23 @@ static size_t build_request_set(SSL *ssl)
         /*
          * Expand our poll_list, outbiolist, and outnames arrays
          */
-        poll_list = OPENSSL_realloc_array(poll_list,
-                                          poll_count, sizeof(SSL_POLL_ITEM));
-        if (poll_list == NULL) {
+        poll_list = OPENSSL_realloc_array(poll_list, poll_count, sizeof(SSL_POLL_ITEM));
+        if (poll_list == NULL)
+        {
             fprintf(stderr, "Unable to realloc poll_list\n");
             goto err;
         }
 
-        outbiolist = OPENSSL_realloc_array(outbiolist,
-                                           poll_count, sizeof(BIO *));
-        if (outbiolist == NULL) {
+        outbiolist = OPENSSL_realloc_array(outbiolist, poll_count, sizeof(BIO *));
+        if (outbiolist == NULL)
+        {
             fprintf(stderr, "Unable to realloc outbiolist\n");
             goto err;
         }
 
         outnames = OPENSSL_realloc_array(outnames, poll_count, sizeof(char *));
-        if (outnames == NULL) {
+        if (outnames == NULL)
+        {
             fprintf(stderr, "Unable to realloc outnames\n");
             goto err;
         }
@@ -599,7 +612,8 @@ static size_t build_request_set(SSL *ssl)
 
         /* open a bio to write the file */
         outbiolist[poll_idx] = BIO_new_file(outfilename, "w+");
-        if (outbiolist[poll_idx] == NULL) {
+        if (outbiolist[poll_idx] == NULL)
+        {
             fprintf(stderr, "Failed to open outfile %s\n", outfilename);
             goto err;
         }
@@ -613,13 +627,15 @@ static size_t build_request_set(SSL *ssl)
          * opportunity to send us updated MAX_STREAM frames to extend our stream
          * allotment before we run out, which many servers defer doing.
          */
-        if (poll_count <= 25) {
-            for (retry_count = 0; retry_count < 10; retry_count++) {
+        if (poll_count <= 25)
+        {
+            for (retry_count = 0; retry_count < 10; retry_count++)
+            {
                 ERR_clear_error();
                 new_stream = SSL_new_stream(ssl, 0);
-                if (new_stream == NULL
-                    && (error = ERR_get_error()) != 0
-                    && ERR_GET_REASON(error) == SSL_R_STREAM_COUNT_LIMITED) {
+                if (new_stream == NULL && (error = ERR_get_error()) != 0 &&
+                    ERR_GET_REASON(error) == SSL_R_STREAM_COUNT_LIMITED)
+                {
                     /*
                      * Kick the SSL state machine in the hopes that
                      * the server has a MAX_STREAM frame for us to process
@@ -632,7 +648,8 @@ static size_t build_request_set(SSL *ssl)
             }
         }
 
-        if (new_stream == NULL) {
+        if (new_stream == NULL)
+        {
             /*
              * We ran out of new streams to allocate
              * return and process this batch before getting more
@@ -649,9 +666,9 @@ static size_t build_request_set(SSL *ssl)
         poll_list[poll_idx].events = SSL_POLL_EVENT_R;
 
         /* Write an HTTP GET request to the peer */
-        while (!SSL_write_ex2(poll_list[poll_idx].desc.value.ssl,
-                              req_string, strlen(req_string),
-                              SSL_WRITE_FLAG_CONCLUDE, &written)) {
+        while (!SSL_write_ex2(poll_list[poll_idx].desc.value.ssl, req_string, strlen(req_string),
+                              SSL_WRITE_FLAG_CONCLUDE, &written))
+        {
             if (handle_io_failure(poll_list[poll_idx].desc.value.ssl, 0) == 1)
                 continue; /* Retry */
             fprintf(stderr, "Failed to write start of HTTP request\n");
@@ -663,7 +680,8 @@ static size_t build_request_set(SSL *ssl)
     return poll_count;
 
 err:
-    for (poll_idx = 0; poll_idx < poll_count; poll_idx++) {
+    for (poll_idx = 0; poll_idx < poll_count; poll_idx++)
+    {
         BIO_free(outbiolist[poll_idx]);
         SSL_free(poll_list[poll_idx].desc.value.ssl);
     }
@@ -698,8 +716,7 @@ static BIO_ADDR *peer_addr = NULL;
  *
  * @return Returns 0 on success, 1 on error.
  */
-static int setup_connection(char *hostname, char *port,
-                            SSL_CTX **ctx, SSL **ssl)
+static int setup_connection(char *hostname, char *port, SSL_CTX **ctx, SSL **ssl)
 {
     unsigned char alpn[] = {10, 'h', 'q', '-', 'i', 'n', 't', 'e', 'r', 'o', 'p'};
     int ret = 0;
@@ -711,7 +728,8 @@ static int setup_connection(char *hostname, char *port,
      * OSSL_QUIC_client_method() here.
      */
     *ctx = SSL_CTX_new(OSSL_QUIC_client_method());
-    if (*ctx == NULL) {
+    if (*ctx == NULL)
+    {
         fprintf(stderr, "Failed to create the SSL_CTX\n");
         goto end;
     }
@@ -729,7 +747,8 @@ static int setup_connection(char *hostname, char *port,
      * environment variables in the default case, so users can set those
      * When running this application to direct where the store is loaded from
      */
-    if (!SSL_CTX_set_default_verify_paths(*ctx)) {
+    if (!SSL_CTX_set_default_verify_paths(*ctx))
+    {
         fprintf(stderr, "Failed to set the default trusted certificate store\n");
         goto end;
     }
@@ -738,8 +757,10 @@ static int setup_connection(char *hostname, char *port,
      * If the SSL_CIPHER_SUITES env variable is set, assign those
      * ciphers to the context
      */
-    if (getenv("SSL_CIPHER_SUITES") != NULL) {
-        if (!SSL_CTX_set_ciphersuites(*ctx, getenv("SSL_CIPHER_SUITES"))) {
+    if (getenv("SSL_CIPHER_SUITES") != NULL)
+    {
+        if (!SSL_CTX_set_ciphersuites(*ctx, getenv("SSL_CIPHER_SUITES")))
+        {
             fprintf(stderr, "Failed to set cipher suites for connection\n");
             goto end;
         }
@@ -747,13 +768,16 @@ static int setup_connection(char *hostname, char *port,
 
     /* Create an SSL object to represent the TLS connection */
     *ssl = SSL_new(*ctx);
-    if (*ssl == NULL) {
+    if (*ssl == NULL)
+    {
         fprintf(stderr, "Failed to create the SSL object\n");
         goto end;
     }
 
-    if (getenv("SSL_SESSION_FILE") != NULL) {
-        if (!setup_session_cache(*ssl, *ctx, getenv("SSL_SESSION_FILE"))) {
+    if (getenv("SSL_SESSION_FILE") != NULL)
+    {
+        if (!setup_session_cache(*ssl, *ctx, getenv("SSL_SESSION_FILE")))
+        {
             fprintf(stderr, "Unable to setup session cache\n");
             goto end;
         }
@@ -764,7 +788,8 @@ static int setup_connection(char *hostname, char *port,
      * connection.
      */
     bio = create_socket_bio(hostname, port, &peer_addr);
-    if (bio == NULL) {
+    if (bio == NULL)
+    {
         fprintf(stderr, "Failed to crete the BIO\n");
         goto end;
     }
@@ -774,7 +799,8 @@ static int setup_connection(char *hostname, char *port,
      * Tell the server during the handshake which hostname we are attempting
      * to connect to in case the server supports multiple hosts.
      */
-    if (!SSL_set_tlsext_host_name(*ssl, hostname)) {
+    if (!SSL_set_tlsext_host_name(*ssl, hostname))
+    {
         fprintf(stderr, "Failed to set the SNI hostname\n");
         goto end;
     }
@@ -785,19 +811,22 @@ static int setup_connection(char *hostname, char *port,
      * Virtually all clients should do this unless you really know what you
      * are doing.
      */
-    if (!SSL_set1_host(*ssl, hostname)) {
+    if (!SSL_set1_host(*ssl, hostname))
+    {
         fprintf(stderr, "Failed to set the certificate verification hostname");
         goto end;
     }
 
     /* SSL_set_alpn_protos returns 0 for success! */
-    if (SSL_set_alpn_protos(*ssl, alpn, sizeof(alpn)) != 0) {
+    if (SSL_set_alpn_protos(*ssl, alpn, sizeof(alpn)) != 0)
+    {
         fprintf(stderr, "Failed to set the ALPN for the connection\n");
         goto end;
     }
 
     /* Set the IP address of the remote peer */
-    if (!SSL_set1_initial_peer_addr(*ssl, peer_addr)) {
+    if (!SSL_set1_initial_peer_addr(*ssl, peer_addr))
+    {
         fprintf(stderr, "Failed to set the initial peer address\n");
         goto end;
     }
@@ -807,13 +836,15 @@ static int setup_connection(char *hostname, char *port,
      * behaviour of the SSL object is still to block. We set it for nonblocking
      * mode in this demo.
      */
-    if (!SSL_set_blocking_mode(*ssl, 0)) {
+    if (!SSL_set_blocking_mode(*ssl, 0))
+    {
         fprintf(stderr, "Failed to turn off blocking mode\n");
         goto end;
     }
 
     /* Do the handshake with the server */
-    while ((ret = SSL_connect(*ssl)) != 1) {
+    while ((ret = SSL_connect(*ssl)) != 1)
+    {
         if (handle_io_failure(*ssl, ret) == 1)
             continue; /* Retry */
         fprintf(stderr, "Failed to connect to server\n");
@@ -878,12 +909,14 @@ int main(int argc, char *argv[])
     char *req = NULL;
     char *hostname, *port;
 
-    if (argc < 4) {
+    if (argc < 4)
+    {
         fprintf(stderr, "Usage: quic-hq-interop hostname port reqfile\n");
         goto end;
     }
 
-    if (reqnames == NULL) {
+    if (reqnames == NULL)
+    {
         fprintf(stderr, "Failed to allocate memory for request names\n");
         goto end;
     }
@@ -893,37 +926,42 @@ int main(int argc, char *argv[])
     reqfile = argv[argnext];
 
     req_bio = BIO_new_file(reqfile, "r");
-    if (req_bio == NULL) {
+    if (req_bio == NULL)
+    {
         fprintf(stderr, "Failed to open request file %s\n", reqfile);
         goto end;
     }
 
     /* Get the list of requests */
-    while (!BIO_eof(req_bio)) {
-        if (!BIO_read_ex(req_bio, &reqnames[read_offset], REQ_STRING_SZ, &bytes_read)) {
+    while (!BIO_eof(req_bio))
+    {
+        if (!BIO_read_ex(req_bio, &reqnames[read_offset], REQ_STRING_SZ, &bytes_read))
+        {
             fprintf(stderr, "Failed to read some data from request file\n");
             goto end;
         }
         read_offset += bytes_read;
         reqnames = OPENSSL_realloc(reqnames, read_offset + REQ_STRING_SZ);
-        if (reqnames == NULL) {
+        if (reqnames == NULL)
+        {
             fprintf(stderr, "Realloc failure\n");
             goto end;
         }
     }
     reqnames[read_offset + 1] = '\0';
 
-    if (!setup_connection(hostname, port, &ctx, &ssl)) {
+    if (!setup_connection(hostname, port, &ctx, &ssl))
+    {
         fprintf(stderr, "Unable to establish connection\n");
         goto end;
     }
 
     req = strtok(reqnames, " ");
 
-    while (req != NULL) {
+    while (req != NULL)
+    {
         total_requests++;
-        req_array = OPENSSL_realloc_array(req_array,
-                                          total_requests, sizeof(char *));
+        req_array = OPENSSL_realloc_array(req_array, total_requests, sizeof(char *));
         if (req_array == NULL)
             goto end;
         req_array[total_requests - 1] = req;
@@ -936,18 +974,20 @@ int main(int argc, char *argv[])
     /*
      * Now poll all our descriptors for events
      */
-    while (this_poll_count != 0 && poll_done < this_poll_count) {
+    while (this_poll_count != 0 && poll_done < this_poll_count)
+    {
         result_count = 0;
         poll_timeout.tv_sec = 0;
         poll_timeout.tv_usec = 0;
-        if (!SSL_poll(poll_list, this_poll_count, sizeof(SSL_POLL_ITEM),
-                      &poll_timeout, 0, &result_count)) {
+        if (!SSL_poll(poll_list, this_poll_count, sizeof(SSL_POLL_ITEM), &poll_timeout, 0, &result_count))
+        {
             fprintf(stderr, "Failed to poll\n");
             goto end;
         }
 
         /* Iterate over our poll array looking for ready SSL's */
-        for (poll_idx = 0; poll_idx < this_poll_count; poll_idx++) {
+        for (poll_idx = 0; poll_idx < this_poll_count; poll_idx++)
+        {
             /*
              * If we have visited the number of SSL's that SSL_poll
              * indicated were ready, we can go poll again
@@ -955,7 +995,8 @@ int main(int argc, char *argv[])
             if (result_count == 0)
                 break;
 
-            if (poll_list[poll_idx].revents == SSL_POLL_EVENT_R) {
+            if (poll_list[poll_idx].revents == SSL_POLL_EVENT_R)
+            {
                 /*
                  * We found an SSL that we can read, drop our result count
                  */
@@ -971,10 +1012,10 @@ int main(int argc, char *argv[])
                 eof = 0;
 
                 /* Read our data, and handle any errors/eof conditions */
-                if (!SSL_read_ex(poll_list[poll_idx].desc.value.ssl, buf,
-                                 sizeof(buf), &readbytes)) {
-                    switch (handle_io_failure(poll_list[poll_idx].desc.value.ssl,
-                                              0)) {
+                if (!SSL_read_ex(poll_list[poll_idx].desc.value.ssl, buf, sizeof(buf), &readbytes))
+                {
+                    switch (handle_io_failure(poll_list[poll_idx].desc.value.ssl, 0))
+                    {
                     case 1:
                         eof = 0;
                         break; /* Retry on next poll */
@@ -993,9 +1034,12 @@ int main(int argc, char *argv[])
                  * we mark the SSL as not needing any more polling, and up our
                  * poll_done count.  Otherwise, just write to the outbio
                  */
-                if (!eof) {
+                if (!eof)
+                {
                     BIO_write(outbiolist[poll_idx], buf, readbytes);
-                } else {
+                }
+                else
+                {
                     fprintf(stderr, "completed %s\n", outnames[poll_idx]);
                     /* This file is done, take it out of polling contention */
                     poll_list[poll_idx].events = 0;
@@ -1007,7 +1051,8 @@ int main(int argc, char *argv[])
         /*
          * If we've completed this poll set, try get another one
          */
-        if (poll_done == this_poll_count) {
+        if (poll_done == this_poll_count)
+        {
             this_poll_count = build_request_set(ssl);
             poll_done = 0;
         }
@@ -1018,14 +1063,15 @@ int main(int argc, char *argv[])
      * closed.
      */
     fprintf(stderr, "Shutting down\n");
-    while ((ret = SSL_shutdown(ssl)) != 1) {
+    while ((ret = SSL_shutdown(ssl)) != 1)
+    {
         if (ret < 0 && handle_io_failure(ssl, ret) == 1)
             continue; /* Retry */
     }
 
     /* Success! */
     res = EXIT_SUCCESS;
- end:
+end:
     /*
      * If something bad happened then we will dump the contents of the
      * OpenSSL error stack to stderr. There might be some useful diagnostic
@@ -1043,7 +1089,8 @@ int main(int argc, char *argv[])
     OPENSSL_free(reqnames);
     BIO_free(req_bio);
     BIO_free(session_bio);
-    for (poll_idx = 0; poll_idx < poll_count; poll_idx++) {
+    for (poll_idx = 0; poll_idx < poll_count; poll_idx++)
+    {
         BIO_free(outbiolist[poll_idx]);
         SSL_free(poll_list[poll_idx].desc.value.ssl);
     }

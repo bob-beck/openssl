@@ -12,7 +12,8 @@
 
 static char *config_file = NULL;
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_ERR = -1,
     OPT_EOF = 0,
     OPT_CONFIG_FILE,
@@ -21,15 +22,11 @@ typedef enum OPTION_choice {
 
 const OPTIONS *test_get_options(void)
 {
-    static const OPTIONS options[] = {
-        OPT_TEST_OPTIONS_DEFAULT_USAGE,
-        { "config", OPT_CONFIG_FILE, '<',
-          "The configuration file to use for the libctx" },
-        { NULL }
-    };
+    static const OPTIONS options[] = {OPT_TEST_OPTIONS_DEFAULT_USAGE,
+                                      {"config", OPT_CONFIG_FILE, '<', "The configuration file to use for the libctx"},
+                                      {NULL}};
     return options;
 }
-
 
 /*
  * Test that parsing a config file with incorrect stable settings aren't parsed
@@ -66,8 +63,10 @@ int setup_tests(void)
 {
     OPTION_CHOICE o;
 
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_CONFIG_FILE:
             config_file = opt_arg();
             break;

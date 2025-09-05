@@ -40,13 +40,15 @@ static EVP_PKEY *generate_rsa_key_long(OSSL_LIB_CTX *libctx, unsigned int bits)
 
     /* Create context using RSA algorithm. "RSA-PSS" could also be used here. */
     genctx = EVP_PKEY_CTX_new_from_name(libctx, "RSA", propq);
-    if (genctx == NULL) {
+    if (genctx == NULL)
+    {
         fprintf(stderr, "EVP_PKEY_CTX_new_from_name() failed\n");
         goto cleanup;
     }
 
     /* Initialize context for key generation purposes. */
-    if (EVP_PKEY_keygen_init(genctx) <= 0) {
+    if (EVP_PKEY_keygen_init(genctx) <= 0)
+    {
         fprintf(stderr, "EVP_PKEY_keygen_init() failed\n");
         goto cleanup;
     }
@@ -55,7 +57,8 @@ static EVP_PKEY *generate_rsa_key_long(OSSL_LIB_CTX *libctx, unsigned int bits)
      * Here we set the number of bits to use in the RSA key.
      * See comment at top of file for information on appropriate values.
      */
-    if (EVP_PKEY_CTX_set_rsa_keygen_bits(genctx, bits) <= 0) {
+    if (EVP_PKEY_CTX_set_rsa_keygen_bits(genctx, bits) <= 0)
+    {
         fprintf(stderr, "EVP_PKEY_CTX_set_rsa_keygen_bits() failed\n");
         goto cleanup;
     }
@@ -68,7 +71,8 @@ static EVP_PKEY *generate_rsa_key_long(OSSL_LIB_CTX *libctx, unsigned int bits)
      * Both of these parameters can also be set via EVP_PKEY_CTX_set_params, but
      * these functions provide a more concise way to do so.
      */
-    if (EVP_PKEY_CTX_set_rsa_keygen_primes(genctx, primes) <= 0) {
+    if (EVP_PKEY_CTX_set_rsa_keygen_primes(genctx, primes) <= 0)
+    {
         fprintf(stderr, "EVP_PKEY_CTX_set_rsa_keygen_primes() failed\n");
         goto cleanup;
     }
@@ -84,7 +88,8 @@ static EVP_PKEY *generate_rsa_key_long(OSSL_LIB_CTX *libctx, unsigned int bits)
      * EVP_PKEY_generate(3).
      */
     fprintf(stdout, "Generating RSA key, this may take some time...\n");
-    if (EVP_PKEY_generate(genctx, &pkey) <= 0) {
+    if (EVP_PKEY_generate(genctx, &pkey) <= 0)
+    {
         fprintf(stderr, "EVP_PKEY_generate() failed\n");
         goto cleanup;
     }
@@ -134,7 +139,8 @@ static int dump_key(const EVP_PKEY *pkey)
      * Calling EVP_PKEY_get_bn_param with a NULL BIGNUM pointer causes
      * a new BIGNUM to be allocated, so these must be freed subsequently.
      */
-    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_N, &n) == 0) {
+    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_N, &n) == 0)
+    {
         fprintf(stderr, "Failed to retrieve n\n");
         goto cleanup;
     }
@@ -143,7 +149,8 @@ static int dump_key(const EVP_PKEY *pkey)
      * Retrieve value of e. This value is not secret and forms part of the
      * public key. It is typically 65537 and need not be changed.
      */
-    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) == 0) {
+    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) == 0)
+    {
         fprintf(stderr, "Failed to retrieve e\n");
         goto cleanup;
     }
@@ -152,7 +159,8 @@ static int dump_key(const EVP_PKEY *pkey)
      * Retrieve value of d. This value is secret and forms part of the private
      * key. It must not be published.
      */
-    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_D, &d) == 0) {
+    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_D, &d) == 0)
+    {
         fprintf(stderr, "Failed to retrieve d\n");
         goto cleanup;
     }
@@ -161,7 +169,8 @@ static int dump_key(const EVP_PKEY *pkey)
      * Retrieve value of the first prime factor, commonly known as p. This value
      * is secret and forms part of the private key. It must not be published.
      */
-    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_FACTOR1, &p) == 0) {
+    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_FACTOR1, &p) == 0)
+    {
         fprintf(stderr, "Failed to retrieve p\n");
         goto cleanup;
     }
@@ -174,7 +183,8 @@ static int dump_key(const EVP_PKEY *pkey)
      * applications, you can retrieve these primes with
      * OSSL_PKEY_PARAM_RSA_FACTOR3, etc.
      */
-    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_FACTOR2, &q) == 0) {
+    if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_FACTOR2, &q) == 0)
+    {
         fprintf(stderr, "Failed to retrieve q\n");
         goto cleanup;
     }
@@ -182,7 +192,8 @@ static int dump_key(const EVP_PKEY *pkey)
     /*
      * We can also retrieve the key size in bits for informational purposes.
      */
-    if (EVP_PKEY_get_int_param(pkey, OSSL_PKEY_PARAM_BITS, &bits) == 0) {
+    if (EVP_PKEY_get_int_param(pkey, OSSL_PKEY_PARAM_BITS, &bits) == 0)
+    {
         fprintf(stderr, "Failed to retrieve bits\n");
         goto cleanup;
     }
@@ -212,7 +223,8 @@ static int dump_key(const EVP_PKEY *pkey)
     fprintf(stdout, "\n\n");
 
     /* Output a PEM encoding of the public key. */
-    if (PEM_write_PUBKEY(stdout, pkey) == 0) {
+    if (PEM_write_PUBKEY(stdout, pkey) == 0)
+    {
         fprintf(stderr, "Failed to output PEM-encoded public key\n");
         goto cleanup;
     }
@@ -222,15 +234,16 @@ static int dump_key(const EVP_PKEY *pkey)
      * not encrypted. You may wish to use the arguments to specify encryption of
      * the key if you are storing it on disk. See PEM_write_PrivateKey(3).
      */
-    if (PEM_write_PrivateKey(stdout, pkey, NULL, NULL, 0, NULL, NULL) == 0) {
+    if (PEM_write_PrivateKey(stdout, pkey, NULL, NULL, 0, NULL, NULL) == 0)
+    {
         fprintf(stderr, "Failed to output PEM-encoded private key\n");
         goto cleanup;
     }
 
     ret = 1;
 cleanup:
-    BN_free(n); /* not secret */
-    BN_free(e); /* not secret */
+    BN_free(n);       /* not secret */
+    BN_free(e);       /* not secret */
     BN_clear_free(d); /* secret - scrub before freeing */
     BN_clear_free(p); /* secret - scrub before freeing */
     BN_clear_free(q); /* secret - scrub before freeing */
@@ -246,15 +259,18 @@ int main(int argc, char **argv)
     int bits_i, use_short = 0;
 
     /* usage: [-s] [<bits>] */
-    if (argc > 1 && strcmp(argv[1], "-s") == 0) {
+    if (argc > 1 && strcmp(argv[1], "-s") == 0)
+    {
         --argc;
         ++argv;
         use_short = 1;
     }
 
-    if (argc > 1) {
+    if (argc > 1)
+    {
         bits_i = atoi(argv[1]);
-        if (bits_i < 512) {
+        if (bits_i < 512)
+        {
             fprintf(stderr, "Invalid RSA key size\n");
             return EXIT_FAILURE;
         }
@@ -276,7 +292,8 @@ int main(int argc, char **argv)
         goto cleanup;
 
     /* Dump the integers comprising the key. */
-    if (dump_key(pkey) == 0) {
+    if (dump_key(pkey) == 0)
+    {
         fprintf(stderr, "Failed to dump key\n");
         goto cleanup;
     }

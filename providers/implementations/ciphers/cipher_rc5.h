@@ -10,13 +10,14 @@
 #include <openssl/rc5.h>
 #include "prov/ciphercommon.h"
 
-typedef struct prov_rc5_ctx_st {
-    PROV_CIPHER_CTX base;      /* Must be first */
+typedef struct prov_rc5_ctx_st
+{
+    PROV_CIPHER_CTX base; /* Must be first */
     union {
         OSSL_UNION_ALIGN;
-        RC5_32_KEY ks;         /* key schedule */
+        RC5_32_KEY ks; /* key schedule */
     } ks;
-    unsigned int rounds;       /* number of rounds */
+    unsigned int rounds; /* number of rounds */
 } PROV_RC5_CTX;
 
 const PROV_CIPHER_HW *ossl_prov_cipher_hw_rc5_cbc(size_t keybits);

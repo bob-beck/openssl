@@ -39,15 +39,18 @@ int main(int argc, char *argv[])
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_SERVER);
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CERTIFICATE);
     SSL_CONF_CTX_set_ssl_ctx(cctx, ctx);
-    while (*args && **args == '-') {
+    while (*args && **args == '-')
+    {
         int rv;
         /* Parse standard arguments */
         rv = SSL_CONF_cmd_argv(cctx, &nargs, &args);
-        if (rv == -3) {
+        if (rv == -3)
+        {
             fprintf(stderr, "Missing argument for %s\n", *args);
             goto err;
         }
-        if (rv < 0) {
+        if (rv < 0)
+        {
             fprintf(stderr, "Error in command %s\n", *args);
             ERR_print_errors_fp(stderr);
             goto err;
@@ -56,22 +59,27 @@ int main(int argc, char *argv[])
         if (rv > 0)
             continue;
         /* Otherwise application specific argument processing */
-        if (strcmp(*args, "-port") == 0) {
+        if (strcmp(*args, "-port") == 0)
+        {
             port = args[1];
-            if (port == NULL) {
+            if (port == NULL)
+            {
                 fprintf(stderr, "Missing -port argument\n");
                 goto err;
             }
             args += 2;
             nargs -= 2;
             continue;
-        } else {
+        }
+        else
+        {
             fprintf(stderr, "Unknown argument %s\n", *args);
             goto err;
         }
     }
 
-    if (!SSL_CONF_CTX_finish(cctx)) {
+    if (!SSL_CONF_CTX_finish(cctx))
+    {
         fprintf(stderr, "Finish error\n");
         ERR_print_errors_fp(stderr);
         goto err;
@@ -84,10 +92,10 @@ int main(int argc, char *argv[])
         X509 *x;
         int rv;
         rv = SSL_CTX_set_current_cert(ctx, SSL_CERT_SET_FIRST);
-        while (rv) {
+        while (rv)
+        {
             X509 *x = SSL_CTX_get0_certificate(ctx);
-            X509_NAME_print_ex_fp(stdout, X509_get_subject_name(x), 0,
-                                  XN_FLAG_ONELINE);
+            X509_NAME_print_ex_fp(stdout, X509_get_subject_name(x), 0, XN_FLAG_ONELINE);
             printf("\n");
             rv = SSL_CTX_set_current_cert(ctx, SSL_CERT_SET_NEXT);
         }
@@ -108,7 +116,7 @@ int main(int argc, char *argv[])
     BIO_set_accept_bios(in, ssl_bio);
     ssl_bio = NULL;
 
- again:
+again:
     /*
      * The first call will setup the accept socket, and the second will get a
      * socket.  In this loop, the first actual accept will occur in the
@@ -118,9 +126,11 @@ int main(int argc, char *argv[])
     if (BIO_do_accept(in) <= 0)
         goto err;
 
-    for (;;) {
+    for (;;)
+    {
         i = BIO_read(in, buf, 512);
-        if (i == 0) {
+        if (i == 0)
+        {
             /*
              * If we have finished, remove the underlying BIO stack so the
              * next time we call any function for this BIO, it will attempt
@@ -138,7 +148,7 @@ int main(int argc, char *argv[])
     }
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS)
         ERR_print_errors_fp(stderr);
     BIO_free(in);

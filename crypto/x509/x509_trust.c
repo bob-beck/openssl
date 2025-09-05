@@ -20,7 +20,7 @@ static int trust_1oid(X509_TRUST *trust, X509 *x, int flags);
 static int trust_compat(X509_TRUST *trust, X509 *x, int flags);
 
 static int obj_trust(int id, X509 *x, int flags);
-static int (*default_trust) (int id, X509 *x, int flags) = obj_trust;
+static int (*default_trust)(int id, X509 *x, int flags) = obj_trust;
 
 /*
  * WARNING: the following table should be kept in order of trust and without
@@ -28,24 +28,16 @@ static int (*default_trust) (int id, X509 *x, int flags) = obj_trust;
  * into the table
  */
 
-static X509_TRUST trstandard[] = {
-    {X509_TRUST_COMPAT, 0, trust_compat, "compatible", 0, NULL},
-    {X509_TRUST_SSL_CLIENT, 0, trust_1oidany, "SSL Client", NID_client_auth,
-     NULL},
-    {X509_TRUST_SSL_SERVER, 0, trust_1oidany, "SSL Server", NID_server_auth,
-     NULL},
-    {X509_TRUST_EMAIL, 0, trust_1oidany, "S/MIME email", NID_email_protect,
-     NULL},
-    {X509_TRUST_OBJECT_SIGN, 0, trust_1oidany, "Object Signer", NID_code_sign,
-     NULL},
-    {X509_TRUST_OCSP_SIGN, 0, trust_1oid, "OCSP responder", NID_OCSP_sign,
-     NULL},
-    {X509_TRUST_OCSP_REQUEST, 0, trust_1oid, "OCSP request", NID_ad_OCSP,
-     NULL},
-    {X509_TRUST_TSA, 0, trust_1oidany, "TSA server", NID_time_stamp, NULL}
-};
+static X509_TRUST trstandard[] = {{X509_TRUST_COMPAT, 0, trust_compat, "compatible", 0, NULL},
+                                  {X509_TRUST_SSL_CLIENT, 0, trust_1oidany, "SSL Client", NID_client_auth, NULL},
+                                  {X509_TRUST_SSL_SERVER, 0, trust_1oidany, "SSL Server", NID_server_auth, NULL},
+                                  {X509_TRUST_EMAIL, 0, trust_1oidany, "S/MIME email", NID_email_protect, NULL},
+                                  {X509_TRUST_OBJECT_SIGN, 0, trust_1oidany, "Object Signer", NID_code_sign, NULL},
+                                  {X509_TRUST_OCSP_SIGN, 0, trust_1oid, "OCSP responder", NID_OCSP_sign, NULL},
+                                  {X509_TRUST_OCSP_REQUEST, 0, trust_1oid, "OCSP request", NID_ad_OCSP, NULL},
+                                  {X509_TRUST_TSA, 0, trust_1oidany, "TSA server", NID_time_stamp, NULL}};
 
-#define X509_TRUST_COUNT        OSSL_NELEM(trstandard)
+#define X509_TRUST_COUNT OSSL_NELEM(trstandard)
 
 static STACK_OF(X509_TRUST) *trtable = NULL;
 
@@ -54,9 +46,9 @@ static int tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b)
     return (*a)->trust - (*b)->trust;
 }
 
-int (*X509_TRUST_set_default(int (*trust) (int, X509 *, int))) (int, X509 *,
-                                                                int) {
-    int (*oldtrust) (int, X509 *, int);
+int (*X509_TRUST_set_default(int (*trust)(int, X509 *, int)))(int, X509 *, int)
+{
+    int (*oldtrust)(int, X509 *, int);
     oldtrust = default_trust;
     default_trust = trust;
     return oldtrust;
@@ -70,8 +62,7 @@ int X509_check_trust(X509 *x, int id, int flags)
 
     /* We get this as a default value */
     if (id == X509_TRUST_DEFAULT)
-        return obj_trust(NID_anyExtendedKeyUsage, x,
-                         flags | X509_TRUST_DO_SS_COMPAT);
+        return obj_trust(NID_anyExtendedKeyUsage, x, flags | X509_TRUST_DO_SS_COMPAT);
     idx = X509_TRUST_get_by_id(id);
     if (idx < 0)
         return default_trust(id, x, flags);
@@ -115,7 +106,8 @@ int X509_TRUST_get_by_id(int id)
 
 int X509_TRUST_set(int *t, int trust)
 {
-    if (X509_TRUST_get_by_id(trust) < 0) {
+    if (X509_TRUST_get_by_id(trust) < 0)
+    {
         ERR_raise(ERR_LIB_X509, X509_R_INVALID_TRUST);
         return 0;
     }
@@ -123,8 +115,7 @@ int X509_TRUST_set(int *t, int trust)
     return 1;
 }
 
-int X509_TRUST_add(int id, int flags, int (*ck) (X509_TRUST *, X509 *, int),
-                   const char *name, int arg1, void *arg2)
+int X509_TRUST_add(int id, int flags, int (*ck)(X509_TRUST *, X509 *, int), const char *name, int arg1, void *arg2)
 {
     int idx;
     X509_TRUST *trtmp;
@@ -137,11 +128,13 @@ int X509_TRUST_add(int id, int flags, int (*ck) (X509_TRUST *, X509 *, int),
     /* Get existing entry if any */
     idx = X509_TRUST_get_by_id(id);
     /* Need a new entry */
-    if (idx < 0) {
+    if (idx < 0)
+    {
         if ((trtmp = OPENSSL_malloc(sizeof(*trtmp))) == NULL)
             return 0;
         trtmp->flags = X509_TRUST_DYNAMIC;
-    } else
+    }
+    else
         trtmp = X509_TRUST_get0(idx);
 
     /* OPENSSL_free existing name if dynamic */
@@ -161,20 +154,23 @@ int X509_TRUST_add(int id, int flags, int (*ck) (X509_TRUST *, X509 *, int),
     trtmp->arg2 = arg2;
 
     /* If its a new entry manage the dynamic table */
-    if (idx < 0) {
-        if (trtable == NULL
-            && (trtable = sk_X509_TRUST_new(tr_cmp)) == NULL) {
+    if (idx < 0)
+    {
+        if (trtable == NULL && (trtable = sk_X509_TRUST_new(tr_cmp)) == NULL)
+        {
             ERR_raise(ERR_LIB_X509, ERR_R_CRYPTO_LIB);
             goto err;
         }
-        if (!sk_X509_TRUST_push(trtable, trtmp)) {
+        if (!sk_X509_TRUST_push(trtable, trtmp))
+        {
             ERR_raise(ERR_LIB_X509, ERR_R_CRYPTO_LIB);
             goto err;
         }
     }
     return 1;
- err:
-    if (idx < 0) {
+err:
+    if (idx < 0)
+    {
         OPENSSL_free(trtmp->name);
         OPENSSL_free(trtmp);
     }
@@ -185,7 +181,8 @@ static void trtable_free(X509_TRUST *p)
 {
     if (p == NULL)
         return;
-    if (p->flags & X509_TRUST_DYNAMIC) {
+    if (p->flags & X509_TRUST_DYNAMIC)
+    {
         if (p->flags & X509_TRUST_DYNAMIC_NAME)
             OPENSSL_free(p->name);
         OPENSSL_free(p);
@@ -252,24 +249,26 @@ static int obj_trust(int id, X509 *x, int flags)
     X509_CERT_AUX *ax = x->aux;
     int i;
 
-    if (ax != NULL && ax->reject != NULL) {
-        for (i = 0; i < sk_ASN1_OBJECT_num(ax->reject); i++) {
+    if (ax != NULL && ax->reject != NULL)
+    {
+        for (i = 0; i < sk_ASN1_OBJECT_num(ax->reject); i++)
+        {
             ASN1_OBJECT *obj = sk_ASN1_OBJECT_value(ax->reject, i);
             int nid = OBJ_obj2nid(obj);
 
-            if (nid == id || (nid == NID_anyExtendedKeyUsage &&
-                (flags & X509_TRUST_OK_ANY_EKU)))
+            if (nid == id || (nid == NID_anyExtendedKeyUsage && (flags & X509_TRUST_OK_ANY_EKU)))
                 return X509_TRUST_REJECTED;
         }
     }
 
-    if (ax != NULL && ax->trust != NULL) {
-        for (i = 0; i < sk_ASN1_OBJECT_num(ax->trust); i++) {
+    if (ax != NULL && ax->trust != NULL)
+    {
+        for (i = 0; i < sk_ASN1_OBJECT_num(ax->trust); i++)
+        {
             ASN1_OBJECT *obj = sk_ASN1_OBJECT_value(ax->trust, i);
             int nid = OBJ_obj2nid(obj);
 
-            if (nid == id || (nid == NID_anyExtendedKeyUsage &&
-                (flags & X509_TRUST_OK_ANY_EKU)))
+            if (nid == id || (nid == NID_anyExtendedKeyUsage && (flags & X509_TRUST_OK_ANY_EKU)))
                 return X509_TRUST_TRUSTED;
         }
         /*

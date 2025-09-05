@@ -21,10 +21,8 @@
  * used is contained in *num;
  */
 
-void DES_ede3_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-                            long length, DES_key_schedule *ks1,
-                            DES_key_schedule *ks2, DES_key_schedule *ks3,
-                            DES_cblock *ivec, int *num, int enc)
+void DES_ede3_cfb64_encrypt(const unsigned char *in, unsigned char *out, long length, DES_key_schedule *ks1,
+                            DES_key_schedule *ks2, DES_key_schedule *ks3, DES_cblock *ivec, int *num, int enc)
 {
     register DES_LONG v0, v1;
     register long l = length;
@@ -33,9 +31,12 @@ void DES_ede3_cfb64_encrypt(const unsigned char *in, unsigned char *out,
     unsigned char *iv, c, cc;
 
     iv = &(*ivec)[0];
-    if (enc) {
-        while (l--) {
-            if (n == 0) {
+    if (enc)
+    {
+        while (l--)
+        {
+            if (n == 0)
+            {
                 c2l(iv, v0);
                 c2l(iv, v1);
 
@@ -55,9 +56,13 @@ void DES_ede3_cfb64_encrypt(const unsigned char *in, unsigned char *out,
             iv[n] = c;
             n = (n + 1) & 0x07;
         }
-    } else {
-        while (l--) {
-            if (n == 0) {
+    }
+    else
+    {
+        while (l--)
+        {
+            if (n == 0)
+            {
                 c2l(iv, v0);
                 c2l(iv, v1);
 
@@ -88,10 +93,8 @@ void DES_ede3_cfb64_encrypt(const unsigned char *in, unsigned char *out,
  * not what EVP needs.
  */
 
-void DES_ede3_cfb_encrypt(const unsigned char *in, unsigned char *out,
-                          int numbits, long length, DES_key_schedule *ks1,
-                          DES_key_schedule *ks2, DES_key_schedule *ks3,
-                          DES_cblock *ivec, int enc)
+void DES_ede3_cfb_encrypt(const unsigned char *in, unsigned char *out, int numbits, long length, DES_key_schedule *ks1,
+                          DES_key_schedule *ks2, DES_key_schedule *ks3, DES_cblock *ivec, int enc)
 {
     register DES_LONG d0, d1, v0, v1;
     register unsigned long l = length, n = ((unsigned int)numbits + 7) / 8;
@@ -105,8 +108,10 @@ void DES_ede3_cfb_encrypt(const unsigned char *in, unsigned char *out,
     iv = &(*ivec)[0];
     c2l(iv, v0);
     c2l(iv, v1);
-    if (enc) {
-        while (l >= n) {
+    if (enc)
+    {
+        while (l >= n)
+        {
             l -= n;
             ti[0] = v0;
             ti[1] = v1;
@@ -121,13 +126,18 @@ void DES_ede3_cfb_encrypt(const unsigned char *in, unsigned char *out,
              * 30-08-94 - eay - changed because l>>32 and l<<32 are bad under
              * gcc :-(
              */
-            if (num == 32) {
+            if (num == 32)
+            {
                 v0 = v1;
                 v1 = d0;
-            } else if (num == 64) {
+            }
+            else if (num == 64)
+            {
                 v0 = d0;
                 v1 = d1;
-            } else {
+            }
+            else
+            {
                 iv = &ovec[0];
                 l2c(v0, iv);
                 l2c(v1, iv);
@@ -137,7 +147,8 @@ void DES_ede3_cfb_encrypt(const unsigned char *in, unsigned char *out,
                 memmove(ovec, ovec + num / 8, 8 + (num % 8 ? 1 : 0));
                 /* now the remaining bits */
                 if (num % 8 != 0)
-                    for (i = 0; i < 8; ++i) {
+                    for (i = 0; i < 8; ++i)
+                    {
                         ovec[i] <<= num % 8;
                         ovec[i] |= ovec[i + 1] >> (8 - num % 8);
                     }
@@ -146,8 +157,11 @@ void DES_ede3_cfb_encrypt(const unsigned char *in, unsigned char *out,
                 c2l(iv, v1);
             }
         }
-    } else {
-        while (l >= n) {
+    }
+    else
+    {
+        while (l >= n)
+        {
             l -= n;
             ti[0] = v0;
             ti[1] = v1;
@@ -158,13 +172,18 @@ void DES_ede3_cfb_encrypt(const unsigned char *in, unsigned char *out,
              * 30-08-94 - eay - changed because l>>32 and l<<32 are bad under
              * gcc :-(
              */
-            if (num == 32) {
+            if (num == 32)
+            {
                 v0 = v1;
                 v1 = d0;
-            } else if (num == 64) {
+            }
+            else if (num == 64)
+            {
                 v0 = d0;
                 v1 = d1;
-            } else {
+            }
+            else
+            {
                 iv = &ovec[0];
                 l2c(v0, iv);
                 l2c(v1, iv);
@@ -174,7 +193,8 @@ void DES_ede3_cfb_encrypt(const unsigned char *in, unsigned char *out,
                 memmove(ovec, ovec + num / 8, 8 + (num % 8 ? 1 : 0));
                 /* now the remaining bits */
                 if (num % 8 != 0)
-                    for (i = 0; i < 8; ++i) {
+                    for (i = 0; i < 8; ++i)
+                    {
                         ovec[i] <<= num % 8;
                         ovec[i] |= ovec[i + 1] >> (8 - num % 8);
                     }

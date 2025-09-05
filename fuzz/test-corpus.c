@@ -23,16 +23,16 @@
 #include "internal/o_dir.h"
 
 #if defined(_WIN32) && defined(_MAX_PATH) && !defined(PATH_MAX)
-# define PATH_MAX _MAX_PATH
+#define PATH_MAX _MAX_PATH
 #endif
 
 #ifndef PATH_MAX
-# define PATH_MAX 4096
+#define PATH_MAX 4096
 #endif
 
-# if !defined(S_ISREG)
-#   define S_ISREG(m) ((m) & S_IFREG)
-# endif
+#if !defined(S_ISREG)
+#define S_ISREG(m) ((m) & S_IFREG)
+#endif
 
 static void testfile(const char *pathname)
 {
@@ -49,7 +49,8 @@ static void testfile(const char *pathname)
     if (f == NULL)
         return;
     buf = malloc(st.st_size);
-    if (buf != NULL) {
+    if (buf != NULL)
+    {
         s = fread(buf, 1, st.st_size, f);
         OPENSSL_assert(s == (size_t)st.st_size);
         FuzzerTestOneInput(buf, s);
@@ -58,12 +59,14 @@ static void testfile(const char *pathname)
     fclose(f);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     int n;
 
     FuzzerInitialize(&argc, &argv);
 
-    for (n = 1; n < argc; ++n) {
+    for (n = 1; n < argc; ++n)
+    {
         size_t dirname_len = strlen(argv[n]);
         const char *filename = NULL;
         char *pathname = NULL;
@@ -73,9 +76,11 @@ int main(int argc, char **argv) {
         /*
          * We start with trying to read the given path as a directory.
          */
-        while ((filename = OPENSSL_DIR_read(&ctx, argv[n])) != NULL) {
+        while ((filename = OPENSSL_DIR_read(&ctx, argv[n])) != NULL)
+        {
             wasdir = 1;
-            if (pathname == NULL) {
+            if (pathname == NULL)
+            {
                 pathname = malloc(PATH_MAX);
                 if (pathname == NULL)
                     break;

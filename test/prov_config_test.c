@@ -40,7 +40,7 @@ static int test_double_config(void)
         goto err;
 
     testresult = 1;
- err:
+err:
     EVP_MD_free(sha256);
     OSSL_LIB_CTX_free(ctx);
     return testresult;
@@ -62,7 +62,7 @@ static int test_recursive_config(void)
     /* We expect to get a recursion error here */
     if (ERR_GET_REASON(err) == CONF_R_RECURSIVE_SECTION_REFERENCE)
         testresult = 1;
- err:
+err:
     OSSL_LIB_CTX_free(ctx);
     return testresult;
 }
@@ -110,7 +110,7 @@ static int test_path_config(void)
     OSSL_PROVIDER_unload(prov);
 
     testresult = 1;
- err:
+err:
     OSSL_LIB_CTX_free(ctx);
     return testresult;
 }
@@ -119,7 +119,8 @@ OPT_TEST_DECLARE_USAGE("configfile\n")
 
 int setup_tests(void)
 {
-    if (!test_skip_common_options()) {
+    if (!test_skip_common_options())
+    {
         TEST_error("Error parsing test options\n");
         return 0;
     }

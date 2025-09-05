@@ -25,7 +25,8 @@ int TS_ASN1_INTEGER_print_bio(BIO *bio, const ASN1_INTEGER *num)
     num_bn = ASN1_INTEGER_to_BN(num, NULL);
     if (num_bn == NULL)
         return -1;
-    if ((hex = BN_bn2hex(num_bn))) {
+    if ((hex = BN_bn2hex(num_bn)))
+    {
         result = BIO_write(bio, "0x", 2) > 0;
         result = result && BIO_write(bio, hex, (int)strlen(hex)) > 0;
         OPENSSL_free(hex);
@@ -53,14 +54,16 @@ int TS_ext_print_bio(BIO *bio, const STACK_OF(X509_EXTENSION) *extensions)
 
     BIO_printf(bio, "Extensions:\n");
     n = X509v3_get_ext_count(extensions);
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; i++)
+    {
         ex = X509v3_get_ext(extensions, i);
         obj = X509_EXTENSION_get_object(ex);
         if (i2a_ASN1_OBJECT(bio, obj) < 0)
             return 0;
         critical = X509_EXTENSION_get_critical(ex);
         BIO_printf(bio, ":%s\n", critical ? " critical" : "");
-        if (!X509V3_EXT_print(bio, ex, 0, 4)) {
+        if (!X509V3_EXT_print(bio, ex, 0, 4))
+        {
             BIO_printf(bio, "%4s", "");
             ASN1_STRING_print(bio, X509_EXTENSION_get_data(ex));
         }
@@ -73,8 +76,7 @@ int TS_ext_print_bio(BIO *bio, const STACK_OF(X509_EXTENSION) *extensions)
 int TS_X509_ALGOR_print_bio(BIO *bio, const X509_ALGOR *alg)
 {
     int i = OBJ_obj2nid(alg->algorithm);
-    return BIO_printf(bio, "Hash Algorithm: %s\n",
-                      (i == NID_undef) ? "UNKNOWN" : OBJ_nid2ln(i));
+    return BIO_printf(bio, "Hash Algorithm: %s\n", (i == NID_undef) ? "UNKNOWN" : OBJ_nid2ln(i));
 }
 
 int TS_MSG_IMPRINT_print_bio(BIO *bio, TS_MSG_IMPRINT *a)
@@ -85,8 +87,7 @@ int TS_MSG_IMPRINT_print_bio(BIO *bio, TS_MSG_IMPRINT *a)
 
     BIO_printf(bio, "Message data:\n");
     msg = a->hashed_msg;
-    BIO_dump_indent(bio, (const char *)ASN1_STRING_get0_data(msg),
-                    ASN1_STRING_length(msg), 4);
+    BIO_dump_indent(bio, (const char *)ASN1_STRING_get0_data(msg), ASN1_STRING_length(msg), 4);
 
     return 1;
 }

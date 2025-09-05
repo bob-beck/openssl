@@ -16,25 +16,27 @@
 
 /* Extension printing routines */
 
-static int unknown_ext_print(BIO *out, const unsigned char *ext, int extlen,
-                             unsigned long flag, int indent, int supported);
+static int unknown_ext_print(BIO *out, const unsigned char *ext, int extlen, unsigned long flag, int indent,
+                             int supported);
 
 /* Print out a name+value stack */
 
-void X509V3_EXT_val_prn(BIO *out, STACK_OF(CONF_VALUE) *val, int indent,
-                        int ml)
+void X509V3_EXT_val_prn(BIO *out, STACK_OF(CONF_VALUE) *val, int indent, int ml)
 {
     int i;
     CONF_VALUE *nval;
     if (!val)
         return;
-    if (!ml || !sk_CONF_VALUE_num(val)) {
+    if (!ml || !sk_CONF_VALUE_num(val))
+    {
         BIO_printf(out, "%*s", indent, "");
         if (!sk_CONF_VALUE_num(val))
             BIO_puts(out, "<EMPTY>\n");
     }
-    for (i = 0; i < sk_CONF_VALUE_num(val); i++) {
-        if (ml) {
+    for (i = 0; i < sk_CONF_VALUE_num(val); i++)
+    {
+        if (ml)
+        {
             if (i > 0)
                 BIO_printf(out, "\n");
             BIO_printf(out, "%*s", indent, "");
@@ -50,12 +52,14 @@ void X509V3_EXT_val_prn(BIO *out, STACK_OF(CONF_VALUE) *val, int indent,
         else
             BIO_printf(out, "%s:%s", nval->name, nval->value);
 #else
-        else {
+        else
+        {
             int len;
             char *tmp;
             len = strlen(nval->value) + 1;
             tmp = OPENSSL_malloc(len);
-            if (tmp != NULL) {
+            if (tmp != NULL)
+            {
                 ascii2ebcdic(tmp, nval->value, len);
                 BIO_printf(out, "%s:%s", nval->name, tmp);
                 OPENSSL_free(tmp);
@@ -67,8 +71,7 @@ void X509V3_EXT_val_prn(BIO *out, STACK_OF(CONF_VALUE) *val, int indent,
 
 /* Main routine: print out a general extension */
 
-int X509V3_EXT_print(BIO *out, X509_EXTENSION *ext, unsigned long flag,
-                     int indent)
+int X509V3_EXT_print(BIO *out, X509_EXTENSION *ext, unsigned long flag, int indent)
 {
     void *ext_str = NULL;
     char *value = NULL;
@@ -93,8 +96,10 @@ int X509V3_EXT_print(BIO *out, X509_EXTENSION *ext, unsigned long flag,
     if (!ext_str)
         return unknown_ext_print(out, p, extlen, flag, indent, 1);
 
-    if (method->i2s) {
-        if ((value = method->i2s(method, ext_str)) == NULL) {
+    if (method->i2s)
+    {
+        if ((value = method->i2s(method, ext_str)) == NULL)
+        {
             ok = 0;
             goto err;
         }
@@ -106,27 +111,33 @@ int X509V3_EXT_print(BIO *out, X509_EXTENSION *ext, unsigned long flag,
             char *tmp;
             len = strlen(value) + 1;
             tmp = OPENSSL_malloc(len);
-            if (tmp != NULL) {
+            if (tmp != NULL)
+            {
                 ascii2ebcdic(tmp, value, len);
                 BIO_printf(out, "%*s%s", indent, "", tmp);
                 OPENSSL_free(tmp);
             }
         }
 #endif
-    } else if (method->i2v) {
-        if ((nval = method->i2v(method, ext_str, NULL)) == NULL) {
+    }
+    else if (method->i2v)
+    {
+        if ((nval = method->i2v(method, ext_str, NULL)) == NULL)
+        {
             ok = 0;
             goto err;
         }
-        X509V3_EXT_val_prn(out, nval, indent,
-                           method->ext_flags & X509V3_EXT_MULTILINE);
-    } else if (method->i2r) {
+        X509V3_EXT_val_prn(out, nval, indent, method->ext_flags & X509V3_EXT_MULTILINE);
+    }
+    else if (method->i2r)
+    {
         if (!method->i2r(method, ext_str, out, indent))
             ok = 0;
-    } else
+    }
+    else
         ok = 0;
 
- err:
+err:
     sk_CONF_VALUE_pop_free(nval, X509V3_conf_free);
     OPENSSL_free(value);
     if (method->it)
@@ -136,29 +147,29 @@ int X509V3_EXT_print(BIO *out, X509_EXTENSION *ext, unsigned long flag,
     return ok;
 }
 
-int X509V3_extensions_print(BIO *bp, const char *title,
-                            const STACK_OF(X509_EXTENSION) *exts,
-                            unsigned long flag, int indent)
+int X509V3_extensions_print(BIO *bp, const char *title, const STACK_OF(X509_EXTENSION) *exts, unsigned long flag,
+                            int indent)
 {
     int i, j;
 
     if (sk_X509_EXTENSION_num(exts) <= 0)
         return 1;
 
-    if (title) {
+    if (title)
+    {
         BIO_printf(bp, "%*s%s:\n", indent, "", title);
         indent += 4;
     }
 
-    for (i = 0; i < sk_X509_EXTENSION_num(exts); i++) {
+    for (i = 0; i < sk_X509_EXTENSION_num(exts); i++)
+    {
         ASN1_OBJECT *obj;
         X509_EXTENSION *ex;
 
         ex = sk_X509_EXTENSION_value(exts, i);
         obj = X509_EXTENSION_get_object(ex);
-        if ((flag & X509_FLAG_EXTENSIONS_ONLY_KID) != 0
-                && OBJ_obj2nid(obj) != NID_subject_key_identifier
-                && OBJ_obj2nid(obj) != NID_authority_key_identifier)
+        if ((flag & X509_FLAG_EXTENSIONS_ONLY_KID) != 0 && OBJ_obj2nid(obj) != NID_subject_key_identifier &&
+            OBJ_obj2nid(obj) != NID_authority_key_identifier)
             continue;
         if (indent && BIO_printf(bp, "%*s", indent, "") <= 0)
             return 0;
@@ -166,7 +177,8 @@ int X509V3_extensions_print(BIO *bp, const char *title,
         j = X509_EXTENSION_get_critical(ex);
         if (BIO_printf(bp, ": %s\n", j ? "critical" : "") <= 0)
             return 0;
-        if (!X509V3_EXT_print(bp, ex, flag, indent + 4)) {
+        if (!X509V3_EXT_print(bp, ex, flag, indent + 4))
+        {
             BIO_printf(bp, "%*s", indent + 4, "");
             ASN1_STRING_print(bp, X509_EXTENSION_get_data(ex));
         }
@@ -176,10 +188,11 @@ int X509V3_extensions_print(BIO *bp, const char *title,
     return 1;
 }
 
-static int unknown_ext_print(BIO *out, const unsigned char *ext, int extlen,
-                             unsigned long flag, int indent, int supported)
+static int unknown_ext_print(BIO *out, const unsigned char *ext, int extlen, unsigned long flag, int indent,
+                             int supported)
 {
-    switch (flag & X509V3_EXT_UNKNOWN_MASK) {
+    switch (flag & X509V3_EXT_UNKNOWN_MASK)
+    {
 
     case X509V3_EXT_DEFAULT:
         return 0;

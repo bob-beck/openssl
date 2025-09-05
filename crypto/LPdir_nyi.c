@@ -37,10 +37,11 @@
  */
 
 #ifndef LPDIR_H
-# include "LPdir.h"
+#include "LPdir.h"
 #endif
 
-struct LP_dir_context_st {
+struct LP_dir_context_st
+{
     void *dummy;
 };
 const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)

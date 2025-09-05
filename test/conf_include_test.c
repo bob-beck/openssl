@@ -14,26 +14,26 @@
 #include "testutil.h"
 
 #ifdef _WIN32
-# include <direct.h>
-# define DIRSEP "/\\"
-# ifndef __BORLANDC__
-#  define chdir _chdir
-# endif
-# define DIRSEP_PRESERVE 0
+#include <direct.h>
+#define DIRSEP "/\\"
+#ifndef __BORLANDC__
+#define chdir _chdir
+#endif
+#define DIRSEP_PRESERVE 0
 #elif !defined(OPENSSL_NO_POSIX_IO)
-# include <unistd.h>
-# ifndef OPENSSL_SYS_VMS
-#  define DIRSEP "/"
-#  define DIRSEP_PRESERVE 0
-# else
-#  define DIRSEP "/]:"
-#  define DIRSEP_PRESERVE 1
-# endif
+#include <unistd.h>
+#ifndef OPENSSL_SYS_VMS
+#define DIRSEP "/"
+#define DIRSEP_PRESERVE 0
+#else
+#define DIRSEP "/]:"
+#define DIRSEP_PRESERVE 1
+#endif
 #else
 /* the test does not work without chdir() */
-# define chdir(x) (-1);
-# define DIRSEP "/"
-#  define DIRSEP_PRESERVE 0
+#define chdir(x) (-1);
+#define DIRSEP "/"
+#define DIRSEP_PRESERVE 0
 #endif
 
 /* changes path to that of the filename */
@@ -48,7 +48,8 @@ static char *change_path(const char *file)
     if (s == NULL)
         return NULL;
 
-    while ((p = strpbrk(p, DIRSEP)) != NULL) {
+    while ((p = strpbrk(p, DIRSEP)) != NULL)
+    {
         last = p++;
     }
     if (last == NULL)
@@ -60,7 +61,7 @@ static char *change_path(const char *file)
     ret = chdir(s);
     if (ret == 0)
         new_config_name = OPENSSL_strdup(last + DIRSEP_PRESERVE + 1);
- err:
+err:
     OPENSSL_free(s);
     return new_config_name;
 }
@@ -83,63 +84,67 @@ static int test_load_config(void)
     char *str;
     long err;
 
-    if (!TEST_int_gt(NCONF_load_bio(conf, in, &errline), 0)
-        || !TEST_int_eq(err = ERR_peek_error(), 0)) {
+    if (!TEST_int_gt(NCONF_load_bio(conf, in, &errline), 0) || !TEST_int_eq(err = ERR_peek_error(), 0))
+    {
         if (expect_failure)
             return 1;
         TEST_note("Failure loading the configuration at line %ld", errline);
         return 0;
     }
-    if (expect_failure) {
+    if (expect_failure)
+    {
         TEST_note("Failure expected but did not happen");
         return 0;
     }
 
-    if (!TEST_int_gt(CONF_modules_load(conf, NULL, 0), 0)) {
+    if (!TEST_int_gt(CONF_modules_load(conf, NULL, 0), 0))
+    {
         TEST_note("Failed in CONF_modules_load");
         return 0;
     }
 
     /* verify whether CA_default/default_days is set */
     val = 0;
-    if (!TEST_int_eq(NCONF_get_number(conf, "CA_default", "default_days", &val), 1)
-        || !TEST_int_eq(val, 365)) {
+    if (!TEST_int_eq(NCONF_get_number(conf, "CA_default", "default_days", &val), 1) || !TEST_int_eq(val, 365))
+    {
         TEST_note("default_days incorrect");
         return 0;
     }
 
     /* verify whether req/default_bits is set */
     val = 0;
-    if (!TEST_int_eq(NCONF_get_number(conf, "req", "default_bits", &val), 1)
-        || !TEST_int_eq(val, 2048)) {
+    if (!TEST_int_eq(NCONF_get_number(conf, "req", "default_bits", &val), 1) || !TEST_int_eq(val, 2048))
+    {
         TEST_note("default_bits incorrect");
         return 0;
     }
 
     /* verify whether countryName_default is set correctly */
     str = NCONF_get_string(conf, "req_distinguished_name", "countryName_default");
-    if (!TEST_ptr(str) || !TEST_str_eq(str, "AU")) {
+    if (!TEST_ptr(str) || !TEST_str_eq(str, "AU"))
+    {
         TEST_note("countryName_default incorrect");
         return 0;
     }
 
-    if (test_providers != 0) {
+    if (test_providers != 0)
+    {
         /* test for `active` directive in configuration file */
         val = 0;
-        if (!TEST_int_eq(NCONF_get_number(conf, "null_sect", "activate", &val), 1)
-            || !TEST_int_eq(val, 1)) {
+        if (!TEST_int_eq(NCONF_get_number(conf, "null_sect", "activate", &val), 1) || !TEST_int_eq(val, 1))
+        {
             TEST_note("null provider not activated");
             return 0;
         }
         val = 0;
-        if (!TEST_int_eq(NCONF_get_number(conf, "default_sect", "activate", &val), 1)
-            || !TEST_int_eq(val, 1)) {
+        if (!TEST_int_eq(NCONF_get_number(conf, "default_sect", "activate", &val), 1) || !TEST_int_eq(val, 1))
+        {
             TEST_note("default provider not activated");
             return 0;
         }
         val = 0;
-        if (!TEST_int_eq(NCONF_get_number(conf, "legacy_sect", "activate", &val), 1)
-            || !TEST_int_eq(val, 1)) {
+        if (!TEST_int_eq(NCONF_get_number(conf, "legacy_sect", "activate", &val), 1) || !TEST_int_eq(val, 1))
+        {
             TEST_note("legacy provider not activated");
             return 0;
         }
@@ -149,17 +154,16 @@ static int test_load_config(void)
 
 static int test_check_null_numbers(void)
 {
-#if defined(_BSD_SOURCE) \
-        || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) \
-        || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
+#if defined(_BSD_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) ||                                \
+    (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
     long val = 0;
 
     /* Verify that a NULL config with a present environment variable returns
      * success and the value.
      */
-    if (!TEST_int_eq(setenv("FNORD", "123", 1), 0)
-            || !TEST_true(NCONF_get_number(NULL, "missing", "FNORD", &val))
-            || !TEST_long_eq(val, 123)) {
+    if (!TEST_int_eq(setenv("FNORD", "123", 1), 0) || !TEST_true(NCONF_get_number(NULL, "missing", "FNORD", &val)) ||
+        !TEST_long_eq(val, 123))
+    {
         TEST_note("environment variable with NULL conf failed");
         return 0;
     }
@@ -168,8 +172,8 @@ static int test_check_null_numbers(void)
      * Verify that a NULL config with a missing environment variable returns
      * a failure code.
      */
-    if (!TEST_int_eq(unsetenv("FNORD"), 0)
-            || !TEST_false(NCONF_get_number(NULL, "missing", "FNORD", &val))) {
+    if (!TEST_int_eq(unsetenv("FNORD"), 0) || !TEST_false(NCONF_get_number(NULL, "missing", "FNORD", &val)))
+    {
         TEST_note("missing environment variable with NULL conf failed");
         return 0;
     }
@@ -179,17 +183,15 @@ static int test_check_null_numbers(void)
 
 static int test_check_overflow(void)
 {
-#if defined(_BSD_SOURCE) \
-        || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) \
-        || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
+#if defined(_BSD_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) ||                                \
+    (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
     long val = 0;
     char max[(sizeof(long) * 8) / 3 + 3];
     char *p;
 
     p = max + BIO_snprintf(max, sizeof(max), "0%ld", LONG_MAX) - 1;
     setenv("FNORD", max, 1);
-    if (!TEST_true(NCONF_get_number(NULL, "missing", "FNORD", &val))
-            || !TEST_long_eq(val, LONG_MAX))
+    if (!TEST_true(NCONF_get_number(NULL, "missing", "FNORD", &val)) || !TEST_long_eq(val, LONG_MAX))
         return 0;
 
     while (++*p > '9')
@@ -208,23 +210,27 @@ static int test_available_providers(void)
     if (!TEST_ptr(libctx))
         return 0;
 
-    if (!TEST_ptr(rel_conf_file) || !OSSL_LIB_CTX_load_config(libctx, rel_conf_file)) {
+    if (!TEST_ptr(rel_conf_file) || !OSSL_LIB_CTX_load_config(libctx, rel_conf_file))
+    {
         TEST_note("Failed to load config");
         return 0;
     }
 
-    if (OSSL_PROVIDER_available(libctx, "default") != 1) {
+    if (OSSL_PROVIDER_available(libctx, "default") != 1)
+    {
         TEST_note("Default provider is missing");
         return 0;
     }
-    if (OSSL_PROVIDER_available(libctx, "legacy") != 1) {
+    if (OSSL_PROVIDER_available(libctx, "legacy") != 1)
+    {
         TEST_note("Legacy provider is missing");
         return 0;
     }
     return 1;
 }
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_ERR = -1,
     OPT_EOF = 0,
     OPT_FAIL,
@@ -236,11 +242,9 @@ const OPTIONS *test_get_options(void)
 {
     static const OPTIONS test_options[] = {
         OPT_TEST_OPTIONS_WITH_EXTRA_USAGE("conf_file\n"),
-        { "f", OPT_FAIL, '-', "A failure is expected" },
-        { "providers", OPT_TEST_PROV, '-',
-          "Test for activated default and legacy providers"},
-        { NULL }
-    };
+        {"f", OPT_FAIL, '-', "A failure is expected"},
+        {"providers", OPT_TEST_PROV, '-', "Test for activated default and legacy providers"},
+        {NULL}};
     return test_options;
 }
 
@@ -252,8 +256,10 @@ int setup_tests(void)
     if (!TEST_ptr(conf = NCONF_new(NULL)))
         return 0;
 
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_FAIL:
             expect_failure = 1;
             break;
@@ -267,8 +273,8 @@ int setup_tests(void)
     }
 
     conf_file = test_get_argument(0);
-    if (!TEST_ptr(conf_file)
-        || !TEST_ptr(in = BIO_new_file(conf_file, "r"))) {
+    if (!TEST_ptr(conf_file) || !TEST_ptr(in = BIO_new_file(conf_file, "r")))
+    {
         TEST_note("Unable to open the file argument");
         return 0;
     }
@@ -278,7 +284,8 @@ int setup_tests(void)
      * path names in the config files.
      */
     rel_conf_file = change_path(conf_file);
-    if (!TEST_ptr(rel_conf_file)) {
+    if (!TEST_ptr(rel_conf_file))
+    {
         TEST_note("Unable to change path");
         return 0;
     }

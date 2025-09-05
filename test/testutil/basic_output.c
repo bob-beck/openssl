@@ -22,7 +22,8 @@ BIO *bio_err = NULL;
 static BIO *tap_out = NULL;
 static BIO *tap_err = NULL;
 
-typedef struct local_test_data_st {
+typedef struct local_test_data_st
+{
     BIO *override_bio_out, *override_bio_err;
 } LOCAL_TEST_DATA;
 
@@ -61,7 +62,8 @@ static LOCAL_TEST_DATA *get_local_test_data(void)
     if ((p = OPENSSL_zalloc(sizeof(*p))) == NULL)
         return NULL;
 
-    if (!CRYPTO_THREAD_set_local(&local_test_data, p)) {
+    if (!CRYPTO_THREAD_set_local(&local_test_data, p))
+    {
         OPENSSL_free(p);
         return NULL;
     }

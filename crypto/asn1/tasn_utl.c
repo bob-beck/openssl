@@ -20,7 +20,7 @@
 /* Utility functions for manipulating fields and offsets */
 
 /* Add 'offset' to 'addr' */
-#define offset2ptr(addr, offset) (void *)(((char *) addr) + offset)
+#define offset2ptr(addr, offset) (void *)(((char *)addr) + offset)
 
 /*
  * Given an ASN1_ITEM CHOICE type return the selector value
@@ -33,8 +33,7 @@ int ossl_asn1_get_choice_selector(ASN1_VALUE **pval, const ASN1_ITEM *it)
     return *sel;
 }
 
-int ossl_asn1_get_choice_selector_const(const ASN1_VALUE **pval,
-                                        const ASN1_ITEM *it)
+int ossl_asn1_get_choice_selector_const(const ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     int *sel = offset2ptr(*pval, it->utype);
 
@@ -45,8 +44,7 @@ int ossl_asn1_get_choice_selector_const(const ASN1_VALUE **pval,
  * Given an ASN1_ITEM CHOICE type set the selector value, return old value.
  */
 
-int ossl_asn1_set_choice_selector(ASN1_VALUE **pval, int value,
-                                  const ASN1_ITEM *it)
+int ossl_asn1_set_choice_selector(ASN1_VALUE **pval, int value, const ASN1_ITEM *it)
 {
     int *sel, ret;
 
@@ -72,8 +70,7 @@ int ossl_asn1_do_lock(ASN1_VALUE **pval, int op, const ASN1_ITEM *it)
     CRYPTO_REF_COUNT *refcnt;
     int ret = -1;
 
-    if ((it->itype != ASN1_ITYPE_SEQUENCE)
-        && (it->itype != ASN1_ITYPE_NDEF_SEQUENCE))
+    if ((it->itype != ASN1_ITYPE_SEQUENCE) && (it->itype != ASN1_ITYPE_NDEF_SEQUENCE))
         return 0;
     aux = it->funcs;
     if (aux == NULL || (aux->flags & ASN1_AFLG_REFCOUNT) == 0)
@@ -81,12 +78,14 @@ int ossl_asn1_do_lock(ASN1_VALUE **pval, int op, const ASN1_ITEM *it)
     lock = offset2ptr(*pval, aux->ref_lock);
     refcnt = offset2ptr(*pval, aux->ref_offset);
 
-    switch (op) {
+    switch (op)
+    {
     case 0:
         if (!CRYPTO_NEW_REF(refcnt, 1))
             return -1;
         *lock = CRYPTO_THREAD_lock_new();
-        if (*lock == NULL) {
+        if (*lock == NULL)
+        {
             CRYPTO_FREE_REF(refcnt);
             ERR_raise(ERR_LIB_ASN1, ERR_R_CRYPTO_LIB);
             return -1;
@@ -99,10 +98,11 @@ int ossl_asn1_do_lock(ASN1_VALUE **pval, int op, const ASN1_ITEM *it)
         break;
     case -1:
         if (!CRYPTO_DOWN_REF(refcnt, &ret))
-            return -1;  /* failed */
+            return -1; /* failed */
         REF_PRINT_EX(it->sname, ret, (void *)it);
         REF_ASSERT_ISNT(ret < 0);
-        if (ret == 0) {
+        if (ret == 0)
+        {
             CRYPTO_THREAD_lock_free(*lock);
             *lock = NULL;
             CRYPTO_FREE_REF(refcnt);
@@ -125,8 +125,7 @@ static ASN1_ENCODING *asn1_get_enc_ptr(ASN1_VALUE **pval, const ASN1_ITEM *it)
     return offset2ptr(*pval, aux->enc_offset);
 }
 
-static const ASN1_ENCODING *asn1_get_const_enc_ptr(const ASN1_VALUE **pval,
-                                                   const ASN1_ITEM *it)
+static const ASN1_ENCODING *asn1_get_const_enc_ptr(const ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     const ASN1_AUX *aux;
 
@@ -142,7 +141,8 @@ void ossl_asn1_enc_init(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     ASN1_ENCODING *enc = asn1_get_enc_ptr(pval, it);
 
-    if (enc != NULL) {
+    if (enc != NULL)
+    {
         enc->enc = NULL;
         enc->len = 0;
         enc->modified = 1;
@@ -153,7 +153,8 @@ void ossl_asn1_enc_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     ASN1_ENCODING *enc = asn1_get_enc_ptr(pval, it);
 
-    if (enc != NULL) {
+    if (enc != NULL)
+    {
         OPENSSL_free(enc->enc);
         enc->enc = NULL;
         enc->len = 0;
@@ -161,8 +162,7 @@ void ossl_asn1_enc_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
     }
 }
 
-int ossl_asn1_enc_save(ASN1_VALUE **pval, const unsigned char *in, long inlen,
-                       const ASN1_ITEM *it)
+int ossl_asn1_enc_save(ASN1_VALUE **pval, const unsigned char *in, long inlen, const ASN1_ITEM *it)
 {
     ASN1_ENCODING *enc = asn1_get_enc_ptr(pval, it);
 
@@ -170,7 +170,8 @@ int ossl_asn1_enc_save(ASN1_VALUE **pval, const unsigned char *in, long inlen,
         return 1;
 
     OPENSSL_free(enc->enc);
-    if (inlen <= 0) {
+    if (inlen <= 0)
+    {
         enc->enc = NULL;
         return 0;
     }
@@ -183,14 +184,14 @@ int ossl_asn1_enc_save(ASN1_VALUE **pval, const unsigned char *in, long inlen,
     return 1;
 }
 
-int ossl_asn1_enc_restore(int *len, unsigned char **out, const ASN1_VALUE **pval,
-                          const ASN1_ITEM *it)
+int ossl_asn1_enc_restore(int *len, unsigned char **out, const ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     const ASN1_ENCODING *enc = asn1_get_const_enc_ptr(pval, it);
 
     if (enc == NULL || enc->modified)
         return 0;
-    if (out) {
+    if (out)
+    {
         memcpy(*out, enc->enc, enc->len);
         *out += enc->len;
     }
@@ -212,8 +213,7 @@ ASN1_VALUE **ossl_asn1_get_field_ptr(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
 }
 
 /* Given an ASN1_TEMPLATE get a const pointer to a field */
-const ASN1_VALUE **ossl_asn1_get_const_field_ptr(const ASN1_VALUE **pval,
-                                                 const ASN1_TEMPLATE *tt)
+const ASN1_VALUE **ossl_asn1_get_const_field_ptr(const ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
 {
     return offset2ptr(*pval, tt->offset);
 }
@@ -223,9 +223,7 @@ const ASN1_VALUE **ossl_asn1_get_const_field_ptr(const ASN1_VALUE **pval,
  * ASN1_TEMPLATE in the table and return it.
  */
 
-const ASN1_TEMPLATE *ossl_asn1_do_adb(const ASN1_VALUE *val,
-                                      const ASN1_TEMPLATE *tt,
-                                      int nullerr)
+const ASN1_TEMPLATE *ossl_asn1_do_adb(const ASN1_VALUE *val, const ASN1_TEMPLATE *tt, int nullerr)
 {
     const ASN1_ADB *adb;
     const ASN1_ADB_TABLE *atbl;
@@ -243,7 +241,8 @@ const ASN1_TEMPLATE *ossl_asn1_do_adb(const ASN1_VALUE *val,
     sfld = offset2ptr(val, adb->offset);
 
     /* Check if NULL */
-    if (*sfld == NULL) {
+    if (*sfld == NULL)
+    {
         if (adb->null_tt == NULL)
             goto err;
         return adb->null_tt;
@@ -259,7 +258,8 @@ const ASN1_TEMPLATE *ossl_asn1_do_adb(const ASN1_VALUE *val,
         selector = ASN1_INTEGER_get((ASN1_INTEGER *)*sfld);
 
     /* Let application callback translate value */
-    if (adb->adb_cb != NULL && adb->adb_cb(&selector) == 0) {
+    if (adb->adb_cb != NULL && adb->adb_cb(&selector) == 0)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_UNSUPPORTED_ANY_DEFINED_BY_TYPE);
         return NULL;
     }
@@ -282,7 +282,7 @@ const ASN1_TEMPLATE *ossl_asn1_do_adb(const ASN1_VALUE *val,
         goto err;
     return adb->default_tt;
 
- err:
+err:
     /* FIXME: should log the value or OID of unsupported type */
     if (nullerr)
         ERR_raise(ERR_LIB_ASN1, ASN1_R_UNSUPPORTED_ANY_DEFINED_BY_TYPE);

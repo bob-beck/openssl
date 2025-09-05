@@ -34,8 +34,10 @@ OSSL_LIB_CTX *app_create_libctx(void)
      * Load the NULL provider into the default library context and create a
      * library context which will then be used for any OPT_PROV options.
      */
-    if (app_libctx == NULL) {
-        if (!app_provider_load(NULL, "null")) {
+    if (app_libctx == NULL)
+    {
+        if (!app_provider_load(NULL, "null"))
+        {
             opt_printf_stderr("Failed to create null provider\n");
             return NULL;
         }
@@ -45,4 +47,3 @@ OSSL_LIB_CTX *app_create_libctx(void)
         opt_printf_stderr("Failed to create library context\n");
     return app_libctx;
 }
-

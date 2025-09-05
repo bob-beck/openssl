@@ -18,7 +18,6 @@
 #include <openssl/err.h>
 #include "fuzzer.h"
 
-
 int FuzzerInitialize(int *argc, char ***argv)
 {
     OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
@@ -50,7 +49,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
      * bytes to choose lengths, which generate b1, b2 and b3. Use three bits
      * of the third byte to choose signs for the three numbers.
      */
-    if (len > 2) {
+    if (len > 2)
+    {
         len -= 3;
         /* limit l1, l2, and l3 to be no more than 512 bytes */
         l1 = ((buf[0] * len) / 255) % 512;
@@ -70,7 +70,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     BN_set_negative(b3, s3);
 
     /* mod 0 is undefined */
-    if (BN_is_zero(b3)) {
+    if (BN_is_zero(b3))
+    {
         success = 1;
         goto done;
     }
@@ -79,7 +80,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     OPENSSL_assert(BN_mod_exp_simple(b5, b1, b2, b3, ctx));
 
     success = BN_cmp(b4, b5) == 0;
-    if (!success) {
+    if (!success)
+    {
         BN_print_fp(stdout, b1);
         putchar('\n');
         BN_print_fp(stdout, b2);
@@ -92,7 +94,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         putchar('\n');
     }
 
- done:
+done:
     OPENSSL_assert(success);
     BN_free(b1);
     BN_free(b2);

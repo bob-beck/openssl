@@ -35,7 +35,8 @@ void IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks)
 
     kf = kt;
     kt += 8;
-    for (i = 0; i < 6; i++) {
+    for (i = 0; i < 6; i++)
+    {
         r2 = kf[1];
         r1 = kf[2];
         *(kt++) = ((r2 << 9) | (r1 >> 7)) & 0xffff;
@@ -65,7 +66,8 @@ void IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk)
 
     tp = &(dk->data[0][0]);
     fp = &(ek->data[8][0]);
-    for (r = 0; r < 9; r++) {
+    for (r = 0; r < 9; r++)
+    {
         *(tp++) = inverse(fp[0]);
         *(tp++) = ((int)(0x10000L - fp[2]) & 0xffff);
         *(tp++) = ((int)(0x10000L - fp[1]) & 0xffff);
@@ -94,19 +96,24 @@ static IDEA_INT inverse(unsigned int xin)
 
     if (xin == 0)
         b2 = 0;
-    else {
+    else
+    {
         n1 = 0x10001;
         n2 = xin;
         b2 = 1;
         b1 = 0;
 
-        do {
+        do
+        {
             r = (n1 % n2);
             q = (n1 - r) / n2;
-            if (r == 0) {
+            if (r == 0)
+            {
                 if (b2 < 0)
                     b2 = 0x10001 + b2;
-            } else {
+            }
+            else
+            {
                 n1 = n2;
                 n2 = r;
                 t = b2;

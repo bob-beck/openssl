@@ -40,8 +40,7 @@
  *     from The input hash followed by the 1st byte of the trailer.
  *     flen The size of the input hash + 1 (trailer byte)
  */
-int RSA_padding_add_X931(unsigned char *to, int tlen,
-                         const unsigned char *from, int flen)
+int RSA_padding_add_X931(unsigned char *to, int tlen, const unsigned char *from, int flen)
 {
     int j;
     unsigned char *p;
@@ -52,7 +51,8 @@ int RSA_padding_add_X931(unsigned char *to, int tlen,
      */
     j = tlen - flen - 2;
 
-    if (j < 0) {
+    if (j < 0)
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE);
         return -1;
     }
@@ -60,11 +60,15 @@ int RSA_padding_add_X931(unsigned char *to, int tlen,
     p = (unsigned char *)to;
 
     /* If no padding start and end nibbles are in one byte */
-    if (j == 0) {
+    if (j == 0)
+    {
         *p++ = 0x6A;
-    } else {
+    }
+    else
+    {
         *p++ = 0x6B;
-        if (j > 1) {
+        if (j > 1)
+        {
             memset(p, 0xBB, j - 1);
             p += j - 1;
         }
@@ -76,25 +80,28 @@ int RSA_padding_add_X931(unsigned char *to, int tlen,
     return 1;
 }
 
-int RSA_padding_check_X931(unsigned char *to, int tlen,
-                           const unsigned char *from, int flen, int num)
+int RSA_padding_check_X931(unsigned char *to, int tlen, const unsigned char *from, int flen, int num)
 {
     int i = 0, j;
     const unsigned char *p;
 
     p = from;
-    if ((num != flen) || ((*p != 0x6A) && (*p != 0x6B))) {
+    if ((num != flen) || ((*p != 0x6A) && (*p != 0x6B)))
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_INVALID_HEADER);
         return -1;
     }
 
-    if (*p++ == 0x6B) {
+    if (*p++ == 0x6B)
+    {
         j = flen - 3;
-        for (i = 0; i < j; i++) {
+        for (i = 0; i < j; i++)
+        {
             unsigned char c = *p++;
             if (c == 0xBA)
                 break;
-            if (c != 0xBB) {
+            if (c != 0xBB)
+            {
                 ERR_raise(ERR_LIB_RSA, RSA_R_INVALID_PADDING);
                 return -1;
             }
@@ -102,16 +109,19 @@ int RSA_padding_check_X931(unsigned char *to, int tlen,
 
         j -= i;
 
-        if (i == 0) {
+        if (i == 0)
+        {
             ERR_raise(ERR_LIB_RSA, RSA_R_INVALID_PADDING);
             return -1;
         }
-
-    } else {
+    }
+    else
+    {
         j = flen - 2;
     }
 
-    if (p[j] != 0xCC) {
+    if (p[j] != 0xCC)
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_INVALID_TRAILER);
         return -1;
     }
@@ -130,7 +140,8 @@ int RSA_padding_check_X931(unsigned char *to, int tlen,
 
 int RSA_X931_hash_id(int nid)
 {
-    switch (nid) {
+    switch (nid)
+    {
     case NID_sha1:
         return 0x33;
 
@@ -142,7 +153,6 @@ int RSA_X931_hash_id(int nid)
 
     case NID_sha512:
         return 0x35;
-
     }
     return -1;
 }

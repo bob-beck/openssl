@@ -10,10 +10,10 @@
 #include <openssl/ssl.h>
 #include <openssl/quic.h>
 #ifdef _WIN32 /* Windows */
-# include <winsock2.h>
+#include <winsock2.h>
 #else /* Linux/Unix */
-# include <netinet/in.h>
-# include <unistd.h>
+#include <netinet/in.h>
+#include <unistd.h>
 #endif
 #include <assert.h>
 
@@ -25,18 +25,14 @@
 /* ALPN string for TLS handshake */
 static const unsigned char alpn_ossltest[] = {
     /* "\x08ossltest" (hex for EBCDIC resilience) */
-    0x08, 0x6f, 0x73, 0x73, 0x6c, 0x74, 0x65, 0x73, 0x74
-};
+    0x08, 0x6f, 0x73, 0x73, 0x6c, 0x74, 0x65, 0x73, 0x74};
 
 /* This callback validates and negotiates the desired ALPN on the server side. */
-static int select_alpn(SSL *ssl,
-                       const unsigned char **out, unsigned char *out_len,
-                       const unsigned char *in, unsigned int in_len,
-                       void *arg)
+static int select_alpn(SSL *ssl, const unsigned char **out, unsigned char *out_len, const unsigned char *in,
+                       unsigned int in_len, void *arg)
 {
-    if (SSL_select_next_proto((unsigned char **)out, out_len,
-                              alpn_ossltest, sizeof(alpn_ossltest), in, in_len)
-            != OPENSSL_NPN_NEGOTIATED)
+    if (SSL_select_next_proto((unsigned char **)out, out_len, alpn_ossltest, sizeof(alpn_ossltest), in, in_len) !=
+        OPENSSL_NPN_NEGOTIATED)
         return SSL_TLSEXT_ERR_ALERT_FATAL;
 
     return SSL_TLSEXT_ERR_OK;
@@ -52,17 +48,20 @@ static SSL_CTX *create_ctx(const char *cert_path, const char *key_path)
         goto err;
 
     /* Load certificate and corresponding private key. */
-    if (SSL_CTX_use_certificate_chain_file(ctx, cert_path) <= 0) {
+    if (SSL_CTX_use_certificate_chain_file(ctx, cert_path) <= 0)
+    {
         fprintf(stderr, "couldn't load certificate file: %s\n", cert_path);
         goto err;
     }
 
-    if (SSL_CTX_use_PrivateKey_file(ctx, key_path, SSL_FILETYPE_PEM) <= 0) {
+    if (SSL_CTX_use_PrivateKey_file(ctx, key_path, SSL_FILETYPE_PEM) <= 0)
+    {
         fprintf(stderr, "couldn't load key file: %s\n", key_path);
         goto err;
     }
 
-    if (!SSL_CTX_check_private_key(ctx)) {
+    if (!SSL_CTX_check_private_key(ctx))
+    {
         fprintf(stderr, "private key check failed\n");
         goto err;
     }
@@ -82,15 +81,17 @@ static int create_socket(uint16_t port)
     int fd = -1;
     struct sockaddr_in sa = {0};
 
-    if ((fd = (int)socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
+    if ((fd = (int)socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+    {
         fprintf(stderr, "cannot create socket");
         goto err;
     }
 
-    sa.sin_family  = AF_INET;
-    sa.sin_port    = htons(port);
+    sa.sin_family = AF_INET;
+    sa.sin_port = htons(port);
 
-    if (bind(fd, (const struct sockaddr *)&sa, sizeof(sa)) < 0) {
+    if (bind(fd, (const struct sockaddr *)&sa, sizeof(sa)) < 0)
+    {
         fprintf(stderr, "cannot bind to %u\n", port);
         goto err;
     }
@@ -119,15 +120,16 @@ static int run_quic_conn(SSL *conn)
      * Since we inherit our blocking mode from the parent QUIC SSL object (the
      * listener) by default, this call is also blocking.
      */
-    if (!SSL_write_ex2(conn, "hello\n", 6, SSL_WRITE_FLAG_CONCLUDE, &written)
-        || written != 6) {
+    if (!SSL_write_ex2(conn, "hello\n", 6, SSL_WRITE_FLAG_CONCLUDE, &written) || written != 6)
+    {
         fprintf(stderr, "couldn't write on connection\n");
         ERR_print_errors_fp(stderr);
         return 0;
     }
 
     /* Shut down the connection (blocking). */
-    if (SSL_shutdown(conn) != 1) {
+    if (SSL_shutdown(conn) != 1)
+    {
         ERR_print_errors_fp(stderr);
         return 0;
     }
@@ -162,10 +164,12 @@ static int run_quic_server(SSL_CTX *ctx, int fd)
     if (!SSL_set_blocking_mode(listener, 1))
         goto err;
 
-    for (;;) {
+    for (;;)
+    {
         /* Blocking wait for an incoming connection, similar to accept(2). */
         conn = SSL_accept_connection(listener, 0);
-        if (conn == NULL) {
+        if (conn == NULL)
+        {
             fprintf(stderr, "error while accepting connection\n");
             goto err;
         }
@@ -180,7 +184,8 @@ static int run_quic_server(SSL_CTX *ctx, int fd)
          * concurrently. In this demonstration program a single connection is
          * accepted and serviced at a time.
          */
-        if (!run_quic_conn(conn)) {
+        if (!run_quic_conn(conn))
+        {
             SSL_free(conn);
             goto err;
         }
@@ -205,7 +210,8 @@ int main(int argc, char **argv)
     int fd = -1;
     unsigned long port;
 
-    if (argc < 4) {
+    if (argc < 4)
+    {
         fprintf(stderr, "usage: %s <port> <server.crt> <server.key>\n", argv[0]);
         goto err;
     }
@@ -216,7 +222,8 @@ int main(int argc, char **argv)
 
     /* Parse port number from command line arguments. */
     port = strtoul(argv[1], NULL, 0);
-    if (port == 0 || port > UINT16_MAX) {
+    if (port == 0 || port > UINT16_MAX)
+    {
         fprintf(stderr, "invalid port: %lu\n", port);
         goto err;
     }

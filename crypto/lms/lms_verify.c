@@ -16,10 +16,10 @@
  * Constants used for obtaining unique inputs for different hashing operations
  * e.g H(I || q || OSSL_LMS_D_LEAF || ... )
  */
-const uint16_t OSSL_LMS_D_PBLC          = 0x8080;
-const uint16_t OSSL_LMS_D_MESG          = 0x8181;
-const uint16_t OSSL_LMS_D_LEAF          = 0x8282;
-const uint16_t OSSL_LMS_D_INTR          = 0x8383;
+const uint16_t OSSL_LMS_D_PBLC = 0x8080;
+const uint16_t OSSL_LMS_D_MESG = 0x8181;
+const uint16_t OSSL_LMS_D_LEAF = 0x8282;
+const uint16_t OSSL_LMS_D_INTR = 0x8383;
 
 /*
  * @brief Compute the candidate LMS root value Tc
@@ -36,11 +36,8 @@ const uint16_t OSSL_LMS_D_INTR          = 0x8383;
  *           and on output returns the calculated candidate public key.
  * @returns 1 on success, or 0 otherwise.
  */
-static
-int lms_sig_compute_tc_from_path(const unsigned char *paths, uint32_t n,
-                                 uint32_t node_num,
-                                 EVP_MD_CTX *ctx, EVP_MD_CTX *ctxI,
-                                 unsigned char *Tc)
+static int lms_sig_compute_tc_from_path(const unsigned char *paths, uint32_t n, uint32_t node_num, EVP_MD_CTX *ctx,
+                                        EVP_MD_CTX *ctxI, unsigned char *Tc)
 {
     int ret = 0;
     unsigned char qbuf[4];
@@ -56,7 +53,8 @@ int lms_sig_compute_tc_from_path(const unsigned char *paths, uint32_t n,
      * a leaf value that can be used with the path to calculate the parent
      * hash.
      */
-    while (node_num > 1) {
+    while (node_num > 1)
+    {
         /* At each level the path contains either the left or right child */
         int odd = node_num & 1;
 
@@ -68,18 +66,18 @@ int lms_sig_compute_tc_from_path(const unsigned char *paths, uint32_t n,
          *   Tc(parent) = H(I || node_q || 0x8383 || paths[i][n] || Tc(right) OR
          *   Tc(parent) = H(I || node_q || 0x8383 || Tc(left) || paths[i][n])
          */
-        if (!EVP_MD_CTX_copy_ex(ctx, ctxI)
-                || !EVP_DigestUpdate(ctx, qbuf, sizeof(qbuf))
-                || !EVP_DigestUpdate(ctx, d_intr, sizeof(d_intr)))
+        if (!EVP_MD_CTX_copy_ex(ctx, ctxI) || !EVP_DigestUpdate(ctx, qbuf, sizeof(qbuf)) ||
+            !EVP_DigestUpdate(ctx, d_intr, sizeof(d_intr)))
             goto err;
 
-        if (odd) {
-            if (!EVP_DigestUpdate(ctx, path, n)
-                || !EVP_DigestUpdate(ctx, Tc, n))
+        if (odd)
+        {
+            if (!EVP_DigestUpdate(ctx, path, n) || !EVP_DigestUpdate(ctx, Tc, n))
                 goto err;
-        } else {
-            if (!EVP_DigestUpdate(ctx, Tc, n)
-                || !EVP_DigestUpdate(ctx, path, n))
+        }
+        else
+        {
+            if (!EVP_DigestUpdate(ctx, Tc, n) || !EVP_DigestUpdate(ctx, path, n))
                 goto err;
         }
         /*
@@ -106,9 +104,8 @@ err:
  * @param msglen The size of |msg|
  * @returns 1 if the verification succeeded, or 0 otherwise.
  */
-int ossl_lms_sig_verify(const LMS_SIG *lms_sig, const LMS_KEY *pub,
-                        const EVP_MD *md,
-                        const unsigned char *msg, size_t msglen)
+int ossl_lms_sig_verify(const LMS_SIG *lms_sig, const LMS_KEY *pub, const EVP_MD *md, const unsigned char *msg,
+                        size_t msglen)
 {
     int ret = 0;
     EVP_MD_CTX *ctx = NULL, *ctxIq = NULL;
@@ -133,9 +130,7 @@ int ossl_lms_sig_verify(const LMS_SIG *lms_sig, const LMS_KEY *pub,
      * Calculate a candidate public key |Kc| using the lmots_signature, message,
      * and the identifiers I, q
      */
-    if (!ossl_lm_ots_compute_pubkey(ctx, ctxIq, &lms_sig->sig,
-                                    pub->ots_params, pub->Id,
-                                    lms_sig->q, msg, msglen, Kc))
+    if (!ossl_lm_ots_compute_pubkey(ctx, ctxIq, &lms_sig->sig, pub->ots_params, pub->Id, lms_sig->q, msg, msglen, Kc))
         goto err;
 
     /*
@@ -155,15 +150,10 @@ int ossl_lms_sig_verify(const LMS_SIG *lms_sig, const LMS_KEY *pub,
      * ctx is left initialised with the md from ossl_lm_ots_compute_pubkey,
      * so there is no need to reinitialise it here.
      */
-    if (!EVP_DigestInit_ex2(ctx, NULL, NULL)
-            || !EVP_DigestUpdate(ctx, pub->Id, LMS_SIZE_I)
-            || !EVP_MD_CTX_copy_ex(ctxI, ctx)
-            || !EVP_DigestUpdate(ctx, qbuf, sizeof(qbuf))
-            || !EVP_DigestUpdate(ctx, d_leaf, sizeof(d_leaf))
-            || !EVP_DigestUpdate(ctx, Kc, n)
-            || !EVP_DigestFinal_ex(ctx, Tc, NULL)
-            || !lms_sig_compute_tc_from_path(lms_sig->paths, n, node_num,
-                                             ctx, ctxI, Tc))
+    if (!EVP_DigestInit_ex2(ctx, NULL, NULL) || !EVP_DigestUpdate(ctx, pub->Id, LMS_SIZE_I) ||
+        !EVP_MD_CTX_copy_ex(ctxI, ctx) || !EVP_DigestUpdate(ctx, qbuf, sizeof(qbuf)) ||
+        !EVP_DigestUpdate(ctx, d_leaf, sizeof(d_leaf)) || !EVP_DigestUpdate(ctx, Kc, n) ||
+        !EVP_DigestFinal_ex(ctx, Tc, NULL) || !lms_sig_compute_tc_from_path(lms_sig->paths, n, node_num, ctx, ctxI, Tc))
         goto err;
     /* Algorithm 6: Step 4 */
     ret = (memcmp(pub->pub.K, Tc, n) == 0);

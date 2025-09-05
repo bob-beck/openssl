@@ -43,8 +43,7 @@ int CONF_set_default_method(CONF_METHOD *meth)
     return 1;
 }
 
-LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
-                                long *eline)
+LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file, long *eline)
 {
     LHASH_OF(CONF_VALUE) *ltmp;
     BIO *in = NULL;
@@ -54,7 +53,8 @@ LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
 #else
     in = BIO_new_file(file, "rb");
 #endif
-    if (in == NULL) {
+    if (in == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, ERR_R_SYS_LIB);
         return NULL;
     }
@@ -66,12 +66,12 @@ LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
 }
 
 #ifndef OPENSSL_NO_STDIO
-LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
-                                   long *eline)
+LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp, long *eline)
 {
     BIO *btmp;
     LHASH_OF(CONF_VALUE) *ltmp;
-    if ((btmp = BIO_new_fp(fp, BIO_NOCLOSE)) == NULL) {
+    if ((btmp = BIO_new_fp(fp, BIO_NOCLOSE)) == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, ERR_R_BUF_LIB);
         return NULL;
     }
@@ -81,8 +81,7 @@ LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
 }
 #endif
 
-LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
-                                    long *eline)
+LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp, long *eline)
 {
     CONF ctmp;
     int ret;
@@ -95,12 +94,14 @@ LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
     return NULL;
 }
 
-STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
-                                       const char *section)
+STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf, const char *section)
 {
-    if (conf == NULL) {
+    if (conf == NULL)
+    {
         return NULL;
-    } else {
+    }
+    else
+    {
         CONF ctmp;
 
         CONF_set_nconf(&ctmp, conf);
@@ -108,12 +109,14 @@ STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
     }
 }
 
-char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
-                      const char *name)
+char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group, const char *name)
 {
-    if (conf == NULL) {
+    if (conf == NULL)
+    {
         return NCONF_get_string(NULL, group, name);
-    } else {
+    }
+    else
+    {
         CONF ctmp;
 
         CONF_set_nconf(&ctmp, conf);
@@ -121,16 +124,18 @@ char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
     }
 }
 
-long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
-                     const char *name)
+long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group, const char *name)
 {
     int status;
     long result = 0;
 
     ERR_set_mark();
-    if (conf == NULL) {
+    if (conf == NULL)
+    {
         status = NCONF_get_number_e(NULL, group, name, &result);
-    } else {
+    }
+    else
+    {
         CONF ctmp;
 
         CONF_set_nconf(&ctmp, conf);
@@ -153,7 +158,8 @@ int CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out)
     BIO *btmp;
     int ret;
 
-    if ((btmp = BIO_new_fp(out, BIO_NOCLOSE)) == NULL) {
+    if ((btmp = BIO_new_fp(out, BIO_NOCLOSE)) == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, ERR_R_BUF_LIB);
         return 0;
     }
@@ -187,7 +193,8 @@ CONF *NCONF_new_ex(OSSL_LIB_CTX *libctx, CONF_METHOD *meth)
         meth = NCONF_default();
 
     ret = meth->create(meth);
-    if (ret == NULL) {
+    if (ret == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, ERR_R_CONF_LIB);
         return NULL;
     }
@@ -250,7 +257,8 @@ STACK_OF(OPENSSL_CSTRING) *NCONF_get_section_names(const CONF *cnf)
 
 int NCONF_load(CONF *conf, const char *file, long *eline)
 {
-    if (conf == NULL) {
+    if (conf == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, CONF_R_NO_CONF);
         return 0;
     }
@@ -263,7 +271,8 @@ int NCONF_load_fp(CONF *conf, FILE *fp, long *eline)
 {
     BIO *btmp;
     int ret;
-    if ((btmp = BIO_new_fp(fp, BIO_NOCLOSE)) == NULL) {
+    if ((btmp = BIO_new_fp(fp, BIO_NOCLOSE)) == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, ERR_R_BUF_LIB);
         return 0;
     }
@@ -275,7 +284,8 @@ int NCONF_load_fp(CONF *conf, FILE *fp, long *eline)
 
 int NCONF_load_bio(CONF *conf, BIO *bp, long *eline)
 {
-    if (conf == NULL) {
+    if (conf == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, CONF_R_NO_CONF);
         return 0;
     }
@@ -285,12 +295,14 @@ int NCONF_load_bio(CONF *conf, BIO *bp, long *eline)
 
 STACK_OF(CONF_VALUE) *NCONF_get_section(const CONF *conf, const char *section)
 {
-    if (conf == NULL) {
+    if (conf == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, CONF_R_NO_CONF);
         return NULL;
     }
 
-    if (section == NULL) {
+    if (section == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, CONF_R_NO_SECTION);
         return NULL;
     }
@@ -309,12 +321,12 @@ char *NCONF_get_string(const CONF *conf, const char *group, const char *name)
     if (s)
         return s;
 
-    if (conf == NULL) {
+    if (conf == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, CONF_R_NO_CONF_OR_ENVIRONMENT_VARIABLE);
         return NULL;
     }
-    ERR_raise_data(ERR_LIB_CONF, CONF_R_NO_VALUE,
-                   "group=%s name=%s", group, name);
+    ERR_raise_data(ERR_LIB_CONF, CONF_R_NO_VALUE, "group=%s name=%s", group, name);
     return NULL;
 }
 
@@ -328,15 +340,15 @@ static int default_to_int(const CONF *conf, char c)
     return (int)(c - '0');
 }
 
-int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
-                       long *result)
+int NCONF_get_number_e(const CONF *conf, const char *group, const char *name, long *result)
 {
     char *str;
     long res;
     int (*is_number)(const CONF *, char) = &default_is_number;
     int (*to_int)(const CONF *, char) = &default_to_int;
 
-    if (result == NULL) {
+    if (result == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
@@ -346,16 +358,19 @@ int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
     if (str == NULL)
         return 0;
 
-    if (conf != NULL) {
+    if (conf != NULL)
+    {
         if (conf->meth->is_number != NULL)
             is_number = conf->meth->is_number;
         if (conf->meth->to_int != NULL)
             to_int = conf->meth->to_int;
     }
-    for (res = 0; is_number(conf, *str); str++) {
+    for (res = 0; is_number(conf, *str); str++)
+    {
         const int d = to_int(conf, *str);
 
-        if (res > (LONG_MAX - d) / 10L) {
+        if (res > (LONG_MAX - d) / 10L)
+        {
             ERR_raise(ERR_LIB_CONF, CONF_R_NUMBER_TOO_LARGE);
             return 0;
         }
@@ -366,8 +381,7 @@ int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
     return 1;
 }
 
-long _CONF_get_number(const CONF *conf, const char *section,
-                      const char *name)
+long _CONF_get_number(const CONF *conf, const char *section, const char *name)
 {
     int status;
     long result = 0;
@@ -383,7 +397,8 @@ int NCONF_dump_fp(const CONF *conf, FILE *out)
 {
     BIO *btmp;
     int ret;
-    if ((btmp = BIO_new_fp(out, BIO_NOCLOSE)) == NULL) {
+    if ((btmp = BIO_new_fp(out, BIO_NOCLOSE)) == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, ERR_R_BUF_LIB);
         return 0;
     }
@@ -395,7 +410,8 @@ int NCONF_dump_fp(const CONF *conf, FILE *out)
 
 int NCONF_dump_bio(const CONF *conf, BIO *out)
 {
-    if (conf == NULL) {
+    if (conf == NULL)
+    {
         ERR_raise(ERR_LIB_CONF, CONF_R_NO_CONF);
         return 0;
     }
@@ -420,7 +436,6 @@ OPENSSL_INIT_SETTINGS *OPENSSL_INIT_new(void)
     return ret;
 }
 
-
 #ifndef OPENSSL_NO_STDIO
 /*
  * If CRYPTO_set_mem_functions is called after this, then
@@ -428,12 +443,12 @@ OPENSSL_INIT_SETTINGS *OPENSSL_INIT_new(void)
  * become disjointed. Avoid this by always using standard
  * strdup & free instead of OPENSSL_strdup & OPENSSL_free.
  */
-int OPENSSL_INIT_set_config_filename(OPENSSL_INIT_SETTINGS *settings,
-                                     const char *filename)
+int OPENSSL_INIT_set_config_filename(OPENSSL_INIT_SETTINGS *settings, const char *filename)
 {
     char *newfilename = NULL;
 
-    if (filename != NULL) {
+    if (filename != NULL)
+    {
         newfilename = strdup(filename);
         if (newfilename == NULL)
             return 0;
@@ -445,8 +460,7 @@ int OPENSSL_INIT_set_config_filename(OPENSSL_INIT_SETTINGS *settings,
     return 1;
 }
 
-void OPENSSL_INIT_set_config_file_flags(OPENSSL_INIT_SETTINGS *settings,
-                                        unsigned long flags)
+void OPENSSL_INIT_set_config_file_flags(OPENSSL_INIT_SETTINGS *settings, unsigned long flags)
 {
     settings->flags = flags;
 }
@@ -457,12 +471,12 @@ void OPENSSL_INIT_set_config_file_flags(OPENSSL_INIT_SETTINGS *settings,
  * become disjointed. Avoid this by always using standard
  * strdup & free instead of OPENSSL_strdup & OPENSSL_free.
  */
-int OPENSSL_INIT_set_config_appname(OPENSSL_INIT_SETTINGS *settings,
-                                    const char *appname)
+int OPENSSL_INIT_set_config_appname(OPENSSL_INIT_SETTINGS *settings, const char *appname)
 {
     char *newappname = NULL;
 
-    if (appname != NULL) {
+    if (appname != NULL)
+    {
         newappname = strdup(appname);
         if (newappname == NULL)
             return 0;

@@ -35,7 +35,8 @@ static int test_x509_req_detect_invalid_version(void)
     if (!TEST_ptr(bio = BIO_new_file(certFilePath, "r")))
         goto err;
     req = PEM_read_bio_X509_REQ(bio, NULL, 0, NULL);
-    if (req == NULL) {
+    if (req == NULL)
+    {
         ret = 1; /* success, reading PEM with invalid CSR data is allowed to fail. */
         goto err;
     }
@@ -57,7 +58,8 @@ OPT_TEST_DECLARE_USAGE("certdir\n")
 
 int setup_tests(void)
 {
-    if (!test_skip_common_options()) {
+    if (!test_skip_common_options())
+    {
         TEST_error("Error parsing test options\n");
         return 0;
     }

@@ -20,10 +20,8 @@
 #include <openssl/objects.h>
 #include <openssl/x509.h>
 
-int RSA_sign_ASN1_OCTET_STRING(int type,
-                               const unsigned char *m, unsigned int m_len,
-                               unsigned char *sigret, unsigned int *siglen,
-                               RSA *rsa)
+int RSA_sign_ASN1_OCTET_STRING(int type, const unsigned char *m, unsigned int m_len, unsigned char *sigret,
+                               unsigned int *siglen, RSA *rsa)
 {
     ASN1_OCTET_STRING sig;
     int i, j, ret = 1;
@@ -35,7 +33,8 @@ int RSA_sign_ASN1_OCTET_STRING(int type,
 
     i = i2d_ASN1_OCTET_STRING(&sig, NULL);
     j = RSA_size(rsa);
-    if (i > (j - RSA_PKCS1_PADDING_SIZE)) {
+    if (i > (j - RSA_PKCS1_PADDING_SIZE))
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_DIGEST_TOO_BIG_FOR_RSA_KEY);
         return 0;
     }
@@ -54,9 +53,7 @@ int RSA_sign_ASN1_OCTET_STRING(int type,
     return ret;
 }
 
-int RSA_verify_ASN1_OCTET_STRING(int dtype,
-                                 const unsigned char *m,
-                                 unsigned int m_len, unsigned char *sigbuf,
+int RSA_verify_ASN1_OCTET_STRING(int dtype, const unsigned char *m, unsigned int m_len, unsigned char *sigbuf,
                                  unsigned int siglen, RSA *rsa)
 {
     int i, ret = 0;
@@ -64,7 +61,8 @@ int RSA_verify_ASN1_OCTET_STRING(int dtype,
     const unsigned char *p;
     ASN1_OCTET_STRING *sig = NULL;
 
-    if (siglen != (unsigned int)RSA_size(rsa)) {
+    if (siglen != (unsigned int)RSA_size(rsa))
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_WRONG_SIGNATURE_LENGTH);
         return 0;
     }
@@ -82,13 +80,15 @@ int RSA_verify_ASN1_OCTET_STRING(int dtype,
     if (sig == NULL)
         goto err;
 
-    if (((unsigned int)sig->length != m_len) ||
-        (memcmp(m, sig->data, m_len) != 0)) {
+    if (((unsigned int)sig->length != m_len) || (memcmp(m, sig->data, m_len) != 0))
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_BAD_SIGNATURE);
-    } else {
+    }
+    else
+    {
         ret = 1;
     }
- err:
+err:
     ASN1_OCTET_STRING_free(sig);
     OPENSSL_clear_free(s, (unsigned int)siglen);
     return ret;

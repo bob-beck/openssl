@@ -31,8 +31,7 @@ CONF_VALUE *_CONF_get_section(const CONF *conf, const char *section)
     return conf->data != NULL ? lh_CONF_VALUE_retrieve(conf->data, &vv) : NULL;
 }
 
-STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf,
-                                               const char *section)
+STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf, const char *section)
 {
     CONF_VALUE *v;
 
@@ -54,7 +53,8 @@ int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
         return 0;
 
     v = lh_CONF_VALUE_insert(conf->data, value);
-    if (v != NULL) {
+    if (v != NULL)
+    {
         (void)sk_CONF_VALUE_delete_ptr(ts, v);
         OPENSSL_free(v->name);
         OPENSSL_free(v->value);
@@ -63,8 +63,7 @@ int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
     return 1;
 }
 
-char *_CONF_get_string(const CONF *conf, const char *section,
-                       const char *name)
+char *_CONF_get_string(const CONF *conf, const char *section, const char *name)
 {
     CONF_VALUE *v, vv;
     char *p;
@@ -75,13 +74,15 @@ char *_CONF_get_string(const CONF *conf, const char *section,
         return ossl_safe_getenv(name);
     if (conf->data == NULL)
         return NULL;
-    if (section != NULL) {
+    if (section != NULL)
+    {
         vv.name = (char *)name;
         vv.section = (char *)section;
         v = lh_CONF_VALUE_retrieve(conf->data, &vv);
         if (v != NULL)
             return v->value;
-        if (strcmp(section, "ENV") == 0) {
+        if (strcmp(section, "ENV") == 0)
+        {
             p = ossl_safe_getenv(name);
             if (p != NULL)
                 return p;
@@ -104,7 +105,8 @@ static int conf_value_cmp(const CONF_VALUE *a, const CONF_VALUE *b)
 {
     int i;
 
-    if (a->section != b->section) {
+    if (a->section != b->section)
+    {
         i = strcmp(a->section, b->section);
         if (i != 0)
             return i;
@@ -121,7 +123,8 @@ int _CONF_new_data(CONF *conf)
 {
     if (conf == NULL)
         return 0;
-    if (conf->data == NULL) {
+    if (conf->data == NULL)
+    {
         conf->data = lh_CONF_VALUE_new(conf_value_hash, conf_value_cmp);
         if (conf->data == NULL)
             return 0;
@@ -171,7 +174,8 @@ static void value_free_stack_doall(CONF_VALUE *a)
         return;
 
     sk = (STACK_OF(CONF_VALUE) *)a->value;
-    for (i = sk_CONF_VALUE_num(sk) - 1; i >= 0; i--) {
+    for (i = sk_CONF_VALUE_num(sk) - 1; i >= 0; i--)
+    {
         vv = sk_CONF_VALUE_value(sk, i);
         OPENSSL_free(vv->value);
         OPENSSL_free(vv->name);
@@ -205,7 +209,7 @@ CONF_VALUE *_CONF_new_section(CONF *conf, const char *section)
         goto err;
     return v;
 
- err:
+err:
     sk_CONF_VALUE_free(sk);
     if (v != NULL)
         OPENSSL_free(v->section);

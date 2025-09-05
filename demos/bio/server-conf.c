@@ -40,7 +40,8 @@ int main(int argc, char *argv[])
 
     conf = NCONF_new(NULL);
 
-    if (NCONF_load(conf, "accept.cnf", &errline) <= 0) {
+    if (NCONF_load(conf, "accept.cnf", &errline) <= 0)
+    {
         if (errline <= 0)
             fprintf(stderr, "Error processing config file\n");
         else
@@ -50,7 +51,8 @@ int main(int argc, char *argv[])
 
     sect = NCONF_get_section(conf, "default");
 
-    if (sect == NULL) {
+    if (sect == NULL)
+    {
         fprintf(stderr, "Error retrieving default section\n");
         goto err;
     }
@@ -60,27 +62,32 @@ int main(int argc, char *argv[])
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CERTIFICATE);
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_FILE);
     SSL_CONF_CTX_set_ssl_ctx(cctx, ctx);
-    for (i = 0; i < sk_CONF_VALUE_num(sect); i++) {
+    for (i = 0; i < sk_CONF_VALUE_num(sect); i++)
+    {
         int rv;
         cnf = sk_CONF_VALUE_value(sect, i);
         rv = SSL_CONF_cmd(cctx, cnf->name, cnf->value);
         if (rv > 0)
             continue;
-        if (rv != -2) {
-            fprintf(stderr, "Error processing %s = %s\n",
-                    cnf->name, cnf->value);
+        if (rv != -2)
+        {
+            fprintf(stderr, "Error processing %s = %s\n", cnf->name, cnf->value);
             ERR_print_errors_fp(stderr);
             goto err;
         }
-        if (strcmp(cnf->name, "Port") == 0) {
+        if (strcmp(cnf->name, "Port") == 0)
+        {
             port = cnf->value;
-        } else {
+        }
+        else
+        {
             fprintf(stderr, "Unknown configuration option %s\n", cnf->name);
             goto err;
         }
     }
 
-    if (!SSL_CONF_CTX_finish(cctx)) {
+    if (!SSL_CONF_CTX_finish(cctx))
+    {
         fprintf(stderr, "Finish error\n");
         ERR_print_errors_fp(stderr);
         goto err;
@@ -100,7 +107,7 @@ int main(int argc, char *argv[])
     BIO_set_accept_bios(in, ssl_bio);
     ssl_bio = NULL;
 
- again:
+again:
     /*
      * The first call will setup the accept socket, and the second will get a
      * socket.  In this loop, the first actual accept will occur in the
@@ -110,9 +117,11 @@ int main(int argc, char *argv[])
     if (BIO_do_accept(in) <= 0)
         goto err;
 
-    for (;;) {
+    for (;;)
+    {
         i = BIO_read(in, buf, 512);
-        if (i == 0) {
+        if (i == 0)
+        {
             /*
              * If we have finished, remove the underlying BIO stack so the
              * next time we call any function for this BIO, it will attempt
@@ -123,7 +132,8 @@ int main(int argc, char *argv[])
             BIO_free_all(tmp);
             goto again;
         }
-        if (i < 0) {
+        if (i < 0)
+        {
             if (BIO_should_retry(in))
                 continue;
             goto err;
@@ -133,7 +143,7 @@ int main(int argc, char *argv[])
     }
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS)
         ERR_print_errors_fp(stderr);
     BIO_free(in);

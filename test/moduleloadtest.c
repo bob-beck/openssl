@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
 {
     const char *m, *s;
 
-    if (argc != 2 && argc != 3) {
+    if (argc != 2 && argc != 3)
+    {
         fprintf(stderr, "Usage: %s sharedobject [ entrypoint ]\n", argv[0]);
         return 1;
     }

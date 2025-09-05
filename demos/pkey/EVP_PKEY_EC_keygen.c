@@ -42,32 +42,34 @@ static EVP_PKEY *do_ec_keygen(void)
     int use_cofactordh = 1;
 
     genctx = EVP_PKEY_CTX_new_from_name(libctx, "EC", propq);
-    if (genctx == NULL) {
+    if (genctx == NULL)
+    {
         fprintf(stderr, "EVP_PKEY_CTX_new_from_name() failed\n");
         goto cleanup;
     }
 
-    if (EVP_PKEY_keygen_init(genctx) <= 0) {
+    if (EVP_PKEY_keygen_init(genctx) <= 0)
+    {
         fprintf(stderr, "EVP_PKEY_keygen_init() failed\n");
         goto cleanup;
     }
 
-    params[0] = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME,
-                                                 (char *)curvename, 0);
+    params[0] = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME, (char *)curvename, 0);
     /*
      * This is an optional parameter.
      * For many curves where the cofactor is 1, setting this has no effect.
      */
-    params[1] = OSSL_PARAM_construct_int(OSSL_PKEY_PARAM_USE_COFACTOR_ECDH,
-                                         &use_cofactordh);
+    params[1] = OSSL_PARAM_construct_int(OSSL_PKEY_PARAM_USE_COFACTOR_ECDH, &use_cofactordh);
     params[2] = OSSL_PARAM_construct_end();
-    if (!EVP_PKEY_CTX_set_params(genctx, params)) {
+    if (!EVP_PKEY_CTX_set_params(genctx, params))
+    {
         fprintf(stderr, "EVP_PKEY_CTX_set_params() failed\n");
         goto cleanup;
     }
 
     fprintf(stdout, "Generating EC key\n\n");
-    if (EVP_PKEY_generate(genctx, &key) <= 0) {
+    if (EVP_PKEY_generate(genctx, &key) <= 0)
+    {
         fprintf(stderr, "EVP_PKEY_generate() failed\n");
         goto cleanup;
     }
@@ -91,27 +93,28 @@ static int get_key_values(EVP_PKEY *pkey)
     BIGNUM *out_priv = NULL;
     size_t out_pubkey_len, out_privkey_len = 0;
 
-    if (!EVP_PKEY_get_utf8_string_param(pkey, OSSL_PKEY_PARAM_GROUP_NAME,
-                                        out_curvename, sizeof(out_curvename),
-                                        NULL)) {
+    if (!EVP_PKEY_get_utf8_string_param(pkey, OSSL_PKEY_PARAM_GROUP_NAME, out_curvename, sizeof(out_curvename), NULL))
+    {
         fprintf(stderr, "Failed to get curve name\n");
         goto cleanup;
     }
 
-    if (!EVP_PKEY_get_octet_string_param(pkey, OSSL_PKEY_PARAM_PUB_KEY,
-                                        out_pubkey, sizeof(out_pubkey),
-                                        &out_pubkey_len)) {
+    if (!EVP_PKEY_get_octet_string_param(pkey, OSSL_PKEY_PARAM_PUB_KEY, out_pubkey, sizeof(out_pubkey),
+                                         &out_pubkey_len))
+    {
         fprintf(stderr, "Failed to get public key\n");
         goto cleanup;
     }
 
-    if (!EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY, &out_priv)) {
+    if (!EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY, &out_priv))
+    {
         fprintf(stderr, "Failed to get private key\n");
         goto cleanup;
     }
 
     out_privkey_len = BN_bn2bin(out_priv, out_privkey);
-    if (out_privkey_len <= 0 || out_privkey_len > sizeof(out_privkey)) {
+    if (out_privkey_len <= 0 || out_privkey_len > sizeof(out_privkey))
+    {
         fprintf(stderr, "BN_bn2bin failed\n");
         goto cleanup;
     }

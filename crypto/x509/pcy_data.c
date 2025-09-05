@@ -35,27 +35,30 @@ void ossl_policy_data_free(X509_POLICY_DATA *data)
  * source.
  */
 
-X509_POLICY_DATA *ossl_policy_data_new(POLICYINFO *policy,
-                                       const ASN1_OBJECT *cid, int crit)
+X509_POLICY_DATA *ossl_policy_data_new(POLICYINFO *policy, const ASN1_OBJECT *cid, int crit)
 {
     X509_POLICY_DATA *ret;
     ASN1_OBJECT *id;
 
     if (policy == NULL && cid == NULL)
         return NULL;
-    if (cid) {
+    if (cid)
+    {
         id = OBJ_dup(cid);
         if (id == NULL)
             return NULL;
-    } else
+    }
+    else
         id = NULL;
     ret = OPENSSL_zalloc(sizeof(*ret));
-    if (ret == NULL) {
+    if (ret == NULL)
+    {
         ASN1_OBJECT_free(id);
         return NULL;
     }
     ret->expected_policy_set = sk_ASN1_OBJECT_new_null();
-    if (ret->expected_policy_set == NULL) {
+    if (ret->expected_policy_set == NULL)
+    {
         OPENSSL_free(ret);
         ASN1_OBJECT_free(id);
         ERR_raise(ERR_LIB_X509V3, ERR_R_CRYPTO_LIB);
@@ -67,12 +70,14 @@ X509_POLICY_DATA *ossl_policy_data_new(POLICYINFO *policy,
 
     if (id)
         ret->valid_policy = id;
-    else {
+    else
+    {
         ret->valid_policy = policy->policyid;
         policy->policyid = NULL;
     }
 
-    if (policy) {
+    if (policy)
+    {
         ret->qualifier_set = policy->qualifiers;
         policy->qualifiers = NULL;
     }

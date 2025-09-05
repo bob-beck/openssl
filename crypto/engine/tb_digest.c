@@ -26,13 +26,12 @@ static void engine_unregister_all_digests(void)
 
 int ENGINE_register_digests(ENGINE *e)
 {
-    if (e->digests) {
+    if (e->digests)
+    {
         const int *nids;
         int num_nids = e->digests(e, NULL, &nids, 0);
         if (num_nids > 0)
-            return engine_table_register(&digest_table,
-                                         engine_unregister_all_digests, e,
-                                         nids, num_nids, 0);
+            return engine_table_register(&digest_table, engine_unregister_all_digests, e, nids, num_nids, 0);
     }
     return 1;
 }
@@ -47,13 +46,12 @@ void ENGINE_register_all_digests(void)
 
 int ENGINE_set_default_digests(ENGINE *e)
 {
-    if (e->digests) {
+    if (e->digests)
+    {
         const int *nids;
         int num_nids = e->digests(e, NULL, &nids, 0);
         if (num_nids > 0)
-            return engine_table_register(&digest_table,
-                                         engine_unregister_all_digests, e,
-                                         nids, num_nids, 1);
+            return engine_table_register(&digest_table, engine_unregister_all_digests, e, nids, num_nids, 1);
     }
     return 1;
 }
@@ -65,8 +63,7 @@ int ENGINE_set_default_digests(ENGINE *e)
  */
 ENGINE *ENGINE_get_digest_engine(int nid)
 {
-    return ossl_engine_table_select(&digest_table, nid,
-                                    OPENSSL_FILE, OPENSSL_LINE);
+    return ossl_engine_table_select(&digest_table, nid, OPENSSL_FILE, OPENSSL_LINE);
 }
 
 /* Obtains a digest implementation from an ENGINE functional reference */
@@ -74,7 +71,8 @@ const EVP_MD *ENGINE_get_digest(ENGINE *e, int nid)
 {
     const EVP_MD *ret;
     ENGINE_DIGESTS_PTR fn = ENGINE_get_digests(e);
-    if (!fn || !fn(e, &ret, NULL, nid)) {
+    if (!fn || !fn(e, &ret, NULL, nid))
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_UNIMPLEMENTED_DIGEST);
         return NULL;
     }

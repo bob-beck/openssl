@@ -9,7 +9,7 @@
 
 #include <string.h>
 #if defined(__s390x__) && defined(OPENSSL_CPUID_OBJ)
-# include "crypto/s390x_arch.h"
+#include "crypto/s390x_arch.h"
 #endif
 #include "internal/sha3.h"
 
@@ -29,7 +29,8 @@ int ossl_sha3_init(KECCAK1600_CTX *ctx, unsigned char pad, size_t bitlen)
 {
     size_t bsz = SHA3_BLOCKSIZE(bitlen);
 
-    if (bsz <= sizeof(ctx->buf)) {
+    if (bsz <= sizeof(ctx->buf))
+    {
         ossl_sha3_reset(ctx);
         ctx->block_size = bsz;
         ctx->md_size = bitlen / 8;
@@ -58,14 +59,15 @@ int ossl_sha3_update(KECCAK1600_CTX *ctx, const void *_inp, size_t len)
     if (len == 0)
         return 1;
 
-    if (ctx->xof_state == XOF_STATE_SQUEEZE
-        || ctx->xof_state == XOF_STATE_FINAL)
+    if (ctx->xof_state == XOF_STATE_SQUEEZE || ctx->xof_state == XOF_STATE_FINAL)
         return 0;
 
-    if ((num = ctx->bufsz) != 0) {      /* process intermediate buffer? */
+    if ((num = ctx->bufsz) != 0)
+    { /* process intermediate buffer? */
         rem = bsz - num;
 
-        if (len < rem) {
+        if (len < rem)
+        {
             memcpy(ctx->buf + num, inp, len);
             ctx->bufsz += len;
             return 1;
@@ -87,7 +89,8 @@ int ossl_sha3_update(KECCAK1600_CTX *ctx, const void *_inp, size_t len)
     else
         rem = len;
 
-    if (rem) {
+    if (rem)
+    {
         memcpy(ctx->buf, inp + len - rem, rem);
         ctx->bufsz = rem;
     }
@@ -107,8 +110,7 @@ int ossl_sha3_final(KECCAK1600_CTX *ctx, unsigned char *out, size_t outlen)
 
     if (outlen == 0)
         return 1;
-    if (ctx->xof_state == XOF_STATE_SQUEEZE
-        || ctx->xof_state == XOF_STATE_FINAL)
+    if (ctx->xof_state == XOF_STATE_SQUEEZE || ctx->xof_state == XOF_STATE_FINAL)
         return 0;
 
     /*
@@ -155,7 +157,8 @@ int ossl_sha3_squeeze(KECCAK1600_CTX *ctx, unsigned char *out, size_t outlen)
      * by adding the trailing padding and then doing
      * a final absorb.
      */
-    if (ctx->xof_state != XOF_STATE_SQUEEZE) {
+    if (ctx->xof_state != XOF_STATE_SQUEEZE)
+    {
         /*
          * Pad the data with 10*1. Note that |num| can be |bsz - 1|
          * in which case both byte operations below are performed on
@@ -174,7 +177,8 @@ int ossl_sha3_squeeze(KECCAK1600_CTX *ctx, unsigned char *out, size_t outlen)
      * Step 1. Consume any bytes left over from a previous squeeze
      * (See Step 4 below).
      */
-    if (num != 0) {
+    if (num != 0)
+    {
         if (outlen > ctx->bufsz)
             len = ctx->bufsz;
         else
@@ -188,14 +192,16 @@ int ossl_sha3_squeeze(KECCAK1600_CTX *ctx, unsigned char *out, size_t outlen)
         return 1;
 
     /* Step 2. Copy full sized squeezed blocks to the output buffer directly */
-    if (outlen >= bsz) {
+    if (outlen >= bsz)
+    {
         len = bsz * (outlen / bsz);
         SHA3_squeeze(ctx->A, out, len, bsz, next);
         next = 1;
         out += len;
         outlen -= len;
     }
-    if (outlen > 0) {
+    if (outlen > 0)
+    {
         /* Step 3. Squeeze one more block into a buffer */
         SHA3_squeeze(ctx->A, ctx->buf, bsz, bsz, next);
         memcpy(out, ctx->buf, outlen);

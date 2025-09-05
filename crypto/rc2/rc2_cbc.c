@@ -16,19 +16,21 @@
 #include <openssl/rc2.h>
 #include "rc2_local.h"
 
-void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
-                     RC2_KEY *ks, unsigned char *iv, int encrypt)
+void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length, RC2_KEY *ks, unsigned char *iv,
+                     int encrypt)
 {
     register unsigned long tin0, tin1;
     register unsigned long tout0, tout1, xor0, xor1;
     register long l = length;
     unsigned long tin[2];
 
-    if (encrypt) {
+    if (encrypt)
+    {
         c2l(iv, tout0);
         c2l(iv, tout1);
         iv -= 8;
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             c2l(in, tin0);
             c2l(in, tin1);
             tin0 ^= tout0;
@@ -41,7 +43,8 @@ void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
             tout1 = tin[1];
             l2c(tout1, out);
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             c2ln(in, tin0, tin1, l + 8);
             tin0 ^= tout0;
             tin1 ^= tout1;
@@ -55,11 +58,14 @@ void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
         }
         l2c(tout0, iv);
         l2c(tout1, iv);
-    } else {
+    }
+    else
+    {
         c2l(iv, xor0);
         c2l(iv, xor1);
         iv -= 8;
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             c2l(in, tin0);
             tin[0] = tin0;
             c2l(in, tin1);
@@ -72,7 +78,8 @@ void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
             xor0 = tin0;
             xor1 = tin1;
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             c2l(in, tin0);
             tin[0] = tin0;
             c2l(in, tin1);
@@ -99,17 +106,18 @@ void RC2_encrypt(unsigned long *d, RC2_KEY *key)
     unsigned long l;
 
     l = d[0];
-    x0 = (RC2_INT) l & 0xffff;
-    x1 = (RC2_INT) (l >> 16L);
+    x0 = (RC2_INT)l & 0xffff;
+    x1 = (RC2_INT)(l >> 16L);
     l = d[1];
-    x2 = (RC2_INT) l & 0xffff;
-    x3 = (RC2_INT) (l >> 16L);
+    x2 = (RC2_INT)l & 0xffff;
+    x3 = (RC2_INT)(l >> 16L);
 
     n = 3;
     i = 5;
 
     p0 = p1 = &(key->data[0]);
-    for (;;) {
+    for (;;)
+    {
         t = (x0 + (x1 & ~x3) + (x2 & x3) + *(p0++)) & 0xffff;
         x0 = (t << 1) | (t >> 15);
         t = (x1 + (x2 & ~x0) + (x3 & x0) + *(p0++)) & 0xffff;
@@ -119,7 +127,8 @@ void RC2_encrypt(unsigned long *d, RC2_KEY *key)
         t = (x3 + (x0 & ~x2) + (x1 & x2) + *(p0++)) & 0xffff;
         x3 = (t << 5) | (t >> 11);
 
-        if (--i == 0) {
+        if (--i == 0)
+        {
             if (--n == 0)
                 break;
             i = (n == 2) ? 6 : 5;
@@ -131,10 +140,8 @@ void RC2_encrypt(unsigned long *d, RC2_KEY *key)
         }
     }
 
-    d[0] =
-        (unsigned long)(x0 & 0xffff) | ((unsigned long)(x1 & 0xffff) << 16L);
-    d[1] =
-        (unsigned long)(x2 & 0xffff) | ((unsigned long)(x3 & 0xffff) << 16L);
+    d[0] = (unsigned long)(x0 & 0xffff) | ((unsigned long)(x1 & 0xffff) << 16L);
+    d[1] = (unsigned long)(x2 & 0xffff) | ((unsigned long)(x3 & 0xffff) << 16L);
 }
 
 void RC2_decrypt(unsigned long *d, RC2_KEY *key)
@@ -145,18 +152,19 @@ void RC2_decrypt(unsigned long *d, RC2_KEY *key)
     unsigned long l;
 
     l = d[0];
-    x0 = (RC2_INT) l & 0xffff;
-    x1 = (RC2_INT) (l >> 16L);
+    x0 = (RC2_INT)l & 0xffff;
+    x1 = (RC2_INT)(l >> 16L);
     l = d[1];
-    x2 = (RC2_INT) l & 0xffff;
-    x3 = (RC2_INT) (l >> 16L);
+    x2 = (RC2_INT)l & 0xffff;
+    x3 = (RC2_INT)(l >> 16L);
 
     n = 3;
     i = 5;
 
     p0 = &(key->data[63]);
     p1 = &(key->data[0]);
-    for (;;) {
+    for (;;)
+    {
         t = ((x3 << 11) | (x3 >> 5)) & 0xffff;
         x3 = (t - (x0 & ~x2) - (x1 & x2) - *(p0--)) & 0xffff;
         t = ((x2 << 13) | (x2 >> 3)) & 0xffff;
@@ -166,7 +174,8 @@ void RC2_decrypt(unsigned long *d, RC2_KEY *key)
         t = ((x0 << 15) | (x0 >> 1)) & 0xffff;
         x0 = (t - (x1 & ~x3) - (x2 & x3) - *(p0--)) & 0xffff;
 
-        if (--i == 0) {
+        if (--i == 0)
+        {
             if (--n == 0)
                 break;
             i = (n == 2) ? 6 : 5;
@@ -178,8 +187,6 @@ void RC2_decrypt(unsigned long *d, RC2_KEY *key)
         }
     }
 
-    d[0] =
-        (unsigned long)(x0 & 0xffff) | ((unsigned long)(x1 & 0xffff) << 16L);
-    d[1] =
-        (unsigned long)(x2 & 0xffff) | ((unsigned long)(x3 & 0xffff) << 16L);
+    d[0] = (unsigned long)(x0 & 0xffff) | ((unsigned long)(x1 & 0xffff) << 16L);
+    d[1] = (unsigned long)(x2 & 0xffff) | ((unsigned long)(x3 & 0xffff) << 16L);
 }

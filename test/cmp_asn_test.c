@@ -13,7 +13,8 @@
 
 static unsigned char rand_data[OSSL_CMP_TRANSACTIONID_LENGTH];
 
-typedef struct test_fixture {
+typedef struct test_fixture
+{
     const char *test_case_name;
     int expected;
     ASN1_OCTET_STRING *src_string;
@@ -50,7 +51,8 @@ static int execute_cmp_asn1_get_int_test(CMP_ASN_TEST_FIXTURE *fixture)
     if (!TEST_ptr(asn1integer))
         return res;
 
-    if (!TEST_true(ASN1_INTEGER_set(asn1integer, good_int))) {
+    if (!TEST_true(ASN1_INTEGER_set(asn1integer, good_int)))
+    {
         ASN1_INTEGER_free(asn1integer);
         return 0;
     }
@@ -63,7 +65,7 @@ static int execute_cmp_asn1_get_int_test(CMP_ASN_TEST_FIXTURE *fixture)
         goto err;
     res = TEST_int_eq(-2, ossl_cmp_asn1_get_int(asn1integer));
 
- err:
+err:
     ASN1_INTEGER_free(asn1integer);
     return res;
 }
@@ -76,16 +78,12 @@ static int test_cmp_asn1_get_int(void)
     return result;
 }
 
-static int execute_CMP_ASN1_OCTET_STRING_set1_test(CMP_ASN_TEST_FIXTURE *
-                                                   fixture)
+static int execute_CMP_ASN1_OCTET_STRING_set1_test(CMP_ASN_TEST_FIXTURE *fixture)
 {
-    if (!TEST_int_eq(fixture->expected,
-                     ossl_cmp_asn1_octet_string_set1(&fixture->tgt_string,
-                                                     fixture->src_string)))
+    if (!TEST_int_eq(fixture->expected, ossl_cmp_asn1_octet_string_set1(&fixture->tgt_string, fixture->src_string)))
         return 0;
     if (fixture->expected != 0)
-        return TEST_int_eq(0, ASN1_OCTET_STRING_cmp(fixture->tgt_string,
-                                                    fixture->src_string));
+        return TEST_int_eq(0, ASN1_OCTET_STRING_cmp(fixture->tgt_string, fixture->src_string));
     return 1;
 }
 
@@ -93,10 +91,10 @@ static int test_ASN1_OCTET_STRING_set(void)
 {
     SETUP_TEST_FIXTURE(CMP_ASN_TEST_FIXTURE, set_up);
     fixture->expected = 1;
-    if (!TEST_ptr(fixture->tgt_string = ASN1_OCTET_STRING_new())
-            || !TEST_ptr(fixture->src_string = ASN1_OCTET_STRING_new())
-            || !TEST_true(ASN1_OCTET_STRING_set(fixture->src_string, rand_data,
-                                                sizeof(rand_data)))) {
+    if (!TEST_ptr(fixture->tgt_string = ASN1_OCTET_STRING_new()) ||
+        !TEST_ptr(fixture->src_string = ASN1_OCTET_STRING_new()) ||
+        !TEST_true(ASN1_OCTET_STRING_set(fixture->src_string, rand_data, sizeof(rand_data))))
+    {
         tear_down(fixture);
         fixture = NULL;
     }
@@ -108,10 +106,9 @@ static int test_ASN1_OCTET_STRING_set_tgt_is_src(void)
 {
     SETUP_TEST_FIXTURE(CMP_ASN_TEST_FIXTURE, set_up);
     fixture->expected = 1;
-    if (!TEST_ptr(fixture->src_string = ASN1_OCTET_STRING_new())
-            || !(fixture->tgt_string = fixture->src_string)
-            || !TEST_true(ASN1_OCTET_STRING_set(fixture->src_string, rand_data,
-                                                sizeof(rand_data)))) {
+    if (!TEST_ptr(fixture->src_string = ASN1_OCTET_STRING_new()) || !(fixture->tgt_string = fixture->src_string) ||
+        !TEST_true(ASN1_OCTET_STRING_set(fixture->src_string, rand_data, sizeof(rand_data))))
+    {
         tear_down(fixture);
         fixture = NULL;
     }

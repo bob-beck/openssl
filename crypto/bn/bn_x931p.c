@@ -20,15 +20,15 @@
  * q1, q2) from a parameter Xpi by checking successive odd integers.
  */
 
-static int bn_x931_derive_pi(BIGNUM *pi, const BIGNUM *Xpi, BN_CTX *ctx,
-                             BN_GENCB *cb)
+static int bn_x931_derive_pi(BIGNUM *pi, const BIGNUM *Xpi, BN_CTX *ctx, BN_GENCB *cb)
 {
     int i = 0, is_prime;
     if (!BN_copy(pi, Xpi))
         return 0;
     if (!BN_is_odd(pi) && !BN_add_word(pi, 1))
         return 0;
-    for (;;) {
+    for (;;)
+    {
         i++;
         BN_GENCB_call(cb, 0, i);
         /* NB 27 MR is specified in X9.31 */
@@ -50,10 +50,8 @@ static int bn_x931_derive_pi(BIGNUM *pi, const BIGNUM *Xpi, BN_CTX *ctx,
  * will be returned too: this is needed for testing.
  */
 
-int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
-                            const BIGNUM *Xp, const BIGNUM *Xp1,
-                            const BIGNUM *Xp2, const BIGNUM *e, BN_CTX *ctx,
-                            BN_GENCB *cb)
+int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2, const BIGNUM *Xp, const BIGNUM *Xp1, const BIGNUM *Xp2,
+                            const BIGNUM *e, BN_CTX *ctx, BN_GENCB *cb)
 {
     int ret = 0;
 
@@ -118,7 +116,8 @@ int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
 
     /* p now equals Yp0 */
 
-    for (;;) {
+    for (;;)
+    {
         int i = 1;
         BN_GENCB_call(cb, 0, i++);
         if (!BN_copy(pm1, p))
@@ -127,7 +126,8 @@ int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
             goto err;
         if (!BN_gcd(t, pm1, e, ctx))
             goto err;
-        if (BN_is_one(t)) {
+        if (BN_is_one(t))
+        {
             /*
              * X9.31 specifies 8 MR and 1 Lucas test or any prime test
              * offering similar or better guarantees 50 MR is considerably
@@ -147,7 +147,7 @@ int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
 
     ret = 1;
 
- err:
+err:
 
     BN_CTX_end(ctx);
 
@@ -175,8 +175,7 @@ int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
      * - 1. By setting the top two bits we ensure that the lower bound is
      * exceeded.
      */
-    if (!BN_priv_rand_ex(Xp, nbits, BN_RAND_TOP_TWO, BN_RAND_BOTTOM_ANY, 0,
-                         ctx))
+    if (!BN_priv_rand_ex(Xp, nbits, BN_RAND_TOP_TWO, BN_RAND_BOTTOM_ANY, 0, ctx))
         return 0;
 
     BN_CTX_start(ctx);
@@ -184,9 +183,9 @@ int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
     if (t == NULL)
         goto err;
 
-    for (i = 0; i < 1000; i++) {
-        if (!BN_priv_rand_ex(Xq, nbits, BN_RAND_TOP_TWO, BN_RAND_BOTTOM_ANY, 0,
-                             ctx))
+    for (i = 0; i < 1000; i++)
+    {
+        if (!BN_priv_rand_ex(Xq, nbits, BN_RAND_TOP_TWO, BN_RAND_BOTTOM_ANY, 0, ctx))
             goto err;
 
         /* Check that |Xp - Xq| > 2^(nbits - 100) */
@@ -203,7 +202,7 @@ int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
 
     return 0;
 
- err:
+err:
     BN_CTX_end(ctx);
     return 0;
 }
@@ -216,9 +215,7 @@ int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
  * previous function and supplied as input.
  */
 
-int BN_X931_generate_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
-                              BIGNUM *Xp1, BIGNUM *Xp2,
-                              const BIGNUM *Xp,
+int BN_X931_generate_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2, BIGNUM *Xp1, BIGNUM *Xp2, const BIGNUM *Xp,
                               const BIGNUM *e, BN_CTX *ctx, BN_GENCB *cb)
 {
     int ret = 0;
@@ -240,9 +237,8 @@ int BN_X931_generate_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
 
     ret = 1;
 
- error:
+error:
     BN_CTX_end(ctx);
 
     return ret;
-
 }

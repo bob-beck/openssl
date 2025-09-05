@@ -36,8 +36,7 @@ void ossl_FIPS_IND_set_settable(OSSL_FIPS_IND *ind, int id, int state)
 {
     if (!ossl_assert(id < OSSL_FIPS_IND_SETTABLE_MAX))
         return;
-    if (!ossl_assert(state == OSSL_FIPS_IND_STATE_STRICT
-                     || state == OSSL_FIPS_IND_STATE_TOLERANT))
+    if (!ossl_assert(state == OSSL_FIPS_IND_STATE_STRICT || state == OSSL_FIPS_IND_STATE_TOLERANT))
         return;
     ind->settable[id] = state;
 }
@@ -55,10 +54,8 @@ int ossl_FIPS_IND_get_settable(const OSSL_FIPS_IND *ind, int id)
  * If the logic here is not sufficient for all cases, then additional
  * ossl_FIPS_IND_on_unapproved() functions may be required.
  */
-int ossl_FIPS_IND_on_unapproved(OSSL_FIPS_IND *ind, int id,
-                                OSSL_LIB_CTX *libctx,
-                                const char *algname, const char *opname,
-                                OSSL_FIPS_IND_CHECK_CB *config_check_fn)
+int ossl_FIPS_IND_on_unapproved(OSSL_FIPS_IND *ind, int id, OSSL_LIB_CTX *libctx, const char *algname,
+                                const char *opname, OSSL_FIPS_IND_CHECK_CB *config_check_fn)
 {
     /* Set to unapproved. Once unapproved mode is set this will not be reset */
     ind->approved = 0;
@@ -68,9 +65,9 @@ int ossl_FIPS_IND_on_unapproved(OSSL_FIPS_IND *ind, int id,
      * the configurable item is cleared. If the values are unknown they are
      * assumed to be strict.
      */
-    if (ossl_FIPS_IND_get_settable(ind, id) == OSSL_FIPS_IND_STATE_TOLERANT
-        || (config_check_fn != NULL
-            && config_check_fn(libctx) == OSSL_FIPS_IND_STATE_TOLERANT)) {
+    if (ossl_FIPS_IND_get_settable(ind, id) == OSSL_FIPS_IND_STATE_TOLERANT ||
+        (config_check_fn != NULL && config_check_fn(libctx) == OSSL_FIPS_IND_STATE_TOLERANT))
+    {
         return ossl_FIPS_IND_callback(libctx, algname, opname);
     }
     /* Strict mode gets here: This returns an error */
@@ -81,7 +78,8 @@ int ossl_FIPS_IND_set_ctx_param(OSSL_FIPS_IND *ind, int id, const OSSL_PARAM *p)
 {
     int in = 0;
 
-    if (p != NULL) {
+    if (p != NULL)
+    {
         if (!OSSL_PARAM_get_int(p, &in))
             return 0;
         ossl_FIPS_IND_set_settable(ind, id, in);
@@ -89,9 +87,7 @@ int ossl_FIPS_IND_set_ctx_param(OSSL_FIPS_IND *ind, int id, const OSSL_PARAM *p)
     return 1;
 }
 
-int ossl_FIPS_IND_set_ctx_param_locate(OSSL_FIPS_IND *ind, int id,
-                                       const OSSL_PARAM params[],
-                                       const char *name)
+int ossl_FIPS_IND_set_ctx_param_locate(OSSL_FIPS_IND *ind, int id, const OSSL_PARAM params[], const char *name)
 {
     const OSSL_PARAM *p = OSSL_PARAM_locate_const(params, name);
 
@@ -103,8 +99,7 @@ int ossl_FIPS_IND_get_ctx_param(const OSSL_FIPS_IND *ind, OSSL_PARAM *p)
     return p == NULL || OSSL_PARAM_set_int(p, ind->approved);
 }
 
-int ossl_FIPS_IND_get_ctx_param_locate(const OSSL_FIPS_IND *ind,
-                                       OSSL_PARAM params[])
+int ossl_FIPS_IND_get_ctx_param_locate(const OSSL_FIPS_IND *ind, OSSL_PARAM params[])
 {
     OSSL_PARAM *p = OSSL_PARAM_locate(params, OSSL_ALG_PARAM_FIPS_APPROVED_INDICATOR);
 
@@ -116,8 +111,7 @@ int ossl_FIPS_IND_get_ctx_param_locate(const OSSL_FIPS_IND *ind,
  * triggered. The callback will return 1 if the application wants an error
  * to occur based on the indicator type and description.
  */
-int ossl_FIPS_IND_callback(OSSL_LIB_CTX *libctx, const char *type,
-                           const char *desc)
+int ossl_FIPS_IND_callback(OSSL_LIB_CTX *libctx, const char *type, const char *desc)
 {
     OSSL_INDICATOR_CALLBACK *cb = NULL;
 

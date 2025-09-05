@@ -10,7 +10,8 @@
 #include "ssl_local.h"
 #include <openssl/bn.h>
 
-struct pqueue_st {
+struct pqueue_st
+{
     pitem *items;
     int count;
 };
@@ -49,18 +50,20 @@ pitem *pqueue_insert(pqueue *pq, pitem *item)
 {
     pitem *curr, *next;
 
-    if (pq->items == NULL) {
+    if (pq->items == NULL)
+    {
         pq->items = item;
         return item;
     }
 
-    for (curr = NULL, next = pq->items;
-         next != NULL; curr = next, next = next->next) {
+    for (curr = NULL, next = pq->items; next != NULL; curr = next, next = next->next)
+    {
         /*
          * we can compare 64-bit value in big-endian encoding with memcmp:-)
          */
         int cmp = memcmp(next->priority, item->priority, 8);
-        if (cmp > 0) {          /* next > item */
+        if (cmp > 0)
+        { /* next > item */
             item->next = next;
 
             if (curr == NULL)
@@ -71,7 +74,7 @@ pitem *pqueue_insert(pqueue *pq, pitem *item)
             return item;
         }
 
-        else if (cmp == 0)      /* duplicates not allowed */
+        else if (cmp == 0) /* duplicates not allowed */
             return NULL;
     }
 
@@ -104,8 +107,10 @@ pitem *pqueue_find(pqueue *pq, unsigned char *prio64be)
     if (pq->items == NULL)
         return NULL;
 
-    for (next = pq->items; next->next != NULL; next = next->next) {
-        if (memcmp(next->priority, prio64be, 8) == 0) {
+    for (next = pq->items; next->next != NULL; next = next->next)
+    {
+        if (memcmp(next->priority, prio64be, 8) == 0)
+        {
             found = next;
             break;
         }
@@ -145,7 +150,8 @@ size_t pqueue_size(pqueue *pq)
     pitem *item = pq->items;
     size_t count = 0;
 
-    while (item != NULL) {
+    while (item != NULL)
+    {
         count++;
         item = item->next;
     }

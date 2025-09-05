@@ -10,8 +10,9 @@
 #include <openssl/rc2.h>
 #include "prov/ciphercommon.h"
 
-typedef struct prov_rc2_ctx_st {
-    PROV_CIPHER_CTX base;      /* Must be first */
+typedef struct prov_rc2_ctx_st
+{
+    PROV_CIPHER_CTX base; /* Must be first */
     union {
         OSSL_UNION_ALIGN;
         RC2_KEY ks;

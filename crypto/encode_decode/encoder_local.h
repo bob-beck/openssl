@@ -18,7 +18,8 @@
 #include "internal/property.h"
 #include "internal/refcount.h"
 
-struct ossl_endecode_base_st {
+struct ossl_endecode_base_st
+{
     OSSL_PROVIDER *prov;
     int id;
     char *name;
@@ -28,7 +29,8 @@ struct ossl_endecode_base_st {
     CRYPTO_REF_COUNT refcnt;
 };
 
-struct ossl_encoder_st {
+struct ossl_encoder_st
+{
     struct ossl_endecode_base_st base;
     OSSL_FUNC_encoder_newctx_fn *newctx;
     OSSL_FUNC_encoder_freectx_fn *freectx;
@@ -42,7 +44,8 @@ struct ossl_encoder_st {
     OSSL_FUNC_encoder_free_object_fn *free_object;
 };
 
-struct ossl_decoder_st {
+struct ossl_decoder_st
+{
     struct ossl_endecode_base_st base;
     OSSL_FUNC_decoder_newctx_fn *newctx;
     OSSL_FUNC_decoder_freectx_fn *freectx;
@@ -55,7 +58,8 @@ struct ossl_decoder_st {
     OSSL_FUNC_decoder_export_object_fn *export_object;
 };
 
-struct ossl_encoder_instance_st {
+struct ossl_encoder_instance_st
+{
     OSSL_ENCODER *encoder;        /* Never NULL */
     void *encoderctx;             /* Never NULL */
     const char *output_type;      /* Never NULL */
@@ -66,7 +70,8 @@ DEFINE_STACK_OF(OSSL_ENCODER_INSTANCE)
 
 void ossl_encoder_instance_free(OSSL_ENCODER_INSTANCE *encoder_inst);
 
-struct ossl_encoder_ctx_st {
+struct ossl_encoder_ctx_st
+{
     /*
      * Select what parts of an object will be encoded.  This selection is
      * bit encoded, and the bits correspond to selection bits available with
@@ -103,21 +108,23 @@ struct ossl_encoder_ctx_st {
     struct ossl_passphrase_data_st pwdata;
 };
 
-struct ossl_decoder_instance_st {
+struct ossl_decoder_instance_st
+{
     OSSL_DECODER *decoder;       /* Never NULL */
     void *decoderctx;            /* Never NULL */
     const char *input_type;      /* Never NULL */
     const char *input_structure; /* May be NULL */
     int input_type_id;
-    int order;                   /* For stable ordering of decoders wrt proqs */
-    int score;                   /* For ordering decoders wrt proqs */
+    int order; /* For stable ordering of decoders wrt proqs */
+    int score; /* For ordering decoders wrt proqs */
 
     unsigned int flag_input_structure_was_set : 1;
 };
 
 DEFINE_STACK_OF(OSSL_DECODER_INSTANCE)
 
-struct ossl_decoder_ctx_st {
+struct ossl_decoder_ctx_st
+{
     /*
      * The caller may know the input type of the data they pass.  If not,
      * this will remain NULL and the decoding functionality will start
@@ -164,10 +171,7 @@ struct ossl_decoder_ctx_st {
     int harderr;
 };
 
-const OSSL_PROPERTY_LIST *
-ossl_decoder_parsed_properties(const OSSL_DECODER *decoder);
-const OSSL_PROPERTY_LIST *
-ossl_encoder_parsed_properties(const OSSL_ENCODER *encoder);
+const OSSL_PROPERTY_LIST *ossl_decoder_parsed_properties(const OSSL_DECODER *decoder);
+const OSSL_PROPERTY_LIST *ossl_encoder_parsed_properties(const OSSL_ENCODER *encoder);
 
-int ossl_decoder_fast_is_a(OSSL_DECODER *decoder,
-                           const char *name, int *id_cache);
+int ossl_decoder_fast_is_a(OSSL_DECODER *decoder, const char *name, int *id_cache);

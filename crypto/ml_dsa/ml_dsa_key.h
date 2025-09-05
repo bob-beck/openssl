@@ -12,7 +12,8 @@
 #include "ml_dsa_vector.h"
 
 /* NOTE - any changes to this struct may require updates to ossl_ml_dsa_dup() */
-struct ml_dsa_key_st {
+struct ml_dsa_key_st
+{
     OSSL_LIB_CTX *libctx;
     const ML_DSA_PARAMS *params;
 

@@ -45,17 +45,18 @@ static const char OSSL_HPKE_SECRET_LABEL[] = "\x73\x65\x63\x72\x65\x74";
 /**
  * @brief sender or receiver context
  */
-struct ossl_hpke_ctx_st {
-    OSSL_LIB_CTX *libctx; /* library context */
-    char *propq; /* properties */
-    int mode; /* HPKE mode */
+struct ossl_hpke_ctx_st
+{
+    OSSL_LIB_CTX *libctx;  /* library context */
+    char *propq;           /* properties */
+    int mode;              /* HPKE mode */
     OSSL_HPKE_SUITE suite; /* suite */
     const OSSL_HPKE_KEM_INFO *kem_info;
     const OSSL_HPKE_KDF_INFO *kdf_info;
     const OSSL_HPKE_AEAD_INFO *aead_info;
     EVP_CIPHER *aead_ciph;
-    int role; /* sender(0) or receiver(1) */
-    uint64_t seq; /* aead sequence number */
+    int role;                     /* sender(0) or receiver(1) */
+    uint64_t seq;                 /* aead sequence number */
     unsigned char *shared_secret; /* KEM output, zz */
     size_t shared_secretlen;
     unsigned char *key; /* final aead key */
@@ -67,7 +68,7 @@ struct ossl_hpke_ctx_st {
     char *pskid; /* PSK stuff */
     unsigned char *psk;
     size_t psklen;
-    EVP_PKEY *authpriv; /* sender's authentication private key */
+    EVP_PKEY *authpriv;     /* sender's authentication private key */
     unsigned char *authpub; /* auth public key */
     size_t authpublen;
     unsigned char *ikme; /* IKM for sender deterministic key gen */
@@ -99,24 +100,18 @@ static int hpke_kem_id_nist_curve(uint16_t kem_id)
  * Note that this could be a useful function to make public in
  * future, but would likely require a name change.
  */
-static EVP_PKEY *evp_pkey_new_raw_nist_public_key(OSSL_LIB_CTX *libctx,
-                                                  const char *propq,
-                                                  const char *gname,
-                                                  const unsigned char *buf,
-                                                  size_t buflen)
+static EVP_PKEY *evp_pkey_new_raw_nist_public_key(OSSL_LIB_CTX *libctx, const char *propq, const char *gname,
+                                                  const unsigned char *buf, size_t buflen)
 {
     OSSL_PARAM params[2];
     EVP_PKEY *ret = NULL;
     EVP_PKEY_CTX *cctx = EVP_PKEY_CTX_new_from_name(libctx, "EC", propq);
 
-    params[0] = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME,
-                                                 (char *)gname, 0);
+    params[0] = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME, (char *)gname, 0);
     params[1] = OSSL_PARAM_construct_end();
-    if (cctx == NULL
-        || EVP_PKEY_paramgen_init(cctx) <= 0
-        || EVP_PKEY_CTX_set_params(cctx, params) <= 0
-        || EVP_PKEY_paramgen(cctx, &ret) <= 0
-        || EVP_PKEY_set1_encoded_public_key(ret, buf, buflen) != 1) {
+    if (cctx == NULL || EVP_PKEY_paramgen_init(cctx) <= 0 || EVP_PKEY_CTX_set_params(cctx, params) <= 0 ||
+        EVP_PKEY_paramgen(cctx, &ret) <= 0 || EVP_PKEY_set1_encoded_public_key(ret, buf, buflen) != 1)
+    {
         EVP_PKEY_CTX_free(cctx);
         EVP_PKEY_free(ret);
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
@@ -138,10 +133,8 @@ static EVP_PKEY *evp_pkey_new_raw_nist_public_key(OSSL_LIB_CTX *libctx,
  * @param ptlen input/output, better be big enough on input, exact on output
  * @return 1 on success, 0 otherwise
  */
-static int hpke_aead_dec(OSSL_HPKE_CTX *hctx, const unsigned char *iv,
-                         const unsigned char *aad, size_t aadlen,
-                         const unsigned char *ct, size_t ctlen,
-                         unsigned char *pt, size_t *ptlen)
+static int hpke_aead_dec(OSSL_HPKE_CTX *hctx, const unsigned char *iv, const unsigned char *aad, size_t aadlen,
+                         const unsigned char *ct, size_t ctlen, unsigned char *pt, size_t *ptlen)
 {
     int erv = 0;
     EVP_CIPHER_CTX *ctx = NULL;
@@ -149,8 +142,8 @@ static int hpke_aead_dec(OSSL_HPKE_CTX *hctx, const unsigned char *iv,
     size_t taglen;
 
     taglen = hctx->aead_info->taglen;
-    if (ctlen <= taglen || *ptlen < ctlen - taglen
-        || aadlen > INT_MAX || ctlen > INT_MAX) {
+    if (ctlen <= taglen || *ptlen < ctlen - taglen || aadlen > INT_MAX || ctlen > INT_MAX)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -158,39 +151,45 @@ static int hpke_aead_dec(OSSL_HPKE_CTX *hctx, const unsigned char *iv,
     if ((ctx = EVP_CIPHER_CTX_new()) == NULL)
         return 0;
     /* Initialise the decryption operation. */
-    if (EVP_DecryptInit_ex(ctx, hctx->aead_ciph, NULL, NULL, NULL) != 1) {
+    if (EVP_DecryptInit_ex(ctx, hctx->aead_ciph, NULL, NULL, NULL) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN,
-                            (int)hctx->noncelen, NULL) != 1) {
+    if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, (int)hctx->noncelen, NULL) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     /* Initialise key and IV */
-    if (EVP_DecryptInit_ex(ctx, NULL, NULL, hctx->key, iv) != 1) {
+    if (EVP_DecryptInit_ex(ctx, NULL, NULL, hctx->key, iv) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     /* Provide AAD. */
-    if (aadlen != 0 && aad != NULL) {
-        if (EVP_DecryptUpdate(ctx, NULL, &len, aad, (int)aadlen) != 1) {
+    if (aadlen != 0 && aad != NULL)
+    {
+        if (EVP_DecryptUpdate(ctx, NULL, &len, aad, (int)aadlen) != 1)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
             goto err;
         }
     }
-    if (EVP_DecryptUpdate(ctx, pt, &len, ct, (int)(ctlen - taglen)) != 1) {
+    if (EVP_DecryptUpdate(ctx, pt, &len, ct, (int)(ctlen - taglen)) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     *ptlen = len;
-    if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG,
-                             (int)taglen, (void *)(ct + ctlen - taglen))) {
+    if (!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_TAG, (int)taglen, (void *)(ct + ctlen - taglen)))
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     /* Finalise decryption.  */
-    if (EVP_DecryptFinal_ex(ctx, pt + len, &len) <= 0) {
+    if (EVP_DecryptFinal_ex(ctx, pt + len, &len) <= 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
@@ -215,10 +214,8 @@ err:
  * @param ctlen input/output, needs space for tag on input, exact on output
  * @return 1 for success, 0 otherwise
  */
-static int hpke_aead_enc(OSSL_HPKE_CTX *hctx, const unsigned char *iv,
-                         const unsigned char *aad, size_t aadlen,
-                         const unsigned char *pt, size_t ptlen,
-                         unsigned char *ct, size_t *ctlen)
+static int hpke_aead_enc(OSSL_HPKE_CTX *hctx, const unsigned char *iv, const unsigned char *aad, size_t aadlen,
+                         const unsigned char *pt, size_t ptlen, unsigned char *ct, size_t *ctlen)
 {
     int erv = 0;
     EVP_CIPHER_CTX *ctx = NULL;
@@ -227,12 +224,13 @@ static int hpke_aead_enc(OSSL_HPKE_CTX *hctx, const unsigned char *iv,
     unsigned char tag[EVP_MAX_AEAD_TAG_LENGTH];
 
     taglen = hctx->aead_info->taglen;
-    if (*ctlen <= taglen || ptlen > *ctlen - taglen
-        || aadlen > INT_MAX || ptlen > INT_MAX) {
+    if (*ctlen <= taglen || ptlen > *ctlen - taglen || aadlen > INT_MAX || ptlen > INT_MAX)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (!ossl_assert(taglen <= sizeof(tag))) {
+    if (!ossl_assert(taglen <= sizeof(tag)))
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -240,40 +238,47 @@ static int hpke_aead_enc(OSSL_HPKE_CTX *hctx, const unsigned char *iv,
     if ((ctx = EVP_CIPHER_CTX_new()) == NULL)
         return 0;
     /* Initialise the encryption operation. */
-    if (EVP_EncryptInit_ex(ctx, hctx->aead_ciph, NULL, NULL, NULL) != 1) {
+    if (EVP_EncryptInit_ex(ctx, hctx->aead_ciph, NULL, NULL, NULL) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN,
-                            (int)hctx->noncelen, NULL) != 1) {
+    if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_SET_IVLEN, (int)hctx->noncelen, NULL) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     /* Initialise key and IV */
-    if (EVP_EncryptInit_ex(ctx, NULL, NULL, hctx->key, iv) != 1) {
+    if (EVP_EncryptInit_ex(ctx, NULL, NULL, hctx->key, iv) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     /* Provide any AAD data. */
-    if (aadlen != 0 && aad != NULL) {
-        if (EVP_EncryptUpdate(ctx, NULL, &len, aad, (int)aadlen) != 1) {
+    if (aadlen != 0 && aad != NULL)
+    {
+        if (EVP_EncryptUpdate(ctx, NULL, &len, aad, (int)aadlen) != 1)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
             goto err;
         }
     }
-    if (EVP_EncryptUpdate(ctx, ct, &len, pt, (int)ptlen) != 1) {
+    if (EVP_EncryptUpdate(ctx, ct, &len, pt, (int)ptlen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     *ctlen = len;
     /* Finalise the encryption. */
-    if (EVP_EncryptFinal_ex(ctx, ct + len, &len) != 1) {
+    if (EVP_EncryptFinal_ex(ctx, ct + len, &len) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     *ctlen += len;
     /* Get tag. Not a duplicate so needs to be added to the ciphertext */
-    if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_GET_TAG, (int)taglen, tag) != 1) {
+    if (EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_AEAD_GET_TAG, (int)taglen, tag) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
@@ -295,7 +300,8 @@ err:
  */
 static int hpke_mode_check(unsigned int mode)
 {
-    switch (mode) {
+    switch (mode)
+    {
     case OSSL_HPKE_MODE_BASE:
     case OSSL_HPKE_MODE_PSK:
     case OSSL_HPKE_MODE_AUTH:
@@ -312,10 +318,8 @@ static int hpke_mode_check(unsigned int mode)
  * @param suite is the suite to check
  * @return 1 for good, 0 otherwise
  */
-static int hpke_suite_check(OSSL_HPKE_SUITE suite,
-                            const OSSL_HPKE_KEM_INFO **kem_info,
-                            const OSSL_HPKE_KDF_INFO **kdf_info,
-                            const OSSL_HPKE_AEAD_INFO **aead_info)
+static int hpke_suite_check(OSSL_HPKE_SUITE suite, const OSSL_HPKE_KEM_INFO **kem_info,
+                            const OSSL_HPKE_KDF_INFO **kdf_info, const OSSL_HPKE_AEAD_INFO **aead_info)
 {
     const OSSL_HPKE_KEM_INFO *kem_info_;
     const OSSL_HPKE_KDF_INFO *kdf_info_;
@@ -346,9 +350,7 @@ static int hpke_suite_check(OSSL_HPKE_SUITE suite,
  * @param suite is the result
  * @return 1 for success, 0 otherwise
  */
-static int hpke_random_suite(OSSL_LIB_CTX *libctx,
-                             const char *propq,
-                             OSSL_HPKE_SUITE *suite)
+static int hpke_random_suite(OSSL_LIB_CTX *libctx, const char *propq, OSSL_HPKE_SUITE *suite)
 {
     const OSSL_HPKE_KEM_INFO *kem_info = NULL;
     const OSSL_HPKE_KDF_INFO *kdf_info = NULL;
@@ -389,19 +391,18 @@ static int hpke_random_suite(OSSL_LIB_CTX *libctx,
  * @param cipherlen points to what will be ciphertext length (including tag)
  * @return 1 for success, 0 otherwise
  */
-static int hpke_expansion(OSSL_HPKE_SUITE suite,
-                          size_t *enclen,
-                          size_t clearlen,
-                          size_t *cipherlen)
+static int hpke_expansion(OSSL_HPKE_SUITE suite, size_t *enclen, size_t clearlen, size_t *cipherlen)
 {
     const OSSL_HPKE_AEAD_INFO *aead_info = NULL;
     const OSSL_HPKE_KEM_INFO *kem_info = NULL;
 
-    if (cipherlen == NULL || enclen == NULL) {
+    if (cipherlen == NULL || enclen == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (hpke_suite_check(suite, &kem_info, NULL, &aead_info) != 1) {
+    if (hpke_suite_check(suite, &kem_info, NULL, &aead_info) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -417,8 +418,7 @@ static int hpke_expansion(OSSL_HPKE_SUITE suite,
  * @param blen is the size of buf
  * @return 0 for error, otherwise blen
  */
-static size_t hpke_seqnonce2buf(OSSL_HPKE_CTX *ctx,
-                                unsigned char *buf, size_t blen)
+static size_t hpke_seqnonce2buf(OSSL_HPKE_CTX *ctx, unsigned char *buf, size_t blen)
 {
     size_t i;
     uint64_t seq_copy;
@@ -427,7 +427,8 @@ static size_t hpke_seqnonce2buf(OSSL_HPKE_CTX *ctx,
         return 0;
     seq_copy = ctx->seq;
     memset(buf, 0, blen);
-    for (i = 0; i < sizeof(seq_copy); i++) {
+    for (i = 0; i < sizeof(seq_copy); i++)
+    {
         buf[blen - i - 1] = seq_copy & 0xff;
         seq_copy >>= 8;
     }
@@ -445,8 +446,7 @@ static size_t hpke_seqnonce2buf(OSSL_HPKE_CTX *ctx,
  * @param publen is the length of pub
  * @return 1 for success, 0 for error
  */
-static int hpke_encap(OSSL_HPKE_CTX *ctx, unsigned char *enc, size_t *enclen,
-                      const unsigned char *pub, size_t publen)
+static int hpke_encap(OSSL_HPKE_CTX *ctx, unsigned char *enc, size_t *enclen, const unsigned char *pub, size_t publen)
 {
     int erv = 0;
     OSSL_PARAM params[3], *p = params;
@@ -455,66 +455,72 @@ static int hpke_encap(OSSL_HPKE_CTX *ctx, unsigned char *enc, size_t *enclen,
     EVP_PKEY *pkR = NULL;
     const OSSL_HPKE_KEM_INFO *kem_info = NULL;
 
-    if (ctx == NULL || enc == NULL || enclen == NULL || *enclen == 0
-        || pub == NULL || publen == 0) {
+    if (ctx == NULL || enc == NULL || enclen == NULL || *enclen == 0 || pub == NULL || publen == 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->shared_secret != NULL) {
+    if (ctx->shared_secret != NULL)
+    {
         /* only run the KEM once per OSSL_HPKE_CTX */
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
         return 0;
     }
     kem_info = ossl_HPKE_KEM_INFO_find_id(ctx->suite.kem_id);
-    if (kem_info == NULL) {
+    if (kem_info == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
-    if (hpke_kem_id_nist_curve(ctx->suite.kem_id) == 1) {
-        pkR = evp_pkey_new_raw_nist_public_key(ctx->libctx, ctx->propq,
-                                               kem_info->groupname,
-                                               pub, publen);
-    } else {
-        pkR = EVP_PKEY_new_raw_public_key_ex(ctx->libctx,
-                                             kem_info->keytype,
-                                             ctx->propq, pub, publen);
+    if (hpke_kem_id_nist_curve(ctx->suite.kem_id) == 1)
+    {
+        pkR = evp_pkey_new_raw_nist_public_key(ctx->libctx, ctx->propq, kem_info->groupname, pub, publen);
     }
-    if (pkR == NULL) {
+    else
+    {
+        pkR = EVP_PKEY_new_raw_public_key_ex(ctx->libctx, kem_info->keytype, ctx->propq, pub, publen);
+    }
+    if (pkR == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     pctx = EVP_PKEY_CTX_new_from_pkey(ctx->libctx, pkR, ctx->propq);
-    if (pctx == NULL) {
+    if (pctx == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KEM_PARAM_OPERATION,
-                                            OSSL_KEM_PARAM_OPERATION_DHKEM,
-                                            0);
-    if (ctx->ikme != NULL) {
-        *p++ = OSSL_PARAM_construct_octet_string(OSSL_KEM_PARAM_IKME,
-                                                 ctx->ikme, ctx->ikmelen);
+    *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KEM_PARAM_OPERATION, OSSL_KEM_PARAM_OPERATION_DHKEM, 0);
+    if (ctx->ikme != NULL)
+    {
+        *p++ = OSSL_PARAM_construct_octet_string(OSSL_KEM_PARAM_IKME, ctx->ikme, ctx->ikmelen);
     }
     *p = OSSL_PARAM_construct_end();
-    if (ctx->mode == OSSL_HPKE_MODE_AUTH
-        || ctx->mode == OSSL_HPKE_MODE_PSKAUTH) {
-        if (EVP_PKEY_auth_encapsulate_init(pctx, ctx->authpriv,
-                                           params) != 1) {
+    if (ctx->mode == OSSL_HPKE_MODE_AUTH || ctx->mode == OSSL_HPKE_MODE_PSKAUTH)
+    {
+        if (EVP_PKEY_auth_encapsulate_init(pctx, ctx->authpriv, params) != 1)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
             goto err;
         }
-    } else {
-        if (EVP_PKEY_encapsulate_init(pctx, params) != 1) {
+    }
+    else
+    {
+        if (EVP_PKEY_encapsulate_init(pctx, params) != 1)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
             goto err;
         }
     }
     lenclen = *enclen;
-    if (EVP_PKEY_encapsulate(pctx, NULL, &lenclen, NULL, &lsslen) != 1) {
+    if (EVP_PKEY_encapsulate(pctx, NULL, &lenclen, NULL, &lsslen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    if (lenclen > *enclen) {
+    if (lenclen > *enclen)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         goto err;
     }
@@ -522,8 +528,8 @@ static int hpke_encap(OSSL_HPKE_CTX *ctx, unsigned char *enc, size_t *enclen,
     if (ctx->shared_secret == NULL)
         goto err;
     ctx->shared_secretlen = lsslen;
-    if (EVP_PKEY_encapsulate(pctx, enc, enclen, ctx->shared_secret,
-                             &ctx->shared_secretlen) != 1) {
+    if (EVP_PKEY_encapsulate(pctx, enc, enclen, ctx->shared_secret, &ctx->shared_secretlen) != 1)
+    {
         ctx->shared_secretlen = 0;
         OPENSSL_free(ctx->shared_secret);
         ctx->shared_secret = NULL;
@@ -546,9 +552,7 @@ err:
  * @param priv is the recipient's private value
  * @return 1 for success, 0 for error
  */
-static int hpke_decap(OSSL_HPKE_CTX *ctx,
-                      const unsigned char *enc, size_t enclen,
-                      EVP_PKEY *priv)
+static int hpke_decap(OSSL_HPKE_CTX *ctx, const unsigned char *enc, size_t enclen, EVP_PKEY *priv)
 {
     int erv = 0;
     EVP_PKEY_CTX *pctx = NULL;
@@ -556,68 +560,74 @@ static int hpke_decap(OSSL_HPKE_CTX *ctx,
     OSSL_PARAM params[2], *p = params;
     size_t lsslen = 0;
 
-    if (ctx == NULL || enc == NULL || enclen == 0 || priv == NULL) {
+    if (ctx == NULL || enc == NULL || enclen == 0 || priv == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->shared_secret != NULL) {
+    if (ctx->shared_secret != NULL)
+    {
         /* only run the KEM once per OSSL_HPKE_CTX */
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
         return 0;
     }
     pctx = EVP_PKEY_CTX_new_from_pkey(ctx->libctx, priv, ctx->propq);
-    if (pctx == NULL) {
+    if (pctx == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KEM_PARAM_OPERATION,
-                                            OSSL_KEM_PARAM_OPERATION_DHKEM,
-                                            0);
+    *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KEM_PARAM_OPERATION, OSSL_KEM_PARAM_OPERATION_DHKEM, 0);
     *p = OSSL_PARAM_construct_end();
-    if (ctx->mode == OSSL_HPKE_MODE_AUTH
-        || ctx->mode == OSSL_HPKE_MODE_PSKAUTH) {
+    if (ctx->mode == OSSL_HPKE_MODE_AUTH || ctx->mode == OSSL_HPKE_MODE_PSKAUTH)
+    {
         const OSSL_HPKE_KEM_INFO *kem_info = NULL;
 
         kem_info = ossl_HPKE_KEM_INFO_find_id(ctx->suite.kem_id);
-        if (kem_info == NULL) {
+        if (kem_info == NULL)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
             goto err;
         }
-        if (hpke_kem_id_nist_curve(ctx->suite.kem_id) == 1) {
-            spub = evp_pkey_new_raw_nist_public_key(ctx->libctx, ctx->propq,
-                                                    kem_info->groupname,
-                                                    ctx->authpub,
+        if (hpke_kem_id_nist_curve(ctx->suite.kem_id) == 1)
+        {
+            spub = evp_pkey_new_raw_nist_public_key(ctx->libctx, ctx->propq, kem_info->groupname, ctx->authpub,
                                                     ctx->authpublen);
-        } else {
-            spub = EVP_PKEY_new_raw_public_key_ex(ctx->libctx,
-                                                  kem_info->keytype,
-                                                  ctx->propq,
-                                                  ctx->authpub,
+        }
+        else
+        {
+            spub = EVP_PKEY_new_raw_public_key_ex(ctx->libctx, kem_info->keytype, ctx->propq, ctx->authpub,
                                                   ctx->authpublen);
         }
-        if (spub == NULL) {
+        if (spub == NULL)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
             goto err;
         }
-        if (EVP_PKEY_auth_decapsulate_init(pctx, spub, params) != 1) {
-            ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
-            goto err;
-        }
-    } else {
-        if (EVP_PKEY_decapsulate_init(pctx, params) != 1) {
+        if (EVP_PKEY_auth_decapsulate_init(pctx, spub, params) != 1)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
             goto err;
         }
     }
-    if (EVP_PKEY_decapsulate(pctx, NULL, &lsslen, enc, enclen) != 1) {
+    else
+    {
+        if (EVP_PKEY_decapsulate_init(pctx, params) != 1)
+        {
+            ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
+            goto err;
+        }
+    }
+    if (EVP_PKEY_decapsulate(pctx, NULL, &lsslen, enc, enclen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     ctx->shared_secret = OPENSSL_malloc(lsslen);
     if (ctx->shared_secret == NULL)
         goto err;
-    if (EVP_PKEY_decapsulate(pctx, ctx->shared_secret, &lsslen,
-                             enc, enclen) != 1) {
+    if (EVP_PKEY_decapsulate(pctx, ctx->shared_secret, &lsslen, enc, enclen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
@@ -627,7 +637,8 @@ static int hpke_decap(OSSL_HPKE_CTX *ctx,
 err:
     EVP_PKEY_CTX_free(pctx);
     EVP_PKEY_free(spub);
-    if (erv == 0) {
+    if (erv == 0)
+    {
         OPENSSL_free(ctx->shared_secret);
         ctx->shared_secret = NULL;
         ctx->shared_secretlen = 0;
@@ -646,8 +657,7 @@ err:
  * section 5.1, (badly termed there as a "key schedule") and sets the
  * ctx fields for the shared_secret, nonce, key and exporter_secret
  */
-static int hpke_do_middle(OSSL_HPKE_CTX *ctx,
-                          const unsigned char *info, size_t infolen)
+static int hpke_do_middle(OSSL_HPKE_CTX *ctx, const unsigned char *info, size_t infolen)
 {
     int erv = 0;
     size_t ks_contextlen = OSSL_HPKE_MAXSIZE;
@@ -663,21 +673,25 @@ static int hpke_do_middle(OSSL_HPKE_CTX *ctx,
     const char *mdname = NULL;
 
     /* only let this be done once */
-    if (ctx->exportersec != NULL) {
+    if (ctx->exportersec != NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
         return 0;
     }
-    if (ossl_HPKE_KEM_INFO_find_id(ctx->suite.kem_id) == NULL) {
+    if (ossl_HPKE_KEM_INFO_find_id(ctx->suite.kem_id) == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
     aead_info = ossl_HPKE_AEAD_INFO_find_id(ctx->suite.aead_id);
-    if (aead_info == NULL) {
+    if (aead_info == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
     kdf_info = ossl_HPKE_KDF_INFO_find_id(ctx->suite.kdf_id);
-    if (kdf_info == NULL) {
+    if (kdf_info == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
@@ -687,20 +701,23 @@ static int hpke_do_middle(OSSL_HPKE_CTX *ctx,
     ks_context[0] = (unsigned char)(ctx->mode % 256);
     ks_contextlen--; /* remaining space */
     halflen = kdf_info->Nh;
-    if ((2 * halflen) > ks_contextlen) {
+    if ((2 * halflen) > ks_contextlen)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
     /* check a psk was set if in that mode */
-    if (ctx->mode == OSSL_HPKE_MODE_PSK
-        || ctx->mode == OSSL_HPKE_MODE_PSKAUTH) {
-        if (ctx->psk == NULL || ctx->psklen == 0 || ctx->pskid == NULL) {
+    if (ctx->mode == OSSL_HPKE_MODE_PSK || ctx->mode == OSSL_HPKE_MODE_PSKAUTH)
+    {
+        if (ctx->psk == NULL || ctx->psklen == 0 || ctx->pskid == NULL)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
             return 0;
         }
     }
     kctx = ossl_kdf_ctx_create("HKDF", mdname, ctx->libctx, ctx->propq);
-    if (kctx == NULL) {
+    if (kctx == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
@@ -713,48 +730,43 @@ static int hpke_do_middle(OSSL_HPKE_CTX *ctx,
     suitebuf[4] = ctx->suite.aead_id / 256;
     suitebuf[5] = ctx->suite.aead_id % 256;
     /* Extract and Expand variously... */
-    if (ossl_hpke_labeled_extract(kctx, ks_context + 1, halflen,
-                                  NULL, 0, OSSL_HPKE_SEC51LABEL,
-                                  suitebuf, sizeof(suitebuf),
-                                  OSSL_HPKE_PSKIDHASH_LABEL,
-                                  (unsigned char *)ctx->pskid, pskidlen) != 1) {
+    if (ossl_hpke_labeled_extract(kctx, ks_context + 1, halflen, NULL, 0, OSSL_HPKE_SEC51LABEL, suitebuf,
+                                  sizeof(suitebuf), OSSL_HPKE_PSKIDHASH_LABEL, (unsigned char *)ctx->pskid,
+                                  pskidlen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    if (ossl_hpke_labeled_extract(kctx, ks_context + 1 + halflen, halflen,
-                                  NULL, 0, OSSL_HPKE_SEC51LABEL,
-                                  suitebuf, sizeof(suitebuf),
-                                  OSSL_HPKE_INFOHASH_LABEL,
-                                  (unsigned char *)info, infolen) != 1) {
+    if (ossl_hpke_labeled_extract(kctx, ks_context + 1 + halflen, halflen, NULL, 0, OSSL_HPKE_SEC51LABEL, suitebuf,
+                                  sizeof(suitebuf), OSSL_HPKE_INFOHASH_LABEL, (unsigned char *)info, infolen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     ks_contextlen = 1 + 2 * halflen;
     secretlen = kdf_info->Nh;
-    if (secretlen > OSSL_HPKE_MAXSIZE) {
+    if (secretlen > OSSL_HPKE_MAXSIZE)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    if (ossl_hpke_labeled_extract(kctx, secret, secretlen,
-                                  ctx->shared_secret, ctx->shared_secretlen,
-                                  OSSL_HPKE_SEC51LABEL,
-                                  suitebuf, sizeof(suitebuf),
-                                  OSSL_HPKE_SECRET_LABEL,
-                                  ctx->psk, ctx->psklen) != 1) {
+    if (ossl_hpke_labeled_extract(kctx, secret, secretlen, ctx->shared_secret, ctx->shared_secretlen,
+                                  OSSL_HPKE_SEC51LABEL, suitebuf, sizeof(suitebuf), OSSL_HPKE_SECRET_LABEL, ctx->psk,
+                                  ctx->psklen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    if (ctx->suite.aead_id != OSSL_HPKE_AEAD_ID_EXPORTONLY) {
+    if (ctx->suite.aead_id != OSSL_HPKE_AEAD_ID_EXPORTONLY)
+    {
         /* we only need nonce/key for non export AEADs */
         ctx->noncelen = aead_info->Nn;
         ctx->nonce = OPENSSL_malloc(ctx->noncelen);
         if (ctx->nonce == NULL)
             goto err;
-        if (ossl_hpke_labeled_expand(kctx, ctx->nonce, ctx->noncelen,
-                                     secret, secretlen, OSSL_HPKE_SEC51LABEL,
-                                     suitebuf, sizeof(suitebuf),
-                                     OSSL_HPKE_NONCE_LABEL,
-                                     ks_context, ks_contextlen) != 1) {
+        if (ossl_hpke_labeled_expand(kctx, ctx->nonce, ctx->noncelen, secret, secretlen, OSSL_HPKE_SEC51LABEL, suitebuf,
+                                     sizeof(suitebuf), OSSL_HPKE_NONCE_LABEL, ks_context, ks_contextlen) != 1)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
             goto err;
         }
@@ -762,11 +774,9 @@ static int hpke_do_middle(OSSL_HPKE_CTX *ctx,
         ctx->key = OPENSSL_malloc(ctx->keylen);
         if (ctx->key == NULL)
             goto err;
-        if (ossl_hpke_labeled_expand(kctx, ctx->key, ctx->keylen,
-                                     secret, secretlen, OSSL_HPKE_SEC51LABEL,
-                                     suitebuf, sizeof(suitebuf),
-                                     OSSL_HPKE_KEY_LABEL,
-                                     ks_context, ks_contextlen) != 1) {
+        if (ossl_hpke_labeled_expand(kctx, ctx->key, ctx->keylen, secret, secretlen, OSSL_HPKE_SEC51LABEL, suitebuf,
+                                     sizeof(suitebuf), OSSL_HPKE_KEY_LABEL, ks_context, ks_contextlen) != 1)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
             goto err;
         }
@@ -775,11 +785,9 @@ static int hpke_do_middle(OSSL_HPKE_CTX *ctx,
     ctx->exportersec = OPENSSL_malloc(ctx->exporterseclen);
     if (ctx->exportersec == NULL)
         goto err;
-    if (ossl_hpke_labeled_expand(kctx, ctx->exportersec, ctx->exporterseclen,
-                                 secret, secretlen, OSSL_HPKE_SEC51LABEL,
-                                 suitebuf, sizeof(suitebuf),
-                                 OSSL_HPKE_EXP_LABEL,
-                                 ks_context, ks_contextlen) != 1) {
+    if (ossl_hpke_labeled_expand(kctx, ctx->exportersec, ctx->exporterseclen, secret, secretlen, OSSL_HPKE_SEC51LABEL,
+                                 suitebuf, sizeof(suitebuf), OSSL_HPKE_EXP_LABEL, ks_context, ks_contextlen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
@@ -797,23 +805,25 @@ err:
  * in doc/man3/OSSL_HPKE_CTX_new.pod to avoid duplication
  */
 
-OSSL_HPKE_CTX *OSSL_HPKE_CTX_new(int mode, OSSL_HPKE_SUITE suite, int role,
-                                 OSSL_LIB_CTX *libctx, const char *propq)
+OSSL_HPKE_CTX *OSSL_HPKE_CTX_new(int mode, OSSL_HPKE_SUITE suite, int role, OSSL_LIB_CTX *libctx, const char *propq)
 {
     OSSL_HPKE_CTX *ctx = NULL;
     const OSSL_HPKE_KEM_INFO *kem_info;
     const OSSL_HPKE_KDF_INFO *kdf_info;
     const OSSL_HPKE_AEAD_INFO *aead_info;
 
-    if (hpke_mode_check(mode) != 1) {
+    if (hpke_mode_check(mode) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return NULL;
     }
-    if (hpke_suite_check(suite, &kem_info, &kdf_info, &aead_info) != 1) {
+    if (hpke_suite_check(suite, &kem_info, &kdf_info, &aead_info) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return NULL;
     }
-    if (role != OSSL_HPKE_ROLE_SENDER && role != OSSL_HPKE_ROLE_RECEIVER) {
+    if (role != OSSL_HPKE_ROLE_SENDER && role != OSSL_HPKE_ROLE_RECEIVER)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -821,14 +831,17 @@ OSSL_HPKE_CTX *OSSL_HPKE_CTX_new(int mode, OSSL_HPKE_SUITE suite, int role,
     if (ctx == NULL)
         return NULL;
     ctx->libctx = libctx;
-    if (propq != NULL) {
+    if (propq != NULL)
+    {
         ctx->propq = OPENSSL_strdup(propq);
         if (ctx->propq == NULL)
             goto err;
     }
-    if (suite.aead_id != OSSL_HPKE_AEAD_ID_EXPORTONLY) {
+    if (suite.aead_id != OSSL_HPKE_AEAD_ID_EXPORTONLY)
+    {
         ctx->aead_ciph = EVP_CIPHER_fetch(libctx, aead_info->name, propq);
-        if (ctx->aead_ciph == NULL) {
+        if (ctx->aead_ciph == NULL)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_FETCH_FAILED);
             goto err;
         }
@@ -841,7 +854,7 @@ OSSL_HPKE_CTX *OSSL_HPKE_CTX_new(int mode, OSSL_HPKE_SUITE suite, int role,
     ctx->aead_info = aead_info;
     return ctx;
 
- err:
+err:
     EVP_CIPHER_free(ctx->aead_ciph);
     OPENSSL_free(ctx->propq);
     OPENSSL_free(ctx);
@@ -868,32 +881,35 @@ void OSSL_HPKE_CTX_free(OSSL_HPKE_CTX *ctx)
     return;
 }
 
-int OSSL_HPKE_CTX_set1_psk(OSSL_HPKE_CTX *ctx,
-                           const char *pskid,
-                           const unsigned char *psk, size_t psklen)
+int OSSL_HPKE_CTX_set1_psk(OSSL_HPKE_CTX *ctx, const char *pskid, const unsigned char *psk, size_t psklen)
 {
-    if (ctx == NULL || pskid == NULL || psk == NULL || psklen == 0) {
+    if (ctx == NULL || pskid == NULL || psk == NULL || psklen == 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (psklen > OSSL_HPKE_MAX_PARMLEN) {
+    if (psklen > OSSL_HPKE_MAX_PARMLEN)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (psklen < OSSL_HPKE_MIN_PSKLEN) {
+    if (psklen < OSSL_HPKE_MIN_PSKLEN)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (strlen(pskid) > OSSL_HPKE_MAX_PARMLEN) {
+    if (strlen(pskid) > OSSL_HPKE_MAX_PARMLEN)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (strlen(pskid) == 0) {
+    if (strlen(pskid) == 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->mode != OSSL_HPKE_MODE_PSK
-        && ctx->mode != OSSL_HPKE_MODE_PSKAUTH) {
+    if (ctx->mode != OSSL_HPKE_MODE_PSK && ctx->mode != OSSL_HPKE_MODE_PSKAUTH)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -905,7 +921,8 @@ int OSSL_HPKE_CTX_set1_psk(OSSL_HPKE_CTX *ctx,
     ctx->psklen = psklen;
     OPENSSL_free(ctx->pskid);
     ctx->pskid = OPENSSL_strdup(pskid);
-    if (ctx->pskid == NULL) {
+    if (ctx->pskid == NULL)
+    {
         OPENSSL_clear_free(ctx->psk, ctx->psklen);
         ctx->psk = NULL;
         ctx->psklen = 0;
@@ -914,18 +931,20 @@ int OSSL_HPKE_CTX_set1_psk(OSSL_HPKE_CTX *ctx,
     return 1;
 }
 
-int OSSL_HPKE_CTX_set1_ikme(OSSL_HPKE_CTX *ctx,
-                            const unsigned char *ikme, size_t ikmelen)
+int OSSL_HPKE_CTX_set1_ikme(OSSL_HPKE_CTX *ctx, const unsigned char *ikme, size_t ikmelen)
 {
-    if (ctx == NULL || ikme == NULL) {
+    if (ctx == NULL || ikme == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (ikmelen == 0 || ikmelen > OSSL_HPKE_MAX_PARMLEN) {
+    if (ikmelen == 0 || ikmelen > OSSL_HPKE_MAX_PARMLEN)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->role != OSSL_HPKE_ROLE_SENDER) {
+    if (ctx->role != OSSL_HPKE_ROLE_SENDER)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -939,16 +958,18 @@ int OSSL_HPKE_CTX_set1_ikme(OSSL_HPKE_CTX *ctx,
 
 int OSSL_HPKE_CTX_set1_authpriv(OSSL_HPKE_CTX *ctx, EVP_PKEY *priv)
 {
-    if (ctx == NULL || priv == NULL) {
+    if (ctx == NULL || priv == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (ctx->mode != OSSL_HPKE_MODE_AUTH
-        && ctx->mode != OSSL_HPKE_MODE_PSKAUTH) {
+    if (ctx->mode != OSSL_HPKE_MODE_AUTH && ctx->mode != OSSL_HPKE_MODE_PSKAUTH)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->role != OSSL_HPKE_ROLE_SENDER) {
+    if (ctx->role != OSSL_HPKE_ROLE_SENDER)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -959,8 +980,7 @@ int OSSL_HPKE_CTX_set1_authpriv(OSSL_HPKE_CTX *ctx, EVP_PKEY *priv)
     return 1;
 }
 
-int OSSL_HPKE_CTX_set1_authpub(OSSL_HPKE_CTX *ctx,
-                               const unsigned char *pub, size_t publen)
+int OSSL_HPKE_CTX_set1_authpub(OSSL_HPKE_CTX *ctx, const unsigned char *pub, size_t publen)
 {
     int erv = 0;
     EVP_PKEY *pubp = NULL;
@@ -968,16 +988,18 @@ int OSSL_HPKE_CTX_set1_authpub(OSSL_HPKE_CTX *ctx,
     size_t lpublen = 0;
     const OSSL_HPKE_KEM_INFO *kem_info = NULL;
 
-    if (ctx == NULL || pub == NULL || publen == 0) {
+    if (ctx == NULL || pub == NULL || publen == 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (ctx->mode != OSSL_HPKE_MODE_AUTH
-        && ctx->mode != OSSL_HPKE_MODE_PSKAUTH) {
+    if (ctx->mode != OSSL_HPKE_MODE_AUTH && ctx->mode != OSSL_HPKE_MODE_PSKAUTH)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->role != OSSL_HPKE_ROLE_RECEIVER) {
+    if (ctx->role != OSSL_HPKE_ROLE_RECEIVER)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -985,17 +1007,16 @@ int OSSL_HPKE_CTX_set1_authpub(OSSL_HPKE_CTX *ctx,
     kem_info = ossl_HPKE_KEM_INFO_find_id(ctx->suite.kem_id);
     if (kem_info == NULL)
         return 0;
-    if (hpke_kem_id_nist_curve(ctx->suite.kem_id) == 1) {
-        pubp = evp_pkey_new_raw_nist_public_key(ctx->libctx, ctx->propq,
-                                                kem_info->groupname,
-                                                pub, publen);
-    } else {
-        pubp = EVP_PKEY_new_raw_public_key_ex(ctx->libctx,
-                                              kem_info->keytype,
-                                              ctx->propq,
-                                              pub, publen);
+    if (hpke_kem_id_nist_curve(ctx->suite.kem_id) == 1)
+    {
+        pubp = evp_pkey_new_raw_nist_public_key(ctx->libctx, ctx->propq, kem_info->groupname, pub, publen);
     }
-    if (pubp == NULL) {
+    else
+    {
+        pubp = EVP_PKEY_new_raw_public_key_ex(ctx->libctx, kem_info->keytype, ctx->propq, pub, publen);
+    }
+    if (pubp == NULL)
+    {
         /* can happen based on external input - buffer value may be garbage */
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         goto err;
@@ -1007,10 +1028,9 @@ int OSSL_HPKE_CTX_set1_authpub(OSSL_HPKE_CTX *ctx,
     lpub = OPENSSL_malloc(OSSL_HPKE_MAXSIZE);
     if (lpub == NULL)
         goto err;
-    if (EVP_PKEY_get_octet_string_param(pubp,
-                                        OSSL_PKEY_PARAM_ENCODED_PUBLIC_KEY,
-                                        lpub, OSSL_HPKE_MAXSIZE, &lpublen)
-        != 1) {
+    if (EVP_PKEY_get_octet_string_param(pubp, OSSL_PKEY_PARAM_ENCODED_PUBLIC_KEY, lpub, OSSL_HPKE_MAXSIZE, &lpublen) !=
+        1)
+    {
         OPENSSL_free(lpub);
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
@@ -1028,7 +1048,8 @@ err:
 
 int OSSL_HPKE_CTX_get_seq(OSSL_HPKE_CTX *ctx, uint64_t *seq)
 {
-    if (ctx == NULL || seq == NULL) {
+    if (ctx == NULL || seq == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
@@ -1038,7 +1059,8 @@ int OSSL_HPKE_CTX_get_seq(OSSL_HPKE_CTX *ctx, uint64_t *seq)
 
 int OSSL_HPKE_CTX_set_seq(OSSL_HPKE_CTX *ctx, uint64_t seq)
 {
-    if (ctx == NULL) {
+    if (ctx == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
@@ -1047,7 +1069,8 @@ int OSSL_HPKE_CTX_set_seq(OSSL_HPKE_CTX *ctx, uint64_t seq)
      * Receivers are ok to use this, as no harm should ensue
      * if they go wrong.
      */
-    if (ctx->role == OSSL_HPKE_ROLE_SENDER) {
+    if (ctx->role == OSSL_HPKE_ROLE_SENDER)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
@@ -1055,42 +1078,46 @@ int OSSL_HPKE_CTX_set_seq(OSSL_HPKE_CTX *ctx, uint64_t seq)
     return 1;
 }
 
-int OSSL_HPKE_encap(OSSL_HPKE_CTX *ctx,
-                    unsigned char *enc, size_t *enclen,
-                    const unsigned char *pub, size_t publen,
+int OSSL_HPKE_encap(OSSL_HPKE_CTX *ctx, unsigned char *enc, size_t *enclen, const unsigned char *pub, size_t publen,
                     const unsigned char *info, size_t infolen)
 {
     int erv = 1;
     size_t minenc = 0;
 
-    if (ctx == NULL || enc == NULL || enclen == NULL || *enclen == 0
-        || pub == NULL || publen == 0) {
+    if (ctx == NULL || enc == NULL || enclen == NULL || *enclen == 0 || pub == NULL || publen == 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->role != OSSL_HPKE_ROLE_SENDER) {
+    if (ctx->role != OSSL_HPKE_ROLE_SENDER)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (infolen > OSSL_HPKE_MAX_INFOLEN) {
+    if (infolen > OSSL_HPKE_MAX_INFOLEN)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (infolen > 0 && info == NULL) {
+    if (infolen > 0 && info == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
     minenc = OSSL_HPKE_get_public_encap_size(ctx->suite);
-    if (minenc == 0 || minenc > *enclen) {
+    if (minenc == 0 || minenc > *enclen)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->shared_secret != NULL) {
+    if (ctx->shared_secret != NULL)
+    {
         /* only allow one encap per OSSL_HPKE_CTX */
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
         return 0;
     }
-    if (hpke_encap(ctx, enc, enclen, pub, publen) != 1) {
+    if (hpke_encap(ctx, enc, enclen, pub, publen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
@@ -1103,42 +1130,47 @@ int OSSL_HPKE_encap(OSSL_HPKE_CTX *ctx,
     return erv;
 }
 
-int OSSL_HPKE_decap(OSSL_HPKE_CTX *ctx,
-                    const unsigned char *enc, size_t enclen,
-                    EVP_PKEY *recippriv,
+int OSSL_HPKE_decap(OSSL_HPKE_CTX *ctx, const unsigned char *enc, size_t enclen, EVP_PKEY *recippriv,
                     const unsigned char *info, size_t infolen)
 {
     int erv = 1;
     size_t minenc = 0;
 
-    if (ctx == NULL || enc == NULL || enclen == 0 || recippriv == NULL) {
+    if (ctx == NULL || enc == NULL || enclen == 0 || recippriv == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->role != OSSL_HPKE_ROLE_RECEIVER) {
+    if (ctx->role != OSSL_HPKE_ROLE_RECEIVER)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (infolen > OSSL_HPKE_MAX_INFOLEN) {
+    if (infolen > OSSL_HPKE_MAX_INFOLEN)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (infolen > 0 && info == NULL) {
+    if (infolen > 0 && info == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
     minenc = OSSL_HPKE_get_public_encap_size(ctx->suite);
-    if (minenc == 0 || minenc > enclen) {
+    if (minenc == 0 || minenc > enclen)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->shared_secret != NULL) {
+    if (ctx->shared_secret != NULL)
+    {
         /* only allow one encap per OSSL_HPKE_CTX */
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
         return 0;
     }
     erv = hpke_decap(ctx, enc, enclen, recippriv);
-    if (erv != 1) {
+    if (erv != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
@@ -1151,80 +1183,88 @@ int OSSL_HPKE_decap(OSSL_HPKE_CTX *ctx,
     return erv;
 }
 
-int OSSL_HPKE_seal(OSSL_HPKE_CTX *ctx,
-                   unsigned char *ct, size_t *ctlen,
-                   const unsigned char *aad, size_t aadlen,
+int OSSL_HPKE_seal(OSSL_HPKE_CTX *ctx, unsigned char *ct, size_t *ctlen, const unsigned char *aad, size_t aadlen,
                    const unsigned char *pt, size_t ptlen)
 {
     unsigned char seqbuf[OSSL_HPKE_MAX_NONCELEN];
     size_t seqlen = 0;
 
-    if (ctx == NULL || ct == NULL || ctlen == NULL || *ctlen == 0
-        || pt == NULL || ptlen == 0) {
+    if (ctx == NULL || ct == NULL || ctlen == NULL || *ctlen == 0 || pt == NULL || ptlen == 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->role != OSSL_HPKE_ROLE_SENDER) {
+    if (ctx->role != OSSL_HPKE_ROLE_SENDER)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if ((ctx->seq + 1) == 0) { /* wrap around imminent !!! */
+    if ((ctx->seq + 1) == 0)
+    { /* wrap around imminent !!! */
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
         return 0;
     }
-    if (ctx->key == NULL || ctx->nonce == NULL) {
+    if (ctx->key == NULL || ctx->nonce == NULL)
+    {
         /* need to have done an encap first, info can be NULL */
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
     seqlen = hpke_seqnonce2buf(ctx, seqbuf, sizeof(seqbuf));
-    if (seqlen == 0) {
+    if (seqlen == 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
-    if (hpke_aead_enc(ctx, seqbuf, aad, aadlen, pt, ptlen, ct, ctlen) != 1) {
+    if (hpke_aead_enc(ctx, seqbuf, aad, aadlen, pt, ptlen, ct, ctlen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         OPENSSL_cleanse(seqbuf, sizeof(seqbuf));
         return 0;
-    } else {
+    }
+    else
+    {
         ctx->seq++;
     }
     OPENSSL_cleanse(seqbuf, sizeof(seqbuf));
     return 1;
 }
 
-int OSSL_HPKE_open(OSSL_HPKE_CTX *ctx,
-                   unsigned char *pt, size_t *ptlen,
-                   const unsigned char *aad, size_t aadlen,
+int OSSL_HPKE_open(OSSL_HPKE_CTX *ctx, unsigned char *pt, size_t *ptlen, const unsigned char *aad, size_t aadlen,
                    const unsigned char *ct, size_t ctlen)
 {
     unsigned char seqbuf[OSSL_HPKE_MAX_NONCELEN];
     size_t seqlen = 0;
 
-    if (ctx == NULL || pt == NULL || ptlen == NULL || *ptlen == 0
-        || ct == NULL || ctlen == 0) {
+    if (ctx == NULL || pt == NULL || ptlen == NULL || *ptlen == 0 || ct == NULL || ctlen == 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->role != OSSL_HPKE_ROLE_RECEIVER) {
+    if (ctx->role != OSSL_HPKE_ROLE_RECEIVER)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if ((ctx->seq + 1) == 0) { /* wrap around imminent !!! */
+    if ((ctx->seq + 1) == 0)
+    { /* wrap around imminent !!! */
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
         return 0;
     }
-    if (ctx->key == NULL || ctx->nonce == NULL) {
+    if (ctx->key == NULL || ctx->nonce == NULL)
+    {
         /* need to have done an encap first, info can be NULL */
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
     seqlen = hpke_seqnonce2buf(ctx, seqbuf, sizeof(seqbuf));
-    if (seqlen == 0) {
+    if (seqlen == 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
-    if (hpke_aead_dec(ctx, seqbuf, aad, aadlen, ct, ctlen, pt, ptlen) != 1) {
+    if (hpke_aead_dec(ctx, seqbuf, aad, aadlen, ct, ctlen, pt, ptlen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         OPENSSL_cleanse(seqbuf, sizeof(seqbuf));
         return 0;
@@ -1234,9 +1274,8 @@ int OSSL_HPKE_open(OSSL_HPKE_CTX *ctx,
     return 1;
 }
 
-int OSSL_HPKE_export(OSSL_HPKE_CTX *ctx,
-                     unsigned char *secret, size_t secretlen,
-                     const unsigned char *label, size_t labellen)
+int OSSL_HPKE_export(OSSL_HPKE_CTX *ctx, unsigned char *secret, size_t secretlen, const unsigned char *label,
+                     size_t labellen)
 {
     int erv = 0;
     EVP_KDF_CTX *kctx = NULL;
@@ -1244,30 +1283,36 @@ int OSSL_HPKE_export(OSSL_HPKE_CTX *ctx,
     const char *mdname = NULL;
     const OSSL_HPKE_KDF_INFO *kdf_info = NULL;
 
-    if (ctx == NULL || secret == NULL || secretlen == 0) {
+    if (ctx == NULL || secret == NULL || secretlen == 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (labellen > OSSL_HPKE_MAX_PARMLEN) {
+    if (labellen > OSSL_HPKE_MAX_PARMLEN)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (labellen > 0 && label == NULL) {
+    if (labellen > 0 && label == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ctx->exportersec == NULL) {
+    if (ctx->exportersec == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
         return 0;
     }
     kdf_info = ossl_HPKE_KDF_INFO_find_id(ctx->suite.kdf_id);
-    if (kdf_info == NULL) {
+    if (kdf_info == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
     mdname = kdf_info->mdname;
     kctx = ossl_kdf_ctx_create("HKDF", mdname, ctx->libctx, ctx->propq);
-    if (kctx == NULL) {
+    if (kctx == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         return 0;
     }
@@ -1278,22 +1323,16 @@ int OSSL_HPKE_export(OSSL_HPKE_CTX *ctx,
     suitebuf[3] = ctx->suite.kdf_id % 256;
     suitebuf[4] = ctx->suite.aead_id / 256;
     suitebuf[5] = ctx->suite.aead_id % 256;
-    erv = ossl_hpke_labeled_expand(kctx, secret, secretlen,
-                                   ctx->exportersec, ctx->exporterseclen,
-                                   OSSL_HPKE_SEC51LABEL,
-                                   suitebuf, sizeof(suitebuf),
-                                   OSSL_HPKE_EXP_SEC_LABEL,
-                                   label, labellen);
+    erv = ossl_hpke_labeled_expand(kctx, secret, secretlen, ctx->exportersec, ctx->exporterseclen, OSSL_HPKE_SEC51LABEL,
+                                   suitebuf, sizeof(suitebuf), OSSL_HPKE_EXP_SEC_LABEL, label, labellen);
     EVP_KDF_CTX_free(kctx);
     if (erv != 1)
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
     return erv;
 }
 
-int OSSL_HPKE_keygen(OSSL_HPKE_SUITE suite,
-                     unsigned char *pub, size_t *publen, EVP_PKEY **priv,
-                     const unsigned char *ikm, size_t ikmlen,
-                     OSSL_LIB_CTX *libctx, const char *propq)
+int OSSL_HPKE_keygen(OSSL_HPKE_SUITE suite, unsigned char *pub, size_t *publen, EVP_PKEY **priv,
+                     const unsigned char *ikm, size_t ikmlen, OSSL_LIB_CTX *libctx, const char *propq)
 {
     int erv = 0; /* Our error return value - 1 is success */
     EVP_PKEY_CTX *pctx = NULL;
@@ -1301,49 +1340,53 @@ int OSSL_HPKE_keygen(OSSL_HPKE_SUITE suite,
     const OSSL_HPKE_KEM_INFO *kem_info = NULL;
     OSSL_PARAM params[3], *p = params;
 
-    if (pub == NULL || publen == NULL || *publen == 0 || priv == NULL) {
+    if (pub == NULL || publen == NULL || *publen == 0 || priv == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (hpke_suite_check(suite, &kem_info, NULL, NULL) != 1) {
+    if (hpke_suite_check(suite, &kem_info, NULL, NULL) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if ((ikmlen > 0 && ikm == NULL)
-        || (ikmlen == 0 && ikm != NULL)
-        || ikmlen > OSSL_HPKE_MAX_PARMLEN) {
+    if ((ikmlen > 0 && ikm == NULL) || (ikmlen == 0 && ikm != NULL) || ikmlen > OSSL_HPKE_MAX_PARMLEN)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
 
-    if (hpke_kem_id_nist_curve(suite.kem_id) == 1) {
-        *p++ = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME,
-                                                (char *)kem_info->groupname, 0);
+    if (hpke_kem_id_nist_curve(suite.kem_id) == 1)
+    {
+        *p++ = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME, (char *)kem_info->groupname, 0);
         pctx = EVP_PKEY_CTX_new_from_name(libctx, "EC", propq);
-    } else {
+    }
+    else
+    {
         pctx = EVP_PKEY_CTX_new_from_name(libctx, kem_info->keytype, propq);
     }
-    if (pctx == NULL
-        || EVP_PKEY_keygen_init(pctx) <= 0) {
+    if (pctx == NULL || EVP_PKEY_keygen_init(pctx) <= 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     if (ikm != NULL)
-        *p++ = OSSL_PARAM_construct_octet_string(OSSL_PKEY_PARAM_DHKEM_IKM,
-                                                 (char *)ikm, ikmlen);
+        *p++ = OSSL_PARAM_construct_octet_string(OSSL_PKEY_PARAM_DHKEM_IKM, (char *)ikm, ikmlen);
     *p = OSSL_PARAM_construct_end();
-    if (EVP_PKEY_CTX_set_params(pctx, params) <= 0) {
+    if (EVP_PKEY_CTX_set_params(pctx, params) <= 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    if (EVP_PKEY_generate(pctx, &skR) <= 0) {
+    if (EVP_PKEY_generate(pctx, &skR) <= 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     EVP_PKEY_CTX_free(pctx);
     pctx = NULL;
-    if (EVP_PKEY_get_octet_string_param(skR, OSSL_PKEY_PARAM_ENCODED_PUBLIC_KEY,
-                                        pub, *publen, publen) != 1) {
+    if (EVP_PKEY_get_octet_string_param(skR, OSSL_PKEY_PARAM_ENCODED_PUBLIC_KEY, pub, *publen, publen) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
@@ -1362,11 +1405,8 @@ int OSSL_HPKE_suite_check(OSSL_HPKE_SUITE suite)
     return hpke_suite_check(suite, NULL, NULL, NULL);
 }
 
-int OSSL_HPKE_get_grease_value(const OSSL_HPKE_SUITE *suite_in,
-                               OSSL_HPKE_SUITE *suite,
-                               unsigned char *enc, size_t *enclen,
-                               unsigned char *ct, size_t ctlen,
-                               OSSL_LIB_CTX *libctx, const char *propq)
+int OSSL_HPKE_get_grease_value(const OSSL_HPKE_SUITE *suite_in, OSSL_HPKE_SUITE *suite, unsigned char *enc,
+                               size_t *enclen, unsigned char *ct, size_t ctlen, OSSL_LIB_CTX *libctx, const char *propq)
 {
     OSSL_HPKE_SUITE chosen;
     size_t plen = 0;
@@ -1374,33 +1414,40 @@ int OSSL_HPKE_get_grease_value(const OSSL_HPKE_SUITE *suite_in,
     const OSSL_HPKE_AEAD_INFO *aead_info = NULL;
     EVP_PKEY *fakepriv = NULL;
 
-    if (enc == NULL || enclen == 0
-        || ct == NULL || ctlen == 0 || suite == NULL) {
+    if (enc == NULL || enclen == 0 || ct == NULL || ctlen == 0 || suite == NULL)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (suite_in == NULL) {
+    if (suite_in == NULL)
+    {
         /* choose a random suite */
-        if (hpke_random_suite(libctx, propq, &chosen) != 1) {
+        if (hpke_random_suite(libctx, propq, &chosen) != 1)
+        {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
             goto err;
         }
-    } else {
+    }
+    else
+    {
         chosen = *suite_in;
     }
-    if (hpke_suite_check(chosen, &kem_info, NULL, &aead_info) != 1) {
+    if (hpke_suite_check(chosen, &kem_info, NULL, &aead_info) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     *suite = chosen;
     /* make sure room for tag and one plaintext octet */
-    if (aead_info->taglen >= ctlen) {
+    if (aead_info->taglen >= ctlen)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     /* publen */
     plen = kem_info->Npk;
-    if (plen > *enclen) {
+    if (plen > *enclen)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
@@ -1411,13 +1458,14 @@ int OSSL_HPKE_get_grease_value(const OSSL_HPKE_SUITE *suite_in,
      * uncompressed form) and that the value really does map to a point on
      * the relevant curve.
      */
-    if (OSSL_HPKE_keygen(chosen, enc, enclen, &fakepriv, NULL, 0,
-                         libctx, propq) != 1) {
+    if (OSSL_HPKE_keygen(chosen, enc, enclen, &fakepriv, NULL, 0, libctx, propq) != 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }
     EVP_PKEY_free(fakepriv);
-    if (RAND_bytes_ex(libctx, ct, ctlen, 0) <= 0) {
+    if (RAND_bytes_ex(libctx, ct, ctlen, 0) <= 0)
+    {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
         goto err;
     }

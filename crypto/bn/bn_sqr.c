@@ -33,7 +33,8 @@ int bn_sqr_fixed_top(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx)
     bn_check_top(a);
 
     al = a->top;
-    if (al <= 0) {
+    if (al <= 0)
+    {
         r->top = 0;
         r->neg = 0;
         return 1;
@@ -45,40 +46,51 @@ int bn_sqr_fixed_top(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx)
     if (rr == NULL || tmp == NULL)
         goto err;
 
-    max = 2 * al;               /* Non-zero (from above) */
+    max = 2 * al; /* Non-zero (from above) */
     if (bn_wexpand(rr, max) == NULL)
         goto err;
 
-    if (al == 4) {
+    if (al == 4)
+    {
 #ifndef BN_SQR_COMBA
         BN_ULONG t[8];
         bn_sqr_normal(rr->d, a->d, 4, t);
 #else
         bn_sqr_comba4(rr->d, a->d);
 #endif
-    } else if (al == 8) {
+    }
+    else if (al == 8)
+    {
 #ifndef BN_SQR_COMBA
         BN_ULONG t[16];
         bn_sqr_normal(rr->d, a->d, 8, t);
 #else
         bn_sqr_comba8(rr->d, a->d);
 #endif
-    } else {
+    }
+    else
+    {
 #if defined(BN_RECURSION)
-        if (al < BN_SQR_RECURSIVE_SIZE_NORMAL) {
+        if (al < BN_SQR_RECURSIVE_SIZE_NORMAL)
+        {
             BN_ULONG t[BN_SQR_RECURSIVE_SIZE_NORMAL * 2];
             bn_sqr_normal(rr->d, a->d, al, t);
-        } else {
+        }
+        else
+        {
             int j, k;
 
             j = BN_num_bits_word((BN_ULONG)al);
             j = 1 << (j - 1);
             k = j + j;
-            if (al == j) {
+            if (al == j)
+            {
                 if (bn_wexpand(tmp, k * 2) == NULL)
                     goto err;
                 bn_sqr_recursive(rr->d, a->d, al, tmp->d);
-            } else {
+            }
+            else
+            {
                 if (bn_wexpand(tmp, max) == NULL)
                     goto err;
                 bn_sqr_normal(rr->d, a->d, al, tmp->d);
@@ -98,7 +110,7 @@ int bn_sqr_fixed_top(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx)
         goto err;
 
     ret = 1;
- err:
+err:
     bn_check_top(rr);
     bn_check_top(tmp);
     BN_CTX_end(ctx);
@@ -119,13 +131,15 @@ void bn_sqr_normal(BN_ULONG *r, const BN_ULONG *a, int n, BN_ULONG *tmp)
     rp++;
     j = n;
 
-    if (--j > 0) {
+    if (--j > 0)
+    {
         ap++;
         rp[j] = bn_mul_words(rp, ap, j, ap[-1]);
         rp += 2;
     }
 
-    for (i = n - 2; i > 0; i--) {
+    for (i = n - 2; i > 0; i--)
+    {
         j--;
         ap++;
         rp[j] = bn_mul_add_words(rp, ap, j, ap[-1]);
@@ -159,22 +173,26 @@ void bn_sqr_recursive(BN_ULONG *r, const BN_ULONG *a, int n2, BN_ULONG *t)
     int zero, c1;
     BN_ULONG ln, lo, *p;
 
-    if (n2 == 4) {
-# ifndef BN_SQR_COMBA
+    if (n2 == 4)
+    {
+#ifndef BN_SQR_COMBA
         bn_sqr_normal(r, a, 4, t);
-# else
+#else
         bn_sqr_comba4(r, a);
-# endif
-        return;
-    } else if (n2 == 8) {
-# ifndef BN_SQR_COMBA
-        bn_sqr_normal(r, a, 8, t);
-# else
-        bn_sqr_comba8(r, a);
-# endif
+#endif
         return;
     }
-    if (n2 < BN_SQR_RECURSIVE_SIZE_NORMAL) {
+    else if (n2 == 8)
+    {
+#ifndef BN_SQR_COMBA
+        bn_sqr_normal(r, a, 8, t);
+#else
+        bn_sqr_comba8(r, a);
+#endif
+        return;
+    }
+    if (n2 < BN_SQR_RECURSIVE_SIZE_NORMAL)
+    {
         bn_sqr_normal(r, a, n2, t);
         return;
     }
@@ -216,7 +234,8 @@ void bn_sqr_recursive(BN_ULONG *r, const BN_ULONG *a, int n2, BN_ULONG *t)
      * c1 holds the carry bits
      */
     c1 += (int)(bn_add_words(&(r[n]), &(r[n]), &(t[n2]), n2));
-    if (c1) {
+    if (c1)
+    {
         p = &(r[n + n2]);
         lo = *p;
         ln = (lo + c1) & BN_MASK2;
@@ -226,8 +245,10 @@ void bn_sqr_recursive(BN_ULONG *r, const BN_ULONG *a, int n2, BN_ULONG *t)
          * The overflow will stop before we over write words we should not
          * overwrite
          */
-        if (ln < (BN_ULONG)c1) {
-            do {
+        if (ln < (BN_ULONG)c1)
+        {
+            do
+            {
                 p++;
                 lo = *p;
                 ln = (lo + 1) & BN_MASK2;

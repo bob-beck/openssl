@@ -21,8 +21,10 @@ static void print_escaped_value(BIO *out, const char *value)
 {
     const char *p;
 
-    for (p = value; *p != '\0'; p++) {
-        switch (*p) {
+    for (p = value; *p != '\0'; p++)
+    {
+        switch (*p)
+        {
         case '"':
         case '\'':
         case '#':
@@ -44,7 +46,8 @@ static void print_escaped_value(BIO *out, const char *value)
             BIO_printf(out, "%s", "\\t");
             break;
         case ' ':
-            if (p == value || p[1] == '\0') {
+            if (p == value || p[1] == '\0')
+            {
                 /*
                  * Quote spaces if they are the first or last char of the
                  * value. We could quote the entire string (and it would
@@ -75,7 +78,8 @@ static void print_section(BIO *out, const CONF *cnf, OPENSSL_CSTRING section_nam
     STACK_OF(CONF_VALUE) *values = NCONF_get_section(cnf, section_name);
     int idx;
 
-    for (idx = 0; idx < sk_CONF_VALUE_num(values); idx++) {
+    for (idx = 0; idx < sk_CONF_VALUE_num(values); idx++)
+    {
         CONF_VALUE *value = sk_CONF_VALUE_value(values, idx);
 
         BIO_printf(out, "%s = ", value->name);
@@ -84,7 +88,8 @@ static void print_section(BIO *out, const CONF *cnf, OPENSSL_CSTRING section_nam
     }
 }
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
     OPT_OUT,
     OPT_NOHEADER,
@@ -98,8 +103,7 @@ const OPTIONS configutl_options[] = {
     OPT_SECTION("Output"),
     {"out", OPT_OUT, '>', "Output to filename rather than stdout"},
     {"noheader", OPT_NOHEADER, '-', "Don't print the information about original config"},
-    {NULL}
-};
+    {NULL}};
 
 /**
  * Parse the passed OpenSSL configuration file (or the default one/specified in the
@@ -120,8 +124,10 @@ int configutl_main(int argc, char *argv[])
     const char *outfile = NULL;
 
     prog = opt_init(argc, argv, configutl_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_HELP:
             opt_help(configutl_options);
             ret = 0;
@@ -164,7 +170,8 @@ int configutl_main(int argc, char *argv[])
     if ((cnf = NCONF_new(NULL)) == NULL)
         goto end;
 
-    if (NCONF_load(cnf, configfile, &eline) == 0) {
+    if (NCONF_load(cnf, configfile, &eline) == 0)
+    {
         BIO_printf(bio_err, "Error on line %ld of configuration file\n", eline + 1);
         goto end;
     }
@@ -173,14 +180,14 @@ int configutl_main(int argc, char *argv[])
         goto end;
 
     if (no_header == 0)
-        BIO_printf(out, "# This configuration file was linearized and expanded from %s\n",
-                   configfile);
+        BIO_printf(out, "# This configuration file was linearized and expanded from %s\n", configfile);
 
     default_section_idx = sk_OPENSSL_CSTRING_find(sections, "default");
     if (default_section_idx != -1)
         print_section(out, cnf, "default");
 
-    for (idx = 0; idx < sk_OPENSSL_CSTRING_num(sections); idx++) {
+    for (idx = 0; idx < sk_OPENSSL_CSTRING_num(sections); idx++)
+    {
         OPENSSL_CSTRING section_name = sk_OPENSSL_CSTRING_value(sections, idx);
 
         if (idx == default_section_idx)

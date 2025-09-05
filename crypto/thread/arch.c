@@ -10,8 +10,7 @@
 #include <openssl/configuration.h>
 #include <internal/thread_arch.h>
 
-CRYPTO_THREAD *ossl_crypto_thread_native_start(CRYPTO_THREAD_ROUTINE routine,
-                                               void *data, int joinable)
+CRYPTO_THREAD *ossl_crypto_thread_native_start(CRYPTO_THREAD_ROUTINE routine, void *data, int joinable)
 {
     CRYPTO_THREAD *handle;
 
@@ -60,7 +59,8 @@ int ossl_crypto_thread_native_join(CRYPTO_THREAD *thread, CRYPTO_THREAD_RETVAL *
         goto pass;
 
     /* Await concurrent join completion, if any. */
-    while (CRYPTO_THREAD_GET_STATE(thread, CRYPTO_THREAD_JOIN_AWAIT)) {
+    while (CRYPTO_THREAD_GET_STATE(thread, CRYPTO_THREAD_JOIN_AWAIT))
+    {
         if (!CRYPTO_THREAD_GET_STATE(thread, CRYPTO_THREAD_JOINED))
             ossl_crypto_condvar_wait(thread->condvar, thread->statelock);
         if (CRYPTO_THREAD_GET_STATE(thread, CRYPTO_THREAD_JOINED))
@@ -115,7 +115,8 @@ int ossl_crypto_thread_native_clean(CRYPTO_THREAD *handle)
     req_state_mask |= CRYPTO_THREAD_JOINED;
 
     ossl_crypto_mutex_lock(handle->statelock);
-    if (CRYPTO_THREAD_GET_STATE(handle, req_state_mask) == 0) {
+    if (CRYPTO_THREAD_GET_STATE(handle, req_state_mask) == 0)
+    {
         ossl_crypto_mutex_unlock(handle->statelock);
         return 0;
     }

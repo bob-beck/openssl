@@ -21,19 +21,25 @@ int i2a_ASN1_INTEGER(BIO *bp, const ASN1_INTEGER *a)
     if (a == NULL)
         return 0;
 
-    if (a->type & V_ASN1_NEG) {
+    if (a->type & V_ASN1_NEG)
+    {
         if (BIO_write(bp, "-", 1) != 1)
             goto err;
         n = 1;
     }
 
-    if (a->length == 0) {
+    if (a->length == 0)
+    {
         if (BIO_write(bp, "00", 2) != 2)
             goto err;
         n += 2;
-    } else {
-        for (i = 0; i < a->length; i++) {
-            if ((i != 0) && (i % 35 == 0)) {
+    }
+    else
+    {
+        for (i = 0; i < a->length; i++)
+        {
+            if ((i != 0) && (i % 35 == 0))
+            {
                 if (BIO_write(bp, "\\\n", 2) != 2)
                     goto err;
                 n += 2;
@@ -45,7 +51,7 @@ int i2a_ASN1_INTEGER(BIO *bp, const ASN1_INTEGER *a)
         }
     }
     return n;
- err:
+err:
     return -1;
 }
 
@@ -59,7 +65,8 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
     bs->type = V_ASN1_INTEGER;
 
     bufsize = BIO_gets(bp, buf, size);
-    for (;;) {
+    for (;;)
+    {
         if (bufsize < 1)
             goto err;
         i = bufsize;
@@ -73,8 +80,10 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
             goto err;
         again = (buf[i - 1] == '\\');
 
-        for (j = 0; j < i; j++) {
-            if (!ossl_isxdigit(buf[j])) {
+        for (j = 0; j < i; j++)
+        {
+            if (!ossl_isxdigit(buf[j]))
+            {
                 i = j;
                 break;
             }
@@ -87,34 +96,42 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
             goto err;
 
         bufp = (unsigned char *)buf;
-        if (first) {
+        if (first)
+        {
             first = 0;
-            if ((bufp[0] == '0') && (bufp[1] == '0')) {
+            if ((bufp[0] == '0') && (bufp[1] == '0'))
+            {
                 bufp += 2;
                 i -= 2;
             }
         }
         k = 0;
         i -= again;
-        if (i % 2 != 0) {
+        if (i % 2 != 0)
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ODD_NUMBER_OF_CHARS);
             OPENSSL_free(s);
             return 0;
         }
         i /= 2;
-        if (num + i > slen) {
+        if (num + i > slen)
+        {
             sp = OPENSSL_clear_realloc(s, slen, num + i * 2);
-            if (sp == NULL) {
+            if (sp == NULL)
+            {
                 OPENSSL_free(s);
                 return 0;
             }
             s = sp;
             slen = num + i * 2;
         }
-        for (j = 0; j < i; j++, k += 2) {
-            for (n = 0; n < 2; n++) {
+        for (j = 0; j < i; j++, k += 2)
+        {
+            for (n = 0; n < 2; n++)
+            {
                 m = OPENSSL_hexchar2int(bufp[k + n]);
-                if (m < 0) {
+                if (m < 0)
+                {
                     ERR_raise(ERR_LIB_ASN1, ASN1_R_NON_HEX_CHARACTERS);
                     goto err;
                 }
@@ -131,7 +148,7 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
     bs->length = num;
     bs->data = s;
     return 1;
- err:
+err:
     ERR_raise(ERR_LIB_ASN1, ASN1_R_SHORT_LINE);
     OPENSSL_free(s);
     return 0;

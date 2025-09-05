@@ -19,11 +19,10 @@
 
 /* Key Agreement Recipient Info (KARI) routines */
 
-int CMS_RecipientInfo_kari_get0_alg(CMS_RecipientInfo *ri,
-                                    X509_ALGOR **palg,
-                                    ASN1_OCTET_STRING **pukm)
+int CMS_RecipientInfo_kari_get0_alg(CMS_RecipientInfo *ri, X509_ALGOR **palg, ASN1_OCTET_STRING **pukm)
 {
-    if (ri->type != CMS_RECIPINFO_AGREE) {
+    if (ri->type != CMS_RECIPINFO_AGREE)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEY_AGREEMENT);
         return 0;
     }
@@ -39,23 +38,21 @@ int CMS_RecipientInfo_kari_get0_alg(CMS_RecipientInfo *ri,
 STACK_OF(CMS_RecipientEncryptedKey)
 *CMS_RecipientInfo_kari_get0_reks(CMS_RecipientInfo *ri)
 {
-    if (ri->type != CMS_RECIPINFO_AGREE) {
+    if (ri->type != CMS_RECIPINFO_AGREE)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEY_AGREEMENT);
         return NULL;
     }
     return ri->d.kari->recipientEncryptedKeys;
 }
 
-int CMS_RecipientInfo_kari_get0_orig_id(CMS_RecipientInfo *ri,
-                                        X509_ALGOR **pubalg,
-                                        ASN1_BIT_STRING **pubkey,
-                                        ASN1_OCTET_STRING **keyid,
-                                        X509_NAME **issuer,
-                                        ASN1_INTEGER **sno)
+int CMS_RecipientInfo_kari_get0_orig_id(CMS_RecipientInfo *ri, X509_ALGOR **pubalg, ASN1_BIT_STRING **pubkey,
+                                        ASN1_OCTET_STRING **keyid, X509_NAME **issuer, ASN1_INTEGER **sno)
 {
     CMS_OriginatorIdentifierOrKey *oik;
 
-    if (ri->type != CMS_RECIPINFO_AGREE) {
+    if (ri->type != CMS_RECIPINFO_AGREE)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEY_AGREEMENT);
         return 0;
     }
@@ -70,20 +67,26 @@ int CMS_RecipientInfo_kari_get0_orig_id(CMS_RecipientInfo *ri,
         *pubalg = NULL;
     if (pubkey)
         *pubkey = NULL;
-    if (oik->type == CMS_OIK_ISSUER_SERIAL) {
+    if (oik->type == CMS_OIK_ISSUER_SERIAL)
+    {
         if (issuer)
             *issuer = oik->d.issuerAndSerialNumber->issuer;
         if (sno)
             *sno = oik->d.issuerAndSerialNumber->serialNumber;
-    } else if (oik->type == CMS_OIK_KEYIDENTIFIER) {
+    }
+    else if (oik->type == CMS_OIK_KEYIDENTIFIER)
+    {
         if (keyid)
             *keyid = oik->d.subjectKeyIdentifier;
-    } else if (oik->type == CMS_OIK_PUBKEY) {
+    }
+    else if (oik->type == CMS_OIK_PUBKEY)
+    {
         if (pubalg)
             *pubalg = oik->d.originatorKey->algorithm;
         if (pubkey)
             *pubkey = oik->d.originatorKey->publicKey;
-    } else
+    }
+    else
         return 0;
     return 1;
 }
@@ -92,7 +95,8 @@ int CMS_RecipientInfo_kari_orig_id_cmp(CMS_RecipientInfo *ri, X509 *cert)
 {
     CMS_OriginatorIdentifierOrKey *oik;
 
-    if (ri->type != CMS_RECIPINFO_AGREE) {
+    if (ri->type != CMS_RECIPINFO_AGREE)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEY_AGREEMENT);
         return -2;
     }
@@ -104,15 +108,14 @@ int CMS_RecipientInfo_kari_orig_id_cmp(CMS_RecipientInfo *ri, X509 *cert)
     return -1;
 }
 
-int CMS_RecipientEncryptedKey_get0_id(CMS_RecipientEncryptedKey *rek,
-                                      ASN1_OCTET_STRING **keyid,
-                                      ASN1_GENERALIZEDTIME **tm,
-                                      CMS_OtherKeyAttribute **other,
-                                      X509_NAME **issuer, ASN1_INTEGER **sno)
+int CMS_RecipientEncryptedKey_get0_id(CMS_RecipientEncryptedKey *rek, ASN1_OCTET_STRING **keyid,
+                                      ASN1_GENERALIZEDTIME **tm, CMS_OtherKeyAttribute **other, X509_NAME **issuer,
+                                      ASN1_INTEGER **sno)
 {
     CMS_KeyAgreeRecipientIdentifier *rid = rek->rid;
 
-    if (rid->type == CMS_REK_ISSUER_SERIAL) {
+    if (rid->type == CMS_REK_ISSUER_SERIAL)
+    {
         if (issuer)
             *issuer = rid->d.issuerAndSerialNumber->issuer;
         if (sno)
@@ -123,7 +126,9 @@ int CMS_RecipientEncryptedKey_get0_id(CMS_RecipientEncryptedKey *rek,
             *tm = NULL;
         if (other)
             *other = NULL;
-    } else if (rid->type == CMS_REK_KEYIDENTIFIER) {
+    }
+    else if (rid->type == CMS_REK_KEYIDENTIFIER)
+    {
         if (keyid)
             *keyid = rid->d.rKeyId->subjectKeyIdentifier;
         if (tm)
@@ -134,27 +139,25 @@ int CMS_RecipientEncryptedKey_get0_id(CMS_RecipientEncryptedKey *rek,
             *issuer = NULL;
         if (sno)
             *sno = NULL;
-    } else
+    }
+    else
         return 0;
     return 1;
 }
 
-int CMS_RecipientEncryptedKey_cert_cmp(CMS_RecipientEncryptedKey *rek,
-                                       X509 *cert)
+int CMS_RecipientEncryptedKey_cert_cmp(CMS_RecipientEncryptedKey *rek, X509 *cert)
 {
     CMS_KeyAgreeRecipientIdentifier *rid = rek->rid;
 
     if (rid->type == CMS_REK_ISSUER_SERIAL)
         return ossl_cms_ias_cert_cmp(rid->d.issuerAndSerialNumber, cert);
     else if (rid->type == CMS_REK_KEYIDENTIFIER)
-        return ossl_cms_keyid_cert_cmp(rid->d.rKeyId->subjectKeyIdentifier,
-                                       cert);
+        return ossl_cms_keyid_cert_cmp(rid->d.rKeyId->subjectKeyIdentifier, cert);
     else
         return -1;
 }
 
-int CMS_RecipientInfo_kari_set0_pkey_and_peer(CMS_RecipientInfo *ri,
-                                              EVP_PKEY *pk, X509 *peer)
+int CMS_RecipientInfo_kari_set0_pkey_and_peer(CMS_RecipientInfo *ri, EVP_PKEY *pk, X509 *peer)
 {
     EVP_PKEY_CTX *pctx;
     CMS_KeyAgreeRecipientInfo *kari = ri->d.kari;
@@ -164,13 +167,13 @@ int CMS_RecipientInfo_kari_set0_pkey_and_peer(CMS_RecipientInfo *ri,
     if (pk == NULL)
         return 1;
 
-    pctx = EVP_PKEY_CTX_new_from_pkey(ossl_cms_ctx_get0_libctx(kari->cms_ctx),
-                                      pk,
-                                      ossl_cms_ctx_get0_propq(kari->cms_ctx));
+    pctx =
+        EVP_PKEY_CTX_new_from_pkey(ossl_cms_ctx_get0_libctx(kari->cms_ctx), pk, ossl_cms_ctx_get0_propq(kari->cms_ctx));
     if (pctx == NULL || EVP_PKEY_derive_init(pctx) <= 0)
         goto err;
 
-    if (peer != NULL) {
+    if (peer != NULL)
+    {
         EVP_PKEY *pub_pkey = X509_get0_pubkey(peer);
 
         if (EVP_PKEY_derive_set_peer(pctx, pub_pkey) <= 0)
@@ -179,7 +182,7 @@ int CMS_RecipientInfo_kari_set0_pkey_and_peer(CMS_RecipientInfo *ri,
 
     kari->pctx = pctx;
     return 1;
- err:
+err:
     EVP_PKEY_CTX_free(pctx);
     return 0;
 }
@@ -201,8 +204,7 @@ EVP_CIPHER_CTX *CMS_RecipientInfo_kari_get0_ctx(CMS_RecipientInfo *ri)
  * or the encrypted CEK.
  */
 
-static int cms_kek_cipher(unsigned char **pout, size_t *poutlen,
-                          const unsigned char *in, size_t inlen,
+static int cms_kek_cipher(unsigned char **pout, size_t *poutlen, const unsigned char *in, size_t inlen,
                           CMS_KeyAgreeRecipientInfo *kari, int enc)
 {
     /* Key encryption key */
@@ -233,7 +235,7 @@ static int cms_kek_cipher(unsigned char **pout, size_t *poutlen,
     *poutlen = (size_t)outlen;
     rv = 1;
 
- err:
+err:
     OPENSSL_cleanse(kek, keklen);
     if (!rv)
         OPENSSL_free(out);
@@ -244,9 +246,7 @@ static int cms_kek_cipher(unsigned char **pout, size_t *poutlen,
     return rv;
 }
 
-int CMS_RecipientInfo_kari_decrypt(CMS_ContentInfo *cms,
-                                   CMS_RecipientInfo *ri,
-                                   CMS_RecipientEncryptedKey *rek)
+int CMS_RecipientInfo_kari_decrypt(CMS_ContentInfo *cms, CMS_RecipientInfo *ri, CMS_RecipientEncryptedKey *rek)
 {
     int rv = 0;
     unsigned char *enckey = NULL, *cek = NULL;
@@ -268,14 +268,13 @@ int CMS_RecipientInfo_kari_decrypt(CMS_ContentInfo *cms,
     ec->keylen = ceklen;
     cek = NULL;
     rv = 1;
- err:
+err:
     OPENSSL_free(cek);
     return rv;
 }
 
 /* Create ephemeral key and initialise context based on it */
-static int cms_kari_create_ephemeral_key(CMS_KeyAgreeRecipientInfo *kari,
-                                         EVP_PKEY *pk)
+static int cms_kari_create_ephemeral_key(CMS_KeyAgreeRecipientInfo *kari, EVP_PKEY *pk)
 {
     EVP_PKEY_CTX *pctx = NULL;
     EVP_PKEY *ekey = NULL;
@@ -299,7 +298,7 @@ static int cms_kari_create_ephemeral_key(CMS_KeyAgreeRecipientInfo *kari,
         goto err;
     kari->pctx = pctx;
     rv = 1;
- err:
+err:
     if (!rv)
         EVP_PKEY_CTX_free(pctx);
     EVP_PKEY_free(ekey);
@@ -307,24 +306,21 @@ static int cms_kari_create_ephemeral_key(CMS_KeyAgreeRecipientInfo *kari,
 }
 
 /* Set originator private key and initialise context based on it */
-static int cms_kari_set_originator_private_key(CMS_KeyAgreeRecipientInfo *kari,
-                                               EVP_PKEY *originatorPrivKey )
+static int cms_kari_set_originator_private_key(CMS_KeyAgreeRecipientInfo *kari, EVP_PKEY *originatorPrivKey)
 {
     EVP_PKEY_CTX *pctx = NULL;
     int rv = 0;
     const CMS_CTX *ctx = kari->cms_ctx;
 
-    pctx = EVP_PKEY_CTX_new_from_pkey(ossl_cms_ctx_get0_libctx(ctx),
-                                      originatorPrivKey,
-                                      ossl_cms_ctx_get0_propq(ctx));
+    pctx = EVP_PKEY_CTX_new_from_pkey(ossl_cms_ctx_get0_libctx(ctx), originatorPrivKey, ossl_cms_ctx_get0_propq(ctx));
     if (pctx == NULL)
         goto err;
     if (EVP_PKEY_derive_init(pctx) <= 0)
-         goto err;
+        goto err;
 
     kari->pctx = pctx;
     rv = 1;
- err:
+err:
     if (rv == 0)
         EVP_PKEY_CTX_free(pctx);
     return rv;
@@ -332,10 +328,8 @@ static int cms_kari_set_originator_private_key(CMS_KeyAgreeRecipientInfo *kari,
 
 /* Initialise a kari based on passed certificate and key */
 
-int ossl_cms_RecipientInfo_kari_init(CMS_RecipientInfo *ri,  X509 *recip,
-                                     EVP_PKEY *recipPubKey, X509 *originator,
-                                     EVP_PKEY *originatorPrivKey,
-                                     unsigned int flags, const CMS_CTX *ctx)
+int ossl_cms_RecipientInfo_kari_init(CMS_RecipientInfo *ri, X509 *recip, EVP_PKEY *recipPubKey, X509 *originator,
+                                     EVP_PKEY *originatorPrivKey, unsigned int flags, const CMS_CTX *ctx)
 {
     CMS_KeyAgreeRecipientInfo *kari;
     CMS_RecipientEncryptedKey *rek = NULL;
@@ -353,46 +347,56 @@ int ossl_cms_RecipientInfo_kari_init(CMS_RecipientInfo *ri,  X509 *recip,
     if (rek == NULL)
         return 0;
 
-    if (!sk_CMS_RecipientEncryptedKey_push(kari->recipientEncryptedKeys, rek)) {
+    if (!sk_CMS_RecipientEncryptedKey_push(kari->recipientEncryptedKeys, rek))
+    {
         M_ASN1_free_of(rek, CMS_RecipientEncryptedKey);
         return 0;
     }
 
-    if (flags & CMS_USE_KEYID) {
+    if (flags & CMS_USE_KEYID)
+    {
         rek->rid->type = CMS_REK_KEYIDENTIFIER;
         rek->rid->d.rKeyId = M_ASN1_new_of(CMS_RecipientKeyIdentifier);
         if (rek->rid->d.rKeyId == NULL)
             return 0;
         if (!ossl_cms_set1_keyid(&rek->rid->d.rKeyId->subjectKeyIdentifier, recip))
             return 0;
-    } else {
+    }
+    else
+    {
         rek->rid->type = CMS_REK_ISSUER_SERIAL;
         if (!ossl_cms_set1_ias(&rek->rid->d.issuerAndSerialNumber, recip))
             return 0;
     }
 
-    if (originatorPrivKey == NULL && originator == NULL) {
+    if (originatorPrivKey == NULL && originator == NULL)
+    {
         /* Create ephemeral key */
         if (!cms_kari_create_ephemeral_key(kari, recipPubKey))
             return 0;
-    } else {
+    }
+    else
+    {
         /* Use originator key */
         CMS_OriginatorIdentifierOrKey *oik = ri->d.kari->originator;
 
         if (originatorPrivKey == NULL || originator == NULL)
             return 0;
 
-        if (flags & CMS_USE_ORIGINATOR_KEYID) {
-             oik->type = CMS_OIK_KEYIDENTIFIER;
-             oik->d.subjectKeyIdentifier = ASN1_OCTET_STRING_new();
-             if (oik->d.subjectKeyIdentifier == NULL)
-                  return 0;
-             if (!ossl_cms_set1_keyid(&oik->d.subjectKeyIdentifier, originator))
-                  return 0;
-        } else {
-             oik->type = CMS_REK_ISSUER_SERIAL;
-             if (!ossl_cms_set1_ias(&oik->d.issuerAndSerialNumber, originator))
-                  return 0;
+        if (flags & CMS_USE_ORIGINATOR_KEYID)
+        {
+            oik->type = CMS_OIK_KEYIDENTIFIER;
+            oik->d.subjectKeyIdentifier = ASN1_OCTET_STRING_new();
+            if (oik->d.subjectKeyIdentifier == NULL)
+                return 0;
+            if (!ossl_cms_set1_keyid(&oik->d.subjectKeyIdentifier, originator))
+                return 0;
+        }
+        else
+        {
+            oik->type = CMS_REK_ISSUER_SERIAL;
+            if (!ossl_cms_set1_ias(&oik->d.issuerAndSerialNumber, originator))
+                return 0;
         }
 
         if (!cms_kari_set_originator_private_key(kari, originatorPrivKey))
@@ -408,8 +412,7 @@ int ossl_cms_RecipientInfo_kari_init(CMS_RecipientInfo *ri,  X509 *recip,
 
 /* Encrypt content key in key agreement recipient info */
 
-int ossl_cms_RecipientInfo_kari_encrypt(const CMS_ContentInfo *cms,
-                                        CMS_RecipientInfo *ri)
+int ossl_cms_RecipientInfo_kari_encrypt(const CMS_ContentInfo *cms, CMS_RecipientInfo *ri)
 {
     CMS_KeyAgreeRecipientInfo *kari;
     CMS_EncryptedContentInfo *ec;
@@ -417,7 +420,8 @@ int ossl_cms_RecipientInfo_kari_encrypt(const CMS_ContentInfo *cms,
     STACK_OF(CMS_RecipientEncryptedKey) *reks;
     int i;
 
-    if (ri->type != CMS_RECIPINFO_AGREE) {
+    if (ri->type != CMS_RECIPINFO_AGREE)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_NOT_KEY_AGREEMENT);
         return 0;
     }
@@ -431,13 +435,16 @@ int ossl_cms_RecipientInfo_kari_encrypt(const CMS_ContentInfo *cms,
      * If no originator key set up initialise for ephemeral key the public key
      * ASN1 structure will set the actual public key value.
      */
-    if (kari->originator->type == -1) {
+    if (kari->originator->type == -1)
+    {
         CMS_OriginatorIdentifierOrKey *oik = kari->originator;
         oik->type = CMS_OIK_PUBKEY;
         oik->d.originatorKey = M_ASN1_new_of(CMS_OriginatorPublicKey);
         if (!oik->d.originatorKey)
             return 0;
-    } else {
+    }
+    else
+    {
         /*
          * Currently it is not possible to get public key as it is not stored
          * during kari initialization.
@@ -449,14 +456,14 @@ int ossl_cms_RecipientInfo_kari_encrypt(const CMS_ContentInfo *cms,
     if (!ossl_cms_env_asn1_ctrl(ri, 0))
         return 0;
     /* For each rek, derive KEK, encrypt CEK */
-    for (i = 0; i < sk_CMS_RecipientEncryptedKey_num(reks); i++) {
+    for (i = 0; i < sk_CMS_RecipientEncryptedKey_num(reks); i++)
+    {
         unsigned char *enckey;
         size_t enckeylen;
         rek = sk_CMS_RecipientEncryptedKey_value(reks, i);
         if (EVP_PKEY_derive_set_peer(kari->pctx, rek->pkey) <= 0)
             return 0;
-        if (!cms_kek_cipher(&enckey, &enckeylen, ec->key, ec->keylen,
-                            kari, 1))
+        if (!cms_kek_cipher(&enckey, &enckeylen, ec->key, ec->keylen, kari, 1))
             return 0;
         ASN1_STRING_set0(rek->encryptedKey, enckey, (int)enckeylen);
     }

@@ -44,11 +44,15 @@ static int slh_dsa_key_hash_init(SLH_DSA_KEY *key)
      * SHA2 algorithm(s) require SHA256 + HMAC_SHA(X) & MGF1(SHAX)
      * SHAKE algorithm(s) use SHAKE for all functions.
      */
-    if (is_shake == 0) {
-        if (security_category == 1) {
+    if (is_shake == 0)
+    {
+        if (security_category == 1)
+        {
             /* For category 1 SHA2-256 is used for all hash operations */
             key->md_big = key->md;
-        } else {
+        }
+        else
+        {
             /* Security categories 3 & 5 also need SHA-512 */
             key->md_big = EVP_MD_fetch(key->libctx, "SHA2-512", key->propq);
             if (key->md_big == NULL)
@@ -61,7 +65,7 @@ static int slh_dsa_key_hash_init(SLH_DSA_KEY *key)
     key->adrs_func = ossl_slh_get_adrs_fn(is_shake == 0);
     key->hash_func = ossl_slh_get_hash_fn(is_shake);
     return 1;
- err:
+err:
     slh_dsa_key_hash_cleanup(key);
     return 0;
 }
@@ -84,8 +88,7 @@ static void slh_dsa_key_hash_dup(SLH_DSA_KEY *dst, const SLH_DSA_KEY *src)
  * @param alg The algorithm name associated with the key type
  * @returns The new SLH_DSA_KEY object on success, or NULL on malloc failure
  */
-SLH_DSA_KEY *ossl_slh_dsa_key_new(OSSL_LIB_CTX *libctx, const char *propq,
-                                  const char *alg)
+SLH_DSA_KEY *ossl_slh_dsa_key_new(OSSL_LIB_CTX *libctx, const char *propq, const char *alg)
 {
     SLH_DSA_KEY *ret;
     const SLH_DSA_PARAMS *params = ossl_slh_dsa_params_get(alg);
@@ -94,10 +97,12 @@ SLH_DSA_KEY *ossl_slh_dsa_key_new(OSSL_LIB_CTX *libctx, const char *propq,
         return NULL;
 
     ret = OPENSSL_zalloc(sizeof(*ret));
-    if (ret != NULL) {
+    if (ret != NULL)
+    {
         ret->libctx = libctx;
         ret->params = params;
-        if (propq != NULL) {
+        if (propq != NULL)
+        {
             ret->propq = OPENSSL_strdup(propq);
             if (ret->propq == NULL)
                 goto err;
@@ -106,7 +111,7 @@ SLH_DSA_KEY *ossl_slh_dsa_key_new(OSSL_LIB_CTX *libctx, const char *propq,
             goto err;
     }
     return ret;
- err:
+err:
     ossl_slh_dsa_key_free(ret);
     return NULL;
 }
@@ -140,18 +145,21 @@ SLH_DSA_KEY *ossl_slh_dsa_key_dup(const SLH_DSA_KEY *src, int selection)
         return NULL;
 
     ret = OPENSSL_zalloc(sizeof(*ret));
-    if (ret != NULL) {
+    if (ret != NULL)
+    {
         *ret = *src; /* this copies everything including the keydata in priv[] */
         ret->propq = NULL;
         ret->pub = NULL;
         ret->has_priv = 0;
         slh_dsa_key_hash_dup(ret, src);
-        if (src->propq != NULL) {
+        if (src->propq != NULL)
+        {
             ret->propq = OPENSSL_strdup(src->propq);
             if (ret->propq == NULL)
                 goto err;
         }
-        if ((selection & OSSL_KEYMGMT_SELECT_KEYPAIR) != 0) {
+        if ((selection & OSSL_KEYMGMT_SELECT_KEYPAIR) != 0)
+        {
             /* The public components are present if the private key is present */
             if (src->pub != NULL)
                 ret->pub = SLH_DSA_PUB(ret);
@@ -160,7 +168,7 @@ SLH_DSA_KEY *ossl_slh_dsa_key_dup(const SLH_DSA_KEY *src, int selection)
         }
     }
     return ret;
- err:
+err:
     ossl_slh_dsa_key_free(ret);
     return NULL;
 }
@@ -175,8 +183,7 @@ SLH_DSA_KEY *ossl_slh_dsa_key_dup(const SLH_DSA_KEY *src, int selection)
  * @param selection to select public and/or private component comparison.
  * @returns 1 if the keys are equal otherwise it returns 0.
  */
-int ossl_slh_dsa_key_equal(const SLH_DSA_KEY *key1, const SLH_DSA_KEY *key2,
-                           int selection)
+int ossl_slh_dsa_key_equal(const SLH_DSA_KEY *key1, const SLH_DSA_KEY *key2, int selection)
 {
     int key_checked = 0;
 
@@ -184,19 +191,22 @@ int ossl_slh_dsa_key_equal(const SLH_DSA_KEY *key1, const SLH_DSA_KEY *key2,
     if (key1->params != key2->params)
         return 0;
 
-    if ((selection & OSSL_KEYMGMT_SELECT_KEYPAIR) != 0) {
-        if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0) {
-            if (key1->pub != NULL && key2->pub != NULL) {
+    if ((selection & OSSL_KEYMGMT_SELECT_KEYPAIR) != 0)
+    {
+        if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0)
+        {
+            if (key1->pub != NULL && key2->pub != NULL)
+            {
                 if (memcmp(key1->pub, key2->pub, key1->params->pk_len) != 0)
                     return 0;
                 key_checked = 1;
             }
         }
-        if (!key_checked
-                && (selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0) {
-            if (key1->has_priv && key2->has_priv) {
-                if (memcmp(key1->priv, key2->priv,
-                           key1->params->pk_len) != 0)
+        if (!key_checked && (selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0)
+        {
+            if (key1->has_priv && key2->has_priv)
+            {
+                if (memcmp(key1->priv, key2->priv, key1->params->pk_len) != 0)
                     return 0;
                 key_checked = 1;
             }
@@ -208,11 +218,11 @@ int ossl_slh_dsa_key_equal(const SLH_DSA_KEY *key1, const SLH_DSA_KEY *key2,
 
 int ossl_slh_dsa_key_has(const SLH_DSA_KEY *key, int selection)
 {
-    if ((selection & OSSL_KEYMGMT_SELECT_KEYPAIR) != 0) {
+    if ((selection & OSSL_KEYMGMT_SELECT_KEYPAIR) != 0)
+    {
         if (key->pub == NULL)
             return 0; /* No public key */
-        if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0
-                && key->has_priv == 0)
+        if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0 && key->has_priv == 0)
             return 0; /* No private key */
         return 1;
     }
@@ -244,8 +254,7 @@ int ossl_slh_dsa_key_pairwise_check(const SLH_DSA_KEY *key)
  *                        if it exists.
  * @returns 1 on success, or 0 on failure.
  */
-int ossl_slh_dsa_key_fromdata(SLH_DSA_KEY *key, const OSSL_PARAM *param_pub,
-                              const OSSL_PARAM *param_priv,
+int ossl_slh_dsa_key_fromdata(SLH_DSA_KEY *key, const OSSL_PARAM *param_pub, const OSSL_PARAM *param_priv,
                               int include_private)
 {
     size_t priv_len, key_len, data_len = 0;
@@ -260,13 +269,16 @@ int ossl_slh_dsa_key_fromdata(SLH_DSA_KEY *key, const OSSL_PARAM *param_pub,
     key_len = priv_len >> 1;
 
     /* Private key is optional */
-    if (include_private) {
-        if (param_priv != NULL) {
+    if (include_private)
+    {
+        if (param_priv != NULL)
+        {
             p = key->priv;
             if (!OSSL_PARAM_get_octet_string(param_priv, &p, priv_len, &data_len))
                 return 0;
             /* If the data read includes all 4 elements then we are finished */
-            if (data_len == priv_len) {
+            if (data_len == priv_len)
+            {
                 key->has_priv = 1;
                 key->pub = SLH_DSA_PUB(key);
                 return 1;
@@ -284,13 +296,11 @@ int ossl_slh_dsa_key_fromdata(SLH_DSA_KEY *key, const OSSL_PARAM *param_pub,
      * the public key, (Keygen must be used for this case currently).
      */
     p = SLH_DSA_PUB(key);
-    if (param_pub == NULL
-            || !OSSL_PARAM_get_octet_string(param_pub, &p, key_len, &data_len)
-            || data_len != key_len)
+    if (param_pub == NULL || !OSSL_PARAM_get_octet_string(param_pub, &p, key_len, &data_len) || data_len != key_len)
         goto err;
     key->pub = p;
     return 1;
- err:
+err:
     key->pub = NULL;
     key->has_priv = 0;
     OPENSSL_cleanse(key->priv, priv_len);
@@ -308,8 +318,7 @@ int ossl_slh_dsa_key_fromdata(SLH_DSA_KEY *key, const OSSL_PARAM *param_pub,
  *                 but will be compared to the existing value.
  * @returns 1 if the root key is generated or compared successfully, or 0 on error.
  */
-static int slh_dsa_compute_pk_root(SLH_DSA_HASH_CTX *ctx, SLH_DSA_KEY *out,
-                                   int validate)
+static int slh_dsa_compute_pk_root(SLH_DSA_HASH_CTX *ctx, SLH_DSA_KEY *out, int validate)
 {
     const SLH_DSA_KEY *key = ctx->key;
     SLH_ADRS_FUNC_DECLARE(key, adrsf);
@@ -324,9 +333,8 @@ static int slh_dsa_compute_pk_root(SLH_DSA_HASH_CTX *ctx, SLH_DSA_KEY *out,
     dst = validate ? pk_root : SLH_DSA_PK_ROOT(out);
 
     /* Generate the ROOT public key */
-    return ossl_slh_xmss_node(ctx, SLH_DSA_SK_SEED(key), 0, params->hm,
-                              SLH_DSA_PK_SEED(key), adrs, dst, n)
-        && (validate == 0 || memcmp(dst, SLH_DSA_PK_ROOT(out), n) == 0);
+    return ossl_slh_xmss_node(ctx, SLH_DSA_SK_SEED(key), 0, params->hm, SLH_DSA_PK_SEED(key), adrs, dst, n) &&
+           (validate == 0 || memcmp(dst, SLH_DSA_PK_ROOT(out), n) == 0);
 }
 
 /**
@@ -343,9 +351,8 @@ static int slh_dsa_compute_pk_root(SLH_DSA_HASH_CTX *ctx, SLH_DSA_KEY *out,
  * @param entropy_len the size of |entropy|. If set it must be at least 3 * |n|.
  * @returns 1 if the key is generated or 0 otherwise.
  */
-int ossl_slh_dsa_generate_key(SLH_DSA_HASH_CTX *ctx, SLH_DSA_KEY *out,
-                              OSSL_LIB_CTX *lib_ctx,
-                              const uint8_t *entropy, size_t entropy_len)
+int ossl_slh_dsa_generate_key(SLH_DSA_HASH_CTX *ctx, SLH_DSA_KEY *out, OSSL_LIB_CTX *lib_ctx, const uint8_t *entropy,
+                              size_t entropy_len)
 {
     size_t n = out->params->n;
     size_t secret_key_len = 2 * n; /* The length of SK_SEED + SK_PRF */
@@ -354,13 +361,16 @@ int ossl_slh_dsa_generate_key(SLH_DSA_HASH_CTX *ctx, SLH_DSA_KEY *out,
     uint8_t *priv = SLH_DSA_PRIV(out);
     uint8_t *pub = SLH_DSA_PUB(out);
 
-    if (entropy != NULL && entropy_len != 0) {
+    if (entropy != NULL && entropy_len != 0)
+    {
         if (entropy_len != entropy_len_expected)
             goto err;
         memcpy(priv, entropy, entropy_len_expected);
-    } else {
-        if (RAND_priv_bytes_ex(lib_ctx, priv, secret_key_len, 0) <= 0
-                || RAND_bytes_ex(lib_ctx, pub, pk_seed_len, 0) <= 0)
+    }
+    else
+    {
+        if (RAND_priv_bytes_ex(lib_ctx, priv, secret_key_len, 0) <= 0 ||
+            RAND_bytes_ex(lib_ctx, pub, pk_seed_len, 0) <= 0)
             goto err;
     }
     if (!slh_dsa_compute_pk_root(ctx, out, 0))
@@ -466,22 +476,24 @@ int ossl_slh_dsa_key_to_text(BIO *out, const SLH_DSA_KEY *key, int selection)
 {
     const char *name;
 
-    if (out == NULL || key == NULL) {
+    if (out == NULL || key == NULL)
+    {
         ERR_raise(ERR_LIB_PROV, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
     name = ossl_slh_dsa_key_get_name(key);
-    if (ossl_slh_dsa_key_get_pub(key) == NULL) {
+    if (ossl_slh_dsa_key_get_pub(key) == NULL)
+    {
         /* Regardless of the |selection|, there must be a public key */
-        ERR_raise_data(ERR_LIB_PROV, PROV_R_MISSING_KEY,
-                       "no %s key material available", name);
+        ERR_raise_data(ERR_LIB_PROV, PROV_R_MISSING_KEY, "no %s key material available", name);
         return 0;
     }
 
-    if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0) {
-        if (ossl_slh_dsa_key_get_priv(key) == NULL) {
-            ERR_raise_data(ERR_LIB_PROV, PROV_R_MISSING_KEY,
-                           "no %s key material available", name);
+    if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0)
+    {
+        if (ossl_slh_dsa_key_get_priv(key) == NULL)
+        {
+            ERR_raise_data(ERR_LIB_PROV, PROV_R_MISSING_KEY, "no %s key material available", name);
             return 0;
         }
         if (BIO_printf(out, "%s Private-Key:\n", name) <= 0)
@@ -489,13 +501,14 @@ int ossl_slh_dsa_key_to_text(BIO *out, const SLH_DSA_KEY *key, int selection)
         if (!ossl_bio_print_labeled_buf(out, "priv:", ossl_slh_dsa_key_get_priv(key),
                                         ossl_slh_dsa_key_get_priv_len(key)))
             return 0;
-    } else if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0) {
+    }
+    else if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0)
+    {
         if (BIO_printf(out, "%s Public-Key:\n", name) <= 0)
             return 0;
     }
 
-    if (!ossl_bio_print_labeled_buf(out, "pub:", ossl_slh_dsa_key_get_pub(key),
-                                    ossl_slh_dsa_key_get_pub_len(key)))
+    if (!ossl_bio_print_labeled_buf(out, "pub:", ossl_slh_dsa_key_get_pub(key), ossl_slh_dsa_key_get_pub_len(key)))
         return 0;
 
     return 1;

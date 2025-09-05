@@ -36,12 +36,10 @@
 #include <openssl/sha.h>
 #include "rsa_local.h"
 
-int RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
-                               const unsigned char *from, int flen,
+int RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen, const unsigned char *from, int flen,
                                const unsigned char *param, int plen)
 {
-    return ossl_rsa_padding_add_PKCS1_OAEP_mgf1_ex(NULL, to, tlen, from, flen,
-                                                   param, plen, NULL, NULL);
+    return ossl_rsa_padding_add_PKCS1_OAEP_mgf1_ex(NULL, to, tlen, from, flen, param, plen, NULL, NULL);
 }
 
 /*
@@ -51,12 +49,9 @@ int RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
  * Step numbers are included here but not in the constant time inverse below
  * to avoid complicating an already difficult enough function.
  */
-int ossl_rsa_padding_add_PKCS1_OAEP_mgf1_ex(OSSL_LIB_CTX *libctx,
-                                            unsigned char *to, int tlen,
-                                            const unsigned char *from, int flen,
-                                            const unsigned char *param,
-                                            int plen, const EVP_MD *md,
-                                            const EVP_MD *mgf1md)
+int ossl_rsa_padding_add_PKCS1_OAEP_mgf1_ex(OSSL_LIB_CTX *libctx, unsigned char *to, int tlen,
+                                            const unsigned char *from, int flen, const unsigned char *param, int plen,
+                                            const EVP_MD *md, const EVP_MD *mgf1md)
 {
     int rv = 0;
     int i, emlen = tlen - 1;
@@ -65,7 +60,8 @@ int ossl_rsa_padding_add_PKCS1_OAEP_mgf1_ex(OSSL_LIB_CTX *libctx,
     unsigned char seedmask[EVP_MAX_MD_SIZE];
     int mdlen, dbmask_len = 0;
 
-    if (md == NULL) {
+    if (md == NULL)
+    {
 #ifndef FIPS_MODULE
         md = EVP_sha1();
 #else
@@ -78,29 +74,34 @@ int ossl_rsa_padding_add_PKCS1_OAEP_mgf1_ex(OSSL_LIB_CTX *libctx,
 
 #ifdef FIPS_MODULE
     /* XOF are approved as standalone; Shake256 in Ed448; MGF */
-    if (EVP_MD_xof(md)) {
+    if (EVP_MD_xof(md))
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_DIGEST_NOT_ALLOWED);
         return 0;
     }
-    if (EVP_MD_xof(mgf1md)) {
+    if (EVP_MD_xof(mgf1md))
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_MGF1_DIGEST_NOT_ALLOWED);
         return 0;
     }
 #endif
 
     mdlen = EVP_MD_get_size(md);
-    if (mdlen <= 0) {
+    if (mdlen <= 0)
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_INVALID_LENGTH);
         return 0;
     }
 
     /* step 2b: check KLen > nLen - 2 HLen - 2 */
-    if (flen > emlen - 2 * mdlen - 1) {
+    if (flen > emlen - 2 * mdlen - 1)
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_DATA_TOO_LARGE_FOR_KEY_SIZE);
         return 0;
     }
 
-    if (emlen < 2 * mdlen + 1) {
+    if (emlen < 2 * mdlen + 1)
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_KEY_SIZE_TOO_SMALL);
         return 0;
     }
@@ -142,34 +143,26 @@ int ossl_rsa_padding_add_PKCS1_OAEP_mgf1_ex(OSSL_LIB_CTX *libctx,
         seed[i] ^= seedmask[i];
     rv = 1;
 
- err:
+err:
     OPENSSL_cleanse(seedmask, sizeof(seedmask));
     OPENSSL_clear_free(dbmask, dbmask_len);
     return rv;
 }
 
-int RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-                                    const unsigned char *from, int flen,
-                                    const unsigned char *param, int plen,
-                                    const EVP_MD *md, const EVP_MD *mgf1md)
+int RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen, const unsigned char *from, int flen,
+                                    const unsigned char *param, int plen, const EVP_MD *md, const EVP_MD *mgf1md)
 {
-    return ossl_rsa_padding_add_PKCS1_OAEP_mgf1_ex(NULL, to, tlen, from, flen,
-                                                   param, plen, md, mgf1md);
+    return ossl_rsa_padding_add_PKCS1_OAEP_mgf1_ex(NULL, to, tlen, from, flen, param, plen, md, mgf1md);
 }
 
-int RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
-                                 const unsigned char *from, int flen, int num,
+int RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen, const unsigned char *from, int flen, int num,
                                  const unsigned char *param, int plen)
 {
-    return RSA_padding_check_PKCS1_OAEP_mgf1(to, tlen, from, flen, num,
-                                             param, plen, NULL, NULL);
+    return RSA_padding_check_PKCS1_OAEP_mgf1(to, tlen, from, flen, num, param, plen, NULL, NULL);
 }
 
-int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-                                      const unsigned char *from, int flen,
-                                      int num, const unsigned char *param,
-                                      int plen, const EVP_MD *md,
-                                      const EVP_MD *mgf1md)
+int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen, const unsigned char *from, int flen, int num,
+                                      const unsigned char *param, int plen, const EVP_MD *md, const EVP_MD *mgf1md)
 {
     int i, dblen = 0, mlen = -1, one_index = 0, msg_index;
     unsigned int good = 0, found_one_byte, mask;
@@ -178,11 +171,11 @@ int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
      * |em| is the encoded message, zero-padded to exactly |num| bytes: em =
      * Y || maskedSeed || maskedDB
      */
-    unsigned char *db = NULL, *em = NULL, seed[EVP_MAX_MD_SIZE],
-        phash[EVP_MAX_MD_SIZE];
+    unsigned char *db = NULL, *em = NULL, seed[EVP_MAX_MD_SIZE], phash[EVP_MAX_MD_SIZE];
     int mdlen;
 
-    if (md == NULL) {
+    if (md == NULL)
+    {
 #ifndef FIPS_MODULE
         md = EVP_sha1();
 #else
@@ -196,11 +189,13 @@ int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
 
 #ifdef FIPS_MODULE
     /* XOF are approved as standalone; Shake256 in Ed448; MGF */
-    if (EVP_MD_xof(md)) {
+    if (EVP_MD_xof(md))
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_DIGEST_NOT_ALLOWED);
         return -1;
     }
-    if (EVP_MD_xof(mgf1md)) {
+    if (EVP_MD_xof(mgf1md))
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_MGF1_DIGEST_NOT_ALLOWED);
         return -1;
     }
@@ -218,7 +213,8 @@ int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
      * the ciphertext, see PKCS #1 v2.2, section 7.1.2.
      * This does not leak any side-channel information.
      */
-    if (num < flen || num < 2 * mdlen + 2) {
+    if (num < flen || num < 2 * mdlen + 2)
+    {
         ERR_raise(ERR_LIB_RSA, RSA_R_OAEP_DECODING_ERROR);
         return -1;
     }
@@ -238,7 +234,8 @@ int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
      * bounds, it's impossible to have an invariant memory access pattern
      * in case |from| was not zero-padded in advance.
      */
-    for (from += flen, em += num, i = 0; i < num; i++) {
+    for (from += flen, em += num, i = 0; i < num; i++)
+    {
         mask = ~constant_time_is_zero(flen);
         flen -= 1 & mask;
         from -= 1 & mask;
@@ -271,14 +268,14 @@ int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
     good &= constant_time_is_zero(CRYPTO_memcmp(db, phash, mdlen));
 
     found_one_byte = 0;
-    for (i = mdlen; i < dblen; i++) {
+    for (i = mdlen; i < dblen; i++)
+    {
         /*
          * Padding consists of a number of 0-bytes, followed by a 1.
          */
         unsigned int equals1 = constant_time_eq(db[i], 1);
         unsigned int equals0 = constant_time_is_zero(db[i]);
-        one_index = constant_time_select_int(~found_one_byte & equals1,
-                                             i, one_index);
+        one_index = constant_time_select_int(~found_one_byte & equals1, i, one_index);
         found_one_byte |= equals1;
         good &= (found_one_byte | equals0);
     }
@@ -308,14 +305,15 @@ int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
      * length. Clear bits do a non-copy with identical access pattern.
      * The loop below has overall complexity of O(N*log(N)).
      */
-    tlen = constant_time_select_int(constant_time_lt(dblen - mdlen - 1, tlen),
-                                    dblen - mdlen - 1, tlen);
-    for (msg_index = 1; msg_index < dblen - mdlen - 1; msg_index <<= 1) {
+    tlen = constant_time_select_int(constant_time_lt(dblen - mdlen - 1, tlen), dblen - mdlen - 1, tlen);
+    for (msg_index = 1; msg_index < dblen - mdlen - 1; msg_index <<= 1)
+    {
         mask = ~constant_time_eq(msg_index & (dblen - mdlen - 1 - mlen), 0);
         for (i = mdlen + 1; i < dblen - msg_index; i++)
             db[i] = constant_time_select_8(mask, db[i + msg_index], db[i]);
     }
-    for (i = 0; i < tlen; i++) {
+    for (i = 0; i < tlen; i++)
+    {
         mask = good & constant_time_lt(i, mlen);
         to[i] = constant_time_select_8(mask, db[i + mdlen + 1], to[i]);
     }
@@ -332,7 +330,7 @@ int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
     ERR_raise(ERR_LIB_RSA, RSA_R_OAEP_DECODING_ERROR);
     err_clear_last_constant_time(1 & good);
 #endif
- cleanup:
+cleanup:
     OPENSSL_cleanse(seed, sizeof(seed));
     OPENSSL_clear_free(db, dblen);
     OPENSSL_clear_free(em, num);
@@ -347,8 +345,7 @@ int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
  *      seed (mgfSeed).
  * The range checking steps inm the process are performed outside.
  */
-int PKCS1_MGF1(unsigned char *mask, long len,
-               const unsigned char *seed, long seedlen, const EVP_MD *dgst)
+int PKCS1_MGF1(unsigned char *mask, long len, const unsigned char *seed, long seedlen, const EVP_MD *dgst)
 {
     long i, outlen = 0;
     unsigned char cnt[4];
@@ -363,22 +360,24 @@ int PKCS1_MGF1(unsigned char *mask, long len,
     if (mdlen <= 0)
         goto err;
     /* step 4 */
-    for (i = 0; outlen < len; i++) {
+    for (i = 0; outlen < len; i++)
+    {
         /* step 4a: D = I2BS(counter, 4) */
         cnt[0] = (unsigned char)((i >> 24) & 255);
         cnt[1] = (unsigned char)((i >> 16) & 255);
         cnt[2] = (unsigned char)((i >> 8)) & 255;
         cnt[3] = (unsigned char)(i & 255);
         /* step 4b: T =T || hash(mgfSeed || D) */
-        if (!EVP_DigestInit_ex(c, dgst, NULL)
-            || !EVP_DigestUpdate(c, seed, seedlen)
-            || !EVP_DigestUpdate(c, cnt, 4))
+        if (!EVP_DigestInit_ex(c, dgst, NULL) || !EVP_DigestUpdate(c, seed, seedlen) || !EVP_DigestUpdate(c, cnt, 4))
             goto err;
-        if (outlen + mdlen <= len) {
+        if (outlen + mdlen <= len)
+        {
             if (!EVP_DigestFinal_ex(c, mask + outlen, NULL))
                 goto err;
             outlen += mdlen;
-        } else {
+        }
+        else
+        {
             if (!EVP_DigestFinal_ex(c, md, NULL))
                 goto err;
             memcpy(mask + outlen, md, len - outlen);
@@ -386,7 +385,7 @@ int PKCS1_MGF1(unsigned char *mask, long len,
         }
     }
     rv = 0;
- err:
+err:
     OPENSSL_cleanse(md, sizeof(md));
     EVP_MD_CTX_free(c);
     return rv;

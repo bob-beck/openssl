@@ -15,7 +15,8 @@
 #include "testutil.h"
 #include "lms.inc"
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_ERR = -1,
     OPT_EOF = 0,
     OPT_CONFIG_FILE,
@@ -34,13 +35,13 @@ static EVP_PKEY *lms_pubkey_from_data(const unsigned char *data, size_t datalen)
     EVP_PKEY *key = NULL;
     OSSL_PARAM params[2];
 
-    params[0] = OSSL_PARAM_construct_octet_string(OSSL_PKEY_PARAM_PUB_KEY,
-                                                  (unsigned char *)data, datalen);
+    params[0] = OSSL_PARAM_construct_octet_string(OSSL_PKEY_PARAM_PUB_KEY, (unsigned char *)data, datalen);
     params[1] = OSSL_PARAM_construct_end();
-    ret = TEST_ptr(ctx = EVP_PKEY_CTX_new_from_name(libctx, "LMS", propq))
-        && TEST_int_eq(EVP_PKEY_fromdata_init(ctx), 1)
-        && (EVP_PKEY_fromdata(ctx, &key, EVP_PKEY_PUBLIC_KEY, params) == 1);
-    if (ret == 0) {
+    ret = TEST_ptr(ctx = EVP_PKEY_CTX_new_from_name(libctx, "LMS", propq)) &&
+          TEST_int_eq(EVP_PKEY_fromdata_init(ctx), 1) &&
+          (EVP_PKEY_fromdata(ctx, &key, EVP_PKEY_PUBLIC_KEY, params) == 1);
+    if (ret == 0)
+    {
         EVP_PKEY_free(key);
         key = NULL;
     }
@@ -62,7 +63,8 @@ static int lms_bad_pub_len_test(void)
     OPENSSL_cleanse(pubdata, sizeof(pubdata));
     memcpy(pubdata, td->pub, td->publen);
 
-    for (publen = 0; publen <= td->publen + 16; publen += 3) {
+    for (publen = 0; publen <= td->publen + 16; publen += 3)
+    {
         if (publen == td->publen)
             continue;
         if (!TEST_ptr_null(pkey = lms_pubkey_from_data(pubdata, publen)))
@@ -71,8 +73,7 @@ static int lms_bad_pub_len_test(void)
     ret = 1;
 end:
     if (ret == 0)
-        TEST_note("Incorrectly accepted public key of length %u (expected %u)",
-                  (unsigned)publen, (unsigned)td->publen);
+        TEST_note("Incorrectly accepted public key of length %u (expected %u)", (unsigned)publen, (unsigned)td->publen);
     EVP_PKEY_free(pkey);
 
     return ret == 1;
@@ -87,16 +88,10 @@ static int lms_pubkey_decoder_fail_test(void)
     LMS_ACVP_TEST_DATA *td = &lms_testdata[0];
     const unsigned char *pdata;
     size_t pdatalen;
-    static const unsigned char pub_bad_LMSType[] = {
-        0x00, 0x00, 0x00, 0xAA
-    };
-    static const unsigned char pub_bad_OTSType[] = {
-        0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xAA
-    };
+    static const unsigned char pub_bad_LMSType[] = {0x00, 0x00, 0x00, 0xAA};
+    static const unsigned char pub_bad_OTSType[] = {0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xAA};
 
-    if (!TEST_ptr(dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, NULL, NULL, "LMS",
-                                                       selection,
-                                                       libctx, NULL)))
+    if (!TEST_ptr(dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, NULL, NULL, "LMS", selection, libctx, NULL)))
         return 0;
 
     pdata = td->pub;
@@ -131,13 +126,11 @@ static EVP_PKEY *key_decode_from_bio(BIO *bio, const char *keytype)
     OSSL_DECODER_CTX *dctx = NULL;
     int selection = 0;
 
-    if (!TEST_ptr(dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, NULL, NULL,
-                                                       keytype,
-                                                       selection,
-                                                       libctx, NULL)))
+    if (!TEST_ptr(dctx = OSSL_DECODER_CTX_new_for_pkey(&pkey, NULL, NULL, keytype, selection, libctx, NULL)))
         return NULL;
 
-    if (!TEST_true(OSSL_DECODER_from_bio(dctx, bio))) {
+    if (!TEST_true(OSSL_DECODER_from_bio(dctx, bio)))
+    {
         EVP_PKEY_free(pkey);
         pkey = NULL;
     }
@@ -145,8 +138,7 @@ static EVP_PKEY *key_decode_from_bio(BIO *bio, const char *keytype)
     return pkey;
 }
 
-static EVP_PKEY *key_decode_from_data(const unsigned char *data, size_t datalen,
-                                      const char *keytype)
+static EVP_PKEY *key_decode_from_data(const unsigned char *data, size_t datalen, const char *keytype)
 {
     BIO *bio;
     EVP_PKEY *key = NULL;
@@ -178,10 +170,8 @@ static int lms_pubkey_decoder_test(void)
     const unsigned char *data;
     size_t data_len;
 
-    if (!TEST_ptr(dctx = OSSL_DECODER_CTX_new_for_pkey(&pub, "xdr", NULL,
-                                                       "LMS",
-                                                       OSSL_KEYMGMT_SELECT_PUBLIC_KEY,
-                                                       libctx, NULL)))
+    if (!TEST_ptr(dctx = OSSL_DECODER_CTX_new_for_pkey(&pub, "xdr", NULL, "LMS", OSSL_KEYMGMT_SELECT_PUBLIC_KEY, libctx,
+                                                       NULL)))
         goto err;
     data = td->pub;
     data_len = td->publen;
@@ -208,16 +198,14 @@ static int lms_key_eq_test(void)
     for (i = 0; i < OSSL_NELEM(key); i++)
         key[i] = NULL;
 
-    if (!TEST_ptr(key[0] = lms_pubkey_from_data(td1->pub, td1->publen))
-            || !TEST_ptr(key[1] = lms_pubkey_from_data(td1->pub, td1->publen))
-            || !TEST_ptr(key[2] = lms_pubkey_from_data(td2->pub, td2->publen))
-            || !TEST_ptr(key[3] = key_decode_from_data(td1->pub, td1->publen,
-                                                       NULL)))
+    if (!TEST_ptr(key[0] = lms_pubkey_from_data(td1->pub, td1->publen)) ||
+        !TEST_ptr(key[1] = lms_pubkey_from_data(td1->pub, td1->publen)) ||
+        !TEST_ptr(key[2] = lms_pubkey_from_data(td2->pub, td2->publen)) ||
+        !TEST_ptr(key[3] = key_decode_from_data(td1->pub, td1->publen, NULL)))
         goto end;
 
-    ret = TEST_int_eq(EVP_PKEY_eq(key[0], key[1]), 1)
-        && TEST_int_ne(EVP_PKEY_eq(key[0], key[2]), 1)
-        && TEST_int_eq(EVP_PKEY_eq(key[0], key[3]), 1);
+    ret = TEST_int_eq(EVP_PKEY_eq(key[0], key[1]), 1) && TEST_int_ne(EVP_PKEY_eq(key[0], key[2]), 1) &&
+          TEST_int_eq(EVP_PKEY_eq(key[0], key[3]), 1);
     if (ret == 0)
         goto end;
 
@@ -261,12 +249,11 @@ static int lms_verify_test(int tst)
     EVP_PKEY *pkey = NULL;
     EVP_SIGNATURE *sig = NULL;
 
-    ret = TEST_ptr(pkey = lms_pubkey_from_data(td->pub, td->publen))
-        && TEST_ptr(sig = EVP_SIGNATURE_fetch(libctx, "LMS", NULL))
-        && TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL))
-        && TEST_int_eq(EVP_PKEY_verify_message_init(ctx, sig, NULL), 1)
-        && TEST_int_eq(EVP_PKEY_verify(ctx, td->sig, td->siglen,
-                                       td->msg, td->msglen), 1);
+    ret = TEST_ptr(pkey = lms_pubkey_from_data(td->pub, td->publen)) &&
+          TEST_ptr(sig = EVP_SIGNATURE_fetch(libctx, "LMS", NULL)) &&
+          TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL)) &&
+          TEST_int_eq(EVP_PKEY_verify_message_init(ctx, sig, NULL), 1) &&
+          TEST_int_eq(EVP_PKEY_verify(ctx, td->sig, td->siglen, td->msg, td->msglen), 1);
 
     EVP_PKEY_free(pkey);
     EVP_PKEY_CTX_free(ctx);
@@ -286,11 +273,10 @@ static int lms_digest_verify_fail_test(void)
     if (!TEST_ptr(vctx = EVP_MD_CTX_new()))
         goto err;
     /* Only one shot mode is supported, streaming fails to initialise */
-    if (!TEST_int_eq(EVP_DigestVerifyInit_ex(vctx, NULL, NULL, libctx, NULL,
-                                             pub, NULL), 0))
+    if (!TEST_int_eq(EVP_DigestVerifyInit_ex(vctx, NULL, NULL, libctx, NULL, pub, NULL), 0))
         goto err;
     ret = 1;
- err:
+err:
     EVP_PKEY_free(pub);
     EVP_MD_CTX_free(vctx);
     return ret;
@@ -307,11 +293,10 @@ static int lms_digest_signing_fail_test(void)
         return 0;
     if (!TEST_ptr(vctx = EVP_MD_CTX_new()))
         goto err;
-    if (!TEST_int_eq(EVP_DigestSignInit_ex(vctx, NULL, NULL, libctx, NULL,
-                                           pub, NULL), 0))
+    if (!TEST_int_eq(EVP_DigestSignInit_ex(vctx, NULL, NULL, libctx, NULL, pub, NULL), 0))
         goto err;
     ret = 1;
- err:
+err:
     EVP_PKEY_free(pub);
     EVP_MD_CTX_free(vctx);
     return ret;
@@ -325,10 +310,10 @@ static int lms_message_signing_fail_test(void)
     EVP_PKEY *pkey = NULL;
     EVP_SIGNATURE *sig = NULL;
 
-    ret = TEST_ptr(pkey = lms_pubkey_from_data(td->pub, td->publen))
-        && TEST_ptr(sig = EVP_SIGNATURE_fetch(libctx, "LMS", NULL))
-        && TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL))
-        && TEST_int_eq(EVP_PKEY_sign_message_init(ctx, sig, NULL), -2);
+    ret = TEST_ptr(pkey = lms_pubkey_from_data(td->pub, td->publen)) &&
+          TEST_ptr(sig = EVP_SIGNATURE_fetch(libctx, "LMS", NULL)) &&
+          TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL)) &&
+          TEST_int_eq(EVP_PKEY_sign_message_init(ctx, sig, NULL), -2);
 
     EVP_PKEY_free(pkey);
     EVP_PKEY_CTX_free(ctx);
@@ -341,8 +326,8 @@ static int lms_paramgen_fail_test(void)
     int ret;
     EVP_PKEY_CTX *ctx = NULL;
 
-    ret = TEST_ptr(ctx = EVP_PKEY_CTX_new_from_name(libctx, "LMS", NULL))
-        && TEST_int_eq(EVP_PKEY_paramgen_init(ctx), -2);
+    ret =
+        TEST_ptr(ctx = EVP_PKEY_CTX_new_from_name(libctx, "LMS", NULL)) && TEST_int_eq(EVP_PKEY_paramgen_init(ctx), -2);
 
     EVP_PKEY_CTX_free(ctx);
     return ret;
@@ -353,8 +338,7 @@ static int lms_keygen_fail_test(void)
     int ret;
     EVP_PKEY_CTX *ctx = NULL;
 
-    ret = TEST_ptr(ctx = EVP_PKEY_CTX_new_from_name(libctx, "LMS", NULL))
-        && TEST_int_eq(EVP_PKEY_keygen_init(ctx), -2);
+    ret = TEST_ptr(ctx = EVP_PKEY_CTX_new_from_name(libctx, "LMS", NULL)) && TEST_int_eq(EVP_PKEY_keygen_init(ctx), -2);
 
     EVP_PKEY_CTX_free(ctx);
     return ret;
@@ -367,8 +351,8 @@ static int lms_verify_fail_test(void)
     EVP_PKEY_CTX *ctx = NULL;
     EVP_PKEY *pkey = NULL;
 
-    if (!TEST_ptr(pkey = lms_pubkey_from_data(td->pub, td->publen))
-            || !TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL)))
+    if (!TEST_ptr(pkey = lms_pubkey_from_data(td->pub, td->publen)) ||
+        !TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL)))
         goto end;
     /* Only one shot mode is supported, streaming fails to initialise */
     if (!TEST_int_eq(EVP_PKEY_verify_init(ctx), -2))
@@ -404,23 +388,25 @@ static int lms_verify_bad_sig_test(void)
     if (sig_data == NULL)
         return 0;
 
-    if (!TEST_ptr(pkey = lms_pubkey_from_data(td->pub, td->publen))
-            || !TEST_ptr(sig = EVP_SIGNATURE_fetch(libctx, "LMS", NULL))
-            || !TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL)))
+    if (!TEST_ptr(pkey = lms_pubkey_from_data(td->pub, td->publen)) ||
+        !TEST_ptr(sig = EVP_SIGNATURE_fetch(libctx, "LMS", NULL)) ||
+        !TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL)))
         goto end;
 
     if (!TEST_int_eq(EVP_PKEY_verify_message_init(ctx, sig, NULL), 1))
         goto end;
 
-    for (i = 0; i < (int)td->siglen; i += step) {
+    for (i = 0; i < (int)td->siglen; i += step)
+    {
         sig_data[i] ^= corrupt_mask; /* corrupt a byte */
         if (i > 0)
             sig_data[i - step] ^= corrupt_mask; /* Reset the previously corrupt byte */
 
-        if (!TEST_int_eq(EVP_PKEY_verify(ctx, sig_data, td->siglen,
-                                         td->msg, td->msglen), 0)) {
+        if (!TEST_int_eq(EVP_PKEY_verify(ctx, sig_data, td->siglen, td->msg, td->msglen), 0))
+        {
             TEST_note("Incorrectly passed when %dth byte of signature"
-                      " was corrupted", i);
+                      " was corrupted",
+                      i);
             goto end;
         }
     }
@@ -452,9 +438,9 @@ static int lms_verify_bad_sig_len_test(void)
     const int step = 3;
     unsigned char sigdata[4096];
 
-    if (!TEST_ptr(pkey = lms_pubkey_from_data(td->pub, td->publen))
-            || !TEST_ptr(sig = EVP_SIGNATURE_fetch(libctx, "LMS", NULL))
-            || !TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL)))
+    if (!TEST_ptr(pkey = lms_pubkey_from_data(td->pub, td->publen)) ||
+        !TEST_ptr(sig = EVP_SIGNATURE_fetch(libctx, "LMS", NULL)) ||
+        !TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL)))
         goto end;
 
     if (!TEST_size_t_le(td->siglen + 16, sizeof(sigdata)))
@@ -464,15 +450,17 @@ static int lms_verify_bad_sig_len_test(void)
     memcpy(sigdata, td->sig, td->siglen);
 
     ret = 0;
-    for (siglen = 0; siglen < td->siglen + 16; siglen += step) {
-        if (siglen == td->siglen)   /* ignore the size that should pass */
+    for (siglen = 0; siglen < td->siglen + 16; siglen += step)
+    {
+        if (siglen == td->siglen) /* ignore the size that should pass */
             continue;
         if (!TEST_int_eq(EVP_PKEY_verify_message_init(ctx, sig, NULL), 1))
             goto end;
-        if (!TEST_int_eq(EVP_PKEY_verify(ctx, sigdata, siglen,
-                                         td->msg, td->msglen), 0)) {
+        if (!TEST_int_eq(EVP_PKEY_verify(ctx, sigdata, siglen, td->msg, td->msglen), 0))
+        {
             TEST_note("Incorrectly accepted signature key of length"
-                      " %u (expected %u)", (unsigned)siglen, (unsigned)td->siglen);
+                      " %u (expected %u)",
+                      (unsigned)siglen, (unsigned)td->siglen);
             goto end;
         }
     }
@@ -503,19 +491,22 @@ static int lms_verify_bad_pub_sig_test(void)
     if (!TEST_ptr(sig = EVP_SIGNATURE_fetch(libctx, "LMS", NULL)))
         goto end;
 
-    for (i = 0; i < (int)td->publen; i += step) {
+    for (i = 0; i < (int)td->publen; i += step)
+    {
         pub[i] ^= 1; /* corrupt a byte */
         /* Corrupting the public key may cause the key load to fail */
         pkey = lms_pubkey_from_data(pub, td->publen);
-        if (pkey != NULL) {
+        if (pkey != NULL)
+        {
             if (!TEST_ptr(ctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, NULL)))
                 goto end;
             /* We expect the verify to fail */
-            if ((EVP_PKEY_verify_message_init(ctx, sig, NULL) == 1)
-                    && !TEST_int_eq(EVP_PKEY_verify(ctx, td->sig, td->siglen,
-                                                    td->msg, td->msglen), 0)) {
+            if ((EVP_PKEY_verify_message_init(ctx, sig, NULL) == 1) &&
+                !TEST_int_eq(EVP_PKEY_verify(ctx, td->sig, td->siglen, td->msg, td->msglen), 0))
+            {
                 TEST_note("Incorrectly passed when byte %d of the public key"
-                          " was corrupted", i);
+                          " was corrupted",
+                          i);
                 goto end;
             }
             EVP_PKEY_free(pkey);
@@ -538,12 +529,9 @@ end:
 
 const OPTIONS *test_get_options(void)
 {
-    static const OPTIONS options[] = {
-        OPT_TEST_OPTIONS_DEFAULT_USAGE,
-        { "config", OPT_CONFIG_FILE, '<',
-          "The configuration file to use for the libctx" },
-        { NULL }
-    };
+    static const OPTIONS options[] = {OPT_TEST_OPTIONS_DEFAULT_USAGE,
+                                      {"config", OPT_CONFIG_FILE, '<', "The configuration file to use for the libctx"},
+                                      {NULL}};
     return options;
 }
 
@@ -555,8 +543,10 @@ int setup_tests(void)
     /* Swap the libctx to test non-default context only */
     propq = "provider=default";
 
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_CONFIG_FILE:
             config_file = opt_arg();
             propq = "";

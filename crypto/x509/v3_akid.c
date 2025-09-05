@@ -16,69 +16,74 @@
 #include "crypto/x509.h"
 #include "ext_dat.h"
 
-static STACK_OF(CONF_VALUE) *i2v_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
-                                                 AUTHORITY_KEYID *akeyid,
-                                                 STACK_OF(CONF_VALUE)
-                                                 *extlist);
-static AUTHORITY_KEYID *v2i_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
-                                            X509V3_CTX *ctx,
-                                            STACK_OF(CONF_VALUE) *values);
+static STACK_OF(CONF_VALUE) *i2v_AUTHORITY_KEYID(X509V3_EXT_METHOD *method, AUTHORITY_KEYID *akeyid,
+                                                 STACK_OF(CONF_VALUE) *extlist);
+static AUTHORITY_KEYID *v2i_AUTHORITY_KEYID(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *values);
 
-const X509V3_EXT_METHOD ossl_v3_akey_id = {
-    NID_authority_key_identifier,
-    X509V3_EXT_MULTILINE, ASN1_ITEM_ref(AUTHORITY_KEYID),
-    0, 0, 0, 0,
-    0, 0,
-    (X509V3_EXT_I2V) i2v_AUTHORITY_KEYID,
-    (X509V3_EXT_V2I)v2i_AUTHORITY_KEYID,
-    0, 0,
-    NULL
-};
+const X509V3_EXT_METHOD ossl_v3_akey_id = {NID_authority_key_identifier,
+                                           X509V3_EXT_MULTILINE,
+                                           ASN1_ITEM_ref(AUTHORITY_KEYID),
+                                           0,
+                                           0,
+                                           0,
+                                           0,
+                                           0,
+                                           0,
+                                           (X509V3_EXT_I2V)i2v_AUTHORITY_KEYID,
+                                           (X509V3_EXT_V2I)v2i_AUTHORITY_KEYID,
+                                           0,
+                                           0,
+                                           NULL};
 
-static STACK_OF(CONF_VALUE) *i2v_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
-                                                 AUTHORITY_KEYID *akeyid,
-                                                 STACK_OF(CONF_VALUE)
-                                                 *extlist)
+static STACK_OF(CONF_VALUE) *i2v_AUTHORITY_KEYID(X509V3_EXT_METHOD *method, AUTHORITY_KEYID *akeyid,
+                                                 STACK_OF(CONF_VALUE) *extlist)
 {
     char *tmp = NULL;
     STACK_OF(CONF_VALUE) *origextlist = extlist, *tmpextlist;
 
-    if (akeyid->keyid) {
+    if (akeyid->keyid)
+    {
         tmp = i2s_ASN1_OCTET_STRING(NULL, akeyid->keyid);
-        if (tmp == NULL) {
+        if (tmp == NULL)
+        {
             ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);
             return NULL;
         }
-        if (!X509V3_add_value((akeyid->issuer || akeyid->serial) ? "keyid" : NULL,
-                              tmp, &extlist)) {
+        if (!X509V3_add_value((akeyid->issuer || akeyid->serial) ? "keyid" : NULL, tmp, &extlist))
+        {
             OPENSSL_free(tmp);
             ERR_raise(ERR_LIB_X509V3, ERR_R_X509_LIB);
             goto err;
         }
         OPENSSL_free(tmp);
     }
-    if (akeyid->issuer) {
+    if (akeyid->issuer)
+    {
         tmpextlist = i2v_GENERAL_NAMES(NULL, akeyid->issuer, extlist);
-        if (tmpextlist == NULL) {
+        if (tmpextlist == NULL)
+        {
             ERR_raise(ERR_LIB_X509V3, ERR_R_X509_LIB);
             goto err;
         }
         extlist = tmpextlist;
     }
-    if (akeyid->serial) {
+    if (akeyid->serial)
+    {
         tmp = i2s_ASN1_OCTET_STRING(NULL, akeyid->serial);
-        if (tmp == NULL) {
+        if (tmp == NULL)
+        {
             ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);
             goto err;
         }
-        if (!X509V3_add_value("serial", tmp, &extlist)) {
+        if (!X509V3_add_value("serial", tmp, &extlist))
+        {
             OPENSSL_free(tmp);
             goto err;
         }
         OPENSSL_free(tmp);
     }
     return extlist;
- err:
+err:
     if (origextlist == NULL)
         sk_CONF_VALUE_pop_free(extlist, X509V3_conf_free);
     return NULL;
@@ -93,9 +98,7 @@ static STACK_OF(CONF_VALUE) *i2v_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
  * to only use this if 'keyid' is not present. With the option 'always'
  * this is always included.
  */
-static AUTHORITY_KEYID *v2i_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
-                                            X509V3_CTX *ctx,
-                                            STACK_OF(CONF_VALUE) *values)
+static AUTHORITY_KEYID *v2i_AUTHORITY_KEYID(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *values)
 {
     char keyid = 0, issuer = 0;
     int i, n = sk_CONF_VALUE_num(values);
@@ -113,34 +116,39 @@ static AUTHORITY_KEYID *v2i_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
     if (akeyid == NULL)
         goto err;
 
-    if (n == 1 && strcmp(sk_CONF_VALUE_value(values, 0)->name, "none") == 0) {
+    if (n == 1 && strcmp(sk_CONF_VALUE_value(values, 0)->name, "none") == 0)
+    {
         return akeyid;
     }
 
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; i++)
+    {
         cnf = sk_CONF_VALUE_value(values, i);
-        if (cnf->value != NULL && strcmp(cnf->value, "always") != 0) {
-            ERR_raise_data(ERR_LIB_X509V3, X509V3_R_UNKNOWN_OPTION,
-                           "name=%s option=%s", cnf->name, cnf->value);
+        if (cnf->value != NULL && strcmp(cnf->value, "always") != 0)
+        {
+            ERR_raise_data(ERR_LIB_X509V3, X509V3_R_UNKNOWN_OPTION, "name=%s option=%s", cnf->name, cnf->value);
             goto err;
         }
-        if (strcmp(cnf->name, "keyid") == 0 && keyid == 0) {
+        if (strcmp(cnf->name, "keyid") == 0 && keyid == 0)
+        {
             keyid = 1;
             if (cnf->value != NULL)
                 keyid = 2;
-        } else if (strcmp(cnf->name, "issuer") == 0 && issuer == 0) {
+        }
+        else if (strcmp(cnf->name, "issuer") == 0 && issuer == 0)
+        {
             issuer = 1;
             if (cnf->value != NULL)
                 issuer = 2;
-        } else if (strcmp(cnf->name, "none") == 0
-                   || strcmp(cnf->name, "keyid") == 0
-                   || strcmp(cnf->name, "issuer") == 0) {
-            ERR_raise_data(ERR_LIB_X509V3, X509V3_R_BAD_VALUE,
-                           "name=%s", cnf->name);
+        }
+        else if (strcmp(cnf->name, "none") == 0 || strcmp(cnf->name, "keyid") == 0 || strcmp(cnf->name, "issuer") == 0)
+        {
+            ERR_raise_data(ERR_LIB_X509V3, X509V3_R_BAD_VALUE, "name=%s", cnf->name);
             goto err;
-        } else {
-            ERR_raise_data(ERR_LIB_X509V3, X509V3_R_UNKNOWN_VALUE,
-                           "name=%s", cnf->name);
+        }
+        else
+        {
+            ERR_raise_data(ERR_LIB_X509V3, X509V3_R_UNKNOWN_VALUE, "name=%s", cnf->name);
             goto err;
         }
     }
@@ -148,11 +156,13 @@ static AUTHORITY_KEYID *v2i_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
     if (ctx != NULL && (ctx->flags & X509V3_CTX_TEST) != 0)
         return akeyid;
 
-    if (ctx == NULL) {
+    if (ctx == NULL)
+    {
         ERR_raise(ERR_LIB_X509V3, ERR_R_PASSED_NULL_PARAMETER);
         goto err;
     }
-    if ((issuer_cert = ctx->issuer_cert) == NULL) {
+    if ((issuer_cert = ctx->issuer_cert) == NULL)
+    {
         ERR_raise(ERR_LIB_X509V3, X509V3_R_NO_ISSUER_CERTIFICATE);
         goto err;
     }
@@ -165,21 +175,24 @@ static AUTHORITY_KEYID *v2i_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
     ERR_pop_to_mark();
 
     /* unless forced with "always", AKID is suppressed for self-signed certs */
-    if (keyid == 2 || (keyid == 1 && !ss)) {
+    if (keyid == 2 || (keyid == 1 && !ss))
+    {
         /*
          * prefer any pre-existing subject key identifier of the issuer cert
          * except issuer cert is same as subject cert and is not self-signed
          */
         i = X509_get_ext_by_NID(issuer_cert, NID_subject_key_identifier, -1);
-        if (i >= 0 && (ext = X509_get_ext(issuer_cert, i)) != NULL
-            && !(same_issuer && !ss)) {
+        if (i >= 0 && (ext = X509_get_ext(issuer_cert, i)) != NULL && !(same_issuer && !ss))
+        {
             ikeyid = X509V3_EXT_d2i(ext);
-            if (ASN1_STRING_length(ikeyid) == 0) /* indicating "none" */ {
+            if (ASN1_STRING_length(ikeyid) == 0) /* indicating "none" */
+            {
                 ASN1_OCTET_STRING_free(ikeyid);
                 ikeyid = NULL;
             }
         }
-        if (ikeyid == NULL && same_issuer && ctx->issuer_pkey != NULL) {
+        if (ikeyid == NULL && same_issuer && ctx->issuer_pkey != NULL)
+        {
             /* generate fallback AKID, emulating s2i_skey_id(..., "hash") */
             X509_PUBKEY *pubkey = NULL;
 
@@ -187,28 +200,33 @@ static AUTHORITY_KEYID *v2i_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
                 ikeyid = ossl_x509_pubkey_hash(pubkey);
             X509_PUBKEY_free(pubkey);
         }
-        if (keyid == 2 && ikeyid == NULL) {
+        if (keyid == 2 && ikeyid == NULL)
+        {
             ERR_raise(ERR_LIB_X509V3, X509V3_R_UNABLE_TO_GET_ISSUER_KEYID);
             goto err;
         }
     }
 
-    if (issuer == 2 || (issuer == 1 && !ss && ikeyid == NULL)) {
+    if (issuer == 2 || (issuer == 1 && !ss && ikeyid == NULL))
+    {
         isname = X509_NAME_dup(X509_get_issuer_name(issuer_cert));
         serial = ASN1_INTEGER_dup(X509_get0_serialNumber(issuer_cert));
-        if (isname == NULL || serial == NULL) {
+        if (isname == NULL || serial == NULL)
+        {
             ERR_raise(ERR_LIB_X509V3, X509V3_R_UNABLE_TO_GET_ISSUER_DETAILS);
             goto err;
         }
     }
 
-    if (isname != NULL) {
-        if ((gens = sk_GENERAL_NAME_new_null()) == NULL
-            || (gen = GENERAL_NAME_new()) == NULL) {
+    if (isname != NULL)
+    {
+        if ((gens = sk_GENERAL_NAME_new_null()) == NULL || (gen = GENERAL_NAME_new()) == NULL)
+        {
             ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);
             goto err;
         }
-        if (!sk_GENERAL_NAME_push(gens, gen)) {
+        if (!sk_GENERAL_NAME_push(gens, gen))
+        {
             ERR_raise(ERR_LIB_X509V3, ERR_R_CRYPTO_LIB);
             goto err;
         }
@@ -224,7 +242,7 @@ static AUTHORITY_KEYID *v2i_AUTHORITY_KEYID(X509V3_EXT_METHOD *method,
 
     return akeyid;
 
- err:
+err:
     sk_GENERAL_NAME_free(gens);
     GENERAL_NAME_free(gen);
     X509_NAME_free(isname);

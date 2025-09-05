@@ -21,16 +21,17 @@
 #include "internal/nelem.h"
 #include "testutil.h"
 
-typedef struct cipherlist_test_fixture {
+typedef struct cipherlist_test_fixture
+{
     const char *test_case_name;
     SSL_CTX *server;
     SSL_CTX *client;
 } CIPHERLIST_TEST_FIXTURE;
 
-
 static void tear_down(CIPHERLIST_TEST_FIXTURE *fixture)
 {
-    if (fixture != NULL) {
+    if (fixture != NULL)
+    {
         SSL_CTX_free(fixture->server);
         SSL_CTX_free(fixture->client);
         fixture->server = fixture->client = NULL;
@@ -45,8 +46,9 @@ static CIPHERLIST_TEST_FIXTURE *set_up(const char *const test_case_name)
     if (!TEST_ptr(fixture = OPENSSL_zalloc(sizeof(*fixture))))
         return NULL;
     fixture->test_case_name = test_case_name;
-    if (!TEST_ptr(fixture->server = SSL_CTX_new(TLS_server_method()))
-            || !TEST_ptr(fixture->client = SSL_CTX_new(TLS_client_method()))) {
+    if (!TEST_ptr(fixture->server = SSL_CTX_new(TLS_server_method())) ||
+        !TEST_ptr(fixture->client = SSL_CTX_new(TLS_client_method())))
+    {
         tear_down(fixture);
         return NULL;
     }
@@ -65,69 +67,69 @@ static CIPHERLIST_TEST_FIXTURE *set_up(const char *const test_case_name)
 static const uint32_t default_ciphers_in_order[] = {
 #ifndef OPENSSL_NO_TLS1_3
     TLS1_3_CK_AES_256_GCM_SHA384,
-# if !defined(OPENSSL_NO_CHACHA) && !defined(OPENSSL_NO_POLY1305)
+#if !defined(OPENSSL_NO_CHACHA) && !defined(OPENSSL_NO_POLY1305)
     TLS1_3_CK_CHACHA20_POLY1305_SHA256,
-# endif
+#endif
     TLS1_3_CK_AES_128_GCM_SHA256,
 #endif
 #ifndef OPENSSL_NO_TLS1_2
-# ifndef OPENSSL_NO_EC
+#ifndef OPENSSL_NO_EC
     TLS1_CK_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
     TLS1_CK_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-# endif
-# ifndef OPENSSL_NO_DH
+#endif
+#ifndef OPENSSL_NO_DH
     TLS1_CK_DHE_RSA_WITH_AES_256_GCM_SHA384,
-# endif
+#endif
 
-# if !defined(OPENSSL_NO_CHACHA) && !defined(OPENSSL_NO_POLY1305)
-#  ifndef OPENSSL_NO_EC
+#if !defined(OPENSSL_NO_CHACHA) && !defined(OPENSSL_NO_POLY1305)
+#ifndef OPENSSL_NO_EC
     TLS1_CK_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
     TLS1_CK_ECDHE_RSA_WITH_CHACHA20_POLY1305,
-#  endif
-#  ifndef OPENSSL_NO_DH
+#endif
+#ifndef OPENSSL_NO_DH
     TLS1_CK_DHE_RSA_WITH_CHACHA20_POLY1305,
-#  endif
-# endif  /* !OPENSSL_NO_CHACHA && !OPENSSL_NO_POLY1305 */
+#endif
+#endif /* !OPENSSL_NO_CHACHA && !OPENSSL_NO_POLY1305 */
 
-# ifndef OPENSSL_NO_EC
+#ifndef OPENSSL_NO_EC
     TLS1_CK_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
     TLS1_CK_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-# endif
-# ifndef OPENSSL_NO_DH
+#endif
+#ifndef OPENSSL_NO_DH
     TLS1_CK_DHE_RSA_WITH_AES_128_GCM_SHA256,
-# endif
-# ifndef OPENSSL_NO_EC
+#endif
+#ifndef OPENSSL_NO_EC
     TLS1_CK_ECDHE_ECDSA_WITH_AES_256_SHA384,
     TLS1_CK_ECDHE_RSA_WITH_AES_256_SHA384,
-# endif
-# ifndef OPENSSL_NO_DH
+#endif
+#ifndef OPENSSL_NO_DH
     TLS1_CK_DHE_RSA_WITH_AES_256_SHA256,
-# endif
-# ifndef OPENSSL_NO_EC
+#endif
+#ifndef OPENSSL_NO_EC
     TLS1_CK_ECDHE_ECDSA_WITH_AES_128_SHA256,
     TLS1_CK_ECDHE_RSA_WITH_AES_128_SHA256,
-# endif
-# ifndef OPENSSL_NO_DH
+#endif
+#ifndef OPENSSL_NO_DH
     TLS1_CK_DHE_RSA_WITH_AES_128_SHA256,
-# endif
-#endif  /* !OPENSSL_NO_TLS1_2 */
+#endif
+#endif /* !OPENSSL_NO_TLS1_2 */
 
 #if !defined(OPENSSL_NO_TLS1_2) || defined(OPENSSL_NO_TLS1_3)
-    /* These won't be usable if TLSv1.3 is available but TLSv1.2 isn't */
-# ifndef OPENSSL_NO_EC
+/* These won't be usable if TLSv1.3 is available but TLSv1.2 isn't */
+#ifndef OPENSSL_NO_EC
     TLS1_CK_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
     TLS1_CK_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-# endif
- #ifndef OPENSSL_NO_DH
+#endif
+#ifndef OPENSSL_NO_DH
     TLS1_CK_DHE_RSA_WITH_AES_256_SHA,
-# endif
-# ifndef OPENSSL_NO_EC
+#endif
+#ifndef OPENSSL_NO_EC
     TLS1_CK_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
     TLS1_CK_ECDHE_RSA_WITH_AES_128_CBC_SHA,
-# endif
-# ifndef OPENSSL_NO_DH
+#endif
+#ifndef OPENSSL_NO_DH
     TLS1_CK_DHE_RSA_WITH_AES_128_SHA,
-# endif
+#endif
 #endif /* !defined(OPENSSL_NO_TLS1_2) || defined(OPENSSL_NO_TLS1_3) */
 
 #ifndef OPENSSL_NO_TLS1_2
@@ -155,8 +157,7 @@ static int test_default_cipherlist(SSL_CTX *ctx)
     if (ctx == NULL)
         return 0;
 
-    if (!TEST_ptr(ssl = SSL_new(ctx))
-            || !TEST_ptr(ciphers = SSL_get1_supported_ciphers(ssl)))
+    if (!TEST_ptr(ssl = SSL_new(ctx)) || !TEST_ptr(ciphers = SSL_get1_supported_ciphers(ssl)))
         goto err;
 
     num_expected_ciphers = OSSL_NELEM(default_ciphers_in_order);
@@ -164,10 +165,12 @@ static int test_default_cipherlist(SSL_CTX *ctx)
     if (!TEST_int_eq(num_ciphers, num_expected_ciphers))
         goto err;
 
-    for (i = 0; i < num_ciphers; i++) {
+    for (i = 0; i < num_ciphers; i++)
+    {
         expected_cipher_id = default_ciphers_in_order[i];
         cipher_id = SSL_CIPHER_get_id(sk_SSL_CIPHER_value(ciphers, i));
-        if (!TEST_int_eq(cipher_id, expected_cipher_id)) {
+        if (!TEST_int_eq(cipher_id, expected_cipher_id))
+        {
             TEST_info("Wrong cipher at position %d", i);
             goto err;
         }
@@ -175,7 +178,7 @@ static int test_default_cipherlist(SSL_CTX *ctx)
 
     ret = 1;
 
- err:
+err:
     sk_SSL_CIPHER_free(ciphers);
     SSL_free(ssl);
     return ret;
@@ -183,16 +186,12 @@ static int test_default_cipherlist(SSL_CTX *ctx)
 
 static int execute_test(CIPHERLIST_TEST_FIXTURE *fixture)
 {
-    return fixture != NULL
-        && test_default_cipherlist(fixture->server)
-        && test_default_cipherlist(fixture->client);
+    return fixture != NULL && test_default_cipherlist(fixture->server) && test_default_cipherlist(fixture->client);
 }
 
-#define SETUP_CIPHERLIST_TEST_FIXTURE() \
-    SETUP_TEST_FIXTURE(CIPHERLIST_TEST_FIXTURE, set_up)
+#define SETUP_CIPHERLIST_TEST_FIXTURE() SETUP_TEST_FIXTURE(CIPHERLIST_TEST_FIXTURE, set_up)
 
-#define EXECUTE_CIPHERLIST_TEST() \
-    EXECUTE_TEST(execute_test, tear_down)
+#define EXECUTE_CIPHERLIST_TEST() EXECUTE_TEST(execute_test, tear_down)
 
 static int test_default_cipherlist_implicit(void)
 {
@@ -204,8 +203,9 @@ static int test_default_cipherlist_implicit(void)
 static int test_default_cipherlist_explicit(void)
 {
     SETUP_CIPHERLIST_TEST_FIXTURE();
-    if (!TEST_true(SSL_CTX_set_cipher_list(fixture->server, "DEFAULT"))
-            || !TEST_true(SSL_CTX_set_cipher_list(fixture->client, "DEFAULT"))) {
+    if (!TEST_true(SSL_CTX_set_cipher_list(fixture->server, "DEFAULT")) ||
+        !TEST_true(SSL_CTX_set_cipher_list(fixture->client, "DEFAULT")))
+    {
         tear_down(fixture);
         fixture = NULL;
     }
@@ -228,13 +228,12 @@ static int test_default_cipherlist_clear(void)
     s = SSL_new(fixture->client);
 
     if (!TEST_ptr(s))
-      goto end;
+        goto end;
 
     if (!TEST_int_eq(SSL_set_cipher_list(s, "no-such"), 0))
         goto end;
 
-    if (!TEST_int_eq(ERR_GET_REASON(ERR_get_error()),
-                SSL_R_NO_CIPHER_MATCH))
+    if (!TEST_int_eq(ERR_GET_REASON(ERR_get_error()), SSL_R_NO_CIPHER_MATCH))
         goto end;
 
     result = 1;
@@ -248,8 +247,9 @@ end:
 static int test_stdname_cipherlist(void)
 {
     SETUP_CIPHERLIST_TEST_FIXTURE();
-    if (!TEST_true(SSL_CTX_set_cipher_list(fixture->server, TLS1_RFC_RSA_WITH_AES_128_SHA))
-            || !TEST_true(SSL_CTX_set_cipher_list(fixture->client, TLS1_RFC_RSA_WITH_AES_128_SHA))) {
+    if (!TEST_true(SSL_CTX_set_cipher_list(fixture->server, TLS1_RFC_RSA_WITH_AES_128_SHA)) ||
+        !TEST_true(SSL_CTX_set_cipher_list(fixture->client, TLS1_RFC_RSA_WITH_AES_128_SHA)))
+    {
         goto end;
     }
     result = 1;

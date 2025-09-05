@@ -12,12 +12,12 @@
 
 #ifdef ASYNC_POSIX
 
-# include <stddef.h>
-# include <unistd.h>
-# include <openssl/err.h>
-# include <openssl/crypto.h>
+#include <stddef.h>
+#include <unistd.h>
+#include <openssl/err.h>
+#include <openssl/crypto.h>
 
-#define STACKSIZE       32768
+#define STACKSIZE 32768
 
 static CRYPTO_RWLOCK *async_mem_lock;
 
@@ -50,14 +50,14 @@ int ASYNC_is_capable(void)
     return getcontext(&ctx) == 0;
 }
 
-int ASYNC_set_mem_functions(ASYNC_stack_alloc_fn alloc_fn,
-                            ASYNC_stack_free_fn free_fn)
+int ASYNC_set_mem_functions(ASYNC_stack_alloc_fn alloc_fn, ASYNC_stack_free_fn free_fn)
 {
     OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL);
 
     if (!CRYPTO_THREAD_write_lock(async_mem_lock))
         return 0;
-    if (!allow_customize) {
+    if (!allow_customize)
+    {
         CRYPTO_THREAD_unlock(async_mem_lock);
         return 0;
     }
@@ -70,8 +70,7 @@ int ASYNC_set_mem_functions(ASYNC_stack_alloc_fn alloc_fn,
     return 1;
 }
 
-void ASYNC_get_mem_functions(ASYNC_stack_alloc_fn *alloc_fn,
-                             ASYNC_stack_free_fn *free_fn)
+void ASYNC_get_mem_functions(ASYNC_stack_alloc_fn *alloc_fn, ASYNC_stack_free_fn *free_fn)
 {
     if (alloc_fn != NULL)
         *alloc_fn = stack_alloc_impl;
@@ -98,14 +97,16 @@ int async_fibre_makecontext(async_fibre *fibre)
 #ifndef USE_SWAPCONTEXT
     fibre->env_init = 0;
 #endif
-    if (getcontext(&fibre->fibre) == 0) {
+    if (getcontext(&fibre->fibre) == 0)
+    {
         size_t num = STACKSIZE;
 
         /*
          *  Disallow customisation after the first
          *  stack is allocated.
          */
-        if (allow_customize) {
+        if (allow_customize)
+        {
             if (!CRYPTO_THREAD_write_lock(async_mem_lock))
                 return 0;
             allow_customize = 0;
@@ -113,13 +114,16 @@ int async_fibre_makecontext(async_fibre *fibre)
         }
 
         fibre->fibre.uc_stack.ss_sp = stack_alloc_impl(&num);
-        if (fibre->fibre.uc_stack.ss_sp != NULL) {
+        if (fibre->fibre.uc_stack.ss_sp != NULL)
+        {
             fibre->fibre.uc_stack.ss_size = num;
             fibre->fibre.uc_link = NULL;
             makecontext(&fibre->fibre, async_start_func, 0);
             return 1;
         }
-    } else {
+    }
+    else
+    {
         fibre->fibre.uc_stack.ss_sp = NULL;
     }
     return 0;

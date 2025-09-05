@@ -28,7 +28,8 @@
 
 /* BIO support data stored in the ASN1 BIO ex_arg */
 
-typedef struct ndef_aux_st {
+typedef struct ndef_aux_st
+{
     /* ASN1 structure this BIO refers to */
     ASN1_VALUE *val;
     const ASN1_ITEM *it;
@@ -43,11 +44,9 @@ typedef struct ndef_aux_st {
 } NDEF_SUPPORT;
 
 static int ndef_prefix(BIO *b, unsigned char **pbuf, int *plen, void *parg);
-static int ndef_prefix_free(BIO *b, unsigned char **pbuf, int *plen,
-                            void *parg);
+static int ndef_prefix_free(BIO *b, unsigned char **pbuf, int *plen, void *parg);
 static int ndef_suffix(BIO *b, unsigned char **pbuf, int *plen, void *parg);
-static int ndef_suffix_free(BIO *b, unsigned char **pbuf, int *plen,
-                            void *parg);
+static int ndef_suffix_free(BIO *b, unsigned char **pbuf, int *plen, void *parg);
 
 /*
  * On success, the returned BIO owns the input BIO as part of its BIO chain.
@@ -63,7 +62,8 @@ BIO *BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
     ASN1_STREAM_ARG sarg;
     BIO *pop_bio = NULL;
 
-    if (!aux || !aux->asn1_cb) {
+    if (!aux || !aux->asn1_cb)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_STREAMING_NOT_SUPPORTED);
         return NULL;
     }
@@ -78,9 +78,9 @@ BIO *BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
         goto err;
     pop_bio = asn_bio;
 
-    if (BIO_asn1_set_prefix(asn_bio, ndef_prefix, ndef_prefix_free) <= 0
-            || BIO_asn1_set_suffix(asn_bio, ndef_suffix, ndef_suffix_free) <= 0
-            || BIO_ctrl(asn_bio, BIO_C_SET_EX_ARG, 0, ndef_aux) <= 0)
+    if (BIO_asn1_set_prefix(asn_bio, ndef_prefix, ndef_prefix_free) <= 0 ||
+        BIO_asn1_set_suffix(asn_bio, ndef_suffix, ndef_suffix_free) <= 0 ||
+        BIO_ctrl(asn_bio, BIO_C_SET_EX_ARG, 0, ndef_aux) <= 0)
         goto err;
 
     /*
@@ -96,7 +96,8 @@ BIO *BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
      * The asn1_cb(), must not have mutated asn_bio on error, leaving it in the
      * middle of some partially built, but not returned BIO chain.
      */
-    if (aux->asn1_cb(ASN1_OP_STREAM_PRE, &val, it, &sarg) <= 0) {
+    if (aux->asn1_cb(ASN1_OP_STREAM_PRE, &val, it, &sarg) <= 0)
+    {
         /*
          * ndef_aux is now owned by asn_bio so we must not free it in the err
          * clean up block
@@ -118,7 +119,7 @@ BIO *BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
 
     return sarg.ndef_bio;
 
- err:
+err:
     /* BIO_pop() is NULL safe */
     (void)BIO_pop(pop_bio);
     BIO_free(asn_bio);
@@ -155,8 +156,7 @@ static int ndef_prefix(BIO *b, unsigned char **pbuf, int *plen, void *parg)
     return 1;
 }
 
-static int ndef_prefix_free(BIO *b, unsigned char **pbuf, int *plen,
-                            void *parg)
+static int ndef_prefix_free(BIO *b, unsigned char **pbuf, int *plen, void *parg)
 {
     NDEF_SUPPORT *ndef_aux;
 
@@ -176,8 +176,7 @@ static int ndef_prefix_free(BIO *b, unsigned char **pbuf, int *plen,
     return 1;
 }
 
-static int ndef_suffix_free(BIO *b, unsigned char **pbuf, int *plen,
-                            void *parg)
+static int ndef_suffix_free(BIO *b, unsigned char **pbuf, int *plen, void *parg)
 {
     NDEF_SUPPORT **pndef_aux = (NDEF_SUPPORT **)parg;
     if (!ndef_prefix_free(b, pbuf, plen, parg))
@@ -206,8 +205,7 @@ static int ndef_suffix(BIO *b, unsigned char **pbuf, int *plen, void *parg)
     sarg.ndef_bio = ndef_aux->ndef_bio;
     sarg.out = ndef_aux->out;
     sarg.boundary = ndef_aux->boundary;
-    if (aux->asn1_cb(ASN1_OP_STREAM_POST,
-                     &ndef_aux->val, ndef_aux->it, &sarg) <= 0)
+    if (aux->asn1_cb(ASN1_OP_STREAM_POST, &ndef_aux->val, ndef_aux->it, &sarg) <= 0)
         return 0;
 
     derlen = ASN1_item_ndef_i2d(ndef_aux->val, NULL, ndef_aux->it);

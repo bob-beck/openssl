@@ -37,7 +37,8 @@ void CAST_encrypt(CAST_LONG *data, const CAST_KEY *key)
     E_CAST(9, k, r, l, +, ^, -);
     E_CAST(10, k, l, r, ^, -, +);
     E_CAST(11, k, r, l, -, +, ^);
-    if (!key->short_key) {
+    if (!key->short_key)
+    {
         E_CAST(12, k, l, r, +, ^, -);
         E_CAST(13, k, r, l, ^, -, +);
         E_CAST(14, k, l, r, -, +, ^);
@@ -57,7 +58,8 @@ void CAST_decrypt(CAST_LONG *data, const CAST_KEY *key)
     l = data[0];
     r = data[1];
 
-    if (!key->short_key) {
+    if (!key->short_key)
+    {
         E_CAST(15, k, l, r, +, ^, -);
         E_CAST(14, k, r, l, -, +, ^);
         E_CAST(13, k, l, r, ^, -, +);
@@ -80,8 +82,7 @@ void CAST_decrypt(CAST_LONG *data, const CAST_KEY *key)
     data[0] = r & 0xffffffffL;
 }
 
-void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
-                      long length, const CAST_KEY *ks, unsigned char *iv,
+void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out, long length, const CAST_KEY *ks, unsigned char *iv,
                       int enc)
 {
     register CAST_LONG tin0, tin1;
@@ -89,11 +90,13 @@ void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
     register long l = length;
     CAST_LONG tin[2];
 
-    if (enc) {
+    if (enc)
+    {
         n2l(iv, tout0);
         n2l(iv, tout1);
         iv -= 8;
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             n2l(in, tin0);
             n2l(in, tin1);
             tin0 ^= tout0;
@@ -106,7 +109,8 @@ void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
             l2n(tout0, out);
             l2n(tout1, out);
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             n2ln(in, tin0, tin1, l + 8);
             tin0 ^= tout0;
             tin1 ^= tout1;
@@ -120,11 +124,14 @@ void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
         }
         l2n(tout0, iv);
         l2n(tout1, iv);
-    } else {
+    }
+    else
+    {
         n2l(iv, xor0);
         n2l(iv, xor1);
         iv -= 8;
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             n2l(in, tin0);
             n2l(in, tin1);
             tin[0] = tin0;
@@ -137,7 +144,8 @@ void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
             xor0 = tin0;
             xor1 = tin1;
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             n2l(in, tin0);
             n2l(in, tin1);
             tin[0] = tin0;

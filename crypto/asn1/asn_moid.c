@@ -28,13 +28,16 @@ static int oid_module_init(CONF_IMODULE *md, const CONF *cnf)
     CONF_VALUE *oval;
 
     oid_section = CONF_imodule_get_value(md);
-    if ((sktmp = NCONF_get_section(cnf, oid_section)) == NULL) {
+    if ((sktmp = NCONF_get_section(cnf, oid_section)) == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_ERROR_LOADING_SECTION);
         return 0;
     }
-    for (i = 0; i < sk_CONF_VALUE_num(sktmp); i++) {
+    for (i = 0; i < sk_CONF_VALUE_num(sktmp); i++)
+    {
         oval = sk_CONF_VALUE_value(sktmp, i);
-        if (!do_create(oval->value, oval->name)) {
+        if (!do_create(oval->value, oval->name))
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ADDING_OBJECT);
             return 0;
         }
@@ -64,14 +67,19 @@ static int do_create(const char *value, const char *name)
     char *lntmp = NULL;
 
     p = strrchr(value, ',');
-    if (p == NULL) {
+    if (p == NULL)
+    {
         ln = name;
         ostr = value;
-    } else if (p == value) {
+    }
+    else if (p == value)
+    {
         /* we started with a leading comma */
         ln = name;
         ostr = p + 1;
-    } else {
+    }
+    else
+    {
         ln = value;
         ostr = p + 1;
         if (*ostr == '\0')
@@ -81,7 +89,8 @@ static int do_create(const char *value, const char *name)
         while (ossl_isspace(*ln))
             ln++;
         p--;
-        while (ossl_isspace(*p)) {
+        while (ossl_isspace(*p))
+        {
             if (p == ln)
                 return 0;
             p--;

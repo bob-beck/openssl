@@ -8,10 +8,11 @@
  */
 
 #ifndef OSSL_INTERNAL_UNICODE_H
-# define OSSL_INTERNAL_UNICODE_H
-# pragma once
+#define OSSL_INTERNAL_UNICODE_H
+#pragma once
 
-typedef enum {
+typedef enum
+{
     SURROGATE_MIN = 0xd800UL,
     SURROGATE_MAX = 0xdfffUL,
     UNICODE_MAX = 0x10ffffUL,

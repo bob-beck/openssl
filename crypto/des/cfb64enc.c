@@ -21,8 +21,7 @@
  * used is contained in *num;
  */
 
-void DES_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-                       long length, DES_key_schedule *schedule,
+void DES_cfb64_encrypt(const unsigned char *in, unsigned char *out, long length, DES_key_schedule *schedule,
                        DES_cblock *ivec, int *num, int enc)
 {
     register DES_LONG v0, v1;
@@ -32,9 +31,12 @@ void DES_cfb64_encrypt(const unsigned char *in, unsigned char *out,
     unsigned char *iv, c, cc;
 
     iv = &(*ivec)[0];
-    if (enc) {
-        while (l--) {
-            if (n == 0) {
+    if (enc)
+    {
+        while (l--)
+        {
+            if (n == 0)
+            {
                 c2l(iv, v0);
                 ti[0] = v0;
                 c2l(iv, v1);
@@ -52,9 +54,13 @@ void DES_cfb64_encrypt(const unsigned char *in, unsigned char *out,
             iv[n] = c;
             n = (n + 1) & 0x07;
         }
-    } else {
-        while (l--) {
-            if (n == 0) {
+    }
+    else
+    {
+        while (l--)
+        {
+            if (n == 0)
+            {
                 c2l(iv, v0);
                 ti[0] = v0;
                 c2l(iv, v1);

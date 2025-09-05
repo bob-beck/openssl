@@ -21,31 +21,36 @@ static int test_string_tbl(void)
     int nid = 12345678, nid2 = 87654321, rv = 0, ret = 0;
 
     tmp = ASN1_STRING_TABLE_get(nid);
-    if (!TEST_ptr_null(tmp)) {
+    if (!TEST_ptr_null(tmp))
+    {
         TEST_info("asn1 string table: ASN1_STRING_TABLE_get non-exist nid");
         goto out;
     }
 
     ret = ASN1_STRING_TABLE_add(nid, -1, -1, MBSTRING_ASC, 0);
-    if (!TEST_true(ret)) {
+    if (!TEST_true(ret))
+    {
         TEST_info("asn1 string table: add NID(%d) failed", nid);
         goto out;
     }
 
     ret = ASN1_STRING_TABLE_add(nid2, -1, -1, MBSTRING_ASC, 0);
-    if (!TEST_true(ret)) {
+    if (!TEST_true(ret))
+    {
         TEST_info("asn1 string table: add NID(%d) failed", nid2);
         goto out;
     }
 
     tmp = ASN1_STRING_TABLE_get(nid);
-    if (!TEST_ptr(tmp)) {
+    if (!TEST_ptr(tmp))
+    {
         TEST_info("asn1 string table: get NID(%d) failed", nid);
         goto out;
     }
 
     tmp = ASN1_STRING_TABLE_get(nid2);
-    if (!TEST_ptr(tmp)) {
+    if (!TEST_ptr(tmp))
+    {
         TEST_info("asn1 string table: get NID(%d) failed", nid2);
         goto out;
     }
@@ -54,19 +59,21 @@ static int test_string_tbl(void)
 
     /* check if all newly added NIDs are cleaned up */
     tmp = ASN1_STRING_TABLE_get(nid);
-    if (!TEST_ptr_null(tmp)) {
+    if (!TEST_ptr_null(tmp))
+    {
         TEST_info("asn1 string table: get NID(%d) failed", nid);
         goto out;
     }
 
     tmp = ASN1_STRING_TABLE_get(nid2);
-    if (!TEST_ptr_null(tmp)) {
+    if (!TEST_ptr_null(tmp))
+    {
         TEST_info("asn1 string table: get NID(%d) failed", nid2);
         goto out;
     }
 
     rv = 1;
- out:
+out:
     return rv;
 }
 

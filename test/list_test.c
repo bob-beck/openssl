@@ -19,7 +19,8 @@
 #include "testutil.h"
 
 typedef struct testl_st TESTL;
-struct testl_st {
+struct testl_st
+{
     int n;
     OSSL_LIST_MEMBER(fizz, TESTL);
     OSSL_LIST_MEMBER(buzz, TESTL);
@@ -42,50 +43,46 @@ static int test_fizzbuzz(void)
     if (!TEST_true(ossl_list_fizz_is_empty(&a)))
         return 0;
 
-    for (i = 1; i < nelem; i++) {
+    for (i = 1; i < nelem; i++)
+    {
         ossl_list_fizz_init_elem(elem + i);
         ossl_list_buzz_init_elem(elem + i);
         elem[i].n = i;
-        if (i % 3 == 0) {
+        if (i % 3 == 0)
+        {
             ossl_list_fizz_insert_tail(&a, elem + i);
             na++;
         }
-        if (i % 5 == 0) {
+        if (i % 5 == 0)
+        {
             ossl_list_buzz_insert_head(&b, elem + i);
             nb++;
         }
     }
 
-    if (!TEST_false(ossl_list_fizz_is_empty(&a))
-            || !TEST_size_t_eq(ossl_list_fizz_num(&a), na)
-            || !TEST_size_t_eq(ossl_list_buzz_num(&b), nb)
-            || !TEST_ptr(ossl_list_fizz_head(&a))
-            || !TEST_ptr(ossl_list_fizz_tail(&a))
-            || !TEST_ptr(ossl_list_buzz_head(&b))
-            || !TEST_ptr(ossl_list_buzz_tail(&b))
-            || !TEST_int_eq(ossl_list_fizz_head(&a)->n, 3)
-            || !TEST_int_eq(ossl_list_fizz_tail(&a)->n, na * 3)
-            || !TEST_int_eq(ossl_list_buzz_head(&b)->n, nb * 5)
-            || !TEST_int_eq(ossl_list_buzz_tail(&b)->n, 5))
+    if (!TEST_false(ossl_list_fizz_is_empty(&a)) || !TEST_size_t_eq(ossl_list_fizz_num(&a), na) ||
+        !TEST_size_t_eq(ossl_list_buzz_num(&b), nb) || !TEST_ptr(ossl_list_fizz_head(&a)) ||
+        !TEST_ptr(ossl_list_fizz_tail(&a)) || !TEST_ptr(ossl_list_buzz_head(&b)) ||
+        !TEST_ptr(ossl_list_buzz_tail(&b)) || !TEST_int_eq(ossl_list_fizz_head(&a)->n, 3) ||
+        !TEST_int_eq(ossl_list_fizz_tail(&a)->n, na * 3) || !TEST_int_eq(ossl_list_buzz_head(&b)->n, nb * 5) ||
+        !TEST_int_eq(ossl_list_buzz_tail(&b)->n, 5))
         return 0;
     ossl_list_fizz_remove(&a, ossl_list_fizz_head(&a));
     ossl_list_buzz_remove(&b, ossl_list_buzz_tail(&b));
-    if (!TEST_size_t_eq(ossl_list_fizz_num(&a), --na)
-            || !TEST_size_t_eq(ossl_list_buzz_num(&b), --nb)
-            || !TEST_ptr(ossl_list_fizz_head(&a))
-            || !TEST_ptr(ossl_list_buzz_tail(&b))
-            || !TEST_int_eq(ossl_list_fizz_head(&a)->n, 6)
-            || !TEST_int_eq(ossl_list_buzz_tail(&b)->n, 10)
-            || !TEST_ptr(ossl_list_fizz_next(ossl_list_fizz_head(&a)))
-            || !TEST_ptr(ossl_list_fizz_prev(ossl_list_fizz_tail(&a)))
-            || !TEST_int_eq(ossl_list_fizz_next(ossl_list_fizz_head(&a))->n, 9)
-            || !TEST_int_eq(ossl_list_fizz_prev(ossl_list_fizz_tail(&a))->n, 15))
+    if (!TEST_size_t_eq(ossl_list_fizz_num(&a), --na) || !TEST_size_t_eq(ossl_list_buzz_num(&b), --nb) ||
+        !TEST_ptr(ossl_list_fizz_head(&a)) || !TEST_ptr(ossl_list_buzz_tail(&b)) ||
+        !TEST_int_eq(ossl_list_fizz_head(&a)->n, 6) || !TEST_int_eq(ossl_list_buzz_tail(&b)->n, 10) ||
+        !TEST_ptr(ossl_list_fizz_next(ossl_list_fizz_head(&a))) ||
+        !TEST_ptr(ossl_list_fizz_prev(ossl_list_fizz_tail(&a))) ||
+        !TEST_int_eq(ossl_list_fizz_next(ossl_list_fizz_head(&a))->n, 9) ||
+        !TEST_int_eq(ossl_list_fizz_prev(ossl_list_fizz_tail(&a))->n, 15))
         return 0;
     return 1;
 }
 
 typedef struct int_st INTL;
-struct int_st {
+struct int_st
+{
     int n;
     OSSL_LIST_MEMBER(int, INTL);
 };
@@ -101,24 +98,26 @@ static int test_insert(void)
     int n = 1;
 
     ossl_list_int_init(&l);
-    for (i = 0; i < (int)OSSL_NELEM(elem); i++) {
+    for (i = 0; i < (int)OSSL_NELEM(elem); i++)
+    {
         ossl_list_int_init_elem(elem + i);
         elem[i].n = i;
     }
 
     /* Check various insert options - head, tail, middle */
-    ossl_list_int_insert_head(&l, elem + 3);                /* 3 */
-    ossl_list_int_insert_tail(&l, elem + 6);                /* 3 6 */
-    ossl_list_int_insert_before(&l, elem + 6, elem + 5);    /* 3 5 6 */
-    ossl_list_int_insert_before(&l, elem + 3, elem + 1);    /* 1 3 5 6 */
-    ossl_list_int_insert_after(&l, elem + 1, elem + 2);     /* 1 2 3 5 6 */
-    ossl_list_int_insert_after(&l, elem + 6, elem + 7);     /* 1 2 3 5 6 7 */
-    ossl_list_int_insert_after(&l, elem + 3, elem + 4);     /* 1 2 3 4 5 6 7 */
+    ossl_list_int_insert_head(&l, elem + 3);             /* 3 */
+    ossl_list_int_insert_tail(&l, elem + 6);             /* 3 6 */
+    ossl_list_int_insert_before(&l, elem + 6, elem + 5); /* 3 5 6 */
+    ossl_list_int_insert_before(&l, elem + 3, elem + 1); /* 1 3 5 6 */
+    ossl_list_int_insert_after(&l, elem + 1, elem + 2);  /* 1 2 3 5 6 */
+    ossl_list_int_insert_after(&l, elem + 6, elem + 7);  /* 1 2 3 5 6 7 */
+    ossl_list_int_insert_after(&l, elem + 3, elem + 4);  /* 1 2 3 4 5 6 7 */
     if (!TEST_size_t_eq(ossl_list_int_num(&l), 7))
         return 0;
     c = ossl_list_int_head(&l);
     d = ossl_list_int_tail(&l);
-    while (c != NULL && d != NULL) {
+    while (c != NULL && d != NULL)
+    {
         if (!TEST_int_eq(c->n, n) || !TEST_int_eq(d->n, 8 - n))
             return 0;
         c = ossl_list_int_next(c);
@@ -129,13 +128,14 @@ static int test_insert(void)
         return 0;
 
     /* Check removing head, tail and middle */
-    ossl_list_int_remove(&l, elem + 1);                     /* 2 3 4 5 6 7 */
-    ossl_list_int_remove(&l, elem + 6);                     /* 2 3 4 5 7 */
-    ossl_list_int_remove(&l, elem + 7);                     /* 2 3 4 5 */
+    ossl_list_int_remove(&l, elem + 1); /* 2 3 4 5 6 7 */
+    ossl_list_int_remove(&l, elem + 6); /* 2 3 4 5 7 */
+    ossl_list_int_remove(&l, elem + 7); /* 2 3 4 5 */
     n = 2;
     c = ossl_list_int_head(&l);
     d = ossl_list_int_tail(&l);
-    while (c != NULL && d != NULL) {
+    while (c != NULL && d != NULL)
+    {
         if (!TEST_int_eq(c->n, n) || !TEST_int_eq(d->n, 7 - n))
             return 0;
         c = ossl_list_int_next(c);
@@ -146,28 +146,23 @@ static int test_insert(void)
         return 0;
 
     /* Check removing the head of a two element list works */
-    ossl_list_int_remove(&l, elem + 2);                     /* 3 4 5 */
-    ossl_list_int_remove(&l, elem + 4);                     /* 3 5 */
-    ossl_list_int_remove(&l, elem + 3);                     /* 5 */
-    if (!TEST_ptr(ossl_list_int_head(&l))
-            || !TEST_ptr(ossl_list_int_tail(&l))
-            || !TEST_int_eq(ossl_list_int_head(&l)->n, 5)
-            || !TEST_int_eq(ossl_list_int_tail(&l)->n, 5))
+    ossl_list_int_remove(&l, elem + 2); /* 3 4 5 */
+    ossl_list_int_remove(&l, elem + 4); /* 3 5 */
+    ossl_list_int_remove(&l, elem + 3); /* 5 */
+    if (!TEST_ptr(ossl_list_int_head(&l)) || !TEST_ptr(ossl_list_int_tail(&l)) ||
+        !TEST_int_eq(ossl_list_int_head(&l)->n, 5) || !TEST_int_eq(ossl_list_int_tail(&l)->n, 5))
         return 0;
 
     /* Check removing the tail of a two element list works */
-    ossl_list_int_insert_head(&l, elem);                    /* 0 5 */
-    ossl_list_int_remove(&l, elem + 5);                     /* 0 */
-    if (!TEST_ptr(ossl_list_int_head(&l))
-            || !TEST_ptr(ossl_list_int_tail(&l))
-            || !TEST_int_eq(ossl_list_int_head(&l)->n, 0)
-            || !TEST_int_eq(ossl_list_int_tail(&l)->n, 0))
+    ossl_list_int_insert_head(&l, elem); /* 0 5 */
+    ossl_list_int_remove(&l, elem + 5);  /* 0 */
+    if (!TEST_ptr(ossl_list_int_head(&l)) || !TEST_ptr(ossl_list_int_tail(&l)) ||
+        !TEST_int_eq(ossl_list_int_head(&l)->n, 0) || !TEST_int_eq(ossl_list_int_tail(&l)->n, 0))
         return 0;
 
     /* Check removing the only element works */
     ossl_list_int_remove(&l, elem);
-    if (!TEST_ptr_null(ossl_list_int_head(&l))
-            || !TEST_ptr_null(ossl_list_int_tail(&l)))
+    if (!TEST_ptr_null(ossl_list_int_head(&l)) || !TEST_ptr_null(ossl_list_int_tail(&l)))
         return 0;
     return 1;
 }

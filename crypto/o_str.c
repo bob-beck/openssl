@@ -19,7 +19,7 @@
 #define DEFAULT_SEPARATOR ':'
 #define CH_ZERO '\0'
 
-char *CRYPTO_strdup(const char *str, const char* file, int line)
+char *CRYPTO_strdup(const char *str, const char *file, int line)
 {
     char *ret;
     size_t len;
@@ -34,7 +34,7 @@ char *CRYPTO_strdup(const char *str, const char* file, int line)
     return ret;
 }
 
-char *CRYPTO_strndup(const char *str, size_t s, const char* file, int line)
+char *CRYPTO_strndup(const char *str, size_t s, const char *file, int line)
 {
     size_t maxlen;
     char *ret;
@@ -45,14 +45,15 @@ char *CRYPTO_strndup(const char *str, size_t s, const char* file, int line)
     maxlen = OPENSSL_strnlen(str, s);
 
     ret = CRYPTO_malloc(maxlen + 1, file, line);
-    if (ret) {
+    if (ret)
+    {
         memcpy(ret, str, maxlen);
         ret[maxlen] = CH_ZERO;
     }
     return ret;
 }
 
-void *CRYPTO_memdup(const void *data, size_t siz, const char* file, int line)
+void *CRYPTO_memdup(const void *data, size_t siz, const char *file, int line)
 {
     void *ret;
 
@@ -69,7 +70,8 @@ size_t OPENSSL_strnlen(const char *str, size_t maxlen)
 {
     const char *p;
 
-    for (p = str; maxlen-- != 0 && *p != CH_ZERO; ++p) ;
+    for (p = str; maxlen-- != 0 && *p != CH_ZERO; ++p)
+        ;
 
     return p - str;
 }
@@ -77,7 +79,8 @@ size_t OPENSSL_strnlen(const char *str, size_t maxlen)
 size_t OPENSSL_strlcpy(char *dst, const char *src, size_t size)
 {
     size_t l = 0;
-    for (; size > 1 && *src; size--) {
+    for (; size > 1 && *src; size--)
+    {
         *dst++ = *src++;
         l++;
     }
@@ -123,8 +126,7 @@ size_t OPENSSL_strlcat(char *dst, const char *src, size_t size)
  *       correct based on the expected consumption of the string as reported
  *       by endptr.
  */
-int OPENSSL_strtoul(const char *str, char **endptr, int base,
-                    unsigned long *num)
+int OPENSSL_strtoul(const char *str, char **endptr, int base, unsigned long *num)
 {
     char *tmp_endptr;
     char **internal_endptr = endptr == NULL ? &tmp_endptr : endptr;
@@ -154,9 +156,7 @@ int OPENSSL_strtoul(const char *str, char **endptr, int base,
      *    means there was some part of the string left over after translation
      * 3) If no bytes of the string were consumed
      */
-    if (errno != 0 ||
-        (endptr == NULL && **internal_endptr != '\0') ||
-        (str == *internal_endptr))
+    if (errno != 0 || (endptr == NULL && **internal_endptr != '\0') || (str == *internal_endptr))
         return 0;
 
     return 1;
@@ -168,7 +168,8 @@ int OPENSSL_hexchar2int(unsigned char c)
     c = os_toebcdic[c];
 #endif
 
-    switch (c) {
+    switch (c)
+    {
     case '0':
         return 0;
     case '1':
@@ -178,35 +179,40 @@ int OPENSSL_hexchar2int(unsigned char c)
     case '3':
         return 3;
     case '4':
-          return 4;
+        return 4;
     case '5':
-          return 5;
+        return 5;
     case '6':
-          return 6;
+        return 6;
     case '7':
-          return 7;
+        return 7;
     case '8':
-          return 8;
+        return 8;
     case '9':
-          return 9;
-    case 'a': case 'A':
-          return 0x0A;
-    case 'b': case 'B':
-          return 0x0B;
-    case 'c': case 'C':
-          return 0x0C;
-    case 'd': case 'D':
-          return 0x0D;
-    case 'e': case 'E':
-          return 0x0E;
-    case 'f': case 'F':
-          return 0x0F;
+        return 9;
+    case 'a':
+    case 'A':
+        return 0x0A;
+    case 'b':
+    case 'B':
+        return 0x0B;
+    case 'c':
+    case 'C':
+        return 0x0C;
+    case 'd':
+    case 'D':
+        return 0x0D;
+    case 'e':
+    case 'E':
+        return 0x0E;
+    case 'f':
+    case 'F':
+        return 0x0F;
     }
     return -1;
 }
 
-static int hexstr2buf_sep(unsigned char *buf, size_t buf_n, size_t *buflen,
-                          const char *str, const char sep)
+static int hexstr2buf_sep(unsigned char *buf, size_t buf_n, size_t *buflen, const char *str, const char sep)
 {
     unsigned char *q;
     unsigned char ch, cl;
@@ -214,25 +220,30 @@ static int hexstr2buf_sep(unsigned char *buf, size_t buf_n, size_t *buflen,
     const unsigned char *p;
     size_t cnt;
 
-    for (p = (const unsigned char *)str, q = buf, cnt = 0; *p; ) {
+    for (p = (const unsigned char *)str, q = buf, cnt = 0; *p;)
+    {
         ch = *p++;
         /* A separator of CH_ZERO means there is no separator */
         if (ch == sep && sep != CH_ZERO)
             continue;
         cl = *p++;
-        if (!cl) {
+        if (!cl)
+        {
             ERR_raise(ERR_LIB_CRYPTO, CRYPTO_R_ODD_NUMBER_OF_DIGITS);
             return 0;
         }
         cli = OPENSSL_hexchar2int(cl);
         chi = OPENSSL_hexchar2int(ch);
-        if (cli < 0 || chi < 0) {
+        if (cli < 0 || chi < 0)
+        {
             ERR_raise(ERR_LIB_CRYPTO, CRYPTO_R_ILLEGAL_HEX_DIGIT);
             return 0;
         }
         cnt++;
-        if (q != NULL) {
-            if (cnt > buf_n) {
+        if (q != NULL)
+        {
+            if (cnt > buf_n)
+            {
                 ERR_raise(ERR_LIB_CRYPTO, CRYPTO_R_TOO_SMALL_BUFFER);
                 return 0;
             }
@@ -248,20 +259,19 @@ static int hexstr2buf_sep(unsigned char *buf, size_t buf_n, size_t *buflen,
 /*
  * Given a string of hex digits convert to a buffer
  */
-int OPENSSL_hexstr2buf_ex(unsigned char *buf, size_t buf_n, size_t *buflen,
-                          const char *str, const char sep)
+int OPENSSL_hexstr2buf_ex(unsigned char *buf, size_t buf_n, size_t *buflen, const char *str, const char sep)
 {
     return hexstr2buf_sep(buf, buf_n, buflen, str, sep);
 }
 
-unsigned char *ossl_hexstr2buf_sep(const char *str, long *buflen,
-                                   const char sep)
+unsigned char *ossl_hexstr2buf_sep(const char *str, long *buflen, const char sep)
 {
     unsigned char *buf;
     size_t buf_n, tmp_buflen;
 
     buf_n = strlen(str);
-    if (buf_n <= 1) {
+    if (buf_n <= 1)
+    {
         ERR_raise(ERR_LIB_CRYPTO, CRYPTO_R_HEX_STRING_TOO_SHORT);
         return NULL;
     }
@@ -272,7 +282,8 @@ unsigned char *ossl_hexstr2buf_sep(const char *str, long *buflen,
     if (buflen != NULL)
         *buflen = 0;
     tmp_buflen = 0;
-    if (hexstr2buf_sep(buf, buf_n, &tmp_buflen, str, sep)) {
+    if (hexstr2buf_sep(buf, buf_n, &tmp_buflen, str, sep))
+    {
         if (buflen != NULL)
             *buflen = (long)tmp_buflen;
         return buf;
@@ -286,8 +297,7 @@ unsigned char *OPENSSL_hexstr2buf(const char *str, long *buflen)
     return ossl_hexstr2buf_sep(str, buflen, DEFAULT_SEPARATOR);
 }
 
-static int buf2hexstr_sep(char *str, size_t str_n, size_t *strlength,
-                          const unsigned char *buf, size_t buflen,
+static int buf2hexstr_sep(char *str, size_t str_n, size_t *strlength, const unsigned char *buf, size_t buflen,
                           const char sep)
 {
     char *q;
@@ -301,13 +311,15 @@ static int buf2hexstr_sep(char *str, size_t str_n, size_t *strlength,
     if (str == NULL)
         return 1;
 
-    if (str_n < len) {
+    if (str_n < len)
+    {
         ERR_raise(ERR_LIB_CRYPTO, CRYPTO_R_TOO_SMALL_BUFFER);
         return 0;
     }
 
     q = str;
-    for (i = 0; i < buflen; i++) {
+    for (i = 0; i < buflen; i++)
+    {
         q += ossl_to_hex(q, buf[i]);
         if (has_sep)
             *q++ = sep;
@@ -322,8 +334,7 @@ static int buf2hexstr_sep(char *str, size_t str_n, size_t *strlength,
     return 1;
 }
 
-int OPENSSL_buf2hexstr_ex(char *str, size_t str_n, size_t *strlength,
-                          const unsigned char *buf, size_t buflen,
+int OPENSSL_buf2hexstr_ex(char *str, size_t str_n, size_t *strlength, const unsigned char *buf, size_t buflen,
                           const char sep)
 {
     return buf2hexstr_sep(str, str_n, strlength, buf, buflen, sep);
@@ -347,7 +358,6 @@ char *ossl_buf2hexstr_sep(const unsigned char *buf, long buflen, char sep)
     return NULL;
 }
 
-
 /*
  * Given a buffer of length 'buflen' return a OPENSSL_malloc'ed string with
  * its hex representation @@@ (Contents of buffer are always kept in ASCII,
@@ -360,7 +370,7 @@ char *OPENSSL_buf2hexstr(const unsigned char *buf, long buflen)
 
 int openssl_strerror_r(int errnum, char *buf, size_t buflen)
 {
-#if defined(_MSC_VER) && _MSC_VER>=1400 && !defined(_WIN32_WCE)
+#if defined(_MSC_VER) && _MSC_VER >= 1400 && !defined(_WIN32_WCE)
     return !strerror_s(buf, buflen, errnum);
 #elif defined(_GNU_SOURCE)
     char *err;
@@ -383,8 +393,7 @@ int openssl_strerror_r(int errnum, char *buf, size_t buflen)
     if (err != buf)
         OPENSSL_strlcpy(buf, err, buflen);
     return 1;
-#elif (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || \
-      (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
+#elif (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L) || (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 600)
     /*
      * We can use "real" strerror_r. The OpenSSL version differs in that it
      * gives 1 on success and 0 on failure for consistency with other OpenSSL

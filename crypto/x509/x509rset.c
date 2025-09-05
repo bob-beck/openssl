@@ -17,7 +17,8 @@
 
 int X509_REQ_set_version(X509_REQ *x, long version)
 {
-    if (x == NULL || version != X509_REQ_VERSION_1) {
+    if (x == NULL || version != X509_REQ_VERSION_1)
+    {
         ERR_raise(ERR_LIB_X509, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }

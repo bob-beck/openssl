@@ -30,18 +30,7 @@ static int final(EVP_MD_CTX *ctx, unsigned char *md)
 }
 
 static const EVP_MD null_md = {
-    NID_undef,
-    NID_undef,
-    0,
-    0,
-    EVP_ORIG_GLOBAL,
-    init,
-    update,
-    final,
-    NULL,
-    NULL,
-    0,
-    sizeof(EVP_MD *),
+    NID_undef, NID_undef, 0, 0, EVP_ORIG_GLOBAL, init, update, final, NULL, NULL, 0, sizeof(EVP_MD *),
 };
 
 const EVP_MD *EVP_md_null(void)

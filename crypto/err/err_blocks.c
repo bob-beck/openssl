@@ -59,7 +59,8 @@ void ERR_vset_error(int lib, int reason, const char *fmt, va_list args)
         return;
     i = es->top;
 
-    if (fmt != NULL) {
+    if (fmt != NULL)
+    {
         int printed_len = 0;
         char *rbuf = NULL;
 
@@ -80,13 +81,14 @@ void ERR_vset_error(int lib, int reason, const char *fmt, va_list args)
          * Try to maximize the space available.  If that fails, we use what
          * we have.
          */
-        if (buf_size < ERR_MAX_DATA_SIZE
-            && (rbuf = OPENSSL_realloc(buf, ERR_MAX_DATA_SIZE)) != NULL) {
+        if (buf_size < ERR_MAX_DATA_SIZE && (rbuf = OPENSSL_realloc(buf, ERR_MAX_DATA_SIZE)) != NULL)
+        {
             buf = rbuf;
             buf_size = ERR_MAX_DATA_SIZE;
         }
 
-        if (buf != NULL) {
+        if (buf != NULL)
+        {
             printed_len = BIO_vsnprintf(buf, buf_size, fmt, args);
         }
         if (printed_len < 0)
@@ -100,7 +102,8 @@ void ERR_vset_error(int lib, int reason, const char *fmt, va_list args)
          * (According to documentation, realloc leaves the old buffer untouched
          * if it fails)
          */
-        if ((rbuf = OPENSSL_realloc(buf, printed_len + 1)) != NULL) {
+        if ((rbuf = OPENSSL_realloc(buf, printed_len + 1)) != NULL)
+        {
             buf = rbuf;
             buf_size = printed_len + 1;
             buf[printed_len] = '\0';

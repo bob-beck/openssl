@@ -14,9 +14,9 @@
 #include "internal/cryptlib.h"
 #include "internal/comp.h"
 
-#define SSL_COMP_NULL_IDX       0
-#define SSL_COMP_ZLIB_IDX       1
-#define SSL_COMP_NUM_IDX        2
+#define SSL_COMP_NULL_IDX 0
+#define SSL_COMP_ZLIB_IDX 1
+#define SSL_COMP_NUM_IDX 2
 
 #ifndef OPENSSL_NO_COMP
 static int sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
@@ -34,9 +34,11 @@ STACK_OF(SSL_COMP) *ossl_load_builtin_compressions(void)
 
     comp_methods = sk_SSL_COMP_new(sk_comp_cmp);
 
-    if (COMP_get_type(method) != NID_undef && comp_methods != NULL) {
+    if (COMP_get_type(method) != NID_undef && comp_methods != NULL)
+    {
         comp = OPENSSL_malloc(sizeof(*comp));
-        if (comp != NULL) {
+        if (comp != NULL)
+        {
             comp->method = method;
             comp->id = SSL_COMP_ZLIB_IDX;
             comp->name = COMP_get_name(method);

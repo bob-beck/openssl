@@ -61,7 +61,8 @@ int main(int argc, char **argv)
     if (out == NULL)
         goto err;
 
-    if (!PKCS7_verify(p7, NULL, st, cont, out, 0)) {
+    if (!PKCS7_verify(p7, NULL, st, cont, out, 0))
+    {
         fprintf(stderr, "Verification Failure\n");
         goto err;
     }
@@ -69,8 +70,9 @@ int main(int argc, char **argv)
     printf("Verification Successful\n");
 
     ret = EXIT_SUCCESS;
- err:
-    if (ret != EXIT_SUCCESS) {
+err:
+    if (ret != EXIT_SUCCESS)
+    {
         fprintf(stderr, "Error Verifying Data\n");
         ERR_print_errors_fp(stderr);
     }

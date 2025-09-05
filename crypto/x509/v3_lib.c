@@ -18,41 +18,38 @@
 
 static STACK_OF(X509V3_EXT_METHOD) *ext_list = NULL;
 
-static int ext_cmp(const X509V3_EXT_METHOD *const *a,
-                   const X509V3_EXT_METHOD *const *b);
+static int ext_cmp(const X509V3_EXT_METHOD *const *a, const X509V3_EXT_METHOD *const *b);
 static void ext_list_free(X509V3_EXT_METHOD *ext);
 
 int X509V3_EXT_add(X509V3_EXT_METHOD *ext)
 {
-    if (ext_list == NULL
-        && (ext_list = sk_X509V3_EXT_METHOD_new(ext_cmp)) == NULL) {
+    if (ext_list == NULL && (ext_list = sk_X509V3_EXT_METHOD_new(ext_cmp)) == NULL)
+    {
         ERR_raise(ERR_LIB_X509V3, ERR_R_CRYPTO_LIB);
         return 0;
     }
-    if (!sk_X509V3_EXT_METHOD_push(ext_list, ext)) {
+    if (!sk_X509V3_EXT_METHOD_push(ext_list, ext))
+    {
         ERR_raise(ERR_LIB_X509V3, ERR_R_CRYPTO_LIB);
         return 0;
     }
     return 1;
 }
 
-static int ext_cmp(const X509V3_EXT_METHOD *const *a,
-                   const X509V3_EXT_METHOD *const *b)
+static int ext_cmp(const X509V3_EXT_METHOD *const *a, const X509V3_EXT_METHOD *const *b)
 {
     return ((*a)->ext_nid - (*b)->ext_nid);
 }
 
-DECLARE_OBJ_BSEARCH_CMP_FN(const X509V3_EXT_METHOD *,
-                           const X509V3_EXT_METHOD *, ext);
-IMPLEMENT_OBJ_BSEARCH_CMP_FN(const X509V3_EXT_METHOD *,
-                             const X509V3_EXT_METHOD *, ext);
+DECLARE_OBJ_BSEARCH_CMP_FN(const X509V3_EXT_METHOD *, const X509V3_EXT_METHOD *, ext);
+IMPLEMENT_OBJ_BSEARCH_CMP_FN(const X509V3_EXT_METHOD *, const X509V3_EXT_METHOD *, ext);
 
 #include "standard_exts.h"
 
 const X509V3_EXT_METHOD *X509V3_EXT_get_nid(int nid)
 {
     X509V3_EXT_METHOD tmp;
-    const X509V3_EXT_METHOD *t = &tmp, *const *ret;
+    const X509V3_EXT_METHOD *t = &tmp, *const * ret;
     int idx;
 
     if (nid < 0)
@@ -91,7 +88,8 @@ int X509V3_EXT_add_alias(int nid_to, int nid_from)
     const X509V3_EXT_METHOD *ext;
     X509V3_EXT_METHOD *tmpext;
 
-    if ((ext = X509V3_EXT_get_nid(nid_from)) == NULL) {
+    if ((ext = X509V3_EXT_get_nid(nid_from)) == NULL)
+    {
         ERR_raise(ERR_LIB_X509V3, X509V3_R_EXTENSION_NOT_FOUND);
         return 0;
     }
@@ -100,7 +98,8 @@ int X509V3_EXT_add_alias(int nid_to, int nid_from)
     *tmpext = *ext;
     tmpext->ext_nid = nid_to;
     tmpext->ext_flags |= X509V3_EXT_DYNAMIC;
-    if (!X509V3_EXT_add(tmpext)) {
+    if (!X509V3_EXT_add(tmpext))
+    {
         OPENSSL_free(tmpext);
         return 0;
     }
@@ -164,13 +163,13 @@ void *X509V3_EXT_d2i(X509_EXTENSION *ext)
  * -2 extension occurs more than once.
  */
 
-void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *x, int nid, int *crit,
-                     int *idx)
+void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *x, int nid, int *crit, int *idx)
 {
     int lastpos, i;
     X509_EXTENSION *ex, *found_ex = NULL;
 
-    if (!x) {
+    if (!x)
+    {
         if (idx)
             *idx = -1;
         if (crit)
@@ -183,14 +182,19 @@ void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *x, int nid, int *crit,
         lastpos = 0;
     if (lastpos < 0)
         lastpos = 0;
-    for (i = lastpos; i < sk_X509_EXTENSION_num(x); i++) {
+    for (i = lastpos; i < sk_X509_EXTENSION_num(x); i++)
+    {
         ex = sk_X509_EXTENSION_value(x, i);
-        if (OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == nid) {
-            if (idx) {
+        if (OBJ_obj2nid(X509_EXTENSION_get_object(ex)) == nid)
+        {
+            if (idx)
+            {
                 *idx = i;
                 found_ex = ex;
                 break;
-            } else if (found_ex) {
+            }
+            else if (found_ex)
+            {
                 /* Found more than one */
                 if (crit)
                     *crit = -2;
@@ -199,7 +203,8 @@ void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *x, int nid, int *crit,
             found_ex = ex;
         }
     }
-    if (found_ex) {
+    if (found_ex)
+    {
         /* Found it */
         if (crit)
             *crit = X509_EXTENSION_get_critical(found_ex);
@@ -220,8 +225,7 @@ void *X509V3_get_d2i(const STACK_OF(X509_EXTENSION) *x, int nid, int *crit,
  * 'value' arguments (if relevant) are the extensions internal structure.
  */
 
-int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
-                    int crit, unsigned long flags)
+int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value, int crit, unsigned long flags)
 {
     int errcode, extidx = -1;
     X509_EXTENSION *ext = NULL, *extmp;
@@ -236,29 +240,34 @@ int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
         extidx = X509v3_get_ext_by_NID(*x, nid, -1);
 
     /* See if extension exists */
-    if (extidx >= 0) {
+    if (extidx >= 0)
+    {
         /* If keep existing, nothing to do */
         if (ext_op == X509V3_ADD_KEEP_EXISTING)
             return 1;
         /* If default then its an error */
-        if (ext_op == X509V3_ADD_DEFAULT) {
+        if (ext_op == X509V3_ADD_DEFAULT)
+        {
             errcode = X509V3_R_EXTENSION_EXISTS;
             goto err;
         }
         /* If delete, just delete it */
-        if (ext_op == X509V3_ADD_DELETE) {
+        if (ext_op == X509V3_ADD_DELETE)
+        {
             extmp = sk_X509_EXTENSION_delete(*x, extidx);
             if (extmp == NULL)
                 return -1;
             X509_EXTENSION_free(extmp);
             return 1;
         }
-    } else {
+    }
+    else
+    {
         /*
          * If replace existing or delete, error since extension must exist
          */
-        if ((ext_op == X509V3_ADD_REPLACE_EXISTING) ||
-            (ext_op == X509V3_ADD_DELETE)) {
+        if ((ext_op == X509V3_ADD_REPLACE_EXISTING) || (ext_op == X509V3_ADD_DELETE))
+        {
             errcode = X509V3_R_EXTENSION_NOT_FOUND;
             goto err;
         }
@@ -271,13 +280,15 @@ int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
 
     ext = X509V3_EXT_i2d(nid, crit, value);
 
-    if (!ext) {
+    if (!ext)
+    {
         ERR_raise(ERR_LIB_X509V3, X509V3_R_ERROR_CREATING_EXTENSION);
         return 0;
     }
 
     /* If extension exists replace it.. */
-    if (extidx >= 0) {
+    if (extidx >= 0)
+    {
         extmp = sk_X509_EXTENSION_value(*x, extidx);
         X509_EXTENSION_free(extmp);
         if (!sk_X509_EXTENSION_set(*x, extidx, ext))
@@ -286,8 +297,7 @@ int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
     }
 
     ret = *x;
-    if (*x == NULL
-        && (ret = sk_X509_EXTENSION_new_null()) == NULL)
+    if (*x == NULL && (ret = sk_X509_EXTENSION_new_null()) == NULL)
         goto m_fail;
     if (!sk_X509_EXTENSION_push(ret, ext))
         goto m_fail;
@@ -295,14 +305,14 @@ int X509V3_add1_i2d(STACK_OF(X509_EXTENSION) **x, int nid, void *value,
     *x = ret;
     return 1;
 
- m_fail:
+m_fail:
     /* ERR_raise(ERR_LIB_X509V3, ERR_R_CRYPTO_LIB); */
     if (ret != *x)
         sk_X509_EXTENSION_free(ret);
     X509_EXTENSION_free(ext);
     return -1;
 
- err:
+err:
     if (!(flags & X509V3_ADD_SILENT))
         ERR_raise(ERR_LIB_X509V3, errcode);
     return 0;

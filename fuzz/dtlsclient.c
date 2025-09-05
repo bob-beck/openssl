@@ -23,7 +23,12 @@ static int idx;
 
 #define FUZZTIME 1485898104
 
-#define TIME_IMPL(t) { if (t != NULL) *t = FUZZTIME; return FUZZTIME; }
+#define TIME_IMPL(t)                                                                                                   \
+    {                                                                                                                  \
+        if (t != NULL)                                                                                                 \
+            *t = FUZZTIME;                                                                                             \
+        return FUZZTIME;                                                                                               \
+    }
 
 /*
  * This might not work in all cases (and definitely not on Windows
@@ -36,7 +41,7 @@ static int idx;
 time_t time(time_t *t) TIME_IMPL(t)
 #endif
 
-int FuzzerInitialize(int *argc, char ***argv)
+    int FuzzerInitialize(int *argc, char ***argv)
 {
     STACK_OF(SSL_COMP) *comp_methods;
 
@@ -78,23 +83,27 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     if (in == NULL)
         goto end;
     out = BIO_new(BIO_s_mem());
-    if (out == NULL) {
+    if (out == NULL)
+    {
         BIO_free(in);
         goto end;
     }
     SSL_set_bio(client, in, out);
     SSL_set_connect_state(client);
     OPENSSL_assert((size_t)BIO_write(in, buf, (int)len) == len);
-    if (SSL_do_handshake(client) == 1) {
+    if (SSL_do_handshake(client) == 1)
+    {
         /* Keep reading application data until error or EOF. */
         uint8_t tmp[1024];
-        for (;;) {
-            if (SSL_read(client, tmp, sizeof(tmp)) <= 0) {
+        for (;;)
+        {
+            if (SSL_read(client, tmp, sizeof(tmp)) <= 0)
+            {
                 break;
             }
         }
     }
- end:
+end:
     SSL_free(client);
     ERR_clear_error();
     SSL_CTX_free(ctx);

@@ -13,28 +13,32 @@
 #include <openssl/e_os2.h>
 
 #ifdef OPENSSL_SYS_UNIX
-# include <sys/stat.h>
-# include <sys/resource.h>
-# include <openssl/pem.h>
-# include <openssl/x509.h>
-# include <openssl/err.h>
-# include <openssl/bio.h>
-# include "internal/e_os.h"
-# if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
+#include <sys/stat.h>
+#include <sys/resource.h>
+#include <openssl/pem.h>
+#include <openssl/x509.h>
+#include <openssl/err.h>
+#include <openssl/bio.h>
+#include "internal/e_os.h"
+#if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200112L
 
-# ifndef timersub
+#ifndef timersub
 /* struct timeval * subtraction; a must be greater than or equal to b */
-#  define timersub(a, b, res)                                         \
-     do {                                                             \
-         (res)->tv_sec = (a)->tv_sec - (b)->tv_sec;                   \
-         if ((a)->tv_usec < (b)->tv_usec) {                           \
-             (res)->tv_usec = (a)->tv_usec + 1000000 - (b)->tv_usec;  \
-             --(res)->tv_sec;                                         \
-         } else {                                                     \
-             (res)->tv_usec = (a)->tv_usec - (b)->tv_usec;            \
-         }                                                            \
-     } while(0)
-# endif
+#define timersub(a, b, res)                                                                                            \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        (res)->tv_sec = (a)->tv_sec - (b)->tv_sec;                                                                     \
+        if ((a)->tv_usec < (b)->tv_usec)                                                                               \
+        {                                                                                                              \
+            (res)->tv_usec = (a)->tv_usec + 1000000 - (b)->tv_usec;                                                    \
+            --(res)->tv_sec;                                                                                           \
+        }                                                                                                              \
+        else                                                                                                           \
+        {                                                                                                              \
+            (res)->tv_usec = (a)->tv_usec - (b)->tv_usec;                                                              \
+        }                                                                                                              \
+    } while (0)
+#endif
 
 static char *prog;
 
@@ -43,12 +47,14 @@ static void readx509(const char *contents, int size)
     X509 *x = NULL;
     BIO *b = BIO_new_mem_buf(contents, size);
 
-    if (b == NULL) {
+    if (b == NULL)
+    {
         ERR_print_errors_fp(stderr);
         exit(EXIT_FAILURE);
     }
     PEM_read_bio_X509(b, &x, 0, NULL);
-    if (x == NULL) {
+    if (x == NULL)
+    {
         ERR_print_errors_fp(stderr);
         exit(EXIT_FAILURE);
     }
@@ -61,12 +67,14 @@ static void readpkey(const char *contents, int size)
     BIO *b = BIO_new_mem_buf(contents, size);
     EVP_PKEY *pkey;
 
-    if (b == NULL) {
+    if (b == NULL)
+    {
         ERR_print_errors_fp(stderr);
         exit(EXIT_FAILURE);
     }
     pkey = PEM_read_bio_PrivateKey(b, NULL, NULL, NULL);
-    if (pkey == NULL) {
+    if (pkey == NULL)
+    {
         ERR_print_errors_fp(stderr);
         exit(EXIT_FAILURE);
     }
@@ -91,7 +99,7 @@ static void usage(void)
     fprintf(stderr, "          p for private key\n");
     exit(EXIT_FAILURE);
 }
-# endif
+#endif
 #endif
 
 int main(int ac, char **av)
@@ -106,8 +114,10 @@ int main(int ac, char **av)
 
     /* Parse JCL. */
     prog = av[0];
-    while ((i = getopt(ac, av, "c:dw:")) != EOF) {
-        switch (i) {
+    while ((i = getopt(ac, av, "c:dw:")) != EOF)
+    {
+        switch (i)
+        {
         default:
             usage();
             break;
@@ -121,7 +131,8 @@ int main(int ac, char **av)
         case 'w':
             if (optarg[1] != '\0')
                 usage();
-            switch (*optarg) {
+            switch (*optarg)
+            {
             default:
                 usage();
                 break;
@@ -139,17 +150,20 @@ int main(int ac, char **av)
     /* Read input file. */
     if (av[0] == NULL)
         usage();
-    if (stat(av[0], &sb) < 0) {
+    if (stat(av[0], &sb) < 0)
+    {
         perror(av[0]);
         exit(EXIT_FAILURE);
     }
     contents = OPENSSL_malloc(sb.st_size + 1);
-    if (contents == NULL) {
+    if (contents == NULL)
+    {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
     fp = fopen(av[0], "r");
-    if ((long)fread(contents, 1, sb.st_size, fp) != sb.st_size) {
+    if ((long)fread(contents, 1, sb.st_size, fp) != sb.st_size)
+    {
         fclose(fp);
         OPENSSL_free(contents);
         perror("fread");
@@ -161,8 +175,10 @@ int main(int ac, char **av)
         printf(">%s<\n", contents);
 
     /* Try to prep system cache, etc. */
-    for (i = 10; i > 0; i--) {
-        switch (what) {
+    for (i = 10; i > 0; i--)
+    {
+        switch (what)
+        {
         case 'c':
             readx509(contents, (int)sb.st_size);
             break;
@@ -172,18 +188,22 @@ int main(int ac, char **av)
         }
     }
 
-    if (gettimeofday(&e_start, NULL) < 0) {
+    if (gettimeofday(&e_start, NULL) < 0)
+    {
         OPENSSL_free(contents);
         perror("elapsed start");
         exit(EXIT_FAILURE);
     }
-    if (getrusage(RUSAGE_SELF, &start) < 0) {
+    if (getrusage(RUSAGE_SELF, &start) < 0)
+    {
         OPENSSL_free(contents);
         perror("start");
         exit(EXIT_FAILURE);
     }
-    for (i = count; i > 0; i--) {
-        switch (what) {
+    for (i = count; i > 0; i--)
+    {
+        switch (what)
+        {
         case 'c':
             readx509(contents, (int)sb.st_size);
             break;
@@ -192,12 +212,14 @@ int main(int ac, char **av)
             break;
         }
     }
-    if (getrusage(RUSAGE_SELF, &end) < 0) {
+    if (getrusage(RUSAGE_SELF, &end) < 0)
+    {
         OPENSSL_free(contents);
         perror("getrusage");
         exit(EXIT_FAILURE);
     }
-    if (gettimeofday(&e_end, NULL) < 0) {
+    if (gettimeofday(&e_end, NULL) < 0)
+    {
         OPENSSL_free(contents);
         perror("gettimeofday");
         exit(EXIT_FAILURE);
@@ -214,8 +236,7 @@ int main(int ac, char **av)
     OPENSSL_free(contents);
     return EXIT_SUCCESS;
 #else
-    fprintf(stderr,
-            "This tool is not supported on this platform for lack of POSIX1.2001 support\n");
+    fprintf(stderr, "This tool is not supported on this platform for lack of POSIX1.2001 support\n");
     exit(EXIT_FAILURE);
 #endif
 }

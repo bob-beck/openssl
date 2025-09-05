@@ -19,18 +19,28 @@
 #include <openssl/pem.h>
 
 static int cb(int ok, X509_STORE_CTX *ctx);
-static int check(X509_STORE *ctx, const char *file,
-                 STACK_OF(X509) *uchain, STACK_OF(X509) *tchain,
-                 STACK_OF(X509_CRL) *crls, int show_chain,
-                 STACK_OF(OPENSSL_STRING) *opts);
+static int check(X509_STORE *ctx, const char *file, STACK_OF(X509) *uchain, STACK_OF(X509) *tchain,
+                 STACK_OF(X509_CRL) *crls, int show_chain, STACK_OF(OPENSSL_STRING) *opts);
 static int v_verbose = 0, vflags = 0;
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_ENGINE, OPT_CAPATH, OPT_CAFILE, OPT_CASTORE,
-    OPT_NOCAPATH, OPT_NOCAFILE, OPT_NOCASTORE,
-    OPT_UNTRUSTED, OPT_TRUSTED, OPT_CRLFILE, OPT_CRL_DOWNLOAD, OPT_SHOW_CHAIN,
-    OPT_V_ENUM, OPT_NAMEOPT, OPT_VFYOPT,
+    OPT_ENGINE,
+    OPT_CAPATH,
+    OPT_CAFILE,
+    OPT_CASTORE,
+    OPT_NOCAPATH,
+    OPT_NOCAFILE,
+    OPT_NOCASTORE,
+    OPT_UNTRUSTED,
+    OPT_TRUSTED,
+    OPT_CRLFILE,
+    OPT_CRL_DOWNLOAD,
+    OPT_SHOW_CHAIN,
+    OPT_V_ENUM,
+    OPT_NAMEOPT,
+    OPT_VFYOPT,
     OPT_VERBOSE,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
@@ -43,8 +53,7 @@ const OPTIONS verify_options[] = {
 #ifndef OPENSSL_NO_ENGINE
     {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
 #endif
-    {"verbose", OPT_VERBOSE, '-',
-        "Print extra information about the operations being performed."},
+    {"verbose", OPT_VERBOSE, '-', "Print extra information about the operations being performed."},
     {"nameopt", OPT_NAMEOPT, 's', "Certificate subject/issuer name printing options"},
 
     OPT_SECTION("Certificate chain"),
@@ -52,19 +61,13 @@ const OPTIONS verify_options[] = {
     {"CAfile", OPT_CAFILE, '<', "A file of trusted certificates"},
     {"CApath", OPT_CAPATH, '/', "A directory of files with trusted certificates"},
     {"CAstore", OPT_CASTORE, ':', "URI to a store of trusted certificates"},
-    {"no-CAfile", OPT_NOCAFILE, '-',
-     "Do not load the default trusted certificates file"},
-    {"no-CApath", OPT_NOCAPATH, '-',
-     "Do not load trusted certificates from the default directory"},
-    {"no-CAstore", OPT_NOCASTORE, '-',
-     "Do not load trusted certificates from the default certificates store"},
+    {"no-CAfile", OPT_NOCAFILE, '-', "Do not load the default trusted certificates file"},
+    {"no-CApath", OPT_NOCAPATH, '-', "Do not load trusted certificates from the default directory"},
+    {"no-CAstore", OPT_NOCASTORE, '-', "Do not load trusted certificates from the default certificates store"},
     {"untrusted", OPT_UNTRUSTED, '<', "A file of untrusted certificates"},
-    {"CRLfile", OPT_CRLFILE, '<',
-        "File containing one or more CRL's (in PEM format) to load"},
-    {"crl_download", OPT_CRL_DOWNLOAD, '-',
-        "Try downloading CRL information for certificates via their CDP entries"},
-    {"show_chain", OPT_SHOW_CHAIN, '-',
-        "Display information about the certificate chain"},
+    {"CRLfile", OPT_CRLFILE, '<', "File containing one or more CRL's (in PEM format) to load"},
+    {"crl_download", OPT_CRL_DOWNLOAD, '-', "Try downloading CRL information for certificates via their CDP entries"},
+    {"show_chain", OPT_SHOW_CHAIN, '-', "Display information about the certificate chain"},
 
     OPT_V_OPTIONS,
     {"vfyopt", OPT_VFYOPT, 's', "Verification parameter in n:v form"},
@@ -73,8 +76,7 @@ const OPTIONS verify_options[] = {
 
     OPT_PARAMETERS(),
     {"cert", 0, 0, "Certificate(s) to verify (optional; stdin used otherwise)"},
-    {NULL}
-};
+    {NULL}};
 
 int verify_main(int argc, char **argv)
 {
@@ -93,30 +95,31 @@ int verify_main(int argc, char **argv)
         goto end;
 
     prog = opt_init(argc, argv, verify_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
             opt_help(verify_options);
             BIO_printf(bio_err, "\nRecognized certificate chain purposes:\n");
-            for (i = 0; i < X509_PURPOSE_get_count(); i++) {
+            for (i = 0; i < X509_PURPOSE_get_count(); i++)
+            {
                 X509_PURPOSE *ptmp = X509_PURPOSE_get0(i);
 
-                BIO_printf(bio_err, "  %-15s  %s\n",
-                        X509_PURPOSE_get0_sname(ptmp),
-                        X509_PURPOSE_get0_name(ptmp));
+                BIO_printf(bio_err, "  %-15s  %s\n", X509_PURPOSE_get0_sname(ptmp), X509_PURPOSE_get0_name(ptmp));
             }
 
             BIO_printf(bio_err, "Recognized certificate policy names:\n");
-            for (i = 0; i < X509_VERIFY_PARAM_get_count(); i++) {
+            for (i = 0; i < X509_VERIFY_PARAM_get_count(); i++)
+            {
                 const X509_VERIFY_PARAM *vptmp = X509_VERIFY_PARAM_get0(i);
 
-                BIO_printf(bio_err, "  %s\n",
-                        X509_VERIFY_PARAM_get0_name(vptmp));
+                BIO_printf(bio_err, "  %s\n", X509_VERIFY_PARAM_get0_name(vptmp));
             }
             ret = 0;
             goto end;
@@ -145,8 +148,7 @@ int verify_main(int argc, char **argv)
             break;
         case OPT_UNTRUSTED:
             /* Zero or more times */
-            if (!load_certs(opt_arg(), 0, &untrusted, NULL,
-                            "untrusted certificates"))
+            if (!load_certs(opt_arg(), 0, &untrusted, NULL, "untrusted certificates"))
                 goto end;
             break;
         case OPT_TRUSTED:
@@ -166,7 +168,8 @@ int verify_main(int argc, char **argv)
             crl_download = 1;
             break;
         case OPT_ENGINE:
-            if ((e = setup_engine(opt_arg(), 0)) == NULL) {
+            if ((e = setup_engine(opt_arg(), 0)) == NULL)
+            {
                 /* Failure message already displayed */
                 goto end;
             }
@@ -198,16 +201,13 @@ int verify_main(int argc, char **argv)
     argc = opt_num_rest();
     argv = opt_rest();
 
-    if (trusted != NULL
-        && (CAfile != NULL || CApath != NULL || CAstore != NULL)) {
-        BIO_printf(bio_err,
-                   "%s: Cannot use -trusted with -CAfile, -CApath or -CAstore\n",
-                   prog);
+    if (trusted != NULL && (CAfile != NULL || CApath != NULL || CAstore != NULL))
+    {
+        BIO_printf(bio_err, "%s: Cannot use -trusted with -CAfile, -CApath or -CAstore\n", prog);
         goto end;
     }
 
-    if ((store = setup_verify(CAfile, noCAfile, CApath, noCApath,
-                              CAstore, noCAstore)) == NULL)
+    if ((store = setup_verify(CAfile, noCAfile, CApath, noCApath, CAstore, noCAstore)) == NULL)
         goto end;
     X509_STORE_set_verify_cb(store, cb);
 
@@ -220,18 +220,19 @@ int verify_main(int argc, char **argv)
         store_setup_crl_download(store);
 
     ret = 0;
-    if (argc < 1) {
-        if (check(store, NULL, untrusted, trusted, crls, show_chain,
-                  vfyopts) != 1)
+    if (argc < 1)
+    {
+        if (check(store, NULL, untrusted, trusted, crls, show_chain, vfyopts) != 1)
             ret = -1;
-    } else {
+    }
+    else
+    {
         for (i = 0; i < argc; i++)
-            if (check(store, argv[i], untrusted, trusted, crls, show_chain,
-                      vfyopts) != 1)
+            if (check(store, argv[i], untrusted, trusted, crls, show_chain, vfyopts) != 1)
                 ret = -1;
     }
 
- end:
+end:
     X509_VERIFY_PARAM_free(vpm);
     X509_STORE_free(store);
     OSSL_STACK_OF_X509_free(untrusted);
@@ -242,10 +243,8 @@ int verify_main(int argc, char **argv)
     return (ret < 0 ? 2 : ret);
 }
 
-static int check(X509_STORE *ctx, const char *file,
-                 STACK_OF(X509) *uchain, STACK_OF(X509) *tchain,
-                 STACK_OF(X509_CRL) *crls, int show_chain,
-                 STACK_OF(OPENSSL_STRING) *opts)
+static int check(X509_STORE *ctx, const char *file, STACK_OF(X509) *uchain, STACK_OF(X509) *tchain,
+                 STACK_OF(X509_CRL) *crls, int show_chain, STACK_OF(OPENSSL_STRING) *opts)
 {
     X509 *x = NULL;
     int i = 0, ret = 0;
@@ -257,10 +256,13 @@ static int check(X509_STORE *ctx, const char *file,
     if (x == NULL)
         goto end;
 
-    if (opts != NULL) {
-        for (i = 0; i < sk_OPENSSL_STRING_num(opts); i++) {
+    if (opts != NULL)
+    {
+        for (i = 0; i < sk_OPENSSL_STRING_num(opts); i++)
+        {
             char *opt = sk_OPENSSL_STRING_value(opts, i);
-            if (x509_ctrl_string(x, opt) <= 0) {
+            if (x509_ctrl_string(x, opt) <= 0)
+            {
                 BIO_printf(bio_err, "parameter error \"%s\"\n", opt);
                 ERR_print_errors(bio_err);
                 X509_free(x);
@@ -270,18 +272,17 @@ static int check(X509_STORE *ctx, const char *file,
     }
 
     csc = X509_STORE_CTX_new();
-    if (csc == NULL) {
-        BIO_printf(bio_err, "error %s: X.509 store context allocation failed\n",
-                   (file == NULL) ? "stdin" : file);
+    if (csc == NULL)
+    {
+        BIO_printf(bio_err, "error %s: X.509 store context allocation failed\n", (file == NULL) ? "stdin" : file);
         goto end;
     }
 
     X509_STORE_set_flags(ctx, vflags);
-    if (!X509_STORE_CTX_init(csc, ctx, x, uchain)) {
+    if (!X509_STORE_CTX_init(csc, ctx, x, uchain))
+    {
         X509_STORE_CTX_free(csc);
-        BIO_printf(bio_err,
-                   "error %s: X.509 store context initialization failed\n",
-                   (file == NULL) ? "stdin" : file);
+        BIO_printf(bio_err, "error %s: X.509 store context initialization failed\n", (file == NULL) ? "stdin" : file);
         goto end;
     }
     if (tchain != NULL)
@@ -289,35 +290,36 @@ static int check(X509_STORE *ctx, const char *file,
     if (crls != NULL)
         X509_STORE_CTX_set0_crls(csc, crls);
     i = X509_verify_cert(csc);
-    if (i > 0 && X509_STORE_CTX_get_error(csc) == X509_V_OK) {
+    if (i > 0 && X509_STORE_CTX_get_error(csc) == X509_V_OK)
+    {
         BIO_printf(bio_out, "%s: OK\n", (file == NULL) ? "stdin" : file);
         ret = 1;
-        if (show_chain) {
+        if (show_chain)
+        {
             int j;
 
             chain = X509_STORE_CTX_get1_chain(csc);
             num_untrusted = X509_STORE_CTX_get_num_untrusted(csc);
             BIO_printf(bio_out, "Chain:\n");
-            for (j = 0; j < sk_X509_num(chain); j++) {
+            for (j = 0; j < sk_X509_num(chain); j++)
+            {
                 X509 *cert = sk_X509_value(chain, j);
                 BIO_printf(bio_out, "depth=%d: ", j);
-                X509_NAME_print_ex_fp(stdout,
-                                      X509_get_subject_name(cert),
-                                      0, get_nameopt());
+                X509_NAME_print_ex_fp(stdout, X509_get_subject_name(cert), 0, get_nameopt());
                 if (j < num_untrusted)
                     BIO_printf(bio_out, " (untrusted)");
                 BIO_printf(bio_out, "\n");
             }
             OSSL_STACK_OF_X509_free(chain);
         }
-    } else {
-        BIO_printf(bio_err,
-                   "error %s: verification failed\n",
-                   (file == NULL) ? "stdin" : file);
+    }
+    else
+    {
+        BIO_printf(bio_err, "error %s: verification failed\n", (file == NULL) ? "stdin" : file);
     }
     X509_STORE_CTX_free(csc);
 
- end:
+end:
     if (i <= 0)
         ERR_print_errors(bio_err);
     X509_free(x);
@@ -330,18 +332,16 @@ static int cb(int ok, X509_STORE_CTX *ctx)
     int cert_error = X509_STORE_CTX_get_error(ctx);
     X509 *current_cert = X509_STORE_CTX_get_current_cert(ctx);
 
-    if (!ok) {
-        if (current_cert != NULL) {
-            X509_NAME_print_ex(bio_err,
-                            X509_get_subject_name(current_cert),
-                            0, get_nameopt());
+    if (!ok)
+    {
+        if (current_cert != NULL)
+        {
+            X509_NAME_print_ex(bio_err, X509_get_subject_name(current_cert), 0, get_nameopt());
             BIO_printf(bio_err, "\n");
         }
         BIO_printf(bio_err, "%serror %d at %d depth lookup: %s\n",
-               X509_STORE_CTX_get0_parent_ctx(ctx) ? "[CRL path] " : "",
-               cert_error,
-               X509_STORE_CTX_get_error_depth(ctx),
-               X509_verify_cert_error_string(cert_error));
+                   X509_STORE_CTX_get0_parent_ctx(ctx) ? "[CRL path] " : "", cert_error,
+                   X509_STORE_CTX_get_error_depth(ctx), X509_verify_cert_error_string(cert_error));
 
         /*
          * Pretend that some errors are ok, so they don't stop further
@@ -349,7 +349,8 @@ static int cb(int ok, X509_STORE_CTX *ctx)
          * After X509_verify_cert() is done, we verify that there were
          * no actual errors, even if the returned value was positive.
          */
-        switch (cert_error) {
+        switch (cert_error)
+        {
         case X509_V_ERR_NO_EXPLICIT_POLICY:
             policies_print(ctx);
             /* fall through */
@@ -383,7 +384,6 @@ static int cb(int ok, X509_STORE_CTX *ctx)
             ok = 1;
         }
         return ok;
-
     }
     if (cert_error == X509_V_OK && ok == 2)
         policies_print(ctx);

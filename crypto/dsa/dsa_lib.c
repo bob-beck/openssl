@@ -15,7 +15,7 @@
 
 #include <openssl/bn.h>
 #ifndef FIPS_MODULE
-# include <openssl/engine.h>
+#include <openssl/engine.h>
 #endif
 #include "internal/cryptlib.h"
 #include "internal/refcount.h"
@@ -37,7 +37,7 @@ void *DSA_get_ex_data(const DSA *d, int idx)
     return CRYPTO_get_ex_data(&d->ex_data, idx);
 }
 
-# ifndef OPENSSL_NO_DH
+#ifndef OPENSSL_NO_DH
 DH *DSA_dup_DH(const DSA *r)
 {
     /*
@@ -57,31 +57,35 @@ DH *DSA_dup_DH(const DSA *r)
     if (!ossl_ffc_params_copy(ossl_dh_get0_params(ret), &r->params))
         goto err;
 
-    if (r->pub_key != NULL) {
+    if (r->pub_key != NULL)
+    {
         pub_key = BN_dup(r->pub_key);
         if (pub_key == NULL)
             goto err;
-        if (r->priv_key != NULL) {
+        if (r->priv_key != NULL)
+        {
             priv_key = BN_dup(r->priv_key);
             if (priv_key == NULL)
                 goto err;
         }
         if (!DH_set0_key(ret, pub_key, priv_key))
             goto err;
-    } else if (r->priv_key != NULL) {
+    }
+    else if (r->priv_key != NULL)
+    {
         /* Shouldn't happen */
         goto err;
     }
 
     return ret;
 
- err:
+err:
     BN_free(pub_key);
     BN_free(priv_key);
     DH_free(ret);
     return NULL;
 }
-# endif /*  OPENSSL_NO_DH */
+#endif /*  OPENSSL_NO_DH */
 
 void DSA_clear_flags(DSA *d, int flags)
 {
@@ -124,7 +128,6 @@ int DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
 }
 #endif /* FIPS_MODULE */
 
-
 const DSA_METHOD *DSA_get_method(DSA *d)
 {
     return d->meth;
@@ -138,13 +141,15 @@ static DSA *dsa_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
         return NULL;
 
     ret->lock = CRYPTO_THREAD_lock_new();
-    if (ret->lock == NULL) {
+    if (ret->lock == NULL)
+    {
         ERR_raise(ERR_LIB_DSA, ERR_R_CRYPTO_LIB);
         OPENSSL_free(ret);
         return NULL;
     }
 
-    if (!CRYPTO_NEW_REF(&ret->references, 1)) {
+    if (!CRYPTO_NEW_REF(&ret->references, 1))
+    {
         CRYPTO_THREAD_lock_free(ret->lock);
         OPENSSL_free(ret);
         return NULL;
@@ -154,17 +159,22 @@ static DSA *dsa_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
     ret->meth = DSA_get_default_method();
 #if !defined(FIPS_MODULE) && !defined(OPENSSL_NO_ENGINE)
     ret->flags = ret->meth->flags & ~DSA_FLAG_NON_FIPS_ALLOW; /* early default init */
-    if (engine) {
-        if (!ENGINE_init(engine)) {
+    if (engine)
+    {
+        if (!ENGINE_init(engine))
+        {
             ERR_raise(ERR_LIB_DSA, ERR_R_ENGINE_LIB);
             goto err;
         }
         ret->engine = engine;
-    } else
+    }
+    else
         ret->engine = ENGINE_get_default_DSA();
-    if (ret->engine) {
+    if (ret->engine)
+    {
         ret->meth = ENGINE_get_DSA(ret->engine);
-        if (ret->meth == NULL) {
+        if (ret->meth == NULL)
+        {
             ERR_raise(ERR_LIB_DSA, ERR_R_ENGINE_LIB);
             goto err;
         }
@@ -174,21 +184,21 @@ static DSA *dsa_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
     ret->flags = ret->meth->flags & ~DSA_FLAG_NON_FIPS_ALLOW;
 
 #ifndef FIPS_MODULE
-    if (!ossl_crypto_new_ex_data_ex(libctx, CRYPTO_EX_INDEX_DSA, ret,
-                                    &ret->ex_data))
+    if (!ossl_crypto_new_ex_data_ex(libctx, CRYPTO_EX_INDEX_DSA, ret, &ret->ex_data))
         goto err;
 #endif
 
     ossl_ffc_params_init(&ret->params);
 
-    if ((ret->meth->init != NULL) && !ret->meth->init(ret)) {
+    if ((ret->meth->init != NULL) && !ret->meth->init(ret))
+    {
         ERR_raise(ERR_LIB_DSA, ERR_R_INIT_FAIL);
         goto err;
     }
 
     return ret;
 
- err:
+err:
     DSA_free(ret);
     return NULL;
 }
@@ -259,8 +269,7 @@ void ossl_dsa_set0_libctx(DSA *d, OSSL_LIB_CTX *libctx)
     d->libctx = libctx;
 }
 
-void DSA_get0_pqg(const DSA *d,
-                  const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
+void DSA_get0_pqg(const DSA *d, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
 {
     ossl_ffc_params_get0_pqg(&d->params, p, q, g);
 }
@@ -270,9 +279,7 @@ int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
     /* If the fields p, q and g in d are NULL, the corresponding input
      * parameters MUST be non-NULL.
      */
-    if ((d->params.p == NULL && p == NULL)
-        || (d->params.q == NULL && q == NULL)
-        || (d->params.g == NULL && g == NULL))
+    if ((d->params.p == NULL && p == NULL) || (d->params.q == NULL && q == NULL) || (d->params.g == NULL && g == NULL))
         return 0;
 
     ossl_ffc_params_set0_pqg(&d->params, p, q, g);
@@ -306,8 +313,7 @@ const BIGNUM *DSA_get0_priv_key(const DSA *d)
     return d->priv_key;
 }
 
-void DSA_get0_key(const DSA *d,
-                  const BIGNUM **pub_key, const BIGNUM **priv_key)
+void DSA_get0_key(const DSA *d, const BIGNUM **pub_key, const BIGNUM **priv_key)
 {
     if (pub_key != NULL)
         *pub_key = d->pub_key;
@@ -317,11 +323,13 @@ void DSA_get0_key(const DSA *d,
 
 int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
 {
-    if (pub_key != NULL) {
+    if (pub_key != NULL)
+    {
         BN_free(d->pub_key);
         d->pub_key = pub_key;
     }
-    if (priv_key != NULL) {
+    if (priv_key != NULL)
+    {
         BN_free(d->priv_key);
         d->priv_key = priv_key;
     }
@@ -333,8 +341,7 @@ int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
 int DSA_security_bits(const DSA *d)
 {
     if (d->params.p != NULL && d->params.q != NULL)
-        return BN_security_bits(BN_num_bits(d->params.p),
-                                BN_num_bits(d->params.q));
+        return BN_security_bits(BN_num_bits(d->params.p), BN_num_bits(d->params.q));
     return -1;
 }
 

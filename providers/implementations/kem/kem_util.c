@@ -12,15 +12,13 @@
 #include <openssl/crypto.h>
 #include "prov/eckem.h"
 
-typedef struct {
+typedef struct
+{
     unsigned int id;
     const char *mode;
 } KEM_MODE;
 
-static const KEM_MODE eckem_modename_id_map[] = {
-    { KEM_MODE_DHKEM, OSSL_KEM_PARAM_OPERATION_DHKEM },
-    { 0, NULL }
-};
+static const KEM_MODE eckem_modename_id_map[] = {{KEM_MODE_DHKEM, OSSL_KEM_PARAM_OPERATION_DHKEM}, {0, NULL}};
 
 int ossl_eckem_modename2id(const char *name)
 {
@@ -29,7 +27,8 @@ int ossl_eckem_modename2id(const char *name)
     if (name == NULL)
         return KEM_MODE_UNDEFINED;
 
-    for (i = 0; eckem_modename_id_map[i].mode != NULL; ++i) {
+    for (i = 0; eckem_modename_id_map[i].mode != NULL; ++i)
+    {
         if (OPENSSL_strcasecmp(name, eckem_modename_id_map[i].mode) == 0)
             return eckem_modename_id_map[i].id;
     }

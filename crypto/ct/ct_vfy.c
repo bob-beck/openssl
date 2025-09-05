@@ -16,7 +16,8 @@
 
 #include "ct_local.h"
 
-typedef enum sct_signature_type_t {
+typedef enum sct_signature_type_t
+{
     SIGNATURE_TYPE_NOT_SET = -1,
     SIGNATURE_TYPE_CERT_TIMESTAMP,
     SIGNATURE_TYPE_TREE_HASH
@@ -58,10 +59,13 @@ static int sct_ctx_update(EVP_MD_CTX *ctx, const SCT_CTX *sctx, const SCT *sct)
     if (!EVP_DigestUpdate(ctx, tmpbuf, p - tmpbuf))
         return 0;
 
-    if (sct->entry_type == CT_LOG_ENTRY_TYPE_X509) {
+    if (sct->entry_type == CT_LOG_ENTRY_TYPE_X509)
+    {
         der = sctx->certder;
         derlen = sctx->certderlen;
-    } else {
+    }
+    else
+    {
         if (!EVP_DigestUpdate(ctx, sctx->ihash, sctx->ihashlen))
             return 0;
         der = sctx->preder;
@@ -98,22 +102,24 @@ int SCT_CTX_verify(const SCT_CTX *sctx, const SCT *sct)
     EVP_MD_CTX *ctx = NULL;
     int ret = 0;
 
-    if (!SCT_is_complete(sct) || sctx->pkey == NULL ||
-        sct->entry_type == CT_LOG_ENTRY_TYPE_NOT_SET ||
-        (sct->entry_type == CT_LOG_ENTRY_TYPE_PRECERT && sctx->ihash == NULL)) {
+    if (!SCT_is_complete(sct) || sctx->pkey == NULL || sct->entry_type == CT_LOG_ENTRY_TYPE_NOT_SET ||
+        (sct->entry_type == CT_LOG_ENTRY_TYPE_PRECERT && sctx->ihash == NULL))
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_NOT_SET);
         return 0;
     }
-    if (sct->version != SCT_VERSION_V1) {
+    if (sct->version != SCT_VERSION_V1)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_UNSUPPORTED_VERSION);
         return 0;
     }
-    if (sct->log_id_len != sctx->pkeyhashlen ||
-        memcmp(sct->log_id, sctx->pkeyhash, sctx->pkeyhashlen) != 0) {
+    if (sct->log_id_len != sctx->pkeyhashlen || memcmp(sct->log_id, sctx->pkeyhash, sctx->pkeyhashlen) != 0)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_LOG_ID_MISMATCH);
         return 0;
     }
-    if (sct->timestamp > sctx->epoch_time_in_ms) {
+    if (sct->timestamp > sctx->epoch_time_in_ms)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_FUTURE_TIMESTAMP);
         return 0;
     }
@@ -122,8 +128,7 @@ int SCT_CTX_verify(const SCT_CTX *sctx, const SCT *sct)
     if (ctx == NULL)
         goto end;
 
-    if (!EVP_DigestVerifyInit_ex(ctx, NULL, "SHA2-256", sctx->libctx,
-                                 sctx->propq, sctx->pkey, NULL))
+    if (!EVP_DigestVerifyInit_ex(ctx, NULL, "SHA2-256", sctx->libctx, sctx->propq, sctx->pkey, NULL))
         goto end;
 
     if (!sct_ctx_update(ctx, sctx, sct))

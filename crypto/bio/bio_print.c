@@ -23,12 +23,13 @@
  */
 
 #ifdef HAVE_LONG_DOUBLE
-# define LDOUBLE long double
+#define LDOUBLE long double
 #else
-# define LDOUBLE double
+#define LDOUBLE double
 #endif
 
-struct pr_desc {
+struct pr_desc
+{
     /** Static buffer */
     char *sbuffer;
     /** Dynamic buffer */
@@ -47,59 +48,55 @@ static int fmtint(struct pr_desc *, int64_t, int, int, int, int);
 static int fmtfp(struct pr_desc *, LDOUBLE, int, int, int, int);
 #endif
 static int doapr_outch(struct pr_desc *, int);
-static int _dopr(char **sbuffer, char **buffer,
-                 size_t *maxlen, size_t *retlen, int *truncated,
-                 const char *format, va_list args);
+static int _dopr(char **sbuffer, char **buffer, size_t *maxlen, size_t *retlen, int *truncated, const char *format,
+                 va_list args);
 
 /* format read states */
-#define DP_S_DEFAULT    0
-#define DP_S_FLAGS      1
-#define DP_S_MIN        2
-#define DP_S_DOT        3
-#define DP_S_MAX        4
-#define DP_S_MOD        5
-#define DP_S_CONV       6
-#define DP_S_DONE       7
+#define DP_S_DEFAULT 0
+#define DP_S_FLAGS 1
+#define DP_S_MIN 2
+#define DP_S_DOT 3
+#define DP_S_MAX 4
+#define DP_S_MOD 5
+#define DP_S_CONV 6
+#define DP_S_DONE 7
 
 /* format flags - Bits */
 /* left-aligned padding */
-#define DP_F_MINUS      (1 << 0)
+#define DP_F_MINUS (1 << 0)
 /* print an explicit '+' for a value with positive sign */
-#define DP_F_PLUS       (1 << 1)
+#define DP_F_PLUS (1 << 1)
 /* print an explicit ' ' for a value with positive sign */
-#define DP_F_SPACE      (1 << 2)
+#define DP_F_SPACE (1 << 2)
 /* print 0/0x prefix for octal/hex and decimal point for floating point */
-#define DP_F_NUM        (1 << 3)
+#define DP_F_NUM (1 << 3)
 /* print leading zeroes */
-#define DP_F_ZERO       (1 << 4)
+#define DP_F_ZERO (1 << 4)
 /* print HEX in UPPERcase */
-#define DP_F_UP         (1 << 5)
+#define DP_F_UP (1 << 5)
 /* treat value as unsigned */
-#define DP_F_UNSIGNED   (1 << 6)
+#define DP_F_UNSIGNED (1 << 6)
 
 /* conversion flags */
-#define DP_C_CHAR       1
-#define DP_C_SHORT      2
-#define DP_C_LONG       3
-#define DP_C_LDOUBLE    4
-#define DP_C_LLONG      5
-#define DP_C_SIZE       6
-#define DP_C_PTRDIFF    7
+#define DP_C_CHAR 1
+#define DP_C_SHORT 2
+#define DP_C_LONG 3
+#define DP_C_LDOUBLE 4
+#define DP_C_LLONG 5
+#define DP_C_SIZE 6
+#define DP_C_PTRDIFF 7
 
 /* Floating point formats */
-#define F_FORMAT        0
-#define E_FORMAT        1
-#define G_FORMAT        2
+#define F_FORMAT 0
+#define E_FORMAT 1
+#define G_FORMAT 2
 
 /* some handy macros */
 #define char_to_int(p) (p - '0')
-#define OSSL_MAX(p,q) ((p >= q) ? p : q)
+#define OSSL_MAX(p, q) ((p >= q) ? p : q)
 
-static int
-_dopr(char **sbuffer,
-      char **buffer,
-      size_t *maxlen,
-      size_t *retlen, int *truncated, const char *format, va_list args)
+static int _dopr(char **sbuffer, char **buffer, size_t *maxlen, size_t *retlen, int *truncated, const char *format,
+                 va_list args)
 {
     char ch;
     int64_t value;
@@ -112,7 +109,7 @@ _dopr(char **sbuffer,
     int state;
     int flags;
     int cflags;
-    struct pr_desc desc = { *sbuffer, buffer, 0, *maxlen, 0 };
+    struct pr_desc desc = {*sbuffer, buffer, 0, *maxlen, 0};
     int ret = 0;
 
     state = DP_S_DEFAULT;
@@ -120,21 +117,23 @@ _dopr(char **sbuffer,
     max = -1;
     ch = *format++;
 
-    while (state != DP_S_DONE) {
+    while (state != DP_S_DONE)
+    {
         if (ch == '\0')
             state = DP_S_DONE;
 
-        switch (state) {
+        switch (state)
+        {
         case DP_S_DEFAULT:
             if (ch == '%')
                 state = DP_S_FLAGS;
-            else
-                if (!doapr_outch(&desc, ch))
-                    goto out;
+            else if (!doapr_outch(&desc, ch))
+                goto out;
             ch = *format++;
             break;
         case DP_S_FLAGS:
-            switch (ch) {
+            switch (ch)
+            {
             case '-':
                 flags |= DP_F_MINUS;
                 ch = *format++;
@@ -161,7 +160,8 @@ _dopr(char **sbuffer,
             }
             break;
         case DP_S_MIN: /* width */
-            if (ossl_isdigit(ch)) {
+            if (ossl_isdigit(ch))
+            {
                 /*
                  * Most implementations cap the possible explicitly specified
                  * width by (INT_MAX / 10) * 10 - 1 or so (the standard gives
@@ -172,26 +172,33 @@ _dopr(char **sbuffer,
                 else
                     goto out;
                 ch = *format++;
-            } else if (ch == '*') {
+            }
+            else if (ch == '*')
+            {
                 min = va_arg(args, int);
-                if (min < 0) {
+                if (min < 0)
+                {
                     flags |= DP_F_MINUS;
                     min = -min;
                 }
                 ch = *format++;
                 state = DP_S_DOT;
-            } else
+            }
+            else
                 state = DP_S_DOT;
             break;
         case DP_S_DOT:
-            if (ch == '.') {
+            if (ch == '.')
+            {
                 state = DP_S_MAX;
                 ch = *format++;
-            } else
+            }
+            else
                 state = DP_S_MOD;
             break;
         case DP_S_MAX: /* precision */
-            if (ossl_isdigit(ch)) {
+            if (ossl_isdigit(ch))
+            {
                 if (max < 0)
                     max = 0;
                 /*
@@ -204,32 +211,42 @@ _dopr(char **sbuffer,
                 else
                     goto out;
                 ch = *format++;
-            } else if (ch == '*') {
+            }
+            else if (ch == '*')
+            {
                 max = va_arg(args, int);
                 ch = *format++;
                 state = DP_S_MOD;
-            } else {
+            }
+            else
+            {
                 if (max < 0)
                     max = 0;
                 state = DP_S_MOD;
             }
             break;
         case DP_S_MOD:
-            switch (ch) {
+            switch (ch)
+            {
             case 'h':
-                if (*format == 'h') {
+                if (*format == 'h')
+                {
                     cflags = DP_C_CHAR;
                     format++;
-                } else {
+                }
+                else
+                {
                     cflags = DP_C_SHORT;
                 }
                 ch = *format++;
                 break;
             case 'l':
-                if (*format == 'l') {
+                if (*format == 'l')
+                {
                     cflags = DP_C_LLONG;
                     format++;
-                } else
+                }
+                else
                     cflags = DP_C_LONG;
                 ch = *format++;
                 break;
@@ -256,10 +273,12 @@ _dopr(char **sbuffer,
             state = DP_S_CONV;
             break;
         case DP_S_CONV:
-            switch (ch) {
+            switch (ch)
+            {
             case 'd':
             case 'i':
-                switch (cflags) {
+                switch (cflags)
+                {
                 case DP_C_CHAR:
                     value = (signed char)va_arg(args, int);
                     break;
@@ -292,7 +311,8 @@ _dopr(char **sbuffer,
             case 'o':
             case 'u':
                 flags |= DP_F_UNSIGNED;
-                switch (cflags) {
+                switch (cflags)
+                {
                 case DP_C_CHAR:
                     value = (unsigned char)va_arg(args, unsigned int);
                     break;
@@ -323,9 +343,7 @@ _dopr(char **sbuffer,
                     value = va_arg(args, unsigned int);
                     break;
                 }
-                if (!fmtint(&desc, value,
-                            ch == 'o' ? 8 : (ch == 'u' ? 10 : 16),
-                            min, max, flags))
+                if (!fmtint(&desc, value, ch == 'o' ? 8 : (ch == 'u' ? 10 : 16), min, max, flags))
                     goto out;
                 break;
 #ifndef OPENSSL_SYS_UEFI
@@ -386,13 +404,15 @@ _dopr(char **sbuffer,
                     goto out;
                 break;
             case 'n':
-                switch (cflags) {
-#define HANDLE_N(type)              \
-    do {                            \
-        type *num;                  \
-                                    \
-        num = va_arg(args, type *); \
-        *num = (type) desc.pos;     \
+                switch (cflags)
+                {
+#define HANDLE_N(type)                                                                                                 \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        type *num;                                                                                                     \
+                                                                                                                       \
+        num = va_arg(args, type *);                                                                                    \
+        *num = (type)desc.pos;                                                                                         \
     } while (0)
                 case DP_C_CHAR:
                     HANDLE_N(signed char);
@@ -448,7 +468,8 @@ out:
      * We have to truncate if there is no dynamic buffer and we have filled the
      * static buffer.
      */
-    if (buffer == NULL) {
+    if (buffer == NULL)
+    {
         *truncated = (desc.currlen > desc.maxlen - 1);
         if (*truncated)
             desc.currlen = desc.maxlen - 1;
@@ -464,8 +485,7 @@ out:
     return ret;
 }
 
-static int
-fmtstr(struct pr_desc *desc, const char *value, int flags, int min, int max)
+static int fmtstr(struct pr_desc *desc, const char *value, int flags, int min, int max)
 {
     int padlen;
     size_t strln;
@@ -479,7 +499,8 @@ fmtstr(struct pr_desc *desc, const char *value, int flags, int min, int max)
     padlen = (int)(min - strln);
     if (min < 0 || padlen < 0)
         padlen = 0;
-    if (max >= 0) {
+    if (max >= 0)
+    {
         /*
          * Calculate the maximum output including padding.
          * Make sure max doesn't overflow into negativity
@@ -492,19 +513,22 @@ fmtstr(struct pr_desc *desc, const char *value, int flags, int min, int max)
     if (flags & DP_F_MINUS)
         padlen = -padlen;
 
-    while ((padlen > 0) && (max < 0 || cnt < max)) {
+    while ((padlen > 0) && (max < 0 || cnt < max))
+    {
         if (!doapr_outch(desc, ' '))
             return 0;
         --padlen;
         ++cnt;
     }
-    while (strln > 0 && (max < 0 || cnt < max)) {
+    while (strln > 0 && (max < 0 || cnt < max))
+    {
         if (!doapr_outch(desc, *value++))
             return 0;
         --strln;
         ++cnt;
     }
-    while ((padlen < 0) && (max < 0 || cnt < max)) {
+    while ((padlen < 0) && (max < 0 || cnt < max))
+    {
         if (!doapr_outch(desc, ' '))
             return 0;
         ++padlen;
@@ -513,9 +537,7 @@ fmtstr(struct pr_desc *desc, const char *value, int flags, int min, int max)
     return 1;
 }
 
-static int
-fmtint(struct pr_desc *desc,
-       int64_t value, int base, int min, int max, int flags)
+static int fmtint(struct pr_desc *desc, int64_t value, int base, int min, int max, int flags)
 {
     static const char oct_prefix[] = "0";
 
@@ -528,10 +550,13 @@ fmtint(struct pr_desc *desc,
     int zpadlen = 0;
     int caps = 0;
 
-    if (max < 0) {
+    if (max < 0)
+    {
         /* A negative precision is taken as if the precision were omitted. */
         max = 1;
-    } else {
+    }
+    else
+    {
         /*
          * If a precision is given with an integer conversion,
          * the 0 flag is ignored.
@@ -539,19 +564,24 @@ fmtint(struct pr_desc *desc,
         flags &= ~DP_F_ZERO;
     }
     uvalue = value;
-    if (!(flags & DP_F_UNSIGNED)) {
-        if (value < 0) {
+    if (!(flags & DP_F_UNSIGNED))
+    {
+        if (value < 0)
+        {
             signvalue = '-';
             uvalue = 0 - (uint64_t)value;
-        } else if (flags & DP_F_PLUS)
+        }
+        else if (flags & DP_F_PLUS)
             signvalue = '+';
         else if (flags & DP_F_SPACE)
             signvalue = ' ';
     }
-    if (flags & DP_F_NUM) {
+    if (flags & DP_F_NUM)
+    {
         if (base == 8)
             prefix = oct_prefix;
-        if (value != 0) {
+        if (value != 0)
+        {
             if (base == 16)
                 prefix = flags & DP_F_UP ? "0X" : "0x";
         }
@@ -559,9 +589,9 @@ fmtint(struct pr_desc *desc,
     if (flags & DP_F_UP)
         caps = 1;
     /* When 0 is printed with an explicit precision 0, the output is empty. */
-    while (uvalue && (place < (int)sizeof(convert))) {
-        convert[place++] = (caps ? "0123456789ABCDEF" : "0123456789abcdef")
-            [uvalue % (unsigned)base];
+    while (uvalue && (place < (int)sizeof(convert)))
+    {
+        convert[place++] = (caps ? "0123456789ABCDEF" : "0123456789abcdef")[uvalue % (unsigned)base];
         uvalue = (uvalue / (unsigned)base);
     }
     if (place == sizeof(convert))
@@ -576,19 +606,22 @@ fmtint(struct pr_desc *desc,
     zpadlen = max - place - (prefix == oct_prefix);
     if (zpadlen < 0)
         zpadlen = 0;
-    spadlen =
-        min - OSSL_MAX(max, place + zpadlen + (signvalue ? 1 : 0) + (int)strlen(prefix));
+    spadlen = min - OSSL_MAX(max, place + zpadlen + (signvalue ? 1 : 0) + (int)strlen(prefix));
     if (spadlen < 0)
         spadlen = 0;
-    if (flags & DP_F_MINUS) {
+    if (flags & DP_F_MINUS)
+    {
         spadlen = -spadlen;
-    } else if (flags & DP_F_ZERO) {
+    }
+    else if (flags & DP_F_ZERO)
+    {
         zpadlen = zpadlen + spadlen;
         spadlen = 0;
     }
 
     /* spaces */
-    while (spadlen > 0) {
+    while (spadlen > 0)
+    {
         if (!doapr_outch(desc, ' '))
             return 0;
         --spadlen;
@@ -600,28 +633,33 @@ fmtint(struct pr_desc *desc,
             return 0;
 
     /* prefix */
-    while (*prefix) {
+    while (*prefix)
+    {
         if (!doapr_outch(desc, *prefix))
             return 0;
         prefix++;
     }
 
     /* zeros */
-    if (zpadlen > 0) {
-        while (zpadlen > 0) {
+    if (zpadlen > 0)
+    {
+        while (zpadlen > 0)
+        {
             if (!doapr_outch(desc, '0'))
                 return 0;
             --zpadlen;
         }
     }
     /* digits */
-    while (place > 0) {
+    while (place > 0)
+    {
         if (!doapr_outch(desc, convert[--place]))
             return 0;
     }
 
     /* left justified spaces */
-    while (spadlen < 0) {
+    while (spadlen < 0)
+    {
         if (!doapr_outch(desc, ' '))
             return 0;
         ++spadlen;
@@ -646,7 +684,8 @@ static LDOUBLE abs_val(LDOUBLE value)
 static LDOUBLE pow_10(int in_exp)
 {
     LDOUBLE result = 1;
-    while (in_exp) {
+    while (in_exp)
+    {
         result *= 10;
         in_exp--;
     }
@@ -663,9 +702,7 @@ static long roundv(LDOUBLE value)
     return intpart;
 }
 
-static int
-fmtfp(struct pr_desc *desc,
-      LDOUBLE fvalue, int min, int max, int flags, int style)
+static int fmtfp(struct pr_desc *desc, LDOUBLE fvalue, int min, int max, int flags, int style)
 {
     int signvalue = 0;
     LDOUBLE ufvalue;
@@ -702,35 +739,49 @@ fmtfp(struct pr_desc *desc,
      * depending on the number to be printed. Work out which one it is and use
      * that from here on.
      */
-    if (style == G_FORMAT) {
-        if (ufvalue == 0.0) {
-            realstyle = F_FORMAT;
-        } else if (ufvalue < 0.0001) {
-            realstyle = E_FORMAT;
-        } else if ((max == 0 && ufvalue >= 10)
-                   || (max > 0 && ufvalue >= pow_10(max))) {
-            realstyle = E_FORMAT;
-        } else {
+    if (style == G_FORMAT)
+    {
+        if (ufvalue == 0.0)
+        {
             realstyle = F_FORMAT;
         }
-    } else {
+        else if (ufvalue < 0.0001)
+        {
+            realstyle = E_FORMAT;
+        }
+        else if ((max == 0 && ufvalue >= 10) || (max > 0 && ufvalue >= pow_10(max)))
+        {
+            realstyle = E_FORMAT;
+        }
+        else
+        {
+            realstyle = F_FORMAT;
+        }
+    }
+    else
+    {
         realstyle = style;
     }
 
-    if (style != F_FORMAT) {
+    if (style != F_FORMAT)
+    {
         tmpvalue = ufvalue;
         /* Calculate the exponent */
-        if (ufvalue != 0.0) {
-            while (tmpvalue < 1) {
+        if (ufvalue != 0.0)
+        {
+            while (tmpvalue < 1)
+            {
                 tmpvalue *= 10;
                 exp--;
             }
-            while (tmpvalue > 10) {
+            while (tmpvalue > 10)
+            {
                 tmpvalue /= 10;
                 exp++;
             }
         }
-        if (style == G_FORMAT) {
+        if (style == G_FORMAT)
+        {
             /*
              * In G_FORMAT the "precision" represents significant digits. We
              * always have at least 1 significant digit.
@@ -738,16 +789,20 @@ fmtfp(struct pr_desc *desc,
             if (max == 0)
                 max = 1;
             /* Now convert significant digits to decimal places */
-            if (realstyle == F_FORMAT) {
+            if (realstyle == F_FORMAT)
+            {
                 max -= (exp + 1);
-                if (max < 0) {
+                if (max < 0)
+                {
                     /*
                      * Should not happen. If we're in F_FORMAT then exp < max?
                      */
                     (void)doapr_outch(desc, '\0');
                     return 0;
                 }
-            } else {
+            }
+            else
+            {
                 /*
                  * In E_FORMAT there is always one significant digit in front
                  * of the decimal point, so:
@@ -764,7 +819,8 @@ fmtfp(struct pr_desc *desc,
      * By subtracting 65535 (2^16-1) we cancel the low order 15 bits
      * of ULONG_MAX to avoid using imprecise floating point values.
      */
-    if (ufvalue >= (double)(ULONG_MAX - 65535) + 65536.0) {
+    if (ufvalue >= (double)(ULONG_MAX - 65535) + 65536.0)
+    {
         /* Number too big */
         (void)doapr_outch(desc, '\0');
         return 0;
@@ -785,13 +841,15 @@ fmtfp(struct pr_desc *desc,
     max10 = roundv(pow_10(max));
     fracpart = roundv(pow_10(max) * (ufvalue - intpart));
 
-    if (fracpart >= max10) {
+    if (fracpart >= max10)
+    {
         intpart++;
         fracpart -= max10;
     }
 
     /* convert integer part */
-    do {
+    do
+    {
         iconvert[iplace++] = "0123456789"[intpart % 10];
         intpart = (intpart / 10);
     } while (intpart && (iplace < (int)sizeof(iconvert)));
@@ -800,8 +858,10 @@ fmtfp(struct pr_desc *desc,
     iconvert[iplace] = 0;
 
     /* convert fractional part */
-    while (fplace < max) {
-        if (style == G_FORMAT && fplace == 0 && (fracpart % 10) == 0) {
+    while (fplace < max)
+    {
+        if (style == G_FORMAT && fplace == 0 && (fracpart % 10) == 0)
+        {
             /* We strip trailing zeros in G_FORMAT */
             max--;
             fracpart = fracpart / 10;
@@ -816,19 +876,22 @@ fmtfp(struct pr_desc *desc,
     fconvert[fplace] = 0;
 
     /* convert exponent part */
-    if (realstyle == E_FORMAT) {
+    if (realstyle == E_FORMAT)
+    {
         int tmpexp;
         if (exp < 0)
             tmpexp = -exp;
         else
             tmpexp = exp;
 
-        do {
+        do
+        {
             econvert[eplace++] = "0123456789"[tmpexp % 10];
             tmpexp = (tmpexp / 10);
         } while (tmpexp > 0 && eplace < (int)sizeof(econvert));
         /* Exponent is huge!! Too big to print */
-        if (tmpexp > 0) {
+        if (tmpexp > 0)
+        {
             (void)doapr_outch(desc, '\0');
             return 0;
         }
@@ -853,20 +916,24 @@ fmtfp(struct pr_desc *desc,
     if (flags & DP_F_MINUS)
         padlen = -padlen;
 
-    if ((flags & DP_F_ZERO) && (padlen > 0)) {
-        if (signvalue) {
+    if ((flags & DP_F_ZERO) && (padlen > 0))
+    {
+        if (signvalue)
+        {
             if (!doapr_outch(desc, signvalue))
                 return 0;
             --padlen;
             signvalue = 0;
         }
-        while (padlen > 0) {
+        while (padlen > 0)
+        {
             if (!doapr_outch(desc, '0'))
                 return 0;
             --padlen;
         }
     }
-    while (padlen > 0) {
+    while (padlen > 0)
+    {
         if (!doapr_outch(desc, ' '))
             return 0;
         --padlen;
@@ -874,7 +941,8 @@ fmtfp(struct pr_desc *desc,
     if (signvalue && !doapr_outch(desc, signvalue))
         return 0;
 
-    while (iplace > 0) {
+    while (iplace > 0)
+    {
         if (!doapr_outch(desc, iconvert[--iplace]))
             return 0;
     }
@@ -883,21 +951,25 @@ fmtfp(struct pr_desc *desc,
      * Decimal point. This should probably use locale to find the correct
      * char to print out.
      */
-    if (max > 0 || (flags & DP_F_NUM)) {
+    if (max > 0 || (flags & DP_F_NUM))
+    {
         if (!doapr_outch(desc, '.'))
             return 0;
 
-        while (fplace > 0) {
+        while (fplace > 0)
+        {
             if (!doapr_outch(desc, fconvert[--fplace]))
                 return 0;
         }
     }
-    while (zpadlen > 0) {
+    while (zpadlen > 0)
+    {
         if (!doapr_outch(desc, '0'))
             return 0;
         --zpadlen;
     }
-    if (realstyle == E_FORMAT) {
+    if (realstyle == E_FORMAT)
+    {
         char ech;
 
         if ((flags & DP_F_UP) == 0)
@@ -906,20 +978,25 @@ fmtfp(struct pr_desc *desc,
             ech = 'E';
         if (!doapr_outch(desc, ech))
             return 0;
-        if (exp < 0) {
+        if (exp < 0)
+        {
             if (!doapr_outch(desc, '-'))
                 return 0;
-        } else {
+        }
+        else
+        {
             if (!doapr_outch(desc, '+'))
                 return 0;
         }
-        while (eplace > 0) {
+        while (eplace > 0)
+        {
             if (!doapr_outch(desc, econvert[--eplace]))
                 return 0;
         }
     }
 
-    while (padlen < 0) {
+    while (padlen < 0)
+    {
         if (!doapr_outch(desc, ' '))
             return 0;
         ++padlen;
@@ -929,10 +1006,9 @@ fmtfp(struct pr_desc *desc,
 
 #endif /* OPENSSL_SYS_UEFI */
 
-#define BUFFER_INC  1024
+#define BUFFER_INC 1024
 
-static int
-doapr_outch(struct pr_desc *desc, int c)
+static int doapr_outch(struct pr_desc *desc, int c)
 {
     /* If we haven't at least one buffer, someone has done a big booboo */
     if (!ossl_assert(desc->sbuffer != NULL || desc->buffer != NULL))
@@ -942,21 +1018,26 @@ doapr_outch(struct pr_desc *desc, int c)
     if (!ossl_assert(desc->currlen <= desc->maxlen))
         return 0;
 
-    if (desc->buffer != NULL && desc->currlen == desc->maxlen) {
+    if (desc->buffer != NULL && desc->currlen == desc->maxlen)
+    {
         if (desc->maxlen > INT_MAX - BUFFER_INC)
             return 0;
 
         desc->maxlen += BUFFER_INC;
-        if (*(desc->buffer) == NULL) {
+        if (*(desc->buffer) == NULL)
+        {
             if ((*(desc->buffer) = OPENSSL_malloc(desc->maxlen)) == NULL)
                 return 0;
-            if (desc->currlen > 0) {
+            if (desc->currlen > 0)
+            {
                 if (!ossl_assert(desc->sbuffer != NULL))
                     return 0;
                 memcpy(*(desc->buffer), desc->sbuffer, desc->currlen);
             }
             desc->sbuffer = NULL;
-        } else {
+        }
+        else
+        {
             char *tmpbuf;
 
             tmpbuf = OPENSSL_realloc(*(desc->buffer), desc->maxlen);
@@ -966,7 +1047,8 @@ doapr_outch(struct pr_desc *desc, int c)
         }
     }
 
-    if (desc->currlen < desc->maxlen) {
+    if (desc->currlen < desc->maxlen)
+    {
         if (desc->sbuffer)
             (desc->sbuffer)[(desc->currlen)++] = (char)c;
         else
@@ -997,24 +1079,27 @@ int BIO_vprintf(BIO *bio, const char *format, va_list args)
 {
     int ret;
     size_t retlen;
-    char hugebuf[1024 * 2];     /* Was previously 10k, which is unreasonable
-                                 * in small-stack environments, like threads
-                                 * or DOS programs. */
+    char hugebuf[1024 * 2]; /* Was previously 10k, which is unreasonable
+                             * in small-stack environments, like threads
+                             * or DOS programs. */
     char *hugebufp = hugebuf;
     size_t hugebufsize = sizeof(hugebuf);
     char *dynbuf = NULL;
     int ignored;
 
     dynbuf = NULL;
-    if (!_dopr(&hugebufp, &dynbuf, &hugebufsize, &retlen, &ignored, format,
-                args)) {
+    if (!_dopr(&hugebufp, &dynbuf, &hugebufsize, &retlen, &ignored, format, args))
+    {
         OPENSSL_free(dynbuf);
         return -1;
     }
-    if (dynbuf) {
+    if (dynbuf)
+    {
         ret = BIO_write(bio, dynbuf, (int)retlen);
         OPENSSL_free(dynbuf);
-    } else {
+    }
+    else
+    {
         ret = BIO_write(bio, hugebuf, (int)retlen);
     }
     return ret;

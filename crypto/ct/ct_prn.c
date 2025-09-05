@@ -8,7 +8,7 @@
  */
 
 #ifdef OPENSSL_NO_CT
-# error "CT is disabled"
+#error "CT is disabled"
 #endif
 
 #include <openssl/asn1.h>
@@ -33,15 +33,12 @@ static void timestamp_print(uint64_t timestamp, BIO *out)
 
     if (gen == NULL)
         return;
-    ASN1_GENERALIZEDTIME_adj(gen, (time_t)0,
-                             (int)(timestamp / 86400000),
-                             (timestamp % 86400000) / 1000);
+    ASN1_GENERALIZEDTIME_adj(gen, (time_t)0, (int)(timestamp / 86400000), (timestamp % 86400000) / 1000);
     /*
      * Note GeneralizedTime from ASN1_GENERALIZETIME_adj is always 15
      * characters long with a final Z. Update it with fractional seconds.
      */
-    BIO_snprintf(genstr, sizeof(genstr), "%.14s.%03dZ",
-                 ASN1_STRING_get0_data(gen), (unsigned int)(timestamp % 1000));
+    BIO_snprintf(genstr, sizeof(genstr), "%.14s.%03dZ", ASN1_STRING_get0_data(gen), (unsigned int)(timestamp % 1000));
     if (ASN1_GENERALIZEDTIME_set_string(gen, genstr))
         ASN1_GENERALIZEDTIME_print(out, gen);
     ASN1_GENERALIZEDTIME_free(gen);
@@ -50,7 +47,8 @@ static void timestamp_print(uint64_t timestamp, BIO *out)
 const char *SCT_validation_status_string(const SCT *sct)
 {
 
-    switch (SCT_get_validation_status(sct)) {
+    switch (SCT_get_validation_status(sct))
+    {
     case SCT_VALIDATION_STATUS_NOT_SET:
         return "not set";
     case SCT_VALIDATION_STATUS_UNKNOWN_VERSION:
@@ -67,20 +65,20 @@ const char *SCT_validation_status_string(const SCT *sct)
     return "unknown status";
 }
 
-void SCT_print(const SCT *sct, BIO *out, int indent,
-               const CTLOG_STORE *log_store)
+void SCT_print(const SCT *sct, BIO *out, int indent, const CTLOG_STORE *log_store)
 {
     const CTLOG *log = NULL;
 
-    if (log_store != NULL) {
-        log = CTLOG_STORE_get0_log_by_id(log_store, sct->log_id,
-                                         sct->log_id_len);
+    if (log_store != NULL)
+    {
+        log = CTLOG_STORE_get0_log_by_id(log_store, sct->log_id, sct->log_id_len);
     }
 
     BIO_printf(out, "%*sSigned Certificate Timestamp:", indent, "");
     BIO_printf(out, "\n%*sVersion   : ", indent + 4, "");
 
-    if (sct->version != SCT_VERSION_V1) {
+    if (sct->version != SCT_VERSION_V1)
+    {
         BIO_printf(out, "unknown\n%*s", indent + 16, "");
         BIO_hex_string(out, indent + 16, 16, sct->sct, (int)sct->sct_len);
         return;
@@ -88,9 +86,9 @@ void SCT_print(const SCT *sct, BIO *out, int indent,
 
     BIO_printf(out, "v1 (0x0)");
 
-    if (log != NULL) {
-        BIO_printf(out, "\n%*sLog       : %s", indent + 4, "",
-                   CTLOG_get0_name(log));
+    if (log != NULL)
+    {
+        BIO_printf(out, "\n%*sLog       : %s", indent + 4, "", CTLOG_get0_name(log));
     }
 
     BIO_printf(out, "\n%*sLog ID    : ", indent + 4, "");
@@ -111,13 +109,14 @@ void SCT_print(const SCT *sct, BIO *out, int indent,
     BIO_hex_string(out, indent + 16, 16, sct->sig, (int)sct->sig_len);
 }
 
-void SCT_LIST_print(const STACK_OF(SCT) *sct_list, BIO *out, int indent,
-                    const char *separator, const CTLOG_STORE *log_store)
+void SCT_LIST_print(const STACK_OF(SCT) *sct_list, BIO *out, int indent, const char *separator,
+                    const CTLOG_STORE *log_store)
 {
     int sct_count = sk_SCT_num(sct_list);
     int i;
 
-    for (i = 0; i < sct_count; ++i) {
+    for (i = 0; i < sct_count; ++i)
+    {
         SCT *sct = sk_SCT_value(sct_list, i);
 
         SCT_print(sct, out, indent, log_store);

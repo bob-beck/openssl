@@ -20,19 +20,29 @@
 #include <openssl/x509.h>
 #include <openssl/pem.h>
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_NOOUT, OPT_PUBKEY, OPT_VERIFY, OPT_IN, OPT_OUT,
-    OPT_ENGINE, OPT_KEY, OPT_CHALLENGE, OPT_PASSIN, OPT_SPKAC,
-    OPT_SPKSECT, OPT_KEYFORM, OPT_DIGEST,
+    OPT_NOOUT,
+    OPT_PUBKEY,
+    OPT_VERIFY,
+    OPT_IN,
+    OPT_OUT,
+    OPT_ENGINE,
+    OPT_KEY,
+    OPT_CHALLENGE,
+    OPT_PASSIN,
+    OPT_SPKAC,
+    OPT_SPKSECT,
+    OPT_KEYFORM,
+    OPT_DIGEST,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS spkac_options[] = {
     OPT_SECTION("General"),
     {"help", OPT_HELP, '-', "Display this summary"},
-    {"spksect", OPT_SPKSECT, 's',
-     "Specify the name of an SPKAC-dedicated section of configuration"},
+    {"spksect", OPT_SPKSECT, 's', "Specify the name of an SPKAC-dedicated section of configuration"},
 #ifndef OPENSSL_NO_ENGINE
     {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
 #endif
@@ -46,15 +56,14 @@ const OPTIONS spkac_options[] = {
     {"spkac", OPT_SPKAC, 's', "Alternative SPKAC name"},
 
     OPT_SECTION("Output"),
-    {"digest", OPT_DIGEST, 's', "Sign new SPKAC with the specified digest (default: MD5)" },
+    {"digest", OPT_DIGEST, 's', "Sign new SPKAC with the specified digest (default: MD5)"},
     {"out", OPT_OUT, '>', "Output file"},
     {"noout", OPT_NOOUT, '-', "Don't print SPKAC"},
     {"pubkey", OPT_PUBKEY, '-', "Output public key"},
     {"verify", OPT_VERIFY, '-', "Verify SPKAC signature"},
 
     OPT_PROV_OPTIONS,
-    {NULL}
-};
+    {NULL}};
 
 int spkac_main(int argc, char **argv)
 {
@@ -74,11 +83,13 @@ int spkac_main(int argc, char **argv)
     OPTION_CHOICE o;
 
     prog = opt_init(argc, argv, spkac_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -136,32 +147,33 @@ int spkac_main(int argc, char **argv)
     if (!opt_check_rest_arg(NULL))
         goto opthelp;
 
-    if (!app_passwd(passinarg, NULL, &passin, NULL)) {
+    if (!app_passwd(passinarg, NULL, &passin, NULL))
+    {
         BIO_printf(bio_err, "Error getting password\n");
         goto end;
     }
 
-    if (keyfile != NULL) {
+    if (keyfile != NULL)
+    {
         if (!opt_md(digest, &md))
             goto end;
 
-        pkey = load_key(strcmp(keyfile, "-") ? keyfile : NULL,
-                        keyformat, 1, passin, e, "private key");
+        pkey = load_key(strcmp(keyfile, "-") ? keyfile : NULL, keyformat, 1, passin, e, "private key");
         if (pkey == NULL)
             goto end;
         spki = NETSCAPE_SPKI_new();
         if (spki == NULL)
             goto end;
-        if (challenge != NULL
-            && !ASN1_STRING_set(spki->spkac->challenge,
-                                challenge, (int)strlen(challenge)))
+        if (challenge != NULL && !ASN1_STRING_set(spki->spkac->challenge, challenge, (int)strlen(challenge)))
             goto end;
-        if (!NETSCAPE_SPKI_set_pubkey(spki, pkey)) {
+        if (!NETSCAPE_SPKI_set_pubkey(spki, pkey))
+        {
             BIO_printf(bio_err, "Error setting public key\n");
             goto end;
         }
         i = NETSCAPE_SPKI_sign(spki, pkey, md);
-        if (i <= 0) {
+        if (i <= 0)
+        {
             BIO_printf(bio_err, "Error signing SPKAC\n");
             goto end;
         }
@@ -170,7 +182,8 @@ int spkac_main(int argc, char **argv)
             goto end;
 
         out = bio_open_default(outfile, 'w', FORMAT_TEXT);
-        if (out == NULL) {
+        if (out == NULL)
+        {
             OPENSSL_free(spkstr);
             goto end;
         }
@@ -185,7 +198,8 @@ int spkac_main(int argc, char **argv)
 
     spkstr = NCONF_get_string(conf, spksect, spkac);
 
-    if (spkstr == NULL) {
+    if (spkstr == NULL)
+    {
         BIO_printf(bio_err, "Can't find SPKAC called \"%s\"\n", spkac);
         ERR_print_errors(bio_err);
         goto end;
@@ -193,7 +207,8 @@ int spkac_main(int argc, char **argv)
 
     spki = NETSCAPE_SPKI_b64_decode(spkstr, -1);
 
-    if (spki == NULL) {
+    if (spki == NULL)
+    {
         BIO_printf(bio_err, "Error loading SPKAC\n");
         ERR_print_errors(bio_err);
         goto end;
@@ -206,11 +221,15 @@ int spkac_main(int argc, char **argv)
     if (!noout)
         NETSCAPE_SPKI_print(out, spki);
     pkey = NETSCAPE_SPKI_get_pubkey(spki);
-    if (verify) {
+    if (verify)
+    {
         i = NETSCAPE_SPKI_verify(spki, pkey);
-        if (i > 0) {
+        if (i > 0)
+        {
             BIO_printf(bio_err, "Signature OK\n");
-        } else {
+        }
+        else
+        {
             BIO_printf(bio_err, "Signature Failure\n");
             ERR_print_errors(bio_err);
             goto end;
@@ -221,7 +240,7 @@ int spkac_main(int argc, char **argv)
 
     ret = 0;
 
- end:
+end:
     EVP_MD_free(md);
     NCONF_free(conf);
     NETSCAPE_SPKI_free(spki);

@@ -12,7 +12,8 @@
 
 #include "ssl_test_ctx.h"
 
-typedef struct ctx_data_st {
+typedef struct ctx_data_st
+{
     unsigned char *npn_protocols;
     size_t npn_protocols_len;
     unsigned char *alpn_protocols;
@@ -22,7 +23,8 @@ typedef struct ctx_data_st {
     char *session_ticket_app_data;
 } CTX_DATA;
 
-typedef struct handshake_result {
+typedef struct handshake_result
+{
     ssl_test_result_t result;
     /* These alerts are in the 2-byte format returned by the info_callback. */
     /* (Latest) alert sent by the client; 0 if no alert. */
@@ -83,16 +85,11 @@ HANDSHAKE_RESULT *HANDSHAKE_RESULT_new(void);
 void HANDSHAKE_RESULT_free(HANDSHAKE_RESULT *result);
 
 /* Do a handshake and report some information about the result. */
-HANDSHAKE_RESULT *do_handshake(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
-                               SSL_CTX *client_ctx, SSL_CTX *resume_server_ctx,
-                               SSL_CTX *resume_client_ctx,
-                               const SSL_TEST_CTX *test_ctx);
+HANDSHAKE_RESULT *do_handshake(SSL_CTX *server_ctx, SSL_CTX *server2_ctx, SSL_CTX *client_ctx,
+                               SSL_CTX *resume_server_ctx, SSL_CTX *resume_client_ctx, const SSL_TEST_CTX *test_ctx);
 
-int configure_handshake_ctx_for_srp(SSL_CTX *server_ctx, SSL_CTX *server2_ctx,
-                                    SSL_CTX *client_ctx,
-                                    const SSL_TEST_EXTRA_CONF *extra,
-                                    CTX_DATA *server_ctx_data,
-                                    CTX_DATA *server2_ctx_data,
-                                    CTX_DATA *client_ctx_data);
+int configure_handshake_ctx_for_srp(SSL_CTX *server_ctx, SSL_CTX *server2_ctx, SSL_CTX *client_ctx,
+                                    const SSL_TEST_EXTRA_CONF *extra, CTX_DATA *server_ctx_data,
+                                    CTX_DATA *server2_ctx_data, CTX_DATA *client_ctx_data);
 
-#endif  /* OSSL_TEST_HANDSHAKE_HELPER_H */
+#endif /* OSSL_TEST_HANDSHAKE_HELPER_H */

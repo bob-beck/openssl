@@ -11,7 +11,6 @@
 #include "output.h"
 #include "tu_local.h"
 
-
 int main(int argc, char *argv[])
 {
     int ret = EXIT_FAILURE;
@@ -22,7 +21,8 @@ int main(int argc, char *argv[])
 
     test_open_streams();
 
-    if (!gi_ret) {
+    if (!gi_ret)
+    {
         test_printf_stderr("Global init failed - aborting\n");
         return ret;
     }
@@ -30,11 +30,14 @@ int main(int argc, char *argv[])
     if (!setup_test_framework(argc, argv))
         goto end;
 
-    if ((setup_res = setup_tests()) > 0) {
+    if ((setup_res = setup_tests()) > 0)
+    {
         ret = run_tests(argv[0]);
         cleanup_tests();
         opt_check_usage();
-    } else if (setup_res == 0) {
+    }
+    else if (setup_res == 0)
+    {
         opt_help(test_get_options());
     }
 end:

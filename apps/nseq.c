@@ -14,26 +14,27 @@
 #include <openssl/pem.h>
 #include <openssl/err.h>
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_TOSEQ, OPT_IN, OPT_OUT,
+    OPT_TOSEQ,
+    OPT_IN,
+    OPT_OUT,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
-const OPTIONS nseq_options[] = {
-    OPT_SECTION("General"),
-    {"help", OPT_HELP, '-', "Display this summary"},
+const OPTIONS nseq_options[] = {OPT_SECTION("General"),
+                                {"help", OPT_HELP, '-', "Display this summary"},
 
-    OPT_SECTION("Input"),
-    {"in", OPT_IN, '<', "Input file"},
+                                OPT_SECTION("Input"),
+                                {"in", OPT_IN, '<', "Input file"},
 
-    OPT_SECTION("Output"),
-    {"toseq", OPT_TOSEQ, '-', "Output NS Sequence file"},
-    {"out", OPT_OUT, '>', "Output file"},
+                                OPT_SECTION("Output"),
+                                {"toseq", OPT_TOSEQ, '-', "Output NS Sequence file"},
+                                {"out", OPT_OUT, '>', "Output file"},
 
-    OPT_PROV_OPTIONS,
-    {NULL}
-};
+                                OPT_PROV_OPTIONS,
+                                {NULL}};
 
 int nseq_main(int argc, char **argv)
 {
@@ -45,11 +46,13 @@ int nseq_main(int argc, char **argv)
     char *infile = NULL, *outfile = NULL, *prog;
 
     prog = opt_init(argc, argv, nseq_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -83,21 +86,23 @@ int nseq_main(int argc, char **argv)
     if (out == NULL)
         goto end;
 
-    if (toseq) {
+    if (toseq)
+    {
         seq = NETSCAPE_CERT_SEQUENCE_new();
         if (seq == NULL)
             goto end;
         seq->certs = sk_X509_new_null();
         if (seq->certs == NULL)
             goto end;
-        while ((x509 = PEM_read_bio_X509(in, NULL, NULL, NULL))) {
+        while ((x509 = PEM_read_bio_X509(in, NULL, NULL, NULL)))
+        {
             if (!sk_X509_push(seq->certs, x509))
                 goto end;
         }
 
-        if (!sk_X509_num(seq->certs)) {
-            BIO_printf(bio_err, "%s: Error reading certs file %s\n",
-                       prog, infile);
+        if (!sk_X509_num(seq->certs))
+        {
+            BIO_printf(bio_err, "%s: Error reading certs file %s\n", prog, infile);
             ERR_print_errors(bio_err);
             goto end;
         }
@@ -107,20 +112,21 @@ int nseq_main(int argc, char **argv)
     }
 
     seq = PEM_read_bio_NETSCAPE_CERT_SEQUENCE(in, NULL, NULL, NULL);
-    if (seq == NULL) {
-        BIO_printf(bio_err, "%s: Error reading sequence file %s\n",
-                   prog, infile);
+    if (seq == NULL)
+    {
+        BIO_printf(bio_err, "%s: Error reading sequence file %s\n", prog, infile);
         ERR_print_errors(bio_err);
         goto end;
     }
 
-    for (i = 0; i < sk_X509_num(seq->certs); i++) {
+    for (i = 0; i < sk_X509_num(seq->certs); i++)
+    {
         x509 = sk_X509_value(seq->certs, i);
         dump_cert_text(out, x509);
         PEM_write_bio_X509(out, x509);
     }
     ret = 0;
- end:
+end:
     BIO_free(in);
     BIO_free_all(out);
     NETSCAPE_CERT_SEQUENCE_free(seq);

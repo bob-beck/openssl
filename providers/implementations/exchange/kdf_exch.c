@@ -36,7 +36,8 @@ static OSSL_FUNC_keyexch_gettable_ctx_params_fn kdf_tls1_prf_gettable_ctx_params
 static OSSL_FUNC_keyexch_gettable_ctx_params_fn kdf_hkdf_gettable_ctx_params;
 static OSSL_FUNC_keyexch_gettable_ctx_params_fn kdf_scrypt_gettable_ctx_params;
 
-typedef struct {
+typedef struct
+{
     void *provctx;
     EVP_KDF_CTX *kdfctx;
     KDF_DATA *kdfdata;
@@ -71,10 +72,10 @@ err:
     return NULL;
 }
 
-#define KDF_NEWCTX(funcname, kdfname) \
-    static void *kdf_##funcname##_newctx(void *provctx) \
-    { \
-        return kdf_newctx(kdfname, provctx); \
+#define KDF_NEWCTX(funcname, kdfname)                                                                                  \
+    static void *kdf_##funcname##_newctx(void *provctx)                                                                \
+    {                                                                                                                  \
+        return kdf_newctx(kdfname, provctx);                                                                           \
     }
 
 KDF_NEWCTX(tls1_prf, "TLS1-PRF")
@@ -85,18 +86,14 @@ static int kdf_init(void *vpkdfctx, void *vkdf, const OSSL_PARAM params[])
 {
     PROV_KDF_CTX *pkdfctx = (PROV_KDF_CTX *)vpkdfctx;
 
-    if (!ossl_prov_is_running()
-            || pkdfctx == NULL
-            || vkdf == NULL
-            || !ossl_kdf_data_up_ref(vkdf))
+    if (!ossl_prov_is_running() || pkdfctx == NULL || vkdf == NULL || !ossl_kdf_data_up_ref(vkdf))
         return 0;
     pkdfctx->kdfdata = vkdf;
 
     return kdf_set_ctx_params(pkdfctx, params);
 }
 
-static int kdf_derive(void *vpkdfctx, unsigned char *secret, size_t *secretlen,
-                      size_t outlen)
+static int kdf_derive(void *vpkdfctx, unsigned char *secret, size_t *secretlen, size_t outlen)
 {
     PROV_KDF_CTX *pkdfctx = (PROV_KDF_CTX *)vpkdfctx;
     size_t kdfsize;
@@ -107,13 +104,16 @@ static int kdf_derive(void *vpkdfctx, unsigned char *secret, size_t *secretlen,
 
     kdfsize = EVP_KDF_CTX_get_kdf_size(pkdfctx->kdfctx);
 
-    if (secret == NULL) {
+    if (secret == NULL)
+    {
         *secretlen = kdfsize;
         return 1;
     }
 
-    if (kdfsize != SIZE_MAX) {
-        if (outlen < kdfsize) {
+    if (kdfsize != SIZE_MAX)
+    {
+        if (outlen < kdfsize)
+        {
             ERR_raise(ERR_LIB_PROV, PROV_R_OUTPUT_BUFFER_TOO_SMALL);
             return 0;
         }
@@ -153,11 +153,13 @@ static void *kdf_dupctx(void *vpkdfctx)
     *dstctx = *srcctx;
 
     dstctx->kdfctx = EVP_KDF_CTX_dup(srcctx->kdfctx);
-    if (dstctx->kdfctx == NULL) {
+    if (dstctx->kdfctx == NULL)
+    {
         OPENSSL_free(dstctx);
         return NULL;
     }
-    if (!ossl_kdf_data_up_ref(dstctx->kdfdata)) {
+    if (!ossl_kdf_data_up_ref(dstctx->kdfdata))
+    {
         EVP_KDF_CTX_free(dstctx->kdfctx);
         OPENSSL_free(dstctx);
         return NULL;
@@ -180,12 +182,9 @@ static int kdf_get_ctx_params(void *vpkdfctx, OSSL_PARAM params[])
     return EVP_KDF_CTX_get_params(pkdfctx->kdfctx, params);
 }
 
-static const OSSL_PARAM *kdf_settable_ctx_params(ossl_unused void *vpkdfctx,
-                                                 void *provctx,
-                                                 const char *kdfname)
+static const OSSL_PARAM *kdf_settable_ctx_params(ossl_unused void *vpkdfctx, void *provctx, const char *kdfname)
 {
-    EVP_KDF *kdf = EVP_KDF_fetch(PROV_LIBCTX_OF(provctx), kdfname,
-                                 NULL);
+    EVP_KDF *kdf = EVP_KDF_fetch(PROV_LIBCTX_OF(provctx), kdfname, NULL);
     const OSSL_PARAM *params;
 
     if (kdf == NULL)
@@ -197,23 +196,19 @@ static const OSSL_PARAM *kdf_settable_ctx_params(ossl_unused void *vpkdfctx,
     return params;
 }
 
-#define KDF_SETTABLE_CTX_PARAMS(funcname, kdfname) \
-    static const OSSL_PARAM *kdf_##funcname##_settable_ctx_params(void *vpkdfctx, \
-                                                                  void *provctx) \
-    { \
-        return kdf_settable_ctx_params(vpkdfctx, provctx, kdfname); \
+#define KDF_SETTABLE_CTX_PARAMS(funcname, kdfname)                                                                     \
+    static const OSSL_PARAM *kdf_##funcname##_settable_ctx_params(void *vpkdfctx, void *provctx)                       \
+    {                                                                                                                  \
+        return kdf_settable_ctx_params(vpkdfctx, provctx, kdfname);                                                    \
     }
 
 KDF_SETTABLE_CTX_PARAMS(tls1_prf, "TLS1-PRF")
 KDF_SETTABLE_CTX_PARAMS(hkdf, "HKDF")
 KDF_SETTABLE_CTX_PARAMS(scrypt, "SCRYPT")
 
-static const OSSL_PARAM *kdf_gettable_ctx_params(ossl_unused void *vpkdfctx,
-                                                 void *provctx,
-                                                 const char *kdfname)
+static const OSSL_PARAM *kdf_gettable_ctx_params(ossl_unused void *vpkdfctx, void *provctx, const char *kdfname)
 {
-    EVP_KDF *kdf = EVP_KDF_fetch(PROV_LIBCTX_OF(provctx), kdfname,
-                                 NULL);
+    EVP_KDF *kdf = EVP_KDF_fetch(PROV_LIBCTX_OF(provctx), kdfname, NULL);
     const OSSL_PARAM *params;
 
     if (kdf == NULL)
@@ -225,32 +220,28 @@ static const OSSL_PARAM *kdf_gettable_ctx_params(ossl_unused void *vpkdfctx,
     return params;
 }
 
-#define KDF_GETTABLE_CTX_PARAMS(funcname, kdfname) \
-    static const OSSL_PARAM *kdf_##funcname##_gettable_ctx_params(void *vpkdfctx, \
-                                                                  void *provctx) \
-    { \
-        return kdf_gettable_ctx_params(vpkdfctx, provctx, kdfname); \
+#define KDF_GETTABLE_CTX_PARAMS(funcname, kdfname)                                                                     \
+    static const OSSL_PARAM *kdf_##funcname##_gettable_ctx_params(void *vpkdfctx, void *provctx)                       \
+    {                                                                                                                  \
+        return kdf_gettable_ctx_params(vpkdfctx, provctx, kdfname);                                                    \
     }
 
 KDF_GETTABLE_CTX_PARAMS(tls1_prf, "TLS1-PRF")
 KDF_GETTABLE_CTX_PARAMS(hkdf, "HKDF")
 KDF_GETTABLE_CTX_PARAMS(scrypt, "SCRYPT")
 
-#define KDF_KEYEXCH_FUNCTIONS(funcname) \
-    const OSSL_DISPATCH ossl_kdf_##funcname##_keyexch_functions[] = { \
-        { OSSL_FUNC_KEYEXCH_NEWCTX, (void (*)(void))kdf_##funcname##_newctx }, \
-        { OSSL_FUNC_KEYEXCH_INIT, (void (*)(void))kdf_init }, \
-        { OSSL_FUNC_KEYEXCH_DERIVE, (void (*)(void))kdf_derive }, \
-        { OSSL_FUNC_KEYEXCH_FREECTX, (void (*)(void))kdf_freectx }, \
-        { OSSL_FUNC_KEYEXCH_DUPCTX, (void (*)(void))kdf_dupctx }, \
-        { OSSL_FUNC_KEYEXCH_SET_CTX_PARAMS, (void (*)(void))kdf_set_ctx_params }, \
-        { OSSL_FUNC_KEYEXCH_GET_CTX_PARAMS, (void (*)(void))kdf_get_ctx_params }, \
-        { OSSL_FUNC_KEYEXCH_SETTABLE_CTX_PARAMS, \
-        (void (*)(void))kdf_##funcname##_settable_ctx_params }, \
-        { OSSL_FUNC_KEYEXCH_GETTABLE_CTX_PARAMS, \
-        (void (*)(void))kdf_##funcname##_gettable_ctx_params }, \
-        OSSL_DISPATCH_END \
-    };
+#define KDF_KEYEXCH_FUNCTIONS(funcname)                                                                                \
+    const OSSL_DISPATCH ossl_kdf_##funcname##_keyexch_functions[] = {                                                  \
+        {OSSL_FUNC_KEYEXCH_NEWCTX, (void (*)(void))kdf_##funcname##_newctx},                                           \
+        {OSSL_FUNC_KEYEXCH_INIT, (void (*)(void))kdf_init},                                                            \
+        {OSSL_FUNC_KEYEXCH_DERIVE, (void (*)(void))kdf_derive},                                                        \
+        {OSSL_FUNC_KEYEXCH_FREECTX, (void (*)(void))kdf_freectx},                                                      \
+        {OSSL_FUNC_KEYEXCH_DUPCTX, (void (*)(void))kdf_dupctx},                                                        \
+        {OSSL_FUNC_KEYEXCH_SET_CTX_PARAMS, (void (*)(void))kdf_set_ctx_params},                                        \
+        {OSSL_FUNC_KEYEXCH_GET_CTX_PARAMS, (void (*)(void))kdf_get_ctx_params},                                        \
+        {OSSL_FUNC_KEYEXCH_SETTABLE_CTX_PARAMS, (void (*)(void))kdf_##funcname##_settable_ctx_params},                 \
+        {OSSL_FUNC_KEYEXCH_GETTABLE_CTX_PARAMS, (void (*)(void))kdf_##funcname##_gettable_ctx_params},                 \
+        OSSL_DISPATCH_END};
 
 KDF_KEYEXCH_FUNCTIONS(tls1_prf)
 KDF_KEYEXCH_FUNCTIONS(hkdf)

@@ -18,8 +18,8 @@
 static const char msg1[] = "GET LICENSE.txt\r\n";
 static char msg2[16000];
 
-#define DST_PORT        4433
-#define DST_ADDR        0x7f000001UL
+#define DST_PORT 4433
+#define DST_ADDR 0x7f000001UL
 
 static int is_want(SSL *s, int ret)
 {
@@ -41,10 +41,10 @@ static int test_quic_client_ex(int fd_arg)
     int c_connected = 0, c_write_done = 0, c_shutdown = 0;
     size_t l = 0, c_total_read = 0;
     OSSL_TIME start_time;
-    unsigned char alpn[] = { 8, 'h', 't', 't', 'p', '/', '0', '.', '9' };
+    unsigned char alpn[] = {8, 'h', 't', 't', 'p', '/', '0', '.', '9'};
 
-
-    if (fd_arg == INVALID_SOCKET) {
+    if (fd_arg == INVALID_SOCKET)
+    {
         /* Setup test client. */
         c_fd = BIO_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, 0);
         if (!TEST_int_ne(c_fd, INVALID_SOCKET))
@@ -57,10 +57,11 @@ static int test_quic_client_ex(int fd_arg)
             goto err;
 
         ina.s_addr = htonl(DST_ADDR);
-        if (!TEST_true(BIO_ADDR_rawmake(s_addr_, AF_INET, &ina, sizeof(ina),
-                                        htons(port))))
+        if (!TEST_true(BIO_ADDR_rawmake(s_addr_, AF_INET, &ina, sizeof(ina), htons(port))))
             goto err;
-    } else {
+    }
+    else
+    {
         c_fd = fd_arg;
     }
 
@@ -85,7 +86,8 @@ static int test_quic_client_ex(int fd_arg)
     SSL_set0_rbio(c_ssl, c_net_bio);
 
     /* Get another reference to be transferred in the SSL_set0_wbio call. */
-    if (!TEST_true(BIO_up_ref(c_net_bio))) {
+    if (!TEST_true(BIO_up_ref(c_net_bio)))
+    {
         c_net_bio_own = NULL; /* SSL_free will free the first reference. */
         goto err;
     }
@@ -98,27 +100,30 @@ static int test_quic_client_ex(int fd_arg)
 
     start_time = ossl_time_now();
 
-    for (;;) {
-        if (ossl_time_compare(ossl_time_subtract(ossl_time_now(), start_time),
-                              ossl_ms2time(10000)) >= 0) {
+    for (;;)
+    {
+        if (ossl_time_compare(ossl_time_subtract(ossl_time_now(), start_time), ossl_ms2time(10000)) >= 0)
+        {
             TEST_error("timeout while attempting QUIC client test");
             goto err;
         }
 
-        if (!c_connected) {
+        if (!c_connected)
+        {
             ret = SSL_connect(c_ssl);
             if (!TEST_true(ret == 1 || is_want(c_ssl, ret)))
                 goto err;
 
-            if (ret == 1) {
+            if (ret == 1)
+            {
                 c_connected = 1;
                 TEST_info("Connected!");
             }
         }
 
-        if (c_connected && !c_write_done) {
-            if (!TEST_int_eq(SSL_write(c_ssl, msg1, sizeof(msg1) - 1),
-                             (int)sizeof(msg1) - 1))
+        if (c_connected && !c_write_done)
+        {
+            if (!TEST_int_eq(SSL_write(c_ssl, msg1, sizeof(msg1) - 1), (int)sizeof(msg1) - 1))
                 goto err;
 
             if (!TEST_true(SSL_stream_conclude(c_ssl, 0)))
@@ -127,17 +132,23 @@ static int test_quic_client_ex(int fd_arg)
             c_write_done = 1;
         }
 
-        if (c_write_done && !c_shutdown && c_total_read < sizeof(msg2) - 1) {
-            ret = SSL_read_ex(c_ssl, msg2 + c_total_read,
-                              sizeof(msg2) - 1 - c_total_read, &l);
-            if (ret != 1) {
-                if (SSL_get_error(c_ssl, ret) == SSL_ERROR_ZERO_RETURN) {
+        if (c_write_done && !c_shutdown && c_total_read < sizeof(msg2) - 1)
+        {
+            ret = SSL_read_ex(c_ssl, msg2 + c_total_read, sizeof(msg2) - 1 - c_total_read, &l);
+            if (ret != 1)
+            {
+                if (SSL_get_error(c_ssl, ret) == SSL_ERROR_ZERO_RETURN)
+                {
                     c_shutdown = 1;
                     TEST_info("Message:\n%s\n", msg2);
-                } else if (!TEST_true(is_want(c_ssl, ret))) {
+                }
+                else if (!TEST_true(is_want(c_ssl, ret)))
+                {
                     goto err;
                 }
-            } else {
+            }
+            else
+            {
                 c_total_read += l;
 
                 if (!TEST_size_t_lt(c_total_read, sizeof(msg2) - 1))
@@ -145,7 +156,8 @@ static int test_quic_client_ex(int fd_arg)
             }
         }
 
-        if (c_shutdown) {
+        if (c_shutdown)
+        {
             ret = SSL_shutdown(c_ssl);
             if (ret == 1)
                 break;
@@ -214,7 +226,8 @@ OPT_TEST_DECLARE_USAGE("certfile privkeyfile\n")
 
 int setup_tests(void)
 {
-    if (!test_skip_common_options()) {
+    if (!test_skip_common_options())
+    {
         TEST_error("Error parsing test options\n");
         return 0;
     }

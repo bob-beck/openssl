@@ -28,7 +28,8 @@ static int test_do_updatedb(void)
     int need64bit;
     int have64bit;
 
-    if (argc != 4) {
+    if (argc != 4)
+    {
         TEST_error("Usage: %s: do_updatedb dbfile testdate need64bit\n", binname);
         TEST_error("       testdate format: ASN1-String\n");
         return 0;
@@ -40,21 +41,23 @@ static int test_do_updatedb(void)
      */
     need64bit = (int)strtol(test_get_argument(3), NULL, 0);
     have64bit = sizeof(time_t) > sizeof(uint32_t);
-    if (need64bit && !have64bit) {
-        BIO_printf(bio_out, "skipping test (need64bit: %i, have64bit: %i)",
-            need64bit, have64bit);
+    if (need64bit && !have64bit)
+    {
+        BIO_printf(bio_out, "skipping test (need64bit: %i, have64bit: %i)", need64bit, have64bit);
         return 1;
     }
 
     testdate = test_get_argument(2);
     testdateutc = test_asn1_string_to_time_t(testdate);
-    if (TEST_time_t_lt(testdateutc, 0)) {
+    if (TEST_time_t_lt(testdateutc, 0))
+    {
         return 0;
     }
 
     indexfile = test_get_argument(1);
     db = load_index(indexfile, NULL);
-    if (TEST_ptr_null(db)) {
+    if (TEST_ptr_null(db))
+    {
         return 0;
     }
 
@@ -63,7 +66,8 @@ static int test_do_updatedb(void)
     rv = do_updatedb(db, &testdateutc);
     bio_err = bio_tmp;
 
-    if (rv > 0) {
+    if (rv > 0)
+    {
         if (!TEST_true(save_index(indexfile, "new", db)))
             goto end;
 
@@ -79,7 +83,8 @@ int setup_tests(void)
 {
     char *command = test_get_argument(0);
 
-    if (test_get_argument_count() < 1) {
+    if (test_get_argument_count() < 1)
+    {
         TEST_error("%s: no command specified for testing\n", binname);
         return 0;
     }
@@ -90,4 +95,3 @@ int setup_tests(void)
     TEST_error("%s: command '%s' is not supported for testing\n", binname, command);
     return 0;
 }
-

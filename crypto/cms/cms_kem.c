@@ -50,7 +50,8 @@ static int kem_cms_decrypt(CMS_RecipientInfo *ri)
         goto err;
 
     cipher_length = EVP_CIPHER_CTX_get_key_length(kekctx);
-    if (cipher_length != *kekLength) {
+    if (cipher_length != *kekLength)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_INVALID_KEY_LENGTH);
         goto err;
     }
@@ -97,17 +98,19 @@ static int kem_cms_encrypt(CMS_RecipientInfo *ri)
         goto err;
 
     X509_ALGOR_get0(&kdf_obj, NULL, NULL, kdf);
-    if (kdf_obj == NULL || OBJ_obj2nid(kdf_obj) == NID_undef) {
+    if (kdf_obj == NULL || OBJ_obj2nid(kdf_obj) == NID_undef)
+    {
         /*
          * If the KDF OID hasn't already been set, then query the provider
          * for a default KDF.
          */
-        params[0] = OSSL_PARAM_construct_octet_string(OSSL_PKEY_PARAM_CMS_KEMRI_KDF_ALGORITHM,
-                                                      kemri_x509_algor, sizeof(kemri_x509_algor));
+        params[0] = OSSL_PARAM_construct_octet_string(OSSL_PKEY_PARAM_CMS_KEMRI_KDF_ALGORITHM, kemri_x509_algor,
+                                                      sizeof(kemri_x509_algor));
         params[1] = OSSL_PARAM_construct_end();
         if (!EVP_PKEY_get_params(pkey, params))
             goto err;
-        if (OSSL_PARAM_modified(&params[0])) {
+        if (OSSL_PARAM_modified(&params[0]))
+        {
             const unsigned char *p = kemri_x509_algor;
 
             x509_algor = d2i_X509_ALGOR(NULL, &p, (long)params[0].return_size);
@@ -115,7 +118,9 @@ static int kem_cms_encrypt(CMS_RecipientInfo *ri)
                 goto err;
             if (!X509_ALGOR_copy(kdf, x509_algor))
                 goto err;
-        } else {
+        }
+        else
+        {
             if (!X509_ALGOR_set0(kdf, OBJ_nid2obj(NID_HKDF_SHA256), V_ASN1_UNDEF, NULL))
                 return 0;
         }
@@ -135,12 +140,14 @@ static int kem_cms_encrypt(CMS_RecipientInfo *ri)
     wrap->parameter = ASN1_TYPE_new();
     if (wrap->parameter == NULL)
         goto err;
-    if (EVP_CIPHER_param_to_asn1(kekctx, wrap->parameter) <= 0) {
+    if (EVP_CIPHER_param_to_asn1(kekctx, wrap->parameter) <= 0)
+    {
         ASN1_TYPE_free(wrap->parameter);
         wrap->parameter = NULL;
         goto err;
     }
-    if (ASN1_TYPE_get(wrap->parameter) == NID_undef) {
+    if (ASN1_TYPE_get(wrap->parameter) == NID_undef)
+    {
         ASN1_TYPE_free(wrap->parameter);
         wrap->parameter = NULL;
     }

@@ -22,16 +22,14 @@ static int test_load_cert_file(void)
     STACK_OF(X509) *certs = NULL;
     STACK_OF(X509_OBJECT) *objs = NULL;
 
-    if (!TEST_ptr(store = X509_STORE_new())
-        || !TEST_ptr(lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file()))
-        || !TEST_true(X509_load_cert_file(lookup, chain, X509_FILETYPE_PEM))
-        || !TEST_ptr(certs = X509_STORE_get1_all_certs(store))
-        || !TEST_int_eq(sk_X509_num(certs), 4)
-        || !TEST_ptr(objs = X509_STORE_get1_objects(store))
-        || !TEST_int_eq(sk_X509_OBJECT_num(objs), 4))
+    if (!TEST_ptr(store = X509_STORE_new()) || !TEST_ptr(lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file())) ||
+        !TEST_true(X509_load_cert_file(lookup, chain, X509_FILETYPE_PEM)) ||
+        !TEST_ptr(certs = X509_STORE_get1_all_certs(store)) || !TEST_int_eq(sk_X509_num(certs), 4) ||
+        !TEST_ptr(objs = X509_STORE_get1_objects(store)) || !TEST_int_eq(sk_X509_OBJECT_num(objs), 4))
         goto err;
 
-    for (i = 0; i < sk_X509_OBJECT_num(objs); i++) {
+    for (i = 0; i < sk_X509_OBJECT_num(objs); i++)
+    {
         const X509_OBJECT *obj = sk_X509_OBJECT_value(objs, i);
         if (!TEST_int_eq(X509_OBJECT_get_type(obj), X509_LU_X509))
             goto err;
@@ -53,7 +51,8 @@ OPT_TEST_DECLARE_USAGE("cert.pem [crl.pem]\n")
 
 int setup_tests(void)
 {
-    if (!test_skip_common_options()) {
+    if (!test_skip_common_options())
+    {
         TEST_error("Error parsing test options\n");
         return 0;
     }

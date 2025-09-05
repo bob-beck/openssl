@@ -8,13 +8,14 @@
  */
 
 #ifndef OSSL_QUIC_TLS_H
-# define OSSL_QUIC_TLS_H
+#define OSSL_QUIC_TLS_H
 
-# include <openssl/ssl.h>
+#include <openssl/ssl.h>
 
 typedef struct quic_tls_st QUIC_TLS;
 
-typedef struct quic_tls_args_st {
+typedef struct quic_tls_args_st
+{
     /*
      * The "inner" SSL object for the QUIC Connection. Contains an
      * SSL_CONNECTION
@@ -27,8 +28,7 @@ typedef struct quic_tls_args_st {
      * dynamically select the correct outgoing crypto stream based on the
      * current EL.
      */
-    int (*crypto_send_cb)(const unsigned char *buf, size_t buf_len,
-                          size_t *consumed, void *arg);
+    int (*crypto_send_cb)(const unsigned char *buf, size_t buf_len, size_t *consumed, void *arg);
     void *crypto_send_cb_arg;
 
     /*
@@ -36,8 +36,7 @@ typedef struct quic_tls_args_st {
      * is provided, and subsequently released to avoid unnecessary copying of
      * data.
      */
-    int (*crypto_recv_rcd_cb)(const unsigned char **buf, size_t *bytes_read,
-                              void *arg);
+    int (*crypto_recv_rcd_cb)(const unsigned char **buf, size_t *bytes_read, void *arg);
     void *crypto_recv_rcd_cb_arg;
     int (*crypto_release_rcd_cb)(size_t bytes_read, void *arg);
     void *crypto_release_rcd_cb_arg;
@@ -46,10 +45,8 @@ typedef struct quic_tls_args_st {
      * Called when a traffic secret is available for a given TLS protection
      * level.
      */
-    int (*yield_secret_cb)(uint32_t prot_level, int direction /* 0=RX, 1=TX */,
-                           uint32_t suite_id, EVP_MD *md,
-                           const unsigned char *secret, size_t secret_len,
-                           void *arg);
+    int (*yield_secret_cb)(uint32_t prot_level, int direction /* 0=RX, 1=TX */, uint32_t suite_id, EVP_MD *md,
+                           const unsigned char *secret, size_t secret_len, void *arg);
     void *yield_secret_cb_arg;
 
     /*
@@ -58,9 +55,7 @@ typedef struct quic_tls_args_st {
      * Note: These parameters are not authenticated until the handshake is
      * marked as completed.
      */
-    int (*got_transport_params_cb)(const unsigned char *params,
-                                   size_t params_len,
-                                   void *arg);
+    int (*got_transport_params_cb)(const unsigned char *params, size_t params_len, void *arg);
     void *got_transport_params_cb_arg;
 
     /*
@@ -98,14 +93,10 @@ int ossl_quic_tls_tick(QUIC_TLS *qtls);
 
 void ossl_quic_tls_clear(QUIC_TLS *qtls);
 
-int ossl_quic_tls_set_transport_params(QUIC_TLS *qtls,
-                                       const unsigned char *transport_params,
+int ossl_quic_tls_set_transport_params(QUIC_TLS *qtls, const unsigned char *transport_params,
                                        size_t transport_params_len);
 
-int ossl_quic_tls_get_error(QUIC_TLS *qtls,
-                            uint64_t *error_code,
-                            const char **error_msg,
-                            ERR_STATE **error_state);
+int ossl_quic_tls_get_error(QUIC_TLS *qtls, uint64_t *error_code, const char **error_msg, ERR_STATE **error_state);
 
 int ossl_quic_tls_is_cert_request(QUIC_TLS *qtls);
 int ossl_quic_tls_has_bad_max_early_data(QUIC_TLS *qtls);

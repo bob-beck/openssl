@@ -19,7 +19,8 @@ const char *SSL_state_string_long(const SSL *s)
     if (sc == NULL || ossl_statem_in_error(sc))
         return "error";
 
-    switch (SSL_get_state(s)) {
+    switch (SSL_get_state(s))
+    {
     case TLS_ST_CR_CERT_STATUS:
         return "SSLv3/TLS read certificate status";
     case TLS_ST_CW_NEXT_PROTO:
@@ -136,7 +137,8 @@ const char *SSL_state_string(const SSL *s)
     if (sc == NULL || ossl_statem_in_error(sc))
         return "SSLERR";
 
-    switch (SSL_get_state(s)) {
+    switch (SSL_get_state(s))
+    {
     case TLS_ST_SR_NEXT_PROTO:
         return "TRNP";
     case TLS_ST_SW_SESSION_TICKET:
@@ -248,7 +250,8 @@ const char *SSL_state_string(const SSL *s)
 
 const char *SSL_alert_type_string_long(int value)
 {
-    switch (value >> 8) {
+    switch (value >> 8)
+    {
     case SSL3_AL_WARNING:
         return "warning";
     case SSL3_AL_FATAL:
@@ -260,7 +263,8 @@ const char *SSL_alert_type_string_long(int value)
 
 const char *SSL_alert_type_string(int value)
 {
-    switch (value >> 8) {
+    switch (value >> 8)
+    {
     case SSL3_AL_WARNING:
         return "W";
     case SSL3_AL_FATAL:
@@ -272,7 +276,8 @@ const char *SSL_alert_type_string(int value)
 
 const char *SSL_alert_desc_string(int value)
 {
-    switch (value & 0xff) {
+    switch (value & 0xff)
+    {
     case SSL3_AD_CLOSE_NOTIFY:
         return "CN";
     case SSL3_AD_UNEXPECTED_MESSAGE:
@@ -340,7 +345,8 @@ const char *SSL_alert_desc_string(int value)
 
 const char *SSL_alert_desc_string_long(int value)
 {
-    switch (value & 0xff) {
+    switch (value & 0xff)
+    {
     case SSL3_AD_CLOSE_NOTIFY:
         return "close notify";
     case SSL3_AD_UNEXPECTED_MESSAGE:

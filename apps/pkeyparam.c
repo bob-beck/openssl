@@ -16,32 +16,35 @@
 #include <openssl/err.h>
 #include <openssl/evp.h>
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_IN, OPT_OUT, OPT_TEXT, OPT_NOOUT,
-    OPT_ENGINE, OPT_CHECK,
+    OPT_IN,
+    OPT_OUT,
+    OPT_TEXT,
+    OPT_NOOUT,
+    OPT_ENGINE,
+    OPT_CHECK,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
-const OPTIONS pkeyparam_options[] = {
-    OPT_SECTION("General"),
-    {"help", OPT_HELP, '-', "Display this summary"},
+const OPTIONS pkeyparam_options[] = {OPT_SECTION("General"),
+                                     {"help", OPT_HELP, '-', "Display this summary"},
 #ifndef OPENSSL_NO_ENGINE
-    {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
+                                     {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
 #endif
-    {"check", OPT_CHECK, '-', "Check key param consistency"},
+                                     {"check", OPT_CHECK, '-', "Check key param consistency"},
 
-    OPT_SECTION("Input"),
-    {"in", OPT_IN, '<', "Input file"},
+                                     OPT_SECTION("Input"),
+                                     {"in", OPT_IN, '<', "Input file"},
 
-    OPT_SECTION("Output"),
-    {"out", OPT_OUT, '>', "Output file"},
-    {"text", OPT_TEXT, '-', "Print parameters as text"},
-    {"noout", OPT_NOOUT, '-', "Don't output encoded parameters"},
+                                     OPT_SECTION("Output"),
+                                     {"out", OPT_OUT, '>', "Output file"},
+                                     {"text", OPT_TEXT, '-', "Print parameters as text"},
+                                     {"noout", OPT_NOOUT, '-', "Don't output encoded parameters"},
 
-    OPT_PROV_OPTIONS,
-    {NULL}
-};
+                                     OPT_PROV_OPTIONS,
+                                     {NULL}};
 
 int pkeyparam_main(int argc, char **argv)
 {
@@ -54,11 +57,13 @@ int pkeyparam_main(int argc, char **argv)
     char *infile = NULL, *outfile = NULL, *prog;
 
     prog = opt_init(argc, argv, pkeyparam_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -97,9 +102,9 @@ int pkeyparam_main(int argc, char **argv)
     in = bio_open_default(infile, 'r', FORMAT_PEM);
     if (in == NULL)
         goto end;
-    pkey = PEM_read_bio_Parameters_ex(in, NULL, app_get0_libctx(),
-                                      app_get0_propq());
-    if (pkey == NULL) {
+    pkey = PEM_read_bio_Parameters_ex(in, NULL, app_get0_libctx(), app_get0_propq());
+    if (pkey == NULL)
+    {
         BIO_printf(bio_err, "Error reading parameters\n");
         ERR_print_errors(bio_err);
         goto end;
@@ -108,22 +113,26 @@ int pkeyparam_main(int argc, char **argv)
     if (out == NULL)
         goto end;
 
-    if (check) {
+    if (check)
+    {
         if (e == NULL)
-            ctx = EVP_PKEY_CTX_new_from_pkey(app_get0_libctx(), pkey,
-                                             app_get0_propq());
+            ctx = EVP_PKEY_CTX_new_from_pkey(app_get0_libctx(), pkey, app_get0_propq());
         else
             ctx = EVP_PKEY_CTX_new(pkey, e);
-        if (ctx == NULL) {
+        if (ctx == NULL)
+        {
             ERR_print_errors(bio_err);
             goto end;
         }
 
         r = EVP_PKEY_param_check(ctx);
 
-        if (r == 1) {
+        if (r == 1)
+        {
             BIO_printf(out, "Parameters are valid\n");
-        } else {
+        }
+        else
+        {
             /*
              * Note: at least for RSA keys if this function returns
              * -1, there will be no error reasons.
@@ -142,7 +151,7 @@ int pkeyparam_main(int argc, char **argv)
 
     ret = EXIT_SUCCESS;
 
- end:
+end:
     EVP_PKEY_CTX_free(ctx);
     EVP_PKEY_free(pkey);
     release_engine(e);

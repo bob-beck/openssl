@@ -66,7 +66,8 @@ void ossl_uint_set_destroy(UINT_SET *s)
 {
     UINT_SET_ITEM *x, *xnext;
 
-    for (x = ossl_list_uint_set_head(s); x != NULL; x = xnext) {
+    for (x = ossl_list_uint_set_head(s); x != NULL; x = xnext)
+    {
         xnext = ossl_list_uint_set_next(x);
         OPENSSL_free(x);
     }
@@ -102,11 +103,9 @@ static uint64_t u64_max(uint64_t x, uint64_t y)
  * Returns 1 if there exists an integer x which falls within both ranges a and
  * b.
  */
-static int uint_range_overlaps(const UINT_RANGE *a,
-                               const UINT_RANGE *b)
+static int uint_range_overlaps(const UINT_RANGE *a, const UINT_RANGE *b)
 {
-    return u64_min(a->end, b->end)
-        >= u64_max(a->start, b->start);
+    return u64_min(a->end, b->end) >= u64_max(a->start, b->start);
 }
 
 static UINT_SET_ITEM *create_set_item(uint64_t start, uint64_t end)
@@ -118,7 +117,7 @@ static UINT_SET_ITEM *create_set_item(uint64_t start, uint64_t end)
 
     ossl_list_uint_set_init_elem(x);
     x->range.start = start;
-    x->range.end   = end;
+    x->range.end = end;
     return x;
 }
 
@@ -130,7 +129,8 @@ int ossl_uint_set_insert(UINT_SET *s, const UINT_RANGE *range)
     if (!ossl_assert(start <= end))
         return 0;
 
-    if (ossl_list_uint_set_is_empty(s)) {
+    if (ossl_list_uint_set_is_empty(s))
+    {
         /* Nothing in the set yet, so just add this range. */
         x = create_set_item(start, end);
         if (x == NULL)
@@ -140,7 +140,8 @@ int ossl_uint_set_insert(UINT_SET *s, const UINT_RANGE *range)
     }
 
     z = ossl_list_uint_set_tail(s);
-    if (start > z->range.end) {
+    if (start > z->range.end)
+    {
         /*
          * Range is after the latest range in the set, so append.
          *
@@ -148,7 +149,8 @@ int ossl_uint_set_insert(UINT_SET *s, const UINT_RANGE *range)
          * set is handled as a degenerate case of the final case below. See
          * optimization note (*) below.
          */
-        if (z->range.end + 1 == start) {
+        if (z->range.end + 1 == start)
+        {
             z->range.end = end;
             return 1;
         }
@@ -161,7 +163,8 @@ int ossl_uint_set_insert(UINT_SET *s, const UINT_RANGE *range)
     }
 
     f = ossl_list_uint_set_head(s);
-    if (start <= f->range.start && end >= z->range.end) {
+    if (start <= f->range.start && end >= z->range.end)
+    {
         /*
          * New range dwarfs all ranges in our set.
          *
@@ -171,7 +174,8 @@ int ossl_uint_set_insert(UINT_SET *s, const UINT_RANGE *range)
         x = ossl_list_uint_set_head(s);
         x->range.start = start;
         x->range.end = end;
-        for (x = ossl_list_uint_set_next(x); x != NULL; x = xnext) {
+        for (x = ossl_list_uint_set_next(x); x != NULL; x = xnext)
+        {
             xnext = ossl_list_uint_set_next(x);
             ossl_list_uint_set_remove(s, x);
         }
@@ -187,14 +191,16 @@ int ossl_uint_set_insert(UINT_SET *s, const UINT_RANGE *range)
      */
     z = end < f->range.start ? f : z;
 
-    for (; z != NULL; z = zprev) {
+    for (; z != NULL; z = zprev)
+    {
         zprev = ossl_list_uint_set_prev(z);
 
         /* An existing range dwarfs our new range (optimisation). */
         if (z->range.start <= start && z->range.end >= end)
             return 1;
 
-        if (uint_range_overlaps(&z->range, range)) {
+        if (uint_range_overlaps(&z->range, range))
+        {
             /*
              * Our new range overlaps an existing range, or possibly several
              * existing ranges.
@@ -204,7 +210,8 @@ int ossl_uint_set_insert(UINT_SET *s, const UINT_RANGE *range)
             ovend->range.end = u64_max(end, z->range.end);
 
             /* Get earliest overlapping range. */
-            while (zprev != NULL && uint_range_overlaps(&zprev->range, range)) {
+            while (zprev != NULL && uint_range_overlaps(&zprev->range, range))
+            {
                 z = zprev;
                 zprev = ossl_list_uint_set_prev(z);
             }
@@ -212,15 +219,18 @@ int ossl_uint_set_insert(UINT_SET *s, const UINT_RANGE *range)
             ovend->range.start = u64_min(start, z->range.start);
 
             /* Replace sequence of nodes z..ovend with updated ovend only. */
-            while (z != ovend) {
+            while (z != ovend)
+            {
                 z = ossl_list_uint_set_next(x = z);
                 ossl_list_uint_set_remove(s, x);
                 OPENSSL_free(x);
             }
             break;
-        } else if (end < z->range.start
-                    && (zprev == NULL || start > zprev->range.end)) {
-            if (z->range.start == end + 1) {
+        }
+        else if (end < z->range.start && (zprev == NULL || start > zprev->range.end))
+        {
+            if (z->range.start == end + 1)
+            {
                 /* We can extend the following range backwards. */
                 z->range.start = start;
 
@@ -229,7 +239,9 @@ int ossl_uint_set_insert(UINT_SET *s, const UINT_RANGE *range)
                  * consecutive nodes.
                  */
                 uint_set_merge_adjacent(s, z);
-            } else if (zprev != NULL && zprev->range.end + 1 == start) {
+            }
+            else if (zprev != NULL && zprev->range.end + 1 == start)
+            {
                 /* We can extend the preceding range forwards. */
                 zprev->range.end = end;
 
@@ -238,7 +250,9 @@ int ossl_uint_set_insert(UINT_SET *s, const UINT_RANGE *range)
                  * consecutive nodes.
                  */
                 uint_set_merge_adjacent(s, z);
-            } else {
+            }
+            else
+            {
                 /*
                  * The new interval is between intervals without overlapping or
                  * touching them, so insert between, preserving sort.
@@ -264,21 +278,25 @@ int ossl_uint_set_remove(UINT_SET *s, const UINT_RANGE *range)
         return 0;
 
     /* Walk backwards since we will most often be removing at the end. */
-    for (z = ossl_list_uint_set_tail(s); z != NULL; z = zprev) {
+    for (z = ossl_list_uint_set_tail(s); z != NULL; z = zprev)
+    {
         zprev = ossl_list_uint_set_prev(z);
 
         if (start > z->range.end)
             /* No overlapping ranges can exist beyond this point, so stop. */
             break;
 
-        if (start <= z->range.start && end >= z->range.end) {
+        if (start <= z->range.start && end >= z->range.end)
+        {
             /*
              * The range being removed dwarfs this range, so it should be
              * removed.
              */
             ossl_list_uint_set_remove(s, z);
             OPENSSL_free(z);
-        } else if (start <= z->range.start && end >= z->range.start) {
+        }
+        else if (start <= z->range.start && end >= z->range.start)
+        {
             /*
              * The range being removed includes start of this range, but does
              * not cover the entire range (as this would be caught by the case
@@ -286,7 +304,9 @@ int ossl_uint_set_remove(UINT_SET *s, const UINT_RANGE *range)
              */
             assert(end < z->range.end);
             z->range.start = end + 1;
-        } else if (end >= z->range.end) {
+        }
+        else if (end >= z->range.end)
+        {
             /*
              * The range being removed includes the end of this range, but does
              * not cover the entire range (as this would be caught by the case
@@ -296,7 +316,9 @@ int ossl_uint_set_remove(UINT_SET *s, const UINT_RANGE *range)
             assert(start > 0);
             z->range.end = start - 1;
             break;
-        } else if (start > z->range.start && end < z->range.end) {
+        }
+        else if (start > z->range.start && end < z->range.end)
+        {
             /*
              * The range being removed falls entirely in this range, so cut it
              * into two. Cases where a zero-length range would be created are
@@ -306,7 +328,9 @@ int ossl_uint_set_remove(UINT_SET *s, const UINT_RANGE *range)
             ossl_list_uint_set_insert_after(s, z, y);
             z->range.end = start - 1;
             break;
-        } else {
+        }
+        else
+        {
             /* Assert no partial overlap; all cases should be covered above. */
             assert(!uint_range_overlaps(&z->range, range));
         }

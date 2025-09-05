@@ -23,19 +23,13 @@
  * Hard coding the key into an application is very bad.
  * It is done here solely for educational purposes.
  */
-static unsigned char key[] = {
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-};
+static unsigned char key[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                              0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
 
-static unsigned char data[] = {
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e
-};
+static unsigned char data[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                               0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
 
-static const unsigned char expected_output[] = {
-    0xe5, 0x45, 0xbe, 0x49, 0x61, 0xca, 0x29, 0xa1
-};
+static const unsigned char expected_output[] = {0xe5, 0x45, 0xbe, 0x49, 0x61, 0xca, 0x29, 0xa1};
 
 /*
  * A property query used for selecting the SIPHASH implementation.
@@ -54,21 +48,24 @@ int main(int argc, char **argv)
     size_t out_len = 0;
 
     library_context = OSSL_LIB_CTX_new();
-    if (library_context == NULL) {
+    if (library_context == NULL)
+    {
         fprintf(stderr, "OSSL_LIB_CTX_new() returned NULL\n");
         goto end;
     }
 
     /* Fetch the SipHash implementation */
     mac = EVP_MAC_fetch(library_context, "SIPHASH", propq);
-    if (mac == NULL) {
+    if (mac == NULL)
+    {
         fprintf(stderr, "EVP_MAC_fetch() returned NULL\n");
         goto end;
     }
 
     /* Create a context for the SipHash operation */
     mctx = EVP_MAC_CTX_new(mac);
-    if (mctx == NULL) {
+    if (mctx == NULL)
+    {
         fprintf(stderr, "EVP_MAC_CTX_new() returned NULL\n");
         goto end;
     }
@@ -87,19 +84,22 @@ int main(int argc, char **argv)
     *p = OSSL_PARAM_construct_end();
 
     /* Initialise the SIPHASH operation */
-    if (!EVP_MAC_init(mctx, key, sizeof(key), params)) {
+    if (!EVP_MAC_init(mctx, key, sizeof(key), params))
+    {
         fprintf(stderr, "EVP_MAC_init() failed\n");
         goto end;
     }
 
     /* Make one or more calls to process the data to be authenticated */
-    if (!EVP_MAC_update(mctx, data, sizeof(data))) {
+    if (!EVP_MAC_update(mctx, data, sizeof(data)))
+    {
         fprintf(stderr, "EVP_MAC_update() failed\n");
         goto end;
     }
 
     /* Make one call to the final to get the MAC */
-    if (!EVP_MAC_final(mctx, out, &out_len, sizeof(out))) {
+    if (!EVP_MAC_final(mctx, out, &out_len, sizeof(out)))
+    {
         fprintf(stderr, "EVP_MAC_final() failed\n");
         goto end;
     }
@@ -108,12 +108,14 @@ int main(int argc, char **argv)
     BIO_dump_indent_fp(stdout, out, out_len, 2);
     putchar('\n');
 
-    if (out_len != sizeof(expected_output)) {
+    if (out_len != sizeof(expected_output))
+    {
         fprintf(stderr, "Generated MAC has an unexpected length\n");
         goto end;
     }
 
-    if (CRYPTO_memcmp(expected_output, out, sizeof(expected_output)) != 0) {
+    if (CRYPTO_memcmp(expected_output, out, sizeof(expected_output)) != 0)
+    {
         fprintf(stderr, "Generated MAC does not match expected value\n");
         goto end;
     }

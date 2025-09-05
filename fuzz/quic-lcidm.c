@@ -38,7 +38,8 @@ int FuzzerInitialize(int *argc, char ***argv)
  *     LOOKUP               u8(0x06) u8(cidl):cid
  */
 
-enum {
+enum
+{
     CMD_ENROL_ODCID,
     CMD_RETIRE_ODCID,
     CMD_GENERATE_INITIAL,
@@ -48,15 +49,13 @@ enum {
     CMD_LOOKUP
 };
 
-#define MAX_CMDS    10000
+#define MAX_CMDS 10000
 
 static int get_cid(PACKET *pkt, QUIC_CONN_ID *cid)
 {
     unsigned int cidl;
 
-    if (!PACKET_get_1(pkt, &cidl)
-        || cidl > QUIC_MAX_CONN_ID_LEN
-        || !PACKET_copy_bytes(pkt, cid->id, cidl))
+    if (!PACKET_get_1(pkt, &cidl) || cidl > QUIC_MAX_CONN_ID_LEN || !PACKET_copy_bytes(pkt, cid->id, cidl))
         return 0;
 
     cid->id_len = (unsigned char)cidl;
@@ -79,38 +78,41 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     if (!PACKET_buf_init(&pkt, buf, len))
         goto err;
 
-    if (!PACKET_get_1(&pkt, &lcidl)
-        || lcidl > QUIC_MAX_CONN_ID_LEN) {
+    if (!PACKET_get_1(&pkt, &lcidl) || lcidl > QUIC_MAX_CONN_ID_LEN)
+    {
         rc = -1;
         goto err;
     }
 
-    if ((lcidm = ossl_quic_lcidm_new(NULL, lcidl)) == NULL) {
+    if ((lcidm = ossl_quic_lcidm_new(NULL, lcidl)) == NULL)
+    {
         rc = -1;
         goto err;
     }
 
-    while (PACKET_remaining(&pkt) > 0) {
+    while (PACKET_remaining(&pkt) > 0)
+    {
         if (!PACKET_get_1(&pkt, &cmd))
             goto err;
 
         if (++limit > MAX_CMDS)
             goto err;
 
-        switch (cmd) {
+        switch (cmd)
+        {
         case CMD_ENROL_ODCID:
-            if (!PACKET_get_net_8(&pkt, &arg_opaque)
-                || !get_cid(&pkt, &arg_cid)) {
+            if (!PACKET_get_net_8(&pkt, &arg_opaque) || !get_cid(&pkt, &arg_cid))
+            {
                 rc = -1;
                 goto err;
             }
 
-            ossl_quic_lcidm_enrol_odcid(lcidm, (void *)(uintptr_t)arg_opaque,
-                                        &arg_cid);
+            ossl_quic_lcidm_enrol_odcid(lcidm, (void *)(uintptr_t)arg_opaque, &arg_cid);
             break;
 
         case CMD_RETIRE_ODCID:
-            if (!PACKET_get_net_8(&pkt, &arg_opaque)) {
+            if (!PACKET_get_net_8(&pkt, &arg_opaque))
+            {
                 rc = -1;
                 goto err;
             }
@@ -119,40 +121,39 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
             break;
 
         case CMD_GENERATE_INITIAL:
-            if (!PACKET_get_net_8(&pkt, &arg_opaque)) {
+            if (!PACKET_get_net_8(&pkt, &arg_opaque))
+            {
                 rc = -1;
                 goto err;
             }
 
-            ossl_quic_lcidm_generate_initial(lcidm, (void *)(uintptr_t)arg_opaque,
-                                             &cid_out);
+            ossl_quic_lcidm_generate_initial(lcidm, (void *)(uintptr_t)arg_opaque, &cid_out);
             break;
 
         case CMD_GENERATE:
-            if (!PACKET_get_net_8(&pkt, &arg_opaque)) {
+            if (!PACKET_get_net_8(&pkt, &arg_opaque))
+            {
                 rc = -1;
                 goto err;
             }
 
-            ossl_quic_lcidm_generate(lcidm, (void *)(uintptr_t)arg_opaque,
-                                     &ncid_frame);
+            ossl_quic_lcidm_generate(lcidm, (void *)(uintptr_t)arg_opaque, &ncid_frame);
             break;
 
         case CMD_RETIRE:
-            if (!PACKET_get_net_8(&pkt, &arg_opaque)
-                || !PACKET_get_net_8(&pkt, &arg_retire_prior_to)) {
+            if (!PACKET_get_net_8(&pkt, &arg_opaque) || !PACKET_get_net_8(&pkt, &arg_retire_prior_to))
+            {
                 rc = -1;
                 goto err;
             }
 
-            ossl_quic_lcidm_retire(lcidm, (void *)(uintptr_t)arg_opaque,
-                                   arg_retire_prior_to,
-                                   NULL, &cid_out,
+            ossl_quic_lcidm_retire(lcidm, (void *)(uintptr_t)arg_opaque, arg_retire_prior_to, NULL, &cid_out,
                                    &seq_num_out, &did_retire);
             break;
 
         case CMD_CULL:
-            if (!PACKET_get_net_8(&pkt, &arg_opaque)) {
+            if (!PACKET_get_net_8(&pkt, &arg_opaque))
+            {
                 rc = -1;
                 goto err;
             }
@@ -161,7 +162,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
             break;
 
         case CMD_LOOKUP:
-            if (!get_cid(&pkt, &arg_cid)) {
+            if (!get_cid(&pkt, &arg_cid))
+            {
                 rc = -1;
                 goto err;
             }

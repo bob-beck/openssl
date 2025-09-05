@@ -12,7 +12,8 @@
  *      hashAlgorithm                AlgorithmIdentifier,
  *      hashedMessage                OCTET STRING  }
  */
-struct TS_msg_imprint_st {
+struct TS_msg_imprint_st
+{
     X509_ALGOR *hash_algo;
     ASN1_OCTET_STRING *hashed_msg;
 };
@@ -22,7 +23,8 @@ struct TS_msg_imprint_st {
  *     status                  PKIStatusInfo,
  *     timeStampToken          TimeStampToken     OPTIONAL }
  */
-struct TS_resp_st {
+struct TS_resp_st
+{
     TS_STATUS_INFO *status_info;
     PKCS7 *token;
     TS_TST_INFO *tst_info;
@@ -39,7 +41,8 @@ struct TS_resp_st {
  *    certReq                  BOOLEAN                    DEFAULT FALSE,
  *    extensions               [0] IMPLICIT Extensions    OPTIONAL  }
  */
-struct TS_req_st {
+struct TS_req_st
+{
     ASN1_INTEGER *version;
     TS_MSG_IMPRINT *msg_imprint;
     ASN1_OBJECT *policy_id;
@@ -54,7 +57,8 @@ struct TS_req_st {
  *                 millis     [0] INTEGER  (1..999) OPTIONAL,
  *                 micros     [1] INTEGER  (1..999) OPTIONAL  }
  */
-struct TS_accuracy_st {
+struct TS_accuracy_st
+{
     ASN1_INTEGER *seconds;
     ASN1_INTEGER *millis;
     ASN1_INTEGER *micros;
@@ -79,7 +83,8 @@ struct TS_accuracy_st {
  *     tsa                          [0] GeneralName          OPTIONAL,
  *     extensions                   [1] IMPLICIT Extensions  OPTIONAL   }
  */
-struct TS_tst_info_st {
+struct TS_tst_info_st
+{
     ASN1_INTEGER *version;
     ASN1_OBJECT *policy_id;
     TS_MSG_IMPRINT *msg_imprint;
@@ -92,34 +97,36 @@ struct TS_tst_info_st {
     STACK_OF(X509_EXTENSION) *extensions;
 };
 
-struct TS_status_info_st {
+struct TS_status_info_st
+{
     ASN1_INTEGER *status;
     STACK_OF(ASN1_UTF8STRING) *text;
     ASN1_BIT_STRING *failure_info;
 };
 
-struct TS_resp_ctx {
+struct TS_resp_ctx
+{
     X509 *signer_cert;
     EVP_PKEY *signer_key;
     const EVP_MD *signer_md;
     const EVP_MD *ess_cert_id_digest;
-    STACK_OF(X509) *certs;      /* Certs to include in signed data. */
+    STACK_OF(X509) *certs;           /* Certs to include in signed data. */
     STACK_OF(ASN1_OBJECT) *policies; /* Acceptable policies. */
-    ASN1_OBJECT *default_policy; /* It may appear in policies, too. */
-    STACK_OF(EVP_MD) *mds;      /* Acceptable message digests. */
-    ASN1_INTEGER *seconds;      /* accuracy, 0 means not specified. */
-    ASN1_INTEGER *millis;       /* accuracy, 0 means not specified. */
-    ASN1_INTEGER *micros;       /* accuracy, 0 means not specified. */
+    ASN1_OBJECT *default_policy;     /* It may appear in policies, too. */
+    STACK_OF(EVP_MD) *mds;           /* Acceptable message digests. */
+    ASN1_INTEGER *seconds;           /* accuracy, 0 means not specified. */
+    ASN1_INTEGER *millis;            /* accuracy, 0 means not specified. */
+    ASN1_INTEGER *micros;            /* accuracy, 0 means not specified. */
     unsigned clock_precision_digits; /* fraction of seconds in timestamp
                                       * token. */
-    unsigned flags;             /* Optional info, see values above. */
+    unsigned flags;                  /* Optional info, see values above. */
     /* Callback functions. */
     TS_serial_cb serial_cb;
-    void *serial_cb_data;       /* User data for serial_cb. */
+    void *serial_cb_data; /* User data for serial_cb. */
     TS_time_cb time_cb;
-    void *time_cb_data;         /* User data for time_cb. */
+    void *time_cb_data; /* User data for time_cb. */
     TS_extension_cb extension_cb;
-    void *extension_cb_data;    /* User data for extension_cb. */
+    void *extension_cb_data; /* User data for extension_cb. */
     /* These members are used only while creating the response. */
     TS_REQ *request;
     TS_RESP *response;
@@ -128,7 +135,8 @@ struct TS_resp_ctx {
     char *propq;
 };
 
-struct TS_verify_ctx {
+struct TS_verify_ctx
+{
     /* Set this to the union of TS_VFY_... flags you want to carry out. */
     unsigned flags;
     /* Must be set only with TS_VFY_SIGNATURE. certs is optional. */

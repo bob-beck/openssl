@@ -34,16 +34,17 @@
  */
 
 /* structure for precomputed multiples of the generator */
-struct ec_pre_comp_st {
-    const EC_GROUP *group;      /* parent EC_GROUP object */
-    size_t blocksize;           /* block size for wNAF splitting */
-    size_t numblocks;           /* max. number of blocks for which we have
-                                 * precomputation */
-    size_t w;                   /* window size */
-    EC_POINT **points;          /* array with pre-calculated multiples of
-                                 * generator: 'num' pointers to EC_POINT
-                                 * objects followed by a NULL */
-    size_t num;                 /* numblocks * 2^(w-1) */
+struct ec_pre_comp_st
+{
+    const EC_GROUP *group; /* parent EC_GROUP object */
+    size_t blocksize;      /* block size for wNAF splitting */
+    size_t numblocks;      /* max. number of blocks for which we have
+                            * precomputation */
+    size_t w;              /* window size */
+    EC_POINT **points;     /* array with pre-calculated multiples of
+                            * generator: 'num' pointers to EC_POINT
+                            * objects followed by a NULL */
+    size_t num;            /* numblocks * 2^(w-1) */
     CRYPTO_REF_COUNT references;
 };
 
@@ -59,10 +60,11 @@ static EC_PRE_COMP *ec_pre_comp_new(const EC_GROUP *group)
         return ret;
 
     ret->group = group;
-    ret->blocksize = 8;         /* default */
-    ret->w = 4;                 /* default */
+    ret->blocksize = 8; /* default */
+    ret->w = 4;         /* default */
 
-    if (!CRYPTO_NEW_REF(&ret->references, 1)) {
+    if (!CRYPTO_NEW_REF(&ret->references, 1))
+    {
         OPENSSL_free(ret);
         return NULL;
     }
@@ -90,7 +92,8 @@ void EC_ec_pre_comp_free(EC_PRE_COMP *pre)
         return;
     REF_ASSERT_ISNT(i < 0);
 
-    if (pre->points != NULL) {
+    if (pre->points != NULL)
+    {
         EC_POINT **pts;
 
         for (pts = pre->points; *pts != NULL; pts++)
@@ -101,11 +104,13 @@ void EC_ec_pre_comp_free(EC_PRE_COMP *pre)
     OPENSSL_free(pre);
 }
 
-#define EC_POINT_BN_set_flags(P, flags) do { \
-    BN_set_flags((P)->X, (flags)); \
-    BN_set_flags((P)->Y, (flags)); \
-    BN_set_flags((P)->Z, (flags)); \
-} while(0)
+#define EC_POINT_BN_set_flags(P, flags)                                                                                \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        BN_set_flags((P)->X, (flags));                                                                                 \
+        BN_set_flags((P)->Y, (flags));                                                                                 \
+        BN_set_flags((P)->Z, (flags));                                                                                 \
+    } while (0)
 
 /*-
  * This functions computes a single point multiplication over the EC group,
@@ -136,8 +141,7 @@ void EC_ec_pre_comp_free(EC_PRE_COMP *pre)
  *
  * Returns 1 on success, 0 otherwise.
  */
-int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
-                              const BIGNUM *scalar, const EC_POINT *point,
+int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar, const EC_POINT *point,
                               BN_CTX *ctx)
 {
     int i, cardinality_bits, group_top, kbit, pbit, Z_is_one;
@@ -152,30 +156,37 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
     if (point != NULL && EC_POINT_is_at_infinity(group, point))
         return EC_POINT_set_to_infinity(group, r);
 
-    if (BN_is_zero(group->order)) {
+    if (BN_is_zero(group->order))
+    {
         ERR_raise(ERR_LIB_EC, EC_R_UNKNOWN_ORDER);
         return 0;
     }
-    if (BN_is_zero(group->cofactor)) {
+    if (BN_is_zero(group->cofactor))
+    {
         ERR_raise(ERR_LIB_EC, EC_R_UNKNOWN_COFACTOR);
         return 0;
     }
 
     BN_CTX_start(ctx);
 
-    if (((p = EC_POINT_new(group)) == NULL)
-        || ((s = EC_POINT_new(group)) == NULL)) {
+    if (((p = EC_POINT_new(group)) == NULL) || ((s = EC_POINT_new(group)) == NULL))
+    {
         ERR_raise(ERR_LIB_EC, ERR_R_EC_LIB);
         goto err;
     }
 
-    if (point == NULL) {
-        if (!EC_POINT_copy(p, group->generator)) {
+    if (point == NULL)
+    {
+        if (!EC_POINT_copy(p, group->generator))
+        {
             ERR_raise(ERR_LIB_EC, ERR_R_EC_LIB);
             goto err;
         }
-    } else {
-        if (!EC_POINT_copy(p, point)) {
+    }
+    else
+    {
+        if (!EC_POINT_copy(p, point))
+        {
             ERR_raise(ERR_LIB_EC, ERR_R_EC_LIB);
             goto err;
         }
@@ -188,12 +199,14 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
     cardinality = BN_CTX_get(ctx);
     lambda = BN_CTX_get(ctx);
     k = BN_CTX_get(ctx);
-    if (k == NULL) {
+    if (k == NULL)
+    {
         ERR_raise(ERR_LIB_EC, ERR_R_BN_LIB);
         goto err;
     }
 
-    if (!BN_mul(cardinality, group->order, group->cofactor, ctx)) {
+    if (!BN_mul(cardinality, group->order, group->cofactor, ctx))
+    {
         ERR_raise(ERR_LIB_EC, ERR_R_BN_LIB);
         goto err;
     }
@@ -206,36 +219,41 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
      */
     cardinality_bits = BN_num_bits(cardinality);
     group_top = bn_get_top(cardinality);
-    if ((bn_wexpand(k, group_top + 2) == NULL)
-        || (bn_wexpand(lambda, group_top + 2) == NULL)) {
+    if ((bn_wexpand(k, group_top + 2) == NULL) || (bn_wexpand(lambda, group_top + 2) == NULL))
+    {
         ERR_raise(ERR_LIB_EC, ERR_R_BN_LIB);
         goto err;
     }
 
-    if (!BN_copy(k, scalar)) {
+    if (!BN_copy(k, scalar))
+    {
         ERR_raise(ERR_LIB_EC, ERR_R_BN_LIB);
         goto err;
     }
 
     BN_set_flags(k, BN_FLG_CONSTTIME);
 
-    if ((BN_num_bits(k) > cardinality_bits) || (BN_is_negative(k))) {
+    if ((BN_num_bits(k) > cardinality_bits) || (BN_is_negative(k)))
+    {
         /*-
          * this is an unusual input, and we don't guarantee
          * constant-timeness
          */
-        if (!BN_nnmod(k, k, cardinality, ctx)) {
+        if (!BN_nnmod(k, k, cardinality, ctx))
+        {
             ERR_raise(ERR_LIB_EC, ERR_R_BN_LIB);
             goto err;
         }
     }
 
-    if (!BN_add(lambda, k, cardinality)) {
+    if (!BN_add(lambda, k, cardinality))
+    {
         ERR_raise(ERR_LIB_EC, ERR_R_BN_LIB);
         goto err;
     }
     BN_set_flags(lambda, BN_FLG_CONSTTIME);
-    if (!BN_add(k, lambda, cardinality)) {
+    if (!BN_add(k, lambda, cardinality))
+    {
         ERR_raise(ERR_LIB_EC, ERR_R_BN_LIB);
         goto err;
     }
@@ -247,28 +265,26 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
     BN_consttime_swap(kbit, k, lambda, group_top + 2);
 
     group_top = bn_get_top(group->field);
-    if ((bn_wexpand(s->X, group_top) == NULL)
-        || (bn_wexpand(s->Y, group_top) == NULL)
-        || (bn_wexpand(s->Z, group_top) == NULL)
-        || (bn_wexpand(r->X, group_top) == NULL)
-        || (bn_wexpand(r->Y, group_top) == NULL)
-        || (bn_wexpand(r->Z, group_top) == NULL)
-        || (bn_wexpand(p->X, group_top) == NULL)
-        || (bn_wexpand(p->Y, group_top) == NULL)
-        || (bn_wexpand(p->Z, group_top) == NULL)) {
+    if ((bn_wexpand(s->X, group_top) == NULL) || (bn_wexpand(s->Y, group_top) == NULL) ||
+        (bn_wexpand(s->Z, group_top) == NULL) || (bn_wexpand(r->X, group_top) == NULL) ||
+        (bn_wexpand(r->Y, group_top) == NULL) || (bn_wexpand(r->Z, group_top) == NULL) ||
+        (bn_wexpand(p->X, group_top) == NULL) || (bn_wexpand(p->Y, group_top) == NULL) ||
+        (bn_wexpand(p->Z, group_top) == NULL))
+    {
         ERR_raise(ERR_LIB_EC, ERR_R_BN_LIB);
         goto err;
     }
 
     /* ensure input point is in affine coords for ladder step efficiency */
-    if (!p->Z_is_one && (group->meth->make_affine == NULL
-                         || !group->meth->make_affine(group, p, ctx))) {
-            ERR_raise(ERR_LIB_EC, ERR_R_EC_LIB);
-            goto err;
+    if (!p->Z_is_one && (group->meth->make_affine == NULL || !group->meth->make_affine(group, p, ctx)))
+    {
+        ERR_raise(ERR_LIB_EC, ERR_R_EC_LIB);
+        goto err;
     }
 
     /* Initialize the Montgomery ladder */
-    if (!ec_point_ladder_pre(group, r, s, p, ctx)) {
+    if (!ec_point_ladder_pre(group, r, s, p, ctx))
+    {
         ERR_raise(ERR_LIB_EC, EC_R_LADDER_PRE_FAILURE);
         goto err;
     }
@@ -276,14 +292,16 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
     /* top bit is a 1, in a fixed pos */
     pbit = 1;
 
-#define EC_POINT_CSWAP(c, a, b, w, t) do {         \
-        BN_consttime_swap(c, (a)->X, (b)->X, w);   \
-        BN_consttime_swap(c, (a)->Y, (b)->Y, w);   \
-        BN_consttime_swap(c, (a)->Z, (b)->Z, w);   \
-        t = ((a)->Z_is_one ^ (b)->Z_is_one) & (c); \
-        (a)->Z_is_one ^= (t);                      \
-        (b)->Z_is_one ^= (t);                      \
-} while(0)
+#define EC_POINT_CSWAP(c, a, b, w, t)                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        BN_consttime_swap(c, (a)->X, (b)->X, w);                                                                       \
+        BN_consttime_swap(c, (a)->Y, (b)->Y, w);                                                                       \
+        BN_consttime_swap(c, (a)->Z, (b)->Z, w);                                                                       \
+        t = ((a)->Z_is_one ^ (b)->Z_is_one) & (c);                                                                     \
+        (a)->Z_is_one ^= (t);                                                                                          \
+        (b)->Z_is_one ^= (t);                                                                                          \
+    } while (0)
 
     /*-
      * The ladder step, with branches, is
@@ -343,12 +361,14 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
      * This is XOR. pbit tracks the previous bit of k.
      */
 
-    for (i = cardinality_bits - 1; i >= 0; i--) {
+    for (i = cardinality_bits - 1; i >= 0; i--)
+    {
         kbit = BN_is_bit_set(k, i) ^ pbit;
         EC_POINT_CSWAP(kbit, r, s, group_top, Z_is_one);
 
         /* Perform a single step of the Montgomery ladder */
-        if (!ec_point_ladder_step(group, r, s, p, ctx)) {
+        if (!ec_point_ladder_step(group, r, s, p, ctx))
+        {
             ERR_raise(ERR_LIB_EC, EC_R_LADDER_STEP_FAILURE);
             goto err;
         }
@@ -363,14 +383,15 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
 #undef EC_POINT_CSWAP
 
     /* Finalize ladder (and recover full point coordinates) */
-    if (!ec_point_ladder_post(group, r, s, p, ctx)) {
+    if (!ec_point_ladder_post(group, r, s, p, ctx))
+    {
         ERR_raise(ERR_LIB_EC, EC_R_LADDER_POST_FAILURE);
         goto err;
     }
 
     ret = 1;
 
- err:
+err:
     EC_POINT_free(p);
     EC_POINT_clear_free(s);
     BN_CTX_end(ctx);
@@ -385,14 +406,8 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
  * sometimes smaller windows will give better performance (thus the
  * boundaries should be increased)
  */
-#define EC_window_bits_for_scalar_size(b) \
-                ((size_t) \
-                 ((b) >= 2000 ? 6 : \
-                  (b) >=  800 ? 5 : \
-                  (b) >=  300 ? 4 : \
-                  (b) >=   70 ? 3 : \
-                  (b) >=   20 ? 2 : \
-                  1))
+#define EC_window_bits_for_scalar_size(b)                                                                              \
+    ((size_t)((b) >= 2000 ? 6 : (b) >= 800 ? 5 : (b) >= 300 ? 4 : (b) >= 70 ? 3 : (b) >= 20 ? 2 : 1))
 
 /*-
  * Compute
@@ -401,8 +416,7 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
  *      scalar*generator
  * in the addition if scalar != NULL
  */
-int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
-                     size_t num, const EC_POINT *points[],
+int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar, size_t num, const EC_POINT *points[],
                      const BIGNUM *scalars[], BN_CTX *ctx)
 {
     const EC_POINT *generator = NULL;
@@ -414,28 +428,30 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
     int k;
     int r_is_inverted = 0;
     int r_is_at_infinity = 1;
-    size_t *wsize = NULL;       /* individual window sizes */
-    signed char **wNAF = NULL;  /* individual wNAFs */
+    size_t *wsize = NULL;      /* individual window sizes */
+    signed char **wNAF = NULL; /* individual wNAFs */
     size_t *wNAF_len = NULL;
     size_t max_len = 0;
     size_t num_val;
-    EC_POINT **val = NULL;      /* precomputation */
+    EC_POINT **val = NULL; /* precomputation */
     EC_POINT **v;
     EC_POINT ***val_sub = NULL; /* pointers to sub-arrays of 'val' or
                                  * 'pre_comp->points' */
     const EC_PRE_COMP *pre_comp = NULL;
-    int num_scalar = 0;         /* flag: will be set to 1 if 'scalar' must be
-                                 * treated like other scalars, i.e.
-                                 * precomputation is not available */
+    int num_scalar = 0; /* flag: will be set to 1 if 'scalar' must be
+                         * treated like other scalars, i.e.
+                         * precomputation is not available */
     int ret = 0;
 
-    if (!BN_is_zero(group->order) && !BN_is_zero(group->cofactor)) {
+    if (!BN_is_zero(group->order) && !BN_is_zero(group->cofactor))
+    {
         /*-
          * Handle the common cases where the scalar is secret, enforcing a
          * scalar multiplication implementation based on a Montgomery ladder,
          * with various timing attack defenses.
          */
-        if ((scalar != group->order) && (scalar != NULL) && (num == 0)) {
+        if ((scalar != group->order) && (scalar != NULL) && (num == 0))
+        {
             /*-
              * In this case we want to compute scalar * GeneratorPoint: this
              * codepath is reached most prominently by (ephemeral) key
@@ -446,7 +462,8 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
              */
             return ossl_ec_scalar_mul_ladder(group, r, scalar, NULL, ctx);
         }
-        if ((scalar == NULL) && (num == 1) && (scalars[0] != group->order)) {
+        if ((scalar == NULL) && (num == 1) && (scalars[0] != group->order))
+        {
             /*-
              * In this case we want to compute scalar * VariablePoint: this
              * codepath is reached most prominently by the second half of ECDH,
@@ -454,14 +471,15 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
              * To protect the secret scalar, we ignore if BN_FLG_CONSTTIME is
              * actually set and we always call the ladder version.
              */
-            return ossl_ec_scalar_mul_ladder(group, r, scalars[0], points[0],
-                                             ctx);
+            return ossl_ec_scalar_mul_ladder(group, r, scalars[0], points[0], ctx);
         }
     }
 
-    if (scalar != NULL) {
+    if (scalar != NULL)
+    {
         generator = EC_GROUP_get0_generator(group);
-        if (generator == NULL) {
+        if (generator == NULL)
+        {
             ERR_raise(ERR_LIB_EC, EC_R_UNDEFINED_GENERATOR);
             goto err;
         }
@@ -469,9 +487,8 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
         /* look if we can use precomputed multiples of generator */
 
         pre_comp = group->pre_comp.ec;
-        if (pre_comp && pre_comp->numblocks
-            && (EC_POINT_cmp(group, generator, pre_comp->points[0], ctx) ==
-                0)) {
+        if (pre_comp && pre_comp->numblocks && (EC_POINT_cmp(group, generator, pre_comp->points[0], ctx) == 0))
+        {
             blocksize = pre_comp->blocksize;
 
             /*
@@ -489,16 +506,19 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
             pre_points_per_block = (size_t)1 << (pre_comp->w - 1);
 
             /* check that pre_comp looks sane */
-            if (pre_comp->num != (pre_comp->numblocks * pre_points_per_block)) {
+            if (pre_comp->num != (pre_comp->numblocks * pre_points_per_block))
+            {
                 ERR_raise(ERR_LIB_EC, ERR_R_INTERNAL_ERROR);
                 goto err;
             }
-        } else {
+        }
+        else
+        {
             /* can't use precomputation */
             pre_comp = NULL;
             numblocks = 1;
-            num_scalar = 1;     /* treat 'scalar' like 'num'-th element of
-                                 * 'scalars' */
+            num_scalar = 1; /* treat 'scalar' like 'num'-th element of
+                             * 'scalars' */
         }
     }
 
@@ -512,7 +532,7 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
 
     /* Ensure wNAF is initialised in case we end up going to err */
     if (wNAF != NULL)
-        wNAF[0] = NULL;         /* preliminary pivot */
+        wNAF[0] = NULL; /* preliminary pivot */
 
     if (wsize == NULL || wNAF_len == NULL || wNAF == NULL || val_sub == NULL)
         goto err;
@@ -522,36 +542,41 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
      */
     num_val = 0;
 
-    for (i = 0; i < num + num_scalar; i++) {
+    for (i = 0; i < num + num_scalar; i++)
+    {
         size_t bits;
 
         bits = i < num ? BN_num_bits(scalars[i]) : BN_num_bits(scalar);
         wsize[i] = EC_window_bits_for_scalar_size(bits);
         num_val += (size_t)1 << (wsize[i] - 1);
-        wNAF[i + 1] = NULL;     /* make sure we always have a pivot */
-        wNAF[i] =
-            bn_compute_wNAF((i < num ? scalars[i] : scalar), (int)wsize[i],
-                            &wNAF_len[i]);
+        wNAF[i + 1] = NULL; /* make sure we always have a pivot */
+        wNAF[i] = bn_compute_wNAF((i < num ? scalars[i] : scalar), (int)wsize[i], &wNAF_len[i]);
         if (wNAF[i] == NULL)
             goto err;
         if (wNAF_len[i] > max_len)
             max_len = wNAF_len[i];
     }
 
-    if (numblocks) {
+    if (numblocks)
+    {
         /* we go here iff scalar != NULL */
 
-        if (pre_comp == NULL) {
-            if (num_scalar != 1) {
+        if (pre_comp == NULL)
+        {
+            if (num_scalar != 1)
+            {
                 ERR_raise(ERR_LIB_EC, ERR_R_INTERNAL_ERROR);
                 goto err;
             }
             /* we have already generated a wNAF for 'scalar' */
-        } else {
+        }
+        else
+        {
             signed char *tmp_wNAF = NULL;
             size_t tmp_len = 0;
 
-            if (num_scalar != 0) {
+            if (num_scalar != 0)
+            {
                 ERR_raise(ERR_LIB_EC, ERR_R_INTERNAL_ERROR);
                 goto err;
             }
@@ -564,7 +589,8 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
             if (!tmp_wNAF)
                 goto err;
 
-            if (tmp_len <= max_len) {
+            if (tmp_len <= max_len)
+            {
                 /*
                  * One of the other wNAFs is at least as long as the wNAF
                  * belonging to the generator, so wNAF splitting will not buy
@@ -580,7 +606,9 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                  * pre_comp->points starts with the points that we need here:
                  */
                 val_sub[num] = pre_comp->points;
-            } else {
+            }
+            else
+            {
                 /*
                  * don't include tmp_wNAF directly into wNAF array - use wNAF
                  * splitting and include the blocks
@@ -589,12 +617,14 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                 signed char *pp;
                 EC_POINT **tmp_points;
 
-                if (tmp_len < numblocks * blocksize) {
+                if (tmp_len < numblocks * blocksize)
+                {
                     /*
                      * possibly we can do with fewer blocks than estimated
                      */
                     numblocks = (tmp_len + blocksize - 1) / blocksize;
-                    if (numblocks > pre_comp->numblocks) {
+                    if (numblocks > pre_comp->numblocks)
+                    {
                         ERR_raise(ERR_LIB_EC, ERR_R_INTERNAL_ERROR);
                         OPENSSL_free(tmp_wNAF);
                         goto err;
@@ -606,16 +636,20 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                 pp = tmp_wNAF;
                 tmp_points = pre_comp->points;
 
-                for (i = num; i < totalnum; i++) {
-                    if (i < totalnum - 1) {
+                for (i = num; i < totalnum; i++)
+                {
+                    if (i < totalnum - 1)
+                    {
                         wNAF_len[i] = blocksize;
-                        if (tmp_len < blocksize) {
+                        if (tmp_len < blocksize)
+                        {
                             ERR_raise(ERR_LIB_EC, ERR_R_INTERNAL_ERROR);
                             OPENSSL_free(tmp_wNAF);
                             goto err;
                         }
                         tmp_len -= blocksize;
-                    } else
+                    }
+                    else
                         /*
                          * last block gets whatever is left (this could be
                          * more or less than 'blocksize'!)
@@ -624,7 +658,8 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
 
                     wNAF[i + 1] = NULL;
                     wNAF[i] = OPENSSL_malloc(wNAF_len[i]);
-                    if (wNAF[i] == NULL) {
+                    if (wNAF[i] == NULL)
+                    {
                         OPENSSL_free(tmp_wNAF);
                         goto err;
                     }
@@ -632,7 +667,8 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                     if (wNAF_len[i] > max_len)
                         max_len = wNAF_len[i];
 
-                    if (*tmp_points == NULL) {
+                    if (*tmp_points == NULL)
+                    {
                         ERR_raise(ERR_LIB_EC, ERR_R_INTERNAL_ERROR);
                         OPENSSL_free(tmp_wNAF);
                         goto err;
@@ -654,20 +690,23 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
     val = OPENSSL_malloc_array(num_val + 1, sizeof(val[0]));
     if (val == NULL)
         goto err;
-    val[num_val] = NULL;        /* pivot element */
+    val[num_val] = NULL; /* pivot element */
 
     /* allocate points for precomputation */
     v = val;
-    for (i = 0; i < num + num_scalar; i++) {
+    for (i = 0; i < num + num_scalar; i++)
+    {
         val_sub[i] = v;
-        for (j = 0; j < ((size_t)1 << (wsize[i] - 1)); j++) {
+        for (j = 0; j < ((size_t)1 << (wsize[i] - 1)); j++)
+        {
             *v = EC_POINT_new(group);
             if (*v == NULL)
                 goto err;
             v++;
         }
     }
-    if (!(v == val + num_val)) {
+    if (!(v == val + num_val))
+    {
         ERR_raise(ERR_LIB_EC, ERR_R_INTERNAL_ERROR);
         goto err;
     }
@@ -682,53 +721,64 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
      *    val_sub[i][2] := 5 * points[i]
      *    ...
      */
-    for (i = 0; i < num + num_scalar; i++) {
-        if (i < num) {
+    for (i = 0; i < num + num_scalar; i++)
+    {
+        if (i < num)
+        {
             if (!EC_POINT_copy(val_sub[i][0], points[i]))
                 goto err;
-        } else {
+        }
+        else
+        {
             if (!EC_POINT_copy(val_sub[i][0], generator))
                 goto err;
         }
 
-        if (wsize[i] > 1) {
+        if (wsize[i] > 1)
+        {
             if (!EC_POINT_dbl(group, tmp, val_sub[i][0], ctx))
                 goto err;
-            for (j = 1; j < ((size_t)1 << (wsize[i] - 1)); j++) {
-                if (!EC_POINT_add
-                    (group, val_sub[i][j], val_sub[i][j - 1], tmp, ctx))
+            for (j = 1; j < ((size_t)1 << (wsize[i] - 1)); j++)
+            {
+                if (!EC_POINT_add(group, val_sub[i][j], val_sub[i][j - 1], tmp, ctx))
                     goto err;
             }
         }
     }
 
-    if (group->meth->points_make_affine == NULL
-        || !group->meth->points_make_affine(group, num_val, val, ctx))
+    if (group->meth->points_make_affine == NULL || !group->meth->points_make_affine(group, num_val, val, ctx))
         goto err;
 
     r_is_at_infinity = 1;
 
     if (max_len > INT_MAX)
         goto err;
-    for (k = (int)(max_len - 1); k >= 0; k--) {
-        if (!r_is_at_infinity) {
+    for (k = (int)(max_len - 1); k >= 0; k--)
+    {
+        if (!r_is_at_infinity)
+        {
             if (!EC_POINT_dbl(group, r, r, ctx))
                 goto err;
         }
 
-        for (i = 0; i < totalnum; i++) {
-            if (wNAF_len[i] > (size_t)k) {
+        for (i = 0; i < totalnum; i++)
+        {
+            if (wNAF_len[i] > (size_t)k)
+            {
                 int digit = wNAF[i][k];
                 int is_neg;
 
-                if (digit) {
+                if (digit)
+                {
                     is_neg = digit < 0;
 
                     if (is_neg)
                         digit = -digit;
 
-                    if (is_neg != r_is_inverted) {
-                        if (!r_is_at_infinity) {
+                    if (is_neg != r_is_inverted)
+                    {
+                        if (!r_is_at_infinity)
+                        {
                             if (!EC_POINT_invert(group, r, ctx))
                                 goto err;
                         }
@@ -737,7 +787,8 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
 
                     /* digit > 0 */
 
-                    if (r_is_at_infinity) {
+                    if (r_is_at_infinity)
+                    {
                         if (!EC_POINT_copy(r, val_sub[i][digit >> 1]))
                             goto err;
 
@@ -749,15 +800,17 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
                          * success or if coordinate blinding is not implemented for this
                          * group.
                          */
-                        if (!ossl_ec_point_blind_coordinates(group, r, ctx)) {
+                        if (!ossl_ec_point_blind_coordinates(group, r, ctx))
+                        {
                             ERR_raise(ERR_LIB_EC, EC_R_POINT_COORDINATES_BLIND_FAILURE);
                             goto err;
                         }
 
                         r_is_at_infinity = 0;
-                    } else {
-                        if (!EC_POINT_add
-                            (group, r, r, val_sub[i][digit >> 1], ctx))
+                    }
+                    else
+                    {
+                        if (!EC_POINT_add(group, r, r, val_sub[i][digit >> 1], ctx))
                             goto err;
                     }
                 }
@@ -765,10 +818,13 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
         }
     }
 
-    if (r_is_at_infinity) {
+    if (r_is_at_infinity)
+    {
         if (!EC_POINT_set_to_infinity(group, r))
             goto err;
-    } else {
+    }
+    else
+    {
         if (r_is_inverted)
             if (!EC_POINT_invert(group, r, ctx))
                 goto err;
@@ -776,11 +832,12 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
 
     ret = 1;
 
- err:
+err:
     EC_POINT_free(tmp);
     OPENSSL_free(wsize);
     OPENSSL_free(wNAF_len);
-    if (wNAF != NULL) {
+    if (wNAF != NULL)
+    {
         signed char **w;
 
         for (w = wNAF; *w != NULL; w++)
@@ -788,7 +845,8 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
 
         OPENSSL_free(wNAF);
     }
-    if (val != NULL) {
+    if (val != NULL)
+    {
         for (v = val; *v != NULL; v++)
             EC_POINT_clear_free(*v);
 
@@ -838,7 +896,8 @@ int ossl_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
         return 0;
 
     generator = EC_GROUP_get0_generator(group);
-    if (generator == NULL) {
+    if (generator == NULL)
+    {
         ERR_raise(ERR_LIB_EC, EC_R_UNDEFINED_GENERATOR);
         goto err;
     }
@@ -856,7 +915,8 @@ int ossl_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
     order = EC_GROUP_get0_order(group);
     if (order == NULL)
         goto err;
-    if (BN_is_zero(order)) {
+    if (BN_is_zero(order))
+    {
         ERR_raise(ERR_LIB_EC, EC_R_UNKNOWN_ORDER);
         goto err;
     }
@@ -870,7 +930,8 @@ int ossl_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
      */
     blocksize = 8;
     w = 4;
-    if (EC_window_bits_for_scalar_size(bits) > w) {
+    if (EC_window_bits_for_scalar_size(bits) > w)
+    {
         /* let's not make the window too small ... */
         w = EC_window_bits_for_scalar_size(bits);
     }
@@ -888,16 +949,18 @@ int ossl_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
         goto err;
 
     var = points;
-    var[num] = NULL;            /* pivot */
-    for (i = 0; i < num; i++) {
-        if ((var[i] = EC_POINT_new(group)) == NULL) {
+    var[num] = NULL; /* pivot */
+    for (i = 0; i < num; i++)
+    {
+        if ((var[i] = EC_POINT_new(group)) == NULL)
+        {
             ERR_raise(ERR_LIB_EC, ERR_R_EC_LIB);
             goto err;
         }
     }
 
-    if ((tmp_point = EC_POINT_new(group)) == NULL
-        || (base = EC_POINT_new(group)) == NULL) {
+    if ((tmp_point = EC_POINT_new(group)) == NULL || (base = EC_POINT_new(group)) == NULL)
+    {
         ERR_raise(ERR_LIB_EC, ERR_R_EC_LIB);
         goto err;
     }
@@ -906,7 +969,8 @@ int ossl_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
         goto err;
 
     /* do the precomputation */
-    for (i = 0; i < numblocks; i++) {
+    for (i = 0; i < numblocks; i++)
+    {
         size_t j;
 
         if (!EC_POINT_dbl(group, tmp_point, base, ctx))
@@ -915,7 +979,8 @@ int ossl_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
         if (!EC_POINT_copy(*var++, base))
             goto err;
 
-        for (j = 1; j < pre_points_per_block; j++, var++) {
+        for (j = 1; j < pre_points_per_block; j++, var++)
+        {
             /*
              * calculate odd multiples of the current base point
              */
@@ -923,28 +988,30 @@ int ossl_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
                 goto err;
         }
 
-        if (i < numblocks - 1) {
+        if (i < numblocks - 1)
+        {
             /*
              * get the next base (multiply current one by 2^blocksize)
              */
             size_t k;
 
-            if (blocksize <= 2) {
+            if (blocksize <= 2)
+            {
                 ERR_raise(ERR_LIB_EC, ERR_R_INTERNAL_ERROR);
                 goto err;
             }
 
             if (!EC_POINT_dbl(group, base, tmp_point, ctx))
                 goto err;
-            for (k = 2; k < blocksize; k++) {
+            for (k = 2; k < blocksize; k++)
+            {
                 if (!EC_POINT_dbl(group, base, base, ctx))
                     goto err;
             }
         }
     }
 
-    if (group->meth->points_make_affine == NULL
-        || !group->meth->points_make_affine(group, num, points, ctx))
+    if (group->meth->points_make_affine == NULL || !group->meth->points_make_affine(group, num, points, ctx))
         goto err;
 
     pre_comp->group = group;
@@ -958,14 +1025,15 @@ int ossl_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
     pre_comp = NULL;
     ret = 1;
 
- err:
+err:
     if (used_ctx)
         BN_CTX_end(ctx);
 #ifndef FIPS_MODULE
     BN_CTX_free(new_ctx);
 #endif
     EC_ec_pre_comp_free(pre_comp);
-    if (points) {
+    if (points)
+    {
         EC_POINT **p;
 
         for (p = points; *p != NULL; p++)

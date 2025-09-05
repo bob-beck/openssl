@@ -15,8 +15,7 @@
 #include <openssl/x509.h>
 #include <openssl/rsa.h>
 
-int EVP_OpenInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
-                 const unsigned char *ek, int ekl, const unsigned char *iv,
+int EVP_OpenInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type, const unsigned char *ek, int ekl, const unsigned char *iv,
                  EVP_PKEY *priv)
 {
     unsigned char *key = NULL;
@@ -24,7 +23,8 @@ int EVP_OpenInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
     int ret = 0;
     EVP_PKEY_CTX *pctx = NULL;
 
-    if (type) {
+    if (type)
+    {
         EVP_CIPHER_CTX_reset(ctx);
         if (!EVP_DecryptInit_ex(ctx, type, NULL, NULL, NULL))
             goto err;
@@ -33,13 +33,13 @@ int EVP_OpenInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
     if (priv == NULL)
         return 1;
 
-    if ((pctx = EVP_PKEY_CTX_new(priv, NULL)) == NULL) {
+    if ((pctx = EVP_PKEY_CTX_new(priv, NULL)) == NULL)
+    {
         ERR_raise(ERR_LIB_EVP, ERR_R_EVP_LIB);
         goto err;
     }
 
-    if (EVP_PKEY_decrypt_init(pctx) <= 0
-        || EVP_PKEY_decrypt(pctx, NULL, &keylen, ek, ekl) <= 0)
+    if (EVP_PKEY_decrypt_init(pctx) <= 0 || EVP_PKEY_decrypt(pctx, NULL, &keylen, ek, ekl) <= 0)
         goto err;
 
     if ((key = OPENSSL_malloc(keylen)) == NULL)
@@ -48,12 +48,11 @@ int EVP_OpenInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
     if (EVP_PKEY_decrypt(pctx, key, &keylen, ek, ekl) <= 0)
         goto err;
 
-    if (EVP_CIPHER_CTX_set_key_length(ctx, (int)keylen) <= 0
-        || !EVP_DecryptInit_ex(ctx, NULL, NULL, key, iv))
+    if (EVP_CIPHER_CTX_set_key_length(ctx, (int)keylen) <= 0 || !EVP_DecryptInit_ex(ctx, NULL, NULL, key, iv))
         goto err;
 
     ret = 1;
- err:
+err:
     EVP_PKEY_CTX_free(pctx);
     OPENSSL_clear_free(key, keylen);
     return ret;

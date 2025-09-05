@@ -20,7 +20,8 @@
 #include "crypto/decoder.h"
 #include "crypto/context.h"
 
-struct ossl_lib_ctx_st {
+struct ossl_lib_ctx_st
+{
     CRYPTO_RWLOCK *lock;
     OSSL_EX_DATA_GLOBAL global;
 
@@ -214,7 +215,7 @@ static int context_init(OSSL_LIB_CTX *ctx)
 
     return 1;
 
- err:
+err:
     context_deinit_objs(ctx);
 
     if (exdata_done)
@@ -228,20 +229,23 @@ static int context_init(OSSL_LIB_CTX *ctx)
 static void context_deinit_objs(OSSL_LIB_CTX *ctx)
 {
     /* P2. We want evp_method_store to be cleaned up before the provider store */
-    if (ctx->evp_method_store != NULL) {
+    if (ctx->evp_method_store != NULL)
+    {
         ossl_method_store_free(ctx->evp_method_store);
         ctx->evp_method_store = NULL;
     }
 
     /* P2. */
-    if (ctx->drbg != NULL) {
+    if (ctx->drbg != NULL)
+    {
         ossl_rand_ctx_free(ctx->drbg);
         ctx->drbg = NULL;
     }
 
 #ifndef FIPS_MODULE
     /* P2. */
-    if (ctx->provider_conf != NULL) {
+    if (ctx->provider_conf != NULL)
+    {
         ossl_prov_conf_ctx_free(ctx->provider_conf);
         ctx->provider_conf = NULL;
     }
@@ -250,75 +254,87 @@ static void context_deinit_objs(OSSL_LIB_CTX *ctx)
      * P2. We want decoder_store/decoder_cache to be cleaned up before the
      * provider store
      */
-    if (ctx->decoder_store != NULL) {
+    if (ctx->decoder_store != NULL)
+    {
         ossl_method_store_free(ctx->decoder_store);
         ctx->decoder_store = NULL;
     }
-    if (ctx->decoder_cache != NULL) {
+    if (ctx->decoder_cache != NULL)
+    {
         ossl_decoder_cache_free(ctx->decoder_cache);
         ctx->decoder_cache = NULL;
     }
 
-
     /* P2. We want encoder_store to be cleaned up before the provider store */
-    if (ctx->encoder_store != NULL) {
+    if (ctx->encoder_store != NULL)
+    {
         ossl_method_store_free(ctx->encoder_store);
         ctx->encoder_store = NULL;
     }
 
     /* P2. We want loader_store to be cleaned up before the provider store */
-    if (ctx->store_loader_store != NULL) {
+    if (ctx->store_loader_store != NULL)
+    {
         ossl_method_store_free(ctx->store_loader_store);
         ctx->store_loader_store = NULL;
     }
 #endif
 
     /* P1. Needs to be freed before the child provider data is freed */
-    if (ctx->provider_store != NULL) {
+    if (ctx->provider_store != NULL)
+    {
         ossl_provider_store_free(ctx->provider_store);
         ctx->provider_store = NULL;
     }
 
     /* Default priority. */
-    if (ctx->property_string_data != NULL) {
+    if (ctx->property_string_data != NULL)
+    {
         ossl_property_string_data_free(ctx->property_string_data);
         ctx->property_string_data = NULL;
     }
 
-    if (ctx->namemap != NULL) {
+    if (ctx->namemap != NULL)
+    {
         ossl_stored_namemap_free(ctx->namemap);
         ctx->namemap = NULL;
     }
 
-    if (ctx->property_defns != NULL) {
+    if (ctx->property_defns != NULL)
+    {
         ossl_property_defns_free(ctx->property_defns);
         ctx->property_defns = NULL;
     }
 
-    if (ctx->global_properties != NULL) {
+    if (ctx->global_properties != NULL)
+    {
         ossl_ctx_global_properties_free(ctx->global_properties);
         ctx->global_properties = NULL;
     }
 
 #ifndef FIPS_MODULE
-    if (ctx->bio_core != NULL) {
+    if (ctx->bio_core != NULL)
+    {
         ossl_bio_core_globals_free(ctx->bio_core);
         ctx->bio_core = NULL;
     }
 #endif
 
-    if (ctx->drbg_nonce != NULL) {
+    if (ctx->drbg_nonce != NULL)
+    {
         ossl_prov_drbg_nonce_ctx_free(ctx->drbg_nonce);
         ctx->drbg_nonce = NULL;
     }
 
 #ifndef FIPS_MODULE
-    if (ctx->indicator_cb != NULL) {
+    if (ctx->indicator_cb != NULL)
+    {
         ossl_indicator_set_callback_free(ctx->indicator_cb);
         ctx->indicator_cb = NULL;
     }
 
-    if (ctx->self_test_cb != NULL) {
+    if (ctx->self_test_cb != NULL)
+    {
         ossl_self_test_set_callback_free(ctx->self_test_cb);
         ctx->self_test_cb = NULL;
     }
@@ -327,14 +343,16 @@ static void context_deinit_objs(OSSL_LIB_CTX *ctx)
 #ifdef FIPS_MODULE
     ossl_thread_event_ctx_free(ctx);
 
-    if (ctx->fips_prov != NULL) {
+    if (ctx->fips_prov != NULL)
+    {
         ossl_fips_prov_ossl_ctx_free(ctx->fips_prov);
         ctx->fips_prov = NULL;
     }
 #endif
 
 #ifndef OPENSSL_NO_THREAD_POOL
-    if (ctx->threads != NULL) {
+    if (ctx->threads != NULL)
+    {
         ossl_threads_ctx_free(ctx->threads);
         ctx->threads = NULL;
     }
@@ -342,19 +360,20 @@ static void context_deinit_objs(OSSL_LIB_CTX *ctx)
 
     /* Low priority. */
 #ifndef FIPS_MODULE
-    if (ctx->child_provider != NULL) {
+    if (ctx->child_provider != NULL)
+    {
         ossl_child_prov_ctx_free(ctx->child_provider);
         ctx->child_provider = NULL;
     }
 #endif
 
 #ifndef FIPS_MODULE
-    if (ctx->comp_methods != NULL) {
+    if (ctx->comp_methods != NULL)
+    {
         ossl_free_compression_methods_int(ctx->comp_methods);
         ctx->comp_methods = NULL;
     }
 #endif
-
 }
 
 static int context_deinit(OSSL_LIB_CTX *ctx)
@@ -437,7 +456,8 @@ OSSL_LIB_CTX *OSSL_LIB_CTX_new(void)
 {
     OSSL_LIB_CTX *ctx = OPENSSL_zalloc(sizeof(*ctx));
 
-    if (ctx != NULL && !context_init(ctx)) {
+    if (ctx != NULL && !context_init(ctx))
+    {
         OPENSSL_free(ctx);
         ctx = NULL;
     }
@@ -445,15 +465,15 @@ OSSL_LIB_CTX *OSSL_LIB_CTX_new(void)
 }
 
 #ifndef FIPS_MODULE
-OSSL_LIB_CTX *OSSL_LIB_CTX_new_from_dispatch(const OSSL_CORE_HANDLE *handle,
-                                             const OSSL_DISPATCH *in)
+OSSL_LIB_CTX *OSSL_LIB_CTX_new_from_dispatch(const OSSL_CORE_HANDLE *handle, const OSSL_DISPATCH *in)
 {
     OSSL_LIB_CTX *ctx = OSSL_LIB_CTX_new();
 
     if (ctx == NULL)
         return NULL;
 
-    if (!ossl_bio_init_core(ctx, in)) {
+    if (!ossl_bio_init_core(ctx, in))
+    {
         OSSL_LIB_CTX_free(ctx);
         return NULL;
     }
@@ -461,15 +481,15 @@ OSSL_LIB_CTX *OSSL_LIB_CTX_new_from_dispatch(const OSSL_CORE_HANDLE *handle,
     return ctx;
 }
 
-OSSL_LIB_CTX *OSSL_LIB_CTX_new_child(const OSSL_CORE_HANDLE *handle,
-                                     const OSSL_DISPATCH *in)
+OSSL_LIB_CTX *OSSL_LIB_CTX_new_child(const OSSL_CORE_HANDLE *handle, const OSSL_DISPATCH *in)
 {
     OSSL_LIB_CTX *ctx = OSSL_LIB_CTX_new_from_dispatch(handle, in);
 
     if (ctx == NULL)
         return NULL;
 
-    if (!ossl_provider_init_as_child(ctx, handle, in)) {
+    if (!ossl_provider_init_as_child(ctx, handle, in))
+    {
         OSSL_LIB_CTX_free(ctx);
         return NULL;
     }
@@ -510,7 +530,8 @@ OSSL_LIB_CTX *OSSL_LIB_CTX_set0_default(OSSL_LIB_CTX *libctx)
 {
     OSSL_LIB_CTX *current_defctx;
 
-    if ((current_defctx = get_default_context()) != NULL) {
+    if ((current_defctx = get_default_context()) != NULL)
+    {
         if (libctx != NULL)
             set_default_context(libctx);
         return current_defctx;
@@ -522,7 +543,8 @@ OSSL_LIB_CTX *OSSL_LIB_CTX_set0_default(OSSL_LIB_CTX *libctx)
 void ossl_release_default_drbg_ctx(void)
 {
     /* early release of the DRBG in global default libctx */
-    if (default_context_int.drbg != NULL) {
+    if (default_context_int.drbg != NULL)
+    {
         ossl_rand_ctx_free(default_context_int.drbg);
         default_context_int.drbg = NULL;
     }
@@ -562,7 +584,8 @@ void *ossl_lib_ctx_get_data(OSSL_LIB_CTX *ctx, int index)
     if (ctx == NULL)
         return NULL;
 
-    switch (index) {
+    switch (index)
+    {
     case OSSL_LIB_CTX_PROPERTY_STRING_INDEX:
         return ctx->property_string_data;
     case OSSL_LIB_CTX_EVP_METHOD_STORE_INDEX:

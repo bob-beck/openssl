@@ -32,7 +32,8 @@ SSL_CTX *create_ssl_ctx(void)
     SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
 
     /* Load default root CA store. */
-    if (SSL_CTX_set_default_verify_paths(ctx) == 0) {
+    if (SSL_CTX_set_default_verify_paths(ctx) == 0)
+    {
         SSL_CTX_free(ctx);
         return NULL;
     }
@@ -59,32 +60,37 @@ BIO *new_conn(SSL_CTX *ctx, const char *hostname)
     if (out == NULL)
         return NULL;
 
-    if (BIO_get_ssl(out, &ssl) == 0) {
+    if (BIO_get_ssl(out, &ssl) == 0)
+    {
         BIO_free_all(out);
         return NULL;
     }
 
-    if (BIO_set_conn_hostname(out, hostname) == 0) {
+    if (BIO_set_conn_hostname(out, hostname) == 0)
+    {
         BIO_free_all(out);
         return NULL;
     }
 
     /* Returns the parsed hostname extracted from the hostname:port string. */
     bare_hostname = BIO_get_conn_hostname(out);
-    if (bare_hostname == NULL) {
+    if (bare_hostname == NULL)
+    {
         BIO_free_all(out);
         return NULL;
     }
 
     /* Tell the SSL object the hostname to check certificates against. */
-    if (SSL_set1_host(ssl, bare_hostname) <= 0) {
+    if (SSL_set1_host(ssl, bare_hostname) <= 0)
+    {
         BIO_free_all(out);
         return NULL;
     }
 
 #ifdef USE_QUIC
     /* Configure ALPN, which is required for QUIC. */
-    if (SSL_set_alpn_protos(ssl, alpn, sizeof(alpn))) {
+    if (SSL_set_alpn_protos(ssl, alpn, sizeof(alpn)))
+    {
         /* Note: SSL_set_alpn_protos returns 1 for failure. */
         BIO_free_all(out);
         return NULL;
@@ -143,34 +149,38 @@ int main(int argc, char **argv)
     char buf[2048];
     int l, mlen, res = 1;
 
-    if (argc < 3) {
+    if (argc < 3)
+    {
         fprintf(stderr, "usage: %s host port\n", argv[0]);
         goto fail;
     }
 
     snprintf(host_port, sizeof(host_port), "%s:%s", argv[1], argv[2]);
-    mlen = snprintf(msg, sizeof(msg),
-                    "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
+    mlen = snprintf(msg, sizeof(msg), "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
 
     ctx = create_ssl_ctx();
-    if (ctx == NULL) {
+    if (ctx == NULL)
+    {
         fprintf(stderr, "could not create context\n");
         goto fail;
     }
 
     b = new_conn(ctx, host_port);
-    if (b == NULL) {
+    if (b == NULL)
+    {
         fprintf(stderr, "could not create connection\n");
         goto fail;
     }
 
     l = tx(b, msg, mlen);
-    if (l < mlen) {
+    if (l < mlen)
+    {
         fprintf(stderr, "tx error\n");
         goto fail;
     }
 
-    for (;;) {
+    for (;;)
+    {
         l = rx(b, buf, sizeof(buf));
         if (l <= 0)
             break;

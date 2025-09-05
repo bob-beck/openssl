@@ -20,7 +20,8 @@ DEFINE_STACK_OF(X509_POLICY_DATA)
  * be kept static and cached with the certificate.
  */
 
-struct X509_POLICY_DATA_st {
+struct X509_POLICY_DATA_st
+{
     unsigned int flags;
     /* Policy OID and qualifiers for this data */
     ASN1_OBJECT *valid_policy;
@@ -35,34 +36,35 @@ struct X509_POLICY_DATA_st {
  * extension. If policy mapping is not active its references get deleted.
  */
 
-#define POLICY_DATA_FLAG_MAPPED                 0x1
+#define POLICY_DATA_FLAG_MAPPED 0x1
 
 /*
  * This flag indicates the data doesn't correspond to a policy in Certificate
  * Policies: it has been mapped to any policy.
  */
 
-#define POLICY_DATA_FLAG_MAPPED_ANY             0x2
+#define POLICY_DATA_FLAG_MAPPED_ANY 0x2
 
 /* AND with flags to see if any mapping has occurred */
 
-#define POLICY_DATA_FLAG_MAP_MASK               0x3
+#define POLICY_DATA_FLAG_MAP_MASK 0x3
 
 /* qualifiers are shared and shouldn't be freed */
 
-#define POLICY_DATA_FLAG_SHARED_QUALIFIERS      0x4
+#define POLICY_DATA_FLAG_SHARED_QUALIFIERS 0x4
 
 /* Parent node is an extra node and should be freed */
 
-#define POLICY_DATA_FLAG_EXTRA_NODE             0x8
+#define POLICY_DATA_FLAG_EXTRA_NODE 0x8
 
 /* Corresponding CertificatePolicies is critical */
 
-#define POLICY_DATA_FLAG_CRITICAL               0x10
+#define POLICY_DATA_FLAG_CRITICAL 0x10
 
 /* This structure is cached with a certificate */
 
-struct X509_POLICY_CACHE_st {
+struct X509_POLICY_CACHE_st
+{
     /* anyPolicy data or NULL if no anyPolicy */
     X509_POLICY_DATA *anyPolicy;
     /* other policy data */
@@ -87,7 +89,8 @@ struct X509_POLICY_CACHE_st {
 
 /* This structure represents the relationship between nodes */
 
-struct X509_POLICY_NODE_st {
+struct X509_POLICY_NODE_st
+{
     /* node data this refers to */
     const X509_POLICY_DATA *data;
     /* Parent node */
@@ -96,7 +99,8 @@ struct X509_POLICY_NODE_st {
     int nchild;
 };
 
-struct X509_POLICY_LEVEL_st {
+struct X509_POLICY_LEVEL_st
+{
     /* Cert for this level */
     X509 *cert;
     /* nodes at this level */
@@ -110,7 +114,8 @@ struct X509_POLICY_LEVEL_st {
     unsigned int flags;
 };
 
-struct X509_POLICY_TREE_st {
+struct X509_POLICY_TREE_st
+{
     /* The number of nodes in the tree */
     size_t node_count;
     /* The maximum number of nodes in the tree */
@@ -131,7 +136,7 @@ struct X509_POLICY_TREE_st {
 };
 
 /* Set if anyPolicy present in user policies */
-#define POLICY_FLAG_ANY_POLICY          0x2
+#define POLICY_FLAG_ANY_POLICY 0x2
 
 /* Useful macros */
 
@@ -140,32 +145,24 @@ struct X509_POLICY_TREE_st {
 
 /* Internal functions */
 
-X509_POLICY_DATA *ossl_policy_data_new(POLICYINFO *policy, const ASN1_OBJECT *id,
-                                       int crit);
+X509_POLICY_DATA *ossl_policy_data_new(POLICYINFO *policy, const ASN1_OBJECT *id, int crit);
 void ossl_policy_data_free(X509_POLICY_DATA *data);
 
-X509_POLICY_DATA *ossl_policy_cache_find_data(const X509_POLICY_CACHE *cache,
-                                              const ASN1_OBJECT *id);
+X509_POLICY_DATA *ossl_policy_cache_find_data(const X509_POLICY_CACHE *cache, const ASN1_OBJECT *id);
 int ossl_policy_cache_set_mapping(X509 *x, POLICY_MAPPINGS *maps);
 
 STACK_OF(X509_POLICY_NODE) *ossl_policy_node_cmp_new(void);
 
 void ossl_policy_cache_free(X509_POLICY_CACHE *cache);
 
-X509_POLICY_NODE *ossl_policy_level_find_node(const X509_POLICY_LEVEL *level,
-                                              const X509_POLICY_NODE *parent,
+X509_POLICY_NODE *ossl_policy_level_find_node(const X509_POLICY_LEVEL *level, const X509_POLICY_NODE *parent,
                                               const ASN1_OBJECT *id);
 
-X509_POLICY_NODE *ossl_policy_tree_find_sk(STACK_OF(X509_POLICY_NODE) *sk,
-                                           const ASN1_OBJECT *id);
+X509_POLICY_NODE *ossl_policy_tree_find_sk(STACK_OF(X509_POLICY_NODE) *sk, const ASN1_OBJECT *id);
 
-X509_POLICY_NODE *ossl_policy_level_add_node(X509_POLICY_LEVEL *level,
-                                             X509_POLICY_DATA *data,
-                                             X509_POLICY_NODE *parent,
-                                             X509_POLICY_TREE *tree,
-                                             int extra_data);
+X509_POLICY_NODE *ossl_policy_level_add_node(X509_POLICY_LEVEL *level, X509_POLICY_DATA *data, X509_POLICY_NODE *parent,
+                                             X509_POLICY_TREE *tree, int extra_data);
 void ossl_policy_node_free(X509_POLICY_NODE *node);
-int ossl_policy_node_match(const X509_POLICY_LEVEL *lvl,
-                           const X509_POLICY_NODE *node, const ASN1_OBJECT *oid);
+int ossl_policy_node_match(const X509_POLICY_LEVEL *lvl, const X509_POLICY_NODE *node, const ASN1_OBJECT *oid);
 
 const X509_POLICY_CACHE *ossl_policy_cache_set(X509 *x);

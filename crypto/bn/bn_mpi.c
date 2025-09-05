@@ -20,7 +20,8 @@ int BN_bn2mpi(const BIGNUM *a, unsigned char *d)
 
     bits = BN_num_bits(a);
     num = (bits + 7) / 8;
-    if (bits > 0) {
+    if (bits > 0)
+    {
         ext = ((bits & 0x07) == 0);
     }
     if (d == NULL)
@@ -45,13 +46,14 @@ BIGNUM *BN_mpi2bn(const unsigned char *d, int n, BIGNUM *ain)
     int neg = 0;
     BIGNUM *a = NULL;
 
-    if (n < 4 || (d[0] & 0x80) != 0) {
+    if (n < 4 || (d[0] & 0x80) != 0)
+    {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
         return NULL;
     }
-    len = ((long)d[0] << 24) | ((long)d[1] << 16) | ((int)d[2] << 8) | (int)
-        d[3];
-    if ((len + 4) != n) {
+    len = ((long)d[0] << 24) | ((long)d[1] << 16) | ((int)d[2] << 8) | (int)d[3];
+    if ((len + 4) != n)
+    {
         ERR_raise(ERR_LIB_BN, BN_R_ENCODING_ERROR);
         return NULL;
     }
@@ -64,7 +66,8 @@ BIGNUM *BN_mpi2bn(const unsigned char *d, int n, BIGNUM *ain)
     if (a == NULL)
         return NULL;
 
-    if (len == 0) {
+    if (len == 0)
+    {
         a->neg = 0;
         a->top = 0;
         return a;
@@ -72,13 +75,15 @@ BIGNUM *BN_mpi2bn(const unsigned char *d, int n, BIGNUM *ain)
     d += 4;
     if ((*d) & 0x80)
         neg = 1;
-    if (BN_bin2bn(d, (int)len, a) == NULL) {
+    if (BN_bin2bn(d, (int)len, a) == NULL)
+    {
         if (ain == NULL)
             BN_free(a);
         return NULL;
     }
     a->neg = neg;
-    if (neg) {
+    if (neg)
+    {
         BN_clear_bit(a, BN_num_bits(a) - 1);
     }
     bn_check_top(a);

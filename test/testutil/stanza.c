@@ -29,8 +29,7 @@ int test_start_file(STANZA *s, const char *testfile)
 
 int test_end_file(STANZA *s)
 {
-    TEST_info("Completed %d tests with %d errors and %d skipped",
-              s->numtests, s->errors, s->numskip);
+    TEST_info("Completed %d tests with %d errors and %d skipped", s->numtests, s->errors, s->numskip);
     BIO_free(s->fp);
     return 1;
 }
@@ -42,15 +41,19 @@ static int read_key(STANZA *s)
 {
     char tmpbuf[128];
 
-    if (s->key == NULL) {
+    if (s->key == NULL)
+    {
         if (!TEST_ptr(s->key = BIO_new(BIO_s_mem())))
             return 0;
-    } else if (!TEST_int_gt(BIO_reset(s->key), 0)) {
+    }
+    else if (!TEST_int_gt(BIO_reset(s->key), 0))
+    {
         return 0;
     }
 
     /* Read to PEM end line and place content in memory BIO */
-    while (BIO_gets(s->fp, tmpbuf, sizeof(tmpbuf))) {
+    while (BIO_gets(s->fp, tmpbuf, sizeof(tmpbuf)))
+    {
         s->curr++;
         if (!TEST_int_gt(BIO_puts(s->key, tmpbuf), 0))
             return 0;
@@ -60,7 +63,6 @@ static int read_key(STANZA *s)
     TEST_error("Can't find key end");
     return 0;
 }
-
 
 /*
  * Delete leading and trailing spaces from a string
@@ -75,7 +77,7 @@ static char *strip_spaces(char *p)
     if (*p == '\0')
         return NULL;
 
-    for (q = p + strlen(p) - 1; q != p && isspace((unsigned char)*q); )
+    for (q = p + strlen(p) - 1; q != p && isspace((unsigned char)*q);)
         *q-- = '\0';
     return *p ? p : NULL;
 }
@@ -90,9 +92,11 @@ int test_readstanza(STANZA *s)
     const char *value;
     static char buff[131072];
 
-    for (s->numpairs = 0; BIO_gets(s->fp, buff, sizeof(buff)); ) {
+    for (s->numpairs = 0; BIO_gets(s->fp, buff, sizeof(buff));)
+    {
         s->curr++;
-        if (!TEST_ptr(p = strchr(buff, '\n'))) {
+        if (!TEST_ptr(p = strchr(buff, '\n')))
+        {
             TEST_info("Line %d too long", s->curr);
             return 0;
         }
@@ -107,19 +111,22 @@ int test_readstanza(STANZA *s)
             continue;
 
         /* Parse into key=value */
-        if (!TEST_ptr(equals = strchr(buff, '='))) {
+        if (!TEST_ptr(equals = strchr(buff, '=')))
+        {
             TEST_info("Missing = at line %d\n", s->curr);
             return 0;
         }
         *equals++ = '\0';
-        if (!TEST_ptr(key = strip_spaces(buff))) {
+        if (!TEST_ptr(key = strip_spaces(buff)))
+        {
             TEST_info("Empty field at line %d\n", s->curr);
             return 0;
         }
         if ((value = strip_spaces(equals)) == NULL)
             value = "";
 
-        if (strcmp(key, "Title") == 0) {
+        if (strcmp(key, "Title") == 0)
+        {
             TEST_info("Starting \"%s\" tests at line %d", value, s->curr);
             continue;
         }
@@ -127,16 +134,14 @@ int test_readstanza(STANZA *s)
         if (s->numpairs == 0)
             s->start = s->curr;
 
-        if (strcmp(key, "PrivateKey") == 0
-                || strcmp(key, "PublicKey") == 0
-                || strcmp(key, "ParamKey") == 0) {
+        if (strcmp(key, "PrivateKey") == 0 || strcmp(key, "PublicKey") == 0 || strcmp(key, "ParamKey") == 0)
+        {
             if (!read_key(s))
                 return 0;
         }
 
-        if (!TEST_int_lt(s->numpairs++, TESTMAXPAIRS)
-                || !TEST_ptr(pp->key = OPENSSL_strdup(key))
-                || !TEST_ptr(pp->value = OPENSSL_strdup(value)))
+        if (!TEST_int_lt(s->numpairs++, TESTMAXPAIRS) || !TEST_ptr(pp->key = OPENSSL_strdup(key)) ||
+            !TEST_ptr(pp->value = OPENSSL_strdup(value)))
             return 0;
         pp++;
     }
@@ -150,7 +155,8 @@ void test_clearstanza(STANZA *s)
     PAIR *pp = s->pairs;
     int i = s->numpairs;
 
-    for ( ; --i >= 0; pp++) {
+    for (; --i >= 0; pp++)
+    {
         OPENSSL_free(pp->key);
         OPENSSL_free(pp->value);
     }

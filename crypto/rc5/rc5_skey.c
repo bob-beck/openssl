@@ -16,8 +16,7 @@
 #include <openssl/rc5.h>
 #include "rc5_local.h"
 
-int RC5_32_set_key(RC5_32_KEY *key, int len, const unsigned char *data,
-                   int rounds)
+int RC5_32_set_key(RC5_32_KEY *key, int len, const unsigned char *data, int rounds)
 {
     RC5_32_INT L[64], l, ll, A, B, *S, k;
     int i, j, m, c, t, ii, jj;
@@ -25,21 +24,22 @@ int RC5_32_set_key(RC5_32_KEY *key, int len, const unsigned char *data,
     if (len > 255)
         return 0;
 
-    if ((rounds != RC5_16_ROUNDS) &&
-        (rounds != RC5_12_ROUNDS) && (rounds != RC5_8_ROUNDS))
+    if ((rounds != RC5_16_ROUNDS) && (rounds != RC5_12_ROUNDS) && (rounds != RC5_8_ROUNDS))
         rounds = RC5_16_ROUNDS;
 
     key->rounds = rounds;
     S = &(key->data[0]);
     j = 0;
-    for (i = 0; i <= (len - 8); i += 8) {
+    for (i = 0; i <= (len - 8); i += 8)
+    {
         c2l(data, l);
         L[j++] = l;
         c2l(data, l);
         L[j++] = l;
     }
     ii = len - i;
-    if (ii) {
+    if (ii)
+    {
         k = len & 0x07;
         c2ln(data, l, ll, k);
         L[j + 0] = l;
@@ -56,7 +56,8 @@ int RC5_32_set_key(RC5_32_KEY *key, int len, const unsigned char *data,
     j *= 3;
     ii = jj = 0;
     A = B = 0;
-    for (i = 0; i < j; i++) {
+    for (i = 0; i < j; i++)
+    {
         k = (S[ii] + A + B) & RC5_32_MASK;
         A = S[ii] = ROTATE_l32(k, 3);
         m = (int)(A + B);

@@ -25,7 +25,8 @@ COMP_CTX *COMP_CTX_new(COMP_METHOD *meth)
     if ((ret = OPENSSL_zalloc(sizeof(*ret))) == NULL)
         return NULL;
     ret->meth = meth;
-    if ((ret->meth->init != NULL) && !ret->meth->init(ret)) {
+    if ((ret->meth->init != NULL) && !ret->meth->init(ret))
+    {
         OPENSSL_free(ret);
         ret = NULL;
     }
@@ -61,38 +62,40 @@ void COMP_CTX_free(COMP_CTX *ctx)
     OPENSSL_free(ctx);
 }
 
-int COMP_compress_block(COMP_CTX *ctx, unsigned char *out, int olen,
-                        unsigned char *in, int ilen)
+int COMP_compress_block(COMP_CTX *ctx, unsigned char *out, int olen, unsigned char *in, int ilen)
 {
     int ret;
-    if (ctx->meth->compress == NULL) {
+    if (ctx->meth->compress == NULL)
+    {
         return -1;
     }
     ret = (int)ctx->meth->compress(ctx, out, olen, in, ilen);
-    if (ret > 0) {
+    if (ret > 0)
+    {
         ctx->compress_in += ilen;
         ctx->compress_out += ret;
     }
     return ret;
 }
 
-int COMP_expand_block(COMP_CTX *ctx, unsigned char *out, int olen,
-                      unsigned char *in, int ilen)
+int COMP_expand_block(COMP_CTX *ctx, unsigned char *out, int olen, unsigned char *in, int ilen)
 {
     int ret;
 
-    if (ctx->meth->expand == NULL) {
+    if (ctx->meth->expand == NULL)
+    {
         return -1;
     }
     ret = (int)ctx->meth->expand(ctx, out, olen, in, ilen);
-    if (ret > 0) {
+    if (ret > 0)
+    {
         ctx->expand_in += ilen;
         ctx->expand_out += ret;
     }
     return ret;
 }
 
-int COMP_CTX_get_type(const COMP_CTX* comp)
+int COMP_CTX_get_type(const COMP_CTX *comp)
 {
     return comp->meth ? comp->meth->type : NID_undef;
 }

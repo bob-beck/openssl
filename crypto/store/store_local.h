@@ -23,21 +23,23 @@
  *  ---------------------
  */
 
-struct ossl_store_info_st {
+struct ossl_store_info_st
+{
     int type;
     union {
-        void *data;              /* used internally as generic pointer */
+        void *data; /* used internally as generic pointer */
 
-        struct {
+        struct
+        {
             char *name;
             char *desc;
-        } name;                  /* when type == OSSL_STORE_INFO_NAME */
+        } name; /* when type == OSSL_STORE_INFO_NAME */
 
-        EVP_PKEY *params;        /* when type == OSSL_STORE_INFO_PARAMS */
-        EVP_PKEY *pubkey;        /* when type == OSSL_STORE_INFO_PUBKEY */
-        EVP_PKEY *pkey;          /* when type == OSSL_STORE_INFO_PKEY */
-        X509 *x509;              /* when type == OSSL_STORE_INFO_CERT */
-        X509_CRL *crl;           /* when type == OSSL_STORE_INFO_CRL */
+        EVP_PKEY *params; /* when type == OSSL_STORE_INFO_PARAMS */
+        EVP_PKEY *pubkey; /* when type == OSSL_STORE_INFO_PUBKEY */
+        EVP_PKEY *pkey;   /* when type == OSSL_STORE_INFO_PKEY */
+        X509 *x509;       /* when type == OSSL_STORE_INFO_CERT */
+        X509_CRL *crl;    /* when type == OSSL_STORE_INFO_CRL */
     } _;
 };
 DEFINE_STACK_OF(OSSL_STORE_INFO)
@@ -47,7 +49,8 @@ DEFINE_STACK_OF(OSSL_STORE_INFO)
  *  -----------------------
  */
 
-struct ossl_store_search_st {
+struct ossl_store_search_st
+{
     int search_type;
 
     /*
@@ -79,7 +82,8 @@ int ossl_store_register_loader_int(OSSL_STORE_LOADER *loader);
 OSSL_STORE_LOADER *ossl_store_unregister_loader_int(const char *scheme);
 
 /* loader stuff */
-struct ossl_store_loader_st {
+struct ossl_store_loader_st
+{
 #ifndef OPENSSL_NO_DEPRECATED_3_0
     /* Legacy stuff */
     const char *scheme;
@@ -130,7 +134,8 @@ typedef struct ossl_store_loader_ctx_st OSSL_STORE_LOADER_CTX;
  *  ---------------------
  */
 
-struct ossl_store_ctx_st {
+struct ossl_store_ctx_st
+{
     const OSSL_STORE_LOADER *loader; /* legacy */
     OSSL_STORE_LOADER *fetched_loader;
     OSSL_STORE_LOADER_CTX *loader_ctx;
@@ -166,13 +171,12 @@ int ossl_store_file_detach_pem_bio_int(OSSL_STORE_LOADER_CTX *ctx);
  * Provider stuff
  * -------------------
  */
-OSSL_STORE_LOADER *ossl_store_loader_fetch(OSSL_LIB_CTX *libctx,
-                                           const char *scheme,
-                                           const char *properties);
+OSSL_STORE_LOADER *ossl_store_loader_fetch(OSSL_LIB_CTX *libctx, const char *scheme, const char *properties);
 
 /* Standard function to handle the result from OSSL_FUNC_store_load() */
-struct ossl_load_result_data_st {
-    OSSL_STORE_INFO *v;          /* To be filled in */
+struct ossl_load_result_data_st
+{
+    OSSL_STORE_INFO *v; /* To be filled in */
     OSSL_STORE_CTX *ctx;
 };
 OSSL_CALLBACK ossl_store_handle_load_result;

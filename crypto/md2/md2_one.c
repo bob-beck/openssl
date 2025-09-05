@@ -38,7 +38,8 @@ unsigned char *MD2(const unsigned char *d, size_t n, unsigned char *md)
         char temp[1024];
         unsigned long chunk;
 
-        while (n > 0) {
+        while (n > 0)
+        {
             chunk = (n > sizeof(temp)) ? sizeof(temp) : n;
             ebcdic2ascii(temp, d, chunk);
             MD2_Update(&c, temp, chunk);

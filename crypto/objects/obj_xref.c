@@ -63,8 +63,7 @@ static ossl_inline int obj_sig_init(void)
     return RUN_ONCE(&sig_init, o_sig_init);
 }
 
-static int ossl_obj_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid,
-                                    int lock)
+static int ossl_obj_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid, int lock)
 {
     nid_triple tmp;
     const nid_triple *rv;
@@ -75,14 +74,17 @@ static int ossl_obj_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid,
 
     tmp.sign_id = signid;
     rv = OBJ_bsearch_sig(&tmp, sigoid_srt, OSSL_NELEM(sigoid_srt));
-    if (rv == NULL) {
+    if (rv == NULL)
+    {
         if (!obj_sig_init())
             return 0;
-        if (lock && !CRYPTO_THREAD_read_lock(sig_lock)) {
+        if (lock && !CRYPTO_THREAD_read_lock(sig_lock))
+        {
             ERR_raise(ERR_LIB_OBJ, ERR_R_UNABLE_TO_GET_READ_LOCK);
             return 0;
         }
-        if (sig_app != NULL) {
+        if (sig_app != NULL)
+        {
             idx = sk_nid_triple_find(sig_app, &tmp);
             if (idx >= 0)
                 rv = sk_nid_triple_value(sig_app, idx);
@@ -120,16 +122,20 @@ int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
     tmp.pkey_id = pkey_nid;
 
     rv = OBJ_bsearch_sigx(&t, sigoid_srt_xref, OSSL_NELEM(sigoid_srt_xref));
-    if (rv == NULL) {
+    if (rv == NULL)
+    {
         if (!obj_sig_init())
             return 0;
-        if (!CRYPTO_THREAD_read_lock(sig_lock)) {
+        if (!CRYPTO_THREAD_read_lock(sig_lock))
+        {
             ERR_raise(ERR_LIB_OBJ, ERR_R_UNABLE_TO_GET_READ_LOCK);
             return 0;
         }
-        if (sigx_app != NULL) {
+        if (sigx_app != NULL)
+        {
             idx = sk_nid_triple_find(sigx_app, &tmp);
-            if (idx >= 0) {
+            if (idx >= 0)
+            {
                 t = sk_nid_triple_value(sigx_app, idx);
                 rv = &t;
             }
@@ -161,24 +167,28 @@ int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
     ntr->hash_id = dig_id;
     ntr->pkey_id = pkey_id;
 
-    if (!CRYPTO_THREAD_write_lock(sig_lock)) {
+    if (!CRYPTO_THREAD_write_lock(sig_lock))
+    {
         ERR_raise(ERR_LIB_OBJ, ERR_R_UNABLE_TO_GET_WRITE_LOCK);
         OPENSSL_free(ntr);
         return 0;
     }
 
     /* Check that the entry doesn't exist or exists as desired */
-    if (ossl_obj_find_sigid_algs(signid, &dnid, &pnid, 0)) {
+    if (ossl_obj_find_sigid_algs(signid, &dnid, &pnid, 0))
+    {
         ret = dnid == dig_id && pnid == pkey_id;
         goto err;
     }
 
-    if (sig_app == NULL) {
+    if (sig_app == NULL)
+    {
         sig_app = sk_nid_triple_new(sig_sk_cmp);
         if (sig_app == NULL)
             goto err;
     }
-    if (sigx_app == NULL) {
+    if (sigx_app == NULL)
+    {
         sigx_app = sk_nid_triple_new(sigx_cmp);
         if (sigx_app == NULL)
             goto err;
@@ -190,8 +200,9 @@ int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
      */
     if (!sk_nid_triple_push(sig_app, ntr))
         goto err;
-    if (!sk_nid_triple_push(sigx_app, ntr)) {
-        ntr = NULL;             /* This is referenced by sig_app still */
+    if (!sk_nid_triple_push(sigx_app, ntr))
+    {
+        ntr = NULL; /* This is referenced by sig_app still */
         goto err;
     }
 
@@ -200,7 +211,7 @@ int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
 
     ntr = NULL;
     ret = 1;
- err:
+err:
     OPENSSL_free(ntr);
     CRYPTO_THREAD_unlock(sig_lock);
     return ret;

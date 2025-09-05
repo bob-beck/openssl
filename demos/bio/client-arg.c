@@ -28,15 +28,18 @@ int main(int argc, char **argv)
     cctx = SSL_CONF_CTX_new();
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CLIENT);
     SSL_CONF_CTX_set_ssl_ctx(cctx, ctx);
-    while (*args && **args == '-') {
+    while (*args && **args == '-')
+    {
         int rv;
         /* Parse standard arguments */
         rv = SSL_CONF_cmd_argv(cctx, &nargs, &args);
-        if (rv == -3) {
+        if (rv == -3)
+        {
             fprintf(stderr, "Missing argument for %s\n", *args);
             goto end;
         }
-        if (rv < 0) {
+        if (rv < 0)
+        {
             fprintf(stderr, "Error in command %s\n", *args);
             ERR_print_errors_fp(stderr);
             goto end;
@@ -45,22 +48,27 @@ int main(int argc, char **argv)
         if (rv > 0)
             continue;
         /* Otherwise application specific argument processing */
-        if (strcmp(*args, "-connect") == 0) {
+        if (strcmp(*args, "-connect") == 0)
+        {
             connect_str = args[1];
-            if (connect_str == NULL) {
+            if (connect_str == NULL)
+            {
                 fprintf(stderr, "Missing -connect argument\n");
                 goto end;
             }
             args += 2;
             nargs -= 2;
             continue;
-        } else {
+        }
+        else
+        {
             fprintf(stderr, "Unknown argument %s\n", *args);
             goto end;
         }
     }
 
-    if (!SSL_CONF_CTX_finish(cctx)) {
+    if (!SSL_CONF_CTX_finish(cctx))
+    {
         fprintf(stderr, "Finish error\n");
         ERR_print_errors_fp(stderr);
         goto end;
@@ -76,7 +84,8 @@ int main(int argc, char **argv)
 
     BIO_get_ssl(sbio, &ssl);
 
-    if (!ssl) {
+    if (!ssl)
+    {
         fprintf(stderr, "Can't locate SSL pointer\n");
         goto end;
     }
@@ -86,7 +95,8 @@ int main(int argc, char **argv)
     BIO_set_conn_hostname(sbio, connect_str);
 
     out = BIO_new_fp(stdout, BIO_NOCLOSE);
-    if (BIO_do_connect(sbio) <= 0) {
+    if (BIO_do_connect(sbio) <= 0)
+    {
         fprintf(stderr, "Error connecting to server\n");
         ERR_print_errors_fp(stderr);
         goto end;
@@ -95,14 +105,15 @@ int main(int argc, char **argv)
     /* Could examine ssl here to get connection info */
 
     BIO_puts(sbio, "GET / HTTP/1.0\n\n");
-    for (;;) {
+    for (;;)
+    {
         len = BIO_read(sbio, tmpbuf, 1024);
         if (len <= 0)
             break;
         BIO_write(out, tmpbuf, len);
     }
     ret = EXIT_SUCCESS;
- end:
+end:
     SSL_CONF_CTX_free(cctx);
     BIO_free_all(sbio);
     BIO_free(out);

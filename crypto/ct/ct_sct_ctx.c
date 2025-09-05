@@ -8,7 +8,7 @@
  */
 
 #ifdef OPENSSL_NO_CT
-# error "CT is disabled"
+#error "CT is disabled"
 #endif
 
 #include <stddef.h>
@@ -28,9 +28,11 @@ SCT_CTX *SCT_CTX_new(OSSL_LIB_CTX *libctx, const char *propq)
         return NULL;
 
     sctx->libctx = libctx;
-    if (propq != NULL) {
+    if (propq != NULL)
+    {
         sctx->propq = OPENSSL_strdup(propq);
-        if (sctx->propq == NULL) {
+        if (sctx->propq == NULL)
+        {
             OPENSSL_free(sctx);
             return NULL;
         }
@@ -80,10 +82,8 @@ __owur static int ct_x509_cert_fixup(X509 *cert, X509 *presigner)
     if (presigner == NULL)
         return 1;
 
-    preidx = ct_x509_get_ext(presigner, NID_authority_key_identifier,
-                             &pre_akid_ext_is_dup);
-    certidx = ct_x509_get_ext(cert, NID_authority_key_identifier,
-                              &cert_akid_ext_is_dup);
+    preidx = ct_x509_get_ext(presigner, NID_authority_key_identifier, &pre_akid_ext_is_dup);
+    certidx = ct_x509_get_ext(cert, NID_authority_key_identifier, &cert_akid_ext_is_dup);
 
     /* An error occurred whilst searching for the extension */
     if (preidx < -1 || certidx < -1)
@@ -99,7 +99,8 @@ __owur static int ct_x509_cert_fixup(X509 *cert, X509 *presigner)
     /* Copy issuer name */
     if (!X509_set_issuer_name(cert, X509_get_issuer_name(presigner)))
         return 0;
-    if (preidx != -1) {
+    if (preidx != -1)
+    {
         /* Retrieve and copy AKID encoding */
         X509_EXTENSION *preext = X509_get_ext(presigner, preidx);
         X509_EXTENSION *certext = X509_get_ext(cert, certidx);
@@ -109,8 +110,7 @@ __owur static int ct_x509_cert_fixup(X509 *cert, X509 *presigner)
         if (preext == NULL || certext == NULL)
             return 0;
         preextdata = X509_EXTENSION_get_data(preext);
-        if (preextdata == NULL ||
-            !X509_EXTENSION_set_data(certext, preextdata))
+        if (preextdata == NULL || !X509_EXTENSION_set_data(certext, preextdata))
             return 0;
     }
     return 1;
@@ -130,7 +130,8 @@ int SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
         goto err;
 
     /* If *cert doesn't have a poison extension, it isn't a precert */
-    if (poison_idx == -1) {
+    if (poison_idx == -1)
+    {
         /* cert isn't a precert, so we shouldn't have a presigner */
         if (presigner != NULL)
             goto err;
@@ -146,7 +147,8 @@ int SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
     if (sct_ext_is_dup)
         goto err;
 
-    if (idx >= 0 && poison_idx >= 0) {
+    if (idx >= 0 && poison_idx >= 0)
+    {
         /*
          * cert can't both contain SCTs (i.e. have an SCT extension) and be a
          * precert (i.e. have a poison extension).
@@ -154,7 +156,8 @@ int SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
         goto err;
     }
 
-    if (idx == -1) {
+    if (idx == -1)
+    {
         idx = poison_idx;
     }
 
@@ -164,7 +167,8 @@ int SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
      * RFC5280) from cert, which is what the CT log signed when it produced the
      * SCT.
      */
-    if (idx >= 0) {
+    if (idx >= 0)
+    {
         /* Take a copy of certificate so we don't modify passed version */
         pretmp = X509_dup(cert);
         if (pretmp == NULL)
@@ -198,8 +202,7 @@ err:
     return 0;
 }
 
-__owur static int ct_public_key_hash(SCT_CTX *sctx, X509_PUBKEY *pkey,
-                                     unsigned char **hash, size_t *hash_len)
+__owur static int ct_public_key_hash(SCT_CTX *sctx, X509_PUBKEY *pkey, unsigned char **hash, size_t *hash_len)
 {
     int ret = 0;
     unsigned char *md = NULL, *der = NULL;
@@ -211,9 +214,12 @@ __owur static int ct_public_key_hash(SCT_CTX *sctx, X509_PUBKEY *pkey,
         goto err;
 
     /* Reuse buffer if possible */
-    if (*hash != NULL && *hash_len >= SHA256_DIGEST_LENGTH) {
+    if (*hash != NULL && *hash_len >= SHA256_DIGEST_LENGTH)
+    {
         md = *hash;
-    } else {
+    }
+    else
+    {
         md = OPENSSL_malloc(SHA256_DIGEST_LENGTH);
         if (md == NULL)
             goto err;
@@ -227,7 +233,8 @@ __owur static int ct_public_key_hash(SCT_CTX *sctx, X509_PUBKEY *pkey,
     if (!EVP_Digest(der, der_len, md, &md_len, sha256, NULL))
         goto err;
 
-    if (md != *hash) {
+    if (md != *hash)
+    {
         OPENSSL_free(*hash);
         *hash = md;
         *hash_len = SHA256_DIGEST_LENGTH;
@@ -235,7 +242,7 @@ __owur static int ct_public_key_hash(SCT_CTX *sctx, X509_PUBKEY *pkey,
 
     md = NULL;
     ret = 1;
- err:
+err:
     EVP_MD_free(sha256);
     OPENSSL_free(md);
     OPENSSL_free(der);
@@ -259,7 +266,8 @@ int SCT_CTX_set1_pubkey(SCT_CTX *sctx, X509_PUBKEY *pubkey)
     if (pkey == NULL)
         return 0;
 
-    if (!ct_public_key_hash(sctx, pubkey, &sctx->pkeyhash, &sctx->pkeyhashlen)) {
+    if (!ct_public_key_hash(sctx, pubkey, &sctx->pkeyhash, &sctx->pkeyhashlen))
+    {
         EVP_PKEY_free(pkey);
         return 0;
     }

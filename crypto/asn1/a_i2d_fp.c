@@ -14,13 +14,14 @@
 
 #ifndef NO_OLD_ASN1
 
-# ifndef OPENSSL_NO_STDIO
+#ifndef OPENSSL_NO_STDIO
 int ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, const void *x)
 {
     BIO *b;
     int ret;
 
-    if ((b = BIO_new(BIO_s_file())) == NULL) {
+    if ((b = BIO_new(BIO_s_file())) == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_BUF_LIB);
         return 0;
     }
@@ -29,7 +30,7 @@ int ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, const void *x)
     BIO_free(b);
     return ret;
 }
-# endif
+#endif
 
 int ASN1_i2d_bio(i2d_of_void *i2d, BIO *out, const void *x)
 {
@@ -48,11 +49,13 @@ int ASN1_i2d_bio(i2d_of_void *i2d, BIO *out, const void *x)
     p = (unsigned char *)b;
     i2d(x, &p);
 
-    for (;;) {
+    for (;;)
+    {
         i = BIO_write(out, &(b[j]), n);
         if (i == n)
             break;
-        if (i <= 0) {
+        if (i <= 0)
+        {
             ret = 0;
             break;
         }
@@ -71,7 +74,8 @@ int ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, const void *x)
     BIO *b;
     int ret;
 
-    if ((b = BIO_new(BIO_s_file())) == NULL) {
+    if ((b = BIO_new(BIO_s_file())) == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_BUF_LIB);
         return 0;
     }
@@ -88,16 +92,19 @@ int ASN1_item_i2d_bio(const ASN1_ITEM *it, BIO *out, const void *x)
     int i, j = 0, n, ret = 1;
 
     n = ASN1_item_i2d(x, &b, it);
-    if (n < 0 || b == NULL) {
+    if (n < 0 || b == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
         return 0;
     }
 
-    for (;;) {
+    for (;;)
+    {
         i = BIO_write(out, &(b[j]), n);
         if (i == n)
             break;
-        if (i <= 0) {
+        if (i <= 0)
+        {
             ret = 0;
             break;
         }
@@ -112,14 +119,16 @@ BIO *ASN1_item_i2d_mem_bio(const ASN1_ITEM *it, const ASN1_VALUE *val)
 {
     BIO *res;
 
-    if (it == NULL || val == NULL) {
+    if (it == NULL || val == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ERR_R_PASSED_NULL_PARAMETER);
         return NULL;
     }
 
     if ((res = BIO_new(BIO_s_mem())) == NULL)
         return NULL;
-    if (ASN1_item_i2d_bio(it, res, val) <= 0) {
+    if (ASN1_item_i2d_bio(it, res, val) <= 0)
+    {
         BIO_free(res);
         res = NULL;
     }

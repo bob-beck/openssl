@@ -12,8 +12,9 @@
 #include "prov/ciphercommon_ccm.h"
 #include "crypto/aes_platform.h"
 
-typedef struct prov_aes_ccm_ctx_st {
-    PROV_CCM_CTX base;         /* Must be first */
+typedef struct prov_aes_ccm_ctx_st
+{
+    PROV_CCM_CTX base; /* Must be first */
     union {
         OSSL_UNION_ALIGN;
         /*-
@@ -22,12 +23,14 @@ typedef struct prov_aes_ccm_ctx_st {
          * rounds field is used to store the function code and that the key
          * schedule is not stored (if aes hardware support is detected).
          */
-        struct {
+        struct
+        {
             unsigned char pad[16];
             AES_KEY ks;
         } ks;
 #if defined(OPENSSL_CPUID_OBJ) && defined(__s390__)
-        struct {
+        struct
+        {
             S390X_KMAC_PARAMS kmac;
             unsigned long long blocks;
             union {
@@ -39,7 +42,7 @@ typedef struct prov_aes_ccm_ctx_st {
                 unsigned char b[AES_BLOCK_SIZE];
             } buf;
             unsigned char dummy_pad[168];
-            unsigned int fc;   /* fc has same offset as ks.ks.rounds */
+            unsigned int fc; /* fc has same offset as ks.ks.rounds */
         } s390x;
 #endif /* defined(OPENSSL_CPUID_OBJ) && defined(__s390__) */
     } ccm;

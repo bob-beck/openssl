@@ -24,7 +24,8 @@ static OSSL_FUNC_signature_freectx_fn lms_freectx;
 static OSSL_FUNC_signature_verify_message_init_fn lms_verify_msg_init;
 static OSSL_FUNC_signature_verify_fn lms_verify;
 
-typedef struct {
+typedef struct
+{
     OSSL_LIB_CTX *libctx;
     char *propq;
     LMS_KEY *key;
@@ -73,7 +74,8 @@ static int setdigest(PROV_LMS_CTX *ctx, const char *digestname)
     LMS_KEY *key = ctx->key;
     const char *pub_digestname = key->ots_params->digestname;
 
-    if (ctx->md != NULL) {
+    if (ctx->md != NULL)
+    {
         if (EVP_MD_is_a(ctx->md, pub_digestname))
             goto end;
         EVP_MD_free(ctx->md);
@@ -93,7 +95,8 @@ static int lms_verify_msg_init(void *vctx, void *vkey, const OSSL_PARAM params[]
     if (!ossl_prov_is_running() || ctx == NULL)
         return 0;
 
-    if (key == NULL && ctx->key == NULL) {
+    if (key == NULL && ctx->key == NULL)
+    {
         ERR_raise(ERR_LIB_PROV, PROV_R_NO_KEY_SET);
         return 0;
     }
@@ -102,8 +105,8 @@ static int lms_verify_msg_init(void *vctx, void *vkey, const OSSL_PARAM params[]
     return setdigest(ctx, NULL);
 }
 
-static int lms_verify(void *vctx, const unsigned char *sigbuf, size_t sigbuf_len,
-                      const unsigned char *msg, size_t msglen)
+static int lms_verify(void *vctx, const unsigned char *sigbuf, size_t sigbuf_len, const unsigned char *msg,
+                      size_t msglen)
 {
     int ret = 0;
     PROV_LMS_CTX *ctx = (PROV_LMS_CTX *)vctx;
@@ -124,10 +127,8 @@ static int lms_verify(void *vctx, const unsigned char *sigbuf, size_t sigbuf_len
 }
 
 const OSSL_DISPATCH ossl_lms_signature_functions[] = {
-    { OSSL_FUNC_SIGNATURE_NEWCTX, (void (*)(void))lms_newctx },
-    { OSSL_FUNC_SIGNATURE_FREECTX, (void (*)(void))lms_freectx },
-    { OSSL_FUNC_SIGNATURE_VERIFY_MESSAGE_INIT,
-      (void (*)(void))lms_verify_msg_init },
-    { OSSL_FUNC_SIGNATURE_VERIFY, (void (*)(void))lms_verify },
-    OSSL_DISPATCH_END
-};
+    {OSSL_FUNC_SIGNATURE_NEWCTX, (void (*)(void))lms_newctx},
+    {OSSL_FUNC_SIGNATURE_FREECTX, (void (*)(void))lms_freectx},
+    {OSSL_FUNC_SIGNATURE_VERIFY_MESSAGE_INIT, (void (*)(void))lms_verify_msg_init},
+    {OSSL_FUNC_SIGNATURE_VERIFY, (void (*)(void))lms_verify},
+    OSSL_DISPATCH_END};

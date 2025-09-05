@@ -11,7 +11,8 @@
 #include <openssl/crypto.h>
 #include "internal/refcount.h"
 
-struct kdf_data_st {
+struct kdf_data_st
+{
     OSSL_LIB_CTX *libctx;
     CRYPTO_REF_COUNT refcnt;
 };

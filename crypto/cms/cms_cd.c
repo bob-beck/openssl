@@ -21,9 +21,7 @@
 
 /* CMS CompressedData Utilities */
 
-CMS_ContentInfo *ossl_cms_CompressedData_create(int comp_nid,
-                                                OSSL_LIB_CTX *libctx,
-                                                const char *propq)
+CMS_ContentInfo *ossl_cms_CompressedData_create(int comp_nid, OSSL_LIB_CTX *libctx, const char *propq)
 {
     CMS_ContentInfo *cms;
     CMS_CompressedData *cd;
@@ -32,7 +30,8 @@ CMS_ContentInfo *ossl_cms_CompressedData_create(int comp_nid,
      * Will need something cleverer if there is ever more than one
      * compression algorithm or parameters have some meaning...
      */
-    if (comp_nid != NID_zlib_compression) {
+    if (comp_nid != NID_zlib_compression)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_UNSUPPORTED_COMPRESSION_ALGORITHM);
         return NULL;
     }
@@ -50,15 +49,14 @@ CMS_ContentInfo *ossl_cms_CompressedData_create(int comp_nid,
 
     cd->version = 0;
 
-    (void)X509_ALGOR_set0(cd->compressionAlgorithm,
-                          OBJ_nid2obj(NID_zlib_compression),
-                          V_ASN1_UNDEF, NULL); /* cannot fail */
+    (void)X509_ALGOR_set0(cd->compressionAlgorithm, OBJ_nid2obj(NID_zlib_compression), V_ASN1_UNDEF,
+                          NULL); /* cannot fail */
 
     cd->encapContentInfo->eContentType = OBJ_nid2obj(NID_pkcs7_data);
 
     return cms;
 
- err:
+err:
     CMS_ContentInfo_free(cms);
     return NULL;
 }
@@ -68,13 +66,15 @@ BIO *ossl_cms_CompressedData_init_bio(const CMS_ContentInfo *cms)
     CMS_CompressedData *cd;
     const ASN1_OBJECT *compoid;
 
-    if (OBJ_obj2nid(cms->contentType) != NID_id_smime_ct_compressedData) {
+    if (OBJ_obj2nid(cms->contentType) != NID_id_smime_ct_compressedData)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_CONTENT_TYPE_NOT_COMPRESSED_DATA);
         return NULL;
     }
     cd = cms->d.compressedData;
     X509_ALGOR_get0(&compoid, NULL, NULL, cd->compressionAlgorithm);
-    if (OBJ_obj2nid(compoid) != NID_zlib_compression) {
+    if (OBJ_obj2nid(compoid) != NID_zlib_compression)
+    {
         ERR_raise(ERR_LIB_CMS, CMS_R_UNSUPPORTED_COMPRESSION_ALGORITHM);
         return NULL;
     }

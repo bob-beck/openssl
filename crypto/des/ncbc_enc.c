@@ -16,11 +16,10 @@
 #include "des_local.h"
 
 #ifdef CBC_ENC_C__DONT_UPDATE_IV
-void DES_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
-                     DES_key_schedule *_schedule, DES_cblock *ivec, int enc)
+void DES_cbc_encrypt(const unsigned char *in, unsigned char *out, long length, DES_key_schedule *_schedule,
+                     DES_cblock *ivec, int enc)
 #else
-void DES_ncbc_encrypt(const unsigned char *in, unsigned char *out,
-                      long length, DES_key_schedule *_schedule,
+void DES_ncbc_encrypt(const unsigned char *in, unsigned char *out, long length, DES_key_schedule *_schedule,
                       DES_cblock *ivec, int enc)
 #endif
 {
@@ -32,10 +31,12 @@ void DES_ncbc_encrypt(const unsigned char *in, unsigned char *out,
 
     iv = &(*ivec)[0];
 
-    if (enc) {
+    if (enc)
+    {
         c2l(iv, tout0);
         c2l(iv, tout1);
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             c2l(in, tin0);
             c2l(in, tin1);
             tin0 ^= tout0;
@@ -48,7 +49,8 @@ void DES_ncbc_encrypt(const unsigned char *in, unsigned char *out,
             tout1 = tin[1];
             l2c(tout1, out);
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             c2ln(in, tin0, tin1, l + 8);
             tin0 ^= tout0;
             tin[0] = tin0;
@@ -65,10 +67,13 @@ void DES_ncbc_encrypt(const unsigned char *in, unsigned char *out,
         l2c(tout0, iv);
         l2c(tout1, iv);
 #endif
-    } else {
+    }
+    else
+    {
         c2l(iv, xor0);
         c2l(iv, xor1);
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             c2l(in, tin0);
             tin[0] = tin0;
             c2l(in, tin1);
@@ -81,7 +86,8 @@ void DES_ncbc_encrypt(const unsigned char *in, unsigned char *out,
             xor0 = tin0;
             xor1 = tin1;
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             c2l(in, tin0);
             tin[0] = tin0;
             c2l(in, tin1);

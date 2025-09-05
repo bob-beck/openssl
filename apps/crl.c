@@ -18,13 +18,37 @@
 #include <openssl/x509v3.h>
 #include <openssl/pem.h>
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
-    OPT_INFORM, OPT_IN, OPT_OUTFORM, OPT_OUT, OPT_KEYFORM, OPT_KEY,
-    OPT_ISSUER, OPT_LASTUPDATE, OPT_NEXTUPDATE, OPT_FINGERPRINT,
-    OPT_CRLNUMBER, OPT_BADSIG, OPT_GENDELTA, OPT_CAPATH, OPT_CAFILE, OPT_CASTORE,
-    OPT_NOCAPATH, OPT_NOCAFILE, OPT_NOCASTORE, OPT_VERIFY, OPT_DATEOPT, OPT_TEXT, OPT_HASH,
-    OPT_HASH_OLD, OPT_NOOUT, OPT_NAMEOPT, OPT_MD, OPT_PROV_ENUM
+    OPT_INFORM,
+    OPT_IN,
+    OPT_OUTFORM,
+    OPT_OUT,
+    OPT_KEYFORM,
+    OPT_KEY,
+    OPT_ISSUER,
+    OPT_LASTUPDATE,
+    OPT_NEXTUPDATE,
+    OPT_FINGERPRINT,
+    OPT_CRLNUMBER,
+    OPT_BADSIG,
+    OPT_GENDELTA,
+    OPT_CAPATH,
+    OPT_CAFILE,
+    OPT_CASTORE,
+    OPT_NOCAPATH,
+    OPT_NOCAFILE,
+    OPT_NOCASTORE,
+    OPT_VERIFY,
+    OPT_DATEOPT,
+    OPT_TEXT,
+    OPT_HASH,
+    OPT_HASH_OLD,
+    OPT_NOOUT,
+    OPT_NAMEOPT,
+    OPT_MD,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS crl_options[] = {
@@ -57,22 +81,18 @@ const OPTIONS crl_options[] = {
     {"noout", OPT_NOOUT, '-', "No CRL output"},
     {"fingerprint", OPT_FINGERPRINT, '-', "Print the crl fingerprint"},
     {"crlnumber", OPT_CRLNUMBER, '-', "Print CRL number"},
-    {"badsig", OPT_BADSIG, '-', "Corrupt last byte of loaded CRL signature (for test)" },
+    {"badsig", OPT_BADSIG, '-', "Corrupt last byte of loaded CRL signature (for test)"},
     {"gendelta", OPT_GENDELTA, '<', "Other CRL to compare/diff to the Input one"},
 
     OPT_SECTION("Certificate"),
     {"CApath", OPT_CAPATH, '/', "Verify CRL using certificates in dir"},
     {"CAfile", OPT_CAFILE, '<', "Verify CRL using certificates in file name"},
     {"CAstore", OPT_CASTORE, ':', "Verify CRL using certificates in store URI"},
-    {"no-CAfile", OPT_NOCAFILE, '-',
-     "Do not load the default certificates file"},
-    {"no-CApath", OPT_NOCAPATH, '-',
-     "Do not load certificates from the default certificates directory"},
-    {"no-CAstore", OPT_NOCASTORE, '-',
-     "Do not load certificates from the default certificates store"},
+    {"no-CAfile", OPT_NOCAFILE, '-', "Do not load the default certificates file"},
+    {"no-CApath", OPT_NOCAPATH, '-', "Do not load certificates from the default certificates directory"},
+    {"no-CAstore", OPT_NOCASTORE, '-', "Do not load certificates from the default certificates store"},
     OPT_PROV_OPTIONS,
-    {NULL}
-};
+    {NULL}};
 
 int crl_main(int argc, char **argv)
 {
@@ -100,11 +120,13 @@ int crl_main(int argc, char **argv)
 
     opt_set_unknown_name("digest");
     prog = opt_init(argc, argv, crl_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -148,13 +170,13 @@ int crl_main(int argc, char **argv)
             do_ver = 1;
             break;
         case OPT_NOCAPATH:
-            noCApath =  1;
+            noCApath = 1;
             break;
         case OPT_NOCAFILE:
-            noCAfile =  1;
+            noCAfile = 1;
             break;
         case OPT_NOCASTORE:
-            noCAstore =  1;
+            noCAstore = 1;
             break;
         case OPT_HASH_OLD:
 #ifndef OPENSSL_NO_MD5
@@ -219,28 +241,30 @@ int crl_main(int argc, char **argv)
     if (x == NULL)
         goto end;
 
-    if (do_ver) {
-        if ((store = setup_verify(CAfile, noCAfile, CApath, noCApath,
-                                  CAstore, noCAstore)) == NULL)
+    if (do_ver)
+    {
+        if ((store = setup_verify(CAfile, noCAfile, CApath, noCApath, CAstore, noCAstore)) == NULL)
             goto end;
         lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file());
         if (lookup == NULL)
             goto end;
         ctx = X509_STORE_CTX_new();
-        if (ctx == NULL || !X509_STORE_CTX_init(ctx, store, NULL, NULL)) {
+        if (ctx == NULL || !X509_STORE_CTX_init(ctx, store, NULL, NULL))
+        {
             BIO_printf(bio_err, "Error initialising X509 store\n");
             goto end;
         }
 
-        xobj = X509_STORE_CTX_get_obj_by_subject(ctx, X509_LU_X509,
-                                                 X509_CRL_get_issuer(x));
-        if (xobj == NULL) {
+        xobj = X509_STORE_CTX_get_obj_by_subject(ctx, X509_LU_X509, X509_CRL_get_issuer(x));
+        if (xobj == NULL)
+        {
             BIO_printf(bio_err, "Error getting CRL issuer certificate\n");
             goto end;
         }
         pkey = X509_get_pubkey(X509_OBJECT_get0_X509(xobj));
         X509_OBJECT_free(xobj);
-        if (pkey == NULL) {
+        if (pkey == NULL)
+        {
             BIO_printf(bio_err, "Error getting CRL issuer public key\n");
             goto end;
         }
@@ -248,17 +272,22 @@ int crl_main(int argc, char **argv)
         EVP_PKEY_free(pkey);
         if (i < 0)
             goto end;
-        if (i == 0) {
+        if (i == 0)
+        {
             BIO_printf(bio_err, "verify failure\n");
             goto end;
-        } else {
+        }
+        else
+        {
             BIO_printf(bio_err, "verify OK\n");
         }
     }
 
-    if (crldiff != NULL) {
+    if (crldiff != NULL)
+    {
         X509_CRL *newcrl, *delta;
-        if (!keyfile) {
+        if (!keyfile)
+        {
             BIO_puts(bio_err, "Missing CRL signing key\n");
             goto end;
         }
@@ -266,77 +295,94 @@ int crl_main(int argc, char **argv)
         if (!newcrl)
             goto end;
         pkey = load_key(keyfile, keyformat, 0, NULL, NULL, "CRL signing key");
-        if (pkey == NULL) {
+        if (pkey == NULL)
+        {
             X509_CRL_free(newcrl);
             goto end;
         }
         delta = X509_CRL_diff(x, newcrl, pkey, digest, 0);
         X509_CRL_free(newcrl);
         EVP_PKEY_free(pkey);
-        if (delta) {
+        if (delta)
+        {
             X509_CRL_free(x);
             x = delta;
-        } else {
+        }
+        else
+        {
             BIO_puts(bio_err, "Error creating delta CRL\n");
             goto end;
         }
     }
 
-    if (badsig) {
+    if (badsig)
+    {
         const ASN1_BIT_STRING *sig;
 
         X509_CRL_get0_signature(x, &sig, NULL);
         corrupt_signature(sig);
     }
 
-    if (num) {
-        for (i = 1; i <= num; i++) {
-            if (issuer == i) {
+    if (num)
+    {
+        for (i = 1; i <= num; i++)
+        {
+            if (issuer == i)
+            {
                 print_name(bio_out, "issuer=", X509_CRL_get_issuer(x));
             }
-            if (crlnumber == i) {
+            if (crlnumber == i)
+            {
                 ASN1_INTEGER *crlnum;
 
                 crlnum = X509_CRL_get_ext_d2i(x, NID_crl_number, NULL, NULL);
                 BIO_printf(bio_out, "crlNumber=");
-                if (crlnum) {
+                if (crlnum)
+                {
                     BIO_puts(bio_out, "0x");
                     i2a_ASN1_INTEGER(bio_out, crlnum);
                     ASN1_INTEGER_free(crlnum);
-                } else {
+                }
+                else
+                {
                     BIO_puts(bio_out, "<NONE>");
                 }
                 BIO_printf(bio_out, "\n");
             }
-            if (hash == i) {
+            if (hash == i)
+            {
                 int ok;
                 unsigned long hash_value =
-                    X509_NAME_hash_ex(X509_CRL_get_issuer(x), app_get0_libctx(),
-                                      app_get0_propq(), &ok);
+                    X509_NAME_hash_ex(X509_CRL_get_issuer(x), app_get0_libctx(), app_get0_propq(), &ok);
 
                 if (num > 1)
                     BIO_printf(bio_out, "issuer name hash=");
-                if (ok) {
+                if (ok)
+                {
                     BIO_printf(bio_out, "%08lx\n", hash_value);
-                } else {
+                }
+                else
+                {
                     BIO_puts(bio_out, "<ERROR>");
                     goto end;
                 }
             }
 #ifndef OPENSSL_NO_MD5
-            if (hash_old == i) {
+            if (hash_old == i)
+            {
                 if (num > 1)
                     BIO_printf(bio_out, "issuer name old hash=");
-                BIO_printf(bio_out, "%08lx\n",
-                           X509_NAME_hash_old(X509_CRL_get_issuer(x)));
+                BIO_printf(bio_out, "%08lx\n", X509_NAME_hash_old(X509_CRL_get_issuer(x)));
             }
 #endif
-            if (lastupdate == i) {
+            if (lastupdate == i)
+            {
                 BIO_printf(bio_out, "lastUpdate=");
                 ASN1_TIME_print_ex(bio_out, X509_CRL_get0_lastUpdate(x), dateopt);
                 BIO_printf(bio_out, "\n");
             }
-            if (nextupdate == i) {
+            if (nextupdate == i)
+            {
                 BIO_printf(bio_out, "nextUpdate=");
                 if (X509_CRL_get0_nextUpdate(x))
                     ASN1_TIME_print_ex(bio_out, X509_CRL_get0_nextUpdate(x), dateopt);
@@ -344,20 +390,21 @@ int crl_main(int argc, char **argv)
                     BIO_printf(bio_out, "NONE");
                 BIO_printf(bio_out, "\n");
             }
-            if (fingerprint == i) {
+            if (fingerprint == i)
+            {
                 int j;
                 unsigned int n;
                 unsigned char md[EVP_MAX_MD_SIZE];
 
-                if (!X509_CRL_digest(x, digest, md, &n)) {
+                if (!X509_CRL_digest(x, digest, md, &n))
+                {
                     BIO_printf(bio_err, "out of memory\n");
                     goto end;
                 }
-                BIO_printf(bio_out, "%s Fingerprint=",
-                           EVP_MD_get0_name(digest));
-                for (j = 0; j < (int)n; j++) {
-                    BIO_printf(bio_out, "%02X%c", md[j], (j + 1 == (int)n)
-                               ? '\n' : ':');
+                BIO_printf(bio_out, "%s Fingerprint=", EVP_MD_get0_name(digest));
+                for (j = 0; j < (int)n; j++)
+                {
+                    BIO_printf(bio_out, "%02X%c", md[j], (j + 1 == (int)n) ? '\n' : ':');
                 }
             }
         }
@@ -369,7 +416,8 @@ int crl_main(int argc, char **argv)
     if (text)
         X509_CRL_print_ex(out, x, get_nameopt());
 
-    if (noout) {
+    if (noout)
+    {
         ret = 0;
         goto end;
     }
@@ -378,13 +426,14 @@ int crl_main(int argc, char **argv)
         i = (int)i2d_X509_CRL_bio(out, x);
     else
         i = PEM_write_bio_X509_CRL(out, x);
-    if (!i) {
+    if (!i)
+    {
         BIO_printf(bio_err, "unable to write CRL\n");
         goto end;
     }
     ret = 0;
 
- end:
+end:
     if (ret != 0)
         ERR_print_errors(bio_err);
     BIO_free_all(out);

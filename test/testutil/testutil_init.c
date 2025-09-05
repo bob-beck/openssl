@@ -14,27 +14,27 @@
 #include "../testutil.h"
 
 #ifndef OPENSSL_NO_TRACE
-typedef struct tracedata_st {
+typedef struct tracedata_st
+{
     BIO *bio;
-    unsigned int ingroup:1;
+    unsigned int ingroup : 1;
 } tracedata;
 
-static size_t internal_trace_cb(const char *buf, size_t cnt,
-                                int category, int cmd, void *vdata)
+static size_t internal_trace_cb(const char *buf, size_t cnt, int category, int cmd, void *vdata)
 {
     int ret = 0;
     tracedata *trace_data = vdata;
     char buffer[256], *hex;
     CRYPTO_THREAD_ID tid;
 
-    switch (cmd) {
+    switch (cmd)
+    {
     case OSSL_TRACE_CTRL_BEGIN:
         trace_data->ingroup = 1;
 
         tid = CRYPTO_THREAD_get_current_id();
         hex = OPENSSL_buf2hexstr((const unsigned char *)&tid, sizeof(tid));
-        BIO_snprintf(buffer, sizeof(buffer), "TRACE[%s]:%s: ",
-                     hex, OSSL_trace_get_category_name(category));
+        BIO_snprintf(buffer, sizeof(buffer), "TRACE[%s]:%s: ", hex, OSSL_trace_get_category_name(category));
         OPENSSL_free(hex);
         BIO_set_prefix(trace_data->bio, buffer);
         break;
@@ -79,19 +79,15 @@ static void setup_trace_category(int category)
         return;
 
     bio = BIO_new(BIO_f_prefix());
-    channel = BIO_push(bio,
-                       BIO_new_fp(stderr, BIO_NOCLOSE | BIO_FP_TEXT));
+    channel = BIO_push(bio, BIO_new_fp(stderr, BIO_NOCLOSE | BIO_FP_TEXT));
     trace_data = OPENSSL_zalloc(sizeof(*trace_data));
 
-    if (trace_data == NULL
-        || bio == NULL
-        || (trace_data->bio = channel) == NULL
-        || OSSL_trace_set_callback(category, internal_trace_cb,
-                                   trace_data) == 0
-        || sk_tracedata_push(trace_data_stack, trace_data) == 0) {
+    if (trace_data == NULL || bio == NULL || (trace_data->bio = channel) == NULL ||
+        OSSL_trace_set_callback(category, internal_trace_cb, trace_data) == 0 ||
+        sk_tracedata_push(trace_data_stack, trace_data) == 0)
+    {
 
-        fprintf(stderr,
-                "warning: unable to setup trace callback for category '%s'.\n",
+        fprintf(stderr, "warning: unable to setup trace callback for category '%s'.\n",
                 OSSL_trace_get_category_name(category));
 
         OPENSSL_free(trace_data);
@@ -114,22 +110,28 @@ static void setup_trace(const char *str)
     trace_data_stack = sk_tracedata_new_null();
     val = OPENSSL_strdup(str);
 
-    if (val != NULL) {
+    if (val != NULL)
+    {
         char *valp = val;
         char *item;
 
-        for (valp = val; (item = strtok(valp, ",")) != NULL; valp = NULL) {
+        for (valp = val; (item = strtok(valp, ",")) != NULL; valp = NULL)
+        {
             int category = OSSL_trace_get_category_num(item);
 
-            if (category == OSSL_TRACE_CATEGORY_ALL) {
+            if (category == OSSL_TRACE_CATEGORY_ALL)
+            {
                 while (++category < OSSL_TRACE_CATEGORY_NUM)
                     setup_trace_category(category);
                 break;
-            } else if (category > 0) {
+            }
+            else if (category > 0)
+            {
                 setup_trace_category(category);
-            } else {
-                fprintf(stderr,
-                        "warning: unknown trace category: '%s'.\n", item);
+            }
+            else
+            {
+                fprintf(stderr, "warning: unknown trace category: '%s'.\n", item);
             }
         }
     }

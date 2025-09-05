@@ -34,7 +34,8 @@ extern OSSL_FUNC_core_thread_start_fn *c_thread_start;
 #endif
 
 typedef struct thread_event_handler_st THREAD_EVENT_HANDLER;
-struct thread_event_handler_st {
+struct thread_event_handler_st
+{
 #ifndef FIPS_MODULE
     const void *index;
 #endif
@@ -47,7 +48,8 @@ struct thread_event_handler_st {
 DEFINE_SPECIAL_STACK_OF(THREAD_EVENT_HANDLER_PTR, THREAD_EVENT_HANDLER *)
 
 typedef struct global_tevent_register_st GLOBAL_TEVENT_REGISTER;
-struct global_tevent_register_st {
+struct global_tevent_register_st
+{
     STACK_OF(THREAD_EVENT_HANDLER_PTR) *skhands;
     CRYPTO_RWLOCK *lock;
 };
@@ -64,7 +66,8 @@ DEFINE_RUN_ONCE_STATIC(create_global_tevent_register)
 
     glob_tevent_reg->skhands = sk_THREAD_EVENT_HANDLER_PTR_new_null();
     glob_tevent_reg->lock = CRYPTO_THREAD_lock_new();
-    if (glob_tevent_reg->skhands == NULL || glob_tevent_reg->lock == NULL) {
+    if (glob_tevent_reg->skhands == NULL || glob_tevent_reg->lock == NULL)
+    {
         sk_THREAD_EVENT_HANDLER_PTR_free(glob_tevent_reg->skhands);
         CRYPTO_THREAD_lock_free(glob_tevent_reg->lock);
         OPENSSL_free(glob_tevent_reg);
@@ -101,16 +104,16 @@ static GLOBAL_TEVENT_REGISTER *get_global_tevent_register(void)
 static union {
     long sane;
     CRYPTO_THREAD_LOCAL value;
-} destructor_key = { -1 };
+} destructor_key = {-1};
 
-static int  init_thread_push_handlers(THREAD_EVENT_HANDLER **hands);
+static int init_thread_push_handlers(THREAD_EVENT_HANDLER **hands);
 static void init_thread_remove_handlers(THREAD_EVENT_HANDLER **handsin);
 static void init_thread_destructor(void *hands);
-static int  init_thread_deregister(void *arg, int all);
+static int init_thread_deregister(void *arg, int all);
 #endif
 static void init_thread_stop(void *arg, THREAD_EVENT_HANDLER **hands);
 
-static THREAD_EVENT_HANDLER ** get_thread_event_handler(OSSL_LIB_CTX *ctx)
+static THREAD_EVENT_HANDLER **get_thread_event_handler(OSSL_LIB_CTX *ctx)
 {
 #ifdef FIPS_MODULE
     return CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_TEVENT_KEY, ctx);
@@ -132,30 +135,35 @@ static int set_thread_event_handler(OSSL_LIB_CTX *ctx, THREAD_EVENT_HANDLER **ha
 #endif
 }
 
-static THREAD_EVENT_HANDLER **
-manage_thread_local(OSSL_LIB_CTX *ctx, int alloc, int keep)
+static THREAD_EVENT_HANDLER **manage_thread_local(OSSL_LIB_CTX *ctx, int alloc, int keep)
 {
     THREAD_EVENT_HANDLER **hands = get_thread_event_handler(ctx);
 
-    if (alloc) {
-        if (hands == NULL) {
+    if (alloc)
+    {
+        if (hands == NULL)
+        {
 
             if ((hands = OPENSSL_zalloc(sizeof(*hands))) == NULL)
                 return NULL;
 
-            if (!set_thread_event_handler(ctx, hands)) {
+            if (!set_thread_event_handler(ctx, hands))
+            {
                 OPENSSL_free(hands);
                 return NULL;
             }
 #ifndef FIPS_MODULE
-            if (!init_thread_push_handlers(hands)) {
+            if (!init_thread_push_handlers(hands))
+            {
                 set_thread_event_handler(ctx, NULL);
                 OPENSSL_free(hands);
                 return NULL;
             }
 #endif
         }
-    } else if (!keep) {
+    }
+    else if (!keep)
+    {
         set_thread_event_handler(ctx, NULL);
     }
 
@@ -215,11 +223,12 @@ static void init_thread_remove_handlers(THREAD_EVENT_HANDLER **handsin)
         return;
     if (!CRYPTO_THREAD_write_lock(gtr->lock))
         return;
-    for (i = 0; i < sk_THREAD_EVENT_HANDLER_PTR_num(gtr->skhands); i++) {
-        THREAD_EVENT_HANDLER **hands
-            = sk_THREAD_EVENT_HANDLER_PTR_value(gtr->skhands, i);
+    for (i = 0; i < sk_THREAD_EVENT_HANDLER_PTR_num(gtr->skhands); i++)
+    {
+        THREAD_EVENT_HANDLER **hands = sk_THREAD_EVENT_HANDLER_PTR_value(gtr->skhands, i);
 
-        if (hands == handsin) {
+        if (hands == handsin)
+        {
             sk_THREAD_EVENT_HANDLER_PTR_delete(gtr->skhands, i);
             CRYPTO_THREAD_unlock(gtr->lock);
             return;
@@ -238,8 +247,7 @@ static void init_thread_destructor(void *hands)
 
 int ossl_init_thread(void)
 {
-    if (!CRYPTO_THREAD_init_local(&destructor_key.value,
-                                  init_thread_destructor))
+    if (!CRYPTO_THREAD_init_local(&destructor_key.value, init_thread_destructor))
         return 0;
 
     return 1;
@@ -265,7 +273,8 @@ void OPENSSL_thread_stop_ex(OSSL_LIB_CTX *ctx)
 
 void OPENSSL_thread_stop(void)
 {
-    if (destructor_key.sane != -1) {
+    if (destructor_key.sane != -1)
+    {
         THREAD_EVENT_HANDLER **hands = clear_thread_local(NULL);
 
         init_thread_stop(NULL, hands);
@@ -277,7 +286,8 @@ void OPENSSL_thread_stop(void)
 
 void ossl_ctx_thread_stop(OSSL_LIB_CTX *ctx)
 {
-    if (destructor_key.sane != -1) {
+    if (destructor_key.sane != -1)
+    {
         THREAD_EVENT_HANDLER **hands = fetch_thread_local(ctx);
 
         init_thread_stop(ctx, hands);
@@ -291,8 +301,7 @@ static void ossl_arg_thread_stop(void *arg);
 /* Register the current thread so that we are informed if it gets stopped */
 int ossl_thread_register_fips(OSSL_LIB_CTX *libctx)
 {
-    return c_thread_start(FIPS_get_core_handle(libctx), ossl_arg_thread_stop,
-                          libctx);
+    return c_thread_start(FIPS_get_core_handle(libctx), ossl_arg_thread_stop, libctx);
 }
 
 int ossl_thread_event_ctx_new(OSSL_LIB_CTX *libctx)
@@ -317,7 +326,7 @@ int ossl_thread_event_ctx_new(OSSL_LIB_CTX *libctx)
      */
 
     return 1;
- err:
+err:
     OPENSSL_free(hands);
     return 0;
 }
@@ -342,7 +351,6 @@ void ossl_ctx_thread_stop(OSSL_LIB_CTX *ctx)
 }
 #endif /* FIPS_MODULE */
 
-
 static void init_thread_stop(void *arg, THREAD_EVENT_HANDLER **hands)
 {
     THREAD_EVENT_HANDLER *curr, *prev = NULL, *tmp;
@@ -364,8 +372,10 @@ static void init_thread_stop(void *arg, THREAD_EVENT_HANDLER **hands)
 #endif
 
     curr = *hands;
-    while (curr != NULL) {
-        if (arg != NULL && curr->arg != arg) {
+    while (curr != NULL)
+    {
+        if (arg != NULL && curr->arg != arg)
+        {
             prev = curr;
             curr = curr->next;
             continue;
@@ -386,8 +396,7 @@ static void init_thread_stop(void *arg, THREAD_EVENT_HANDLER **hands)
 #endif
 }
 
-int ossl_init_thread_start(const void *index, void *arg,
-                           OSSL_thread_stop_handler_fn handfn)
+int ossl_init_thread_start(const void *index, void *arg, OSSL_thread_stop_handler_fn handfn)
 {
     THREAD_EVENT_HANDLER **hands;
     THREAD_EVENT_HANDLER *hand;
@@ -408,7 +417,8 @@ int ossl_init_thread_start(const void *index, void *arg,
         return 0;
 
 #ifdef FIPS_MODULE
-    if (*hands == NULL) {
+    if (*hands == NULL)
+    {
         /*
          * We've not yet registered any handlers for this thread. We need to get
          * libcrypto to tell us about later thread stop events. c_thread_start
@@ -443,25 +453,31 @@ static int init_thread_deregister(void *index, int all)
     gtr = get_global_tevent_register();
     if (gtr == NULL)
         return 0;
-    if (!all) {
+    if (!all)
+    {
         if (!CRYPTO_THREAD_write_lock(gtr->lock))
             return 0;
-    } else {
+    }
+    else
+    {
         glob_tevent_reg = NULL;
     }
-    for (i = 0; i < sk_THREAD_EVENT_HANDLER_PTR_num(gtr->skhands); i++) {
-        THREAD_EVENT_HANDLER **hands
-            = sk_THREAD_EVENT_HANDLER_PTR_value(gtr->skhands, i);
+    for (i = 0; i < sk_THREAD_EVENT_HANDLER_PTR_num(gtr->skhands); i++)
+    {
+        THREAD_EVENT_HANDLER **hands = sk_THREAD_EVENT_HANDLER_PTR_value(gtr->skhands, i);
         THREAD_EVENT_HANDLER *curr = NULL, *prev = NULL, *tmp;
 
-        if (hands == NULL) {
+        if (hands == NULL)
+        {
             if (!all)
                 CRYPTO_THREAD_unlock(gtr->lock);
             return 0;
         }
         curr = *hands;
-        while (curr != NULL) {
-            if (all || curr->index == index) {
+        while (curr != NULL)
+        {
+            if (all || curr->index == index)
+            {
                 if (prev != NULL)
                     prev->next = curr->next;
                 else
@@ -477,11 +493,14 @@ static int init_thread_deregister(void *index, int all)
         if (all)
             OPENSSL_free(hands);
     }
-    if (all) {
+    if (all)
+    {
         CRYPTO_THREAD_lock_free(gtr->lock);
         sk_THREAD_EVENT_HANDLER_PTR_free(gtr->skhands);
         OPENSSL_free(gtr);
-    } else {
+    }
+    else
+    {
         CRYPTO_THREAD_unlock(gtr->lock);
     }
     return 1;

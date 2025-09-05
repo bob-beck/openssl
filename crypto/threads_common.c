@@ -122,8 +122,9 @@ DEFINE_SPARSE_ARRAY_OF(CTX_TABLE_ENTRY);
  * `CTX_TABLE_ENTRY` structures that hold context-specific data.
  *
  */
-typedef struct master_key_entry {
-    SPARSE_ARRAY_OF(CTX_TABLE_ENTRY) *ctx_table;
+typedef struct master_key_entry
+{
+    SPARSE_ARRAY_OF(CTX_TABLE_ENTRY) * ctx_table;
 } MASTER_KEY_ENTRY;
 
 /**
@@ -192,7 +193,8 @@ static void clean_master_key(void *data)
     MASTER_KEY_ENTRY *mkey = data;
     int i;
 
-    for (i = 0; i < CRYPTO_THREAD_LOCAL_KEY_MAX; i++) {
+    for (i = 0; i < CRYPTO_THREAD_LOCAL_KEY_MAX; i++)
+    {
         if (mkey[i].ctx_table != NULL)
             clean_master_key_id(&mkey[i]);
     }
@@ -330,8 +332,7 @@ void *CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id, OSSL_LIB_CTX *ct
  *
  * @return 1 on success, or 0 if allocation or initialization fails.
  */
-int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
-                               OSSL_LIB_CTX *ctx, void *data)
+int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id, OSSL_LIB_CTX *ctx, void *data)
 {
     MASTER_KEY_ENTRY *mkey;
 
@@ -351,18 +352,19 @@ int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
      * a sparse array indexed by the id parameter
      */
     mkey = CRYPTO_THREAD_get_local(&master_key);
-    if (mkey == NULL) {
+    if (mkey == NULL)
+    {
         /*
          * we didn't find one, but that's ok, just initialize it now
          */
-        mkey = OPENSSL_calloc(CRYPTO_THREAD_LOCAL_KEY_MAX,
-                              sizeof(MASTER_KEY_ENTRY));
+        mkey = OPENSSL_calloc(CRYPTO_THREAD_LOCAL_KEY_MAX, sizeof(MASTER_KEY_ENTRY));
         if (mkey == NULL)
             return 0;
         /*
          * make sure to assign it to our master key thread-local storage
          */
-        if (!CRYPTO_THREAD_set_local(&master_key, mkey)) {
+        if (!CRYPTO_THREAD_set_local(&master_key, mkey))
+        {
             OPENSSL_free(mkey);
             return 0;
         }
@@ -371,7 +373,8 @@ int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
     /*
      * Find the entry that we are looking for using our id index
      */
-    if (mkey[id].ctx_table == NULL) {
+    if (mkey[id].ctx_table == NULL)
+    {
 
         /*
          * Didn't find it, that's ok, just add it now
@@ -388,8 +391,7 @@ int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
      *
      * Assign to the entry in the table so that we can find it later
      */
-    return ossl_sa_CTX_TABLE_ENTRY_set(mkey[id].ctx_table,
-                                       (uintptr_t)ctx, data);
+    return ossl_sa_CTX_TABLE_ENTRY_set(mkey[id].ctx_table, (uintptr_t)ctx, data);
 }
 
 #ifdef FIPS_MODULE

@@ -10,8 +10,7 @@
 #include <stddef.h>
 #include "internal/cryptlib.h"
 
-const void *ossl_bsearch(const void *key, const void *base, int num,
-                         int size, int (*cmp) (const void *, const void *),
+const void *ossl_bsearch(const void *key, const void *base, int num, int size, int (*cmp)(const void *, const void *),
                          int flags)
 {
     const char *base_ = base;
@@ -22,10 +21,11 @@ const void *ossl_bsearch(const void *key, const void *base, int num,
         return NULL;
     l = 0;
     h = num;
-    while (l < h) {
+    while (l < h)
+    {
         i = (l + h) / 2;
         p = &(base_[i * size]);
-        c = (*cmp) (key, p);
+        c = (*cmp)(key, p);
         if (c < 0)
             h = i;
         else if (c > 0)
@@ -35,8 +35,9 @@ const void *ossl_bsearch(const void *key, const void *base, int num,
     }
     if (c != 0 && !(flags & OSSL_BSEARCH_VALUE_ON_NOMATCH))
         p = NULL;
-    else if (c == 0 && (flags & OSSL_BSEARCH_FIRST_VALUE_ON_MATCH)) {
-        while (i > 0 && (*cmp) (key, &(base_[(i - 1) * size])) == 0)
+    else if (c == 0 && (flags & OSSL_BSEARCH_FIRST_VALUE_ON_MATCH))
+    {
+        while (i > 0 && (*cmp)(key, &(base_[(i - 1) * size])) == 0)
             i--;
         p = &(base_[i * size]);
     }

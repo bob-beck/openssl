@@ -22,8 +22,7 @@
  * used is contained in *num;
  */
 
-void RC5_32_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-                          long length, RC5_32_KEY *schedule,
+void RC5_32_cfb64_encrypt(const unsigned char *in, unsigned char *out, long length, RC5_32_KEY *schedule,
                           unsigned char *ivec, int *num, int encrypt)
 {
     register unsigned long v0, v1, t;
@@ -33,9 +32,12 @@ void RC5_32_cfb64_encrypt(const unsigned char *in, unsigned char *out,
     unsigned char *iv, c, cc;
 
     iv = (unsigned char *)ivec;
-    if (encrypt) {
-        while (l--) {
-            if (n == 0) {
+    if (encrypt)
+    {
+        while (l--)
+        {
+            if (n == 0)
+            {
                 c2l(iv, v0);
                 ti[0] = v0;
                 c2l(iv, v1);
@@ -53,9 +55,13 @@ void RC5_32_cfb64_encrypt(const unsigned char *in, unsigned char *out,
             iv[n] = c;
             n = (n + 1) & 0x07;
         }
-    } else {
-        while (l--) {
-            if (n == 0) {
+    }
+    else
+    {
+        while (l--)
+        {
+            if (n == 0)
+            {
                 c2l(iv, v0);
                 ti[0] = v0;
                 c2l(iv, v1);

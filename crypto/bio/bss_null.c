@@ -18,18 +18,8 @@ static int null_puts(BIO *h, const char *str);
 static int null_gets(BIO *h, char *str, int size);
 static long null_ctrl(BIO *h, int cmd, long arg1, void *arg2);
 static const BIO_METHOD null_method = {
-    BIO_TYPE_NULL,
-    "NULL",
-    bwrite_conv,
-    null_write,
-    bread_conv,
-    null_read,
-    null_puts,
-    null_gets,
-    null_ctrl,
-    NULL,
-    NULL,
-    NULL,                     /* null_callback_ctrl */
+    BIO_TYPE_NULL, "NULL",    bwrite_conv, null_write, bread_conv, null_read,
+    null_puts,     null_gets, null_ctrl,   NULL,       NULL,       NULL, /* null_callback_ctrl */
 };
 
 const BIO_METHOD *BIO_s_null(void)
@@ -51,7 +41,8 @@ static long null_ctrl(BIO *b, int cmd, long num, void *ptr)
 {
     long ret = 1;
 
-    switch (cmd) {
+    switch (cmd)
+    {
     case BIO_CTRL_RESET:
     case BIO_CTRL_EOF:
     case BIO_CTRL_SET:

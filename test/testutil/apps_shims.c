@@ -22,7 +22,8 @@ void *app_malloc(size_t sz, const char *what)
      * Instead of exiting with a failure, abort() is called which makes sure
      * that there will be a good stack trace for debugging purposes.
      */
-    if (!TEST_ptr(vp = OPENSSL_malloc(sz))) {
+    if (!TEST_ptr(vp = OPENSSL_malloc(sz)))
+    {
         TEST_info("Could not allocate %zu bytes for %s\n", sz, what);
         abort();
     }

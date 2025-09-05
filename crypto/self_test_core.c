@@ -13,12 +13,14 @@
 #include "internal/cryptlib.h"
 #include "crypto/context.h"
 
-typedef struct self_test_cb_st {
+typedef struct self_test_cb_st
+{
     OSSL_CALLBACK *cb;
     void *cbarg;
 } SELF_TEST_CB;
 
-struct ossl_self_test_st {
+struct ossl_self_test_st
+{
     /* local state variables */
     const char *phase;
     const char *type;
@@ -49,19 +51,18 @@ static SELF_TEST_CB *get_self_test_callback(OSSL_LIB_CTX *libctx)
     return ossl_lib_ctx_get_data(libctx, OSSL_LIB_CTX_SELF_TEST_CB_INDEX);
 }
 
-void OSSL_SELF_TEST_set_callback(OSSL_LIB_CTX *libctx, OSSL_CALLBACK *cb,
-                                 void *cbarg)
+void OSSL_SELF_TEST_set_callback(OSSL_LIB_CTX *libctx, OSSL_CALLBACK *cb, void *cbarg)
 {
     SELF_TEST_CB *stcb = get_self_test_callback(libctx);
 
-    if (stcb != NULL) {
+    if (stcb != NULL)
+    {
         stcb->cb = cb;
         stcb->cbarg = cbarg;
     }
 }
 
-void OSSL_SELF_TEST_get_callback(OSSL_LIB_CTX *libctx, OSSL_CALLBACK **cb,
-                                 void **cbarg)
+void OSSL_SELF_TEST_get_callback(OSSL_LIB_CTX *libctx, OSSL_CALLBACK **cb, void **cbarg)
 {
     SELF_TEST_CB *stcb = get_self_test_callback(libctx);
 
@@ -76,16 +77,11 @@ static void self_test_setparams(OSSL_SELF_TEST *st)
 {
     size_t n = 0;
 
-    if (st->cb != NULL) {
-        st->params[n++] =
-            OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_PHASE,
-                                             (char *)st->phase, 0);
-        st->params[n++] =
-            OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_TYPE,
-                                             (char *)st->type, 0);
-        st->params[n++] =
-            OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_DESC,
-                                             (char *)st->desc, 0);
+    if (st->cb != NULL)
+    {
+        st->params[n++] = OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_PHASE, (char *)st->phase, 0);
+        st->params[n++] = OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_TYPE, (char *)st->type, 0);
+        st->params[n++] = OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_DESC, (char *)st->desc, 0);
     }
     st->params[n++] = OSSL_PARAM_construct_end();
 }
@@ -112,10 +108,10 @@ void OSSL_SELF_TEST_free(OSSL_SELF_TEST *st)
 }
 
 /* Can be used during application testing to log that a test has started. */
-void OSSL_SELF_TEST_onbegin(OSSL_SELF_TEST *st, const char *type,
-                            const char *desc)
+void OSSL_SELF_TEST_onbegin(OSSL_SELF_TEST *st, const char *type, const char *desc)
 {
-    if (st != NULL && st->cb != NULL) {
+    if (st != NULL && st->cb != NULL)
+    {
         st->phase = OSSL_SELF_TEST_PHASE_START;
         st->type = type;
         st->desc = desc;
@@ -130,9 +126,9 @@ void OSSL_SELF_TEST_onbegin(OSSL_SELF_TEST *st, const char *type,
  */
 void OSSL_SELF_TEST_onend(OSSL_SELF_TEST *st, int ret)
 {
-    if (st != NULL && st->cb != NULL) {
-        st->phase =
-            (ret == 1 ? OSSL_SELF_TEST_PHASE_PASS : OSSL_SELF_TEST_PHASE_FAIL);
+    if (st != NULL && st->cb != NULL)
+    {
+        st->phase = (ret == 1 ? OSSL_SELF_TEST_PHASE_PASS : OSSL_SELF_TEST_PHASE_FAIL);
         self_test_setparams(st);
         (void)st->cb(st->params, st->cb_arg);
 
@@ -152,10 +148,12 @@ void OSSL_SELF_TEST_onend(OSSL_SELF_TEST *st, int ret)
  */
 int OSSL_SELF_TEST_oncorrupt_byte(OSSL_SELF_TEST *st, unsigned char *bytes)
 {
-    if (st != NULL && st->cb != NULL) {
+    if (st != NULL && st->cb != NULL)
+    {
         st->phase = OSSL_SELF_TEST_PHASE_CORRUPT;
         self_test_setparams(st);
-        if (!st->cb(st->params, st->cb_arg)) {
+        if (!st->cb(st->params, st->cb_arg))
+        {
             bytes[0] ^= 1;
             return 1;
         }

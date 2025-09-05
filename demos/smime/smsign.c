@@ -63,7 +63,8 @@ int main(int argc, char **argv)
     if (!out)
         goto err;
 
-    if (!(flags & PKCS7_STREAM)) {
+    if (!(flags & PKCS7_STREAM))
+    {
         if (BIO_reset(in) < 0)
             goto err;
     }
@@ -75,8 +76,9 @@ int main(int argc, char **argv)
     printf("Success\n");
 
     ret = EXIT_SUCCESS;
- err:
-    if (ret != EXIT_SUCCESS) {
+err:
+    if (ret != EXIT_SUCCESS)
+    {
         fprintf(stderr, "Error Signing Data\n");
         ERR_print_errors_fp(stderr);
     }

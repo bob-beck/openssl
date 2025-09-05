@@ -25,25 +25,20 @@ static long nbiof_ctrl(BIO *h, int cmd, long arg1, void *arg2);
 static int nbiof_new(BIO *h);
 static int nbiof_free(BIO *data);
 static long nbiof_callback_ctrl(BIO *h, int cmd, BIO_info_cb *fp);
-typedef struct nbio_test_st {
+typedef struct nbio_test_st
+{
     /* only set if we sent a 'should retry' error */
     int lrn;
     int lwn;
 } NBIO_TEST;
 
 static const BIO_METHOD methods_nbiof = {
-    BIO_TYPE_NBIO_TEST,
-    "non-blocking IO test filter",
-    bwrite_conv,
-    nbiof_write,
-    bread_conv,
-    nbiof_read,
-    nbiof_puts,
-    nbiof_gets,
-    nbiof_ctrl,
-    nbiof_new,
-    nbiof_free,
-    nbiof_callback_ctrl,
+    BIO_TYPE_NBIO_TEST, "non-blocking IO test filter",
+    bwrite_conv,        nbiof_write,
+    bread_conv,         nbiof_read,
+    nbiof_puts,         nbiof_gets,
+    nbiof_ctrl,         nbiof_new,
+    nbiof_free,         nbiof_callback_ctrl,
 };
 
 const BIO_METHOD *BIO_f_nbio_test(void)
@@ -94,10 +89,13 @@ static int nbiof_read(BIO *b, char *out, int outl)
     if (outl > num)
         outl = num;
 
-    if (num == 0) {
+    if (num == 0)
+    {
         ret = -1;
         BIO_set_retry_read(b);
-    } else {
+    }
+    else
+    {
         ret = BIO_read(b->next_bio, out, outl);
         if (ret < 0)
             BIO_copy_next_retry(b);
@@ -120,10 +118,13 @@ static int nbiof_write(BIO *b, const char *in, int inl)
 
     BIO_clear_retry_flags(b);
 
-    if (nt->lwn > 0) {
+    if (nt->lwn > 0)
+    {
         num = nt->lwn;
         nt->lwn = 0;
-    } else {
+    }
+    else
+    {
         if (RAND_priv_bytes(&n, 1) <= 0)
             return -1;
         num = (n & 7);
@@ -132,12 +133,16 @@ static int nbiof_write(BIO *b, const char *in, int inl)
     if (inl > num)
         inl = num;
 
-    if (num == 0) {
+    if (num == 0)
+    {
         ret = -1;
         BIO_set_retry_write(b);
-    } else {
+    }
+    else
+    {
         ret = BIO_write(b->next_bio, in, inl);
-        if (ret < 0) {
+        if (ret < 0)
+        {
             BIO_copy_next_retry(b);
             nt->lwn = inl;
         }
@@ -151,7 +156,8 @@ static long nbiof_ctrl(BIO *b, int cmd, long num, void *ptr)
 
     if (b->next_bio == NULL)
         return 0;
-    switch (cmd) {
+    switch (cmd)
+    {
     case BIO_C_DO_STATE_MACHINE:
         BIO_clear_retry_flags(b);
         ret = BIO_ctrl(b->next_bio, cmd, num, ptr);

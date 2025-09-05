@@ -29,10 +29,11 @@ int X509_certificate_type(const X509 *x, const EVP_PKEY *pkey)
     if (pk == NULL)
         return 0;
 
-    switch (EVP_PKEY_get_id(pk)) {
+    switch (EVP_PKEY_get_id(pk))
+    {
     case EVP_PKEY_RSA:
         ret = EVP_PK_RSA | EVP_PKT_SIGN;
-/*              if (!sign only extension) */
+        /*              if (!sign only extension) */
         ret |= EVP_PKT_ENC;
         break;
     case EVP_PKEY_RSA_PSS:
@@ -61,9 +62,11 @@ int X509_certificate_type(const X509 *x, const EVP_PKEY *pkey)
     }
 
     i = X509_get_signature_nid(x);
-    if (i && OBJ_find_sigid_algs(i, NULL, &i)) {
+    if (i && OBJ_find_sigid_algs(i, NULL, &i))
+    {
 
-        switch (i) {
+        switch (i)
+        {
         case NID_rsaEncryption:
         case NID_rsa:
             ret |= EVP_PKS_RSA;

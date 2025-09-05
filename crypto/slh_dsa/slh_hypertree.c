@@ -28,9 +28,7 @@
  * @param sig_wpkt A WPACKET object to write the Hypertree Signature to.
  * @returns 1 on success, or 0 on error.
  */
-int ossl_slh_ht_sign(SLH_DSA_HASH_CTX *ctx,
-                     const uint8_t *msg, const uint8_t *sk_seed,
-                     const uint8_t *pk_seed,
+int ossl_slh_ht_sign(SLH_DSA_HASH_CTX *ctx, const uint8_t *msg, const uint8_t *sk_seed, const uint8_t *pk_seed,
                      uint64_t tree_id, uint32_t leaf_id, WPACKET *sig_wpkt)
 {
     const SLH_DSA_KEY *key = ctx->key;
@@ -63,25 +61,24 @@ int ossl_slh_ht_sign(SLH_DSA_HASH_CTX *ctx,
      */
     memcpy(root, msg, n);
 
-    for (layer = 0; layer < d; ++layer) {
+    for (layer = 0; layer < d; ++layer)
+    {
         /* type = SLH_ADRS_TYPE_WOTS_HASH */
         adrsf->set_layer_address(adrs, layer);
         adrsf->set_tree_address(adrs, tree_id);
         psig = WPACKET_get_curr(sig_wpkt);
-        if (!ossl_slh_xmss_sign(ctx, root, sk_seed, leaf_id, pk_seed, adrs,
-                                sig_wpkt))
+        if (!ossl_slh_xmss_sign(ctx, root, sk_seed, leaf_id, pk_seed, adrs, sig_wpkt))
             return 0;
         /*
          * On the last loop it skips getting the public key since it is not needed
          * to calculate another signature. If this was called it should equal
          * the PK_ROOT (i.e. the public key of the top level tree).
          */
-        if (layer < d - 1) {
-            if (!PACKET_buf_init(xmss_sig_rpkt, psig,
-                                 WPACKET_get_curr(sig_wpkt) - psig))
+        if (layer < d - 1)
+        {
+            if (!PACKET_buf_init(xmss_sig_rpkt, psig, WPACKET_get_curr(sig_wpkt) - psig))
                 return 0;
-            if (!ossl_slh_xmss_pk_from_sig(ctx, leaf_id, xmss_sig_rpkt, root,
-                                           pk_seed, adrs, root, sizeof(root)))
+            if (!ossl_slh_xmss_pk_from_sig(ctx, leaf_id, xmss_sig_rpkt, root, pk_seed, adrs, root, sizeof(root)))
                 return 0;
             leaf_id = tree_id & mask;
             tree_id >>= hm;
@@ -104,9 +101,8 @@ int ossl_slh_ht_sign(SLH_DSA_HASH_CTX *ctx,
  *
  * @returns 1 if the computed XMSS public key matches pk_root, or 0 otherwise.
  */
-int ossl_slh_ht_verify(SLH_DSA_HASH_CTX *ctx, const uint8_t *msg, PACKET *sig_pkt,
-                       const uint8_t *pk_seed, uint64_t tree_id, uint32_t leaf_id,
-                       const uint8_t *pk_root)
+int ossl_slh_ht_verify(SLH_DSA_HASH_CTX *ctx, const uint8_t *msg, PACKET *sig_pkt, const uint8_t *pk_seed,
+                       uint64_t tree_id, uint32_t leaf_id, const uint8_t *pk_root)
 {
     const SLH_DSA_KEY *key = ctx->key;
     SLH_ADRS_FUNC_DECLARE(key, adrsf);
@@ -122,11 +118,11 @@ int ossl_slh_ht_verify(SLH_DSA_HASH_CTX *ctx, const uint8_t *msg, PACKET *sig_pk
     adrsf->zero(adrs);
     memcpy(node, msg, n);
 
-    for (layer = 0; layer < d; ++layer) {
+    for (layer = 0; layer < d; ++layer)
+    {
         adrsf->set_layer_address(adrs, layer);
         adrsf->set_tree_address(adrs, tree_id);
-        if (!ossl_slh_xmss_pk_from_sig(ctx, leaf_id, sig_pkt, node,
-                                       pk_seed, adrs, node, sizeof(node)))
+        if (!ossl_slh_xmss_pk_from_sig(ctx, leaf_id, sig_pkt, node, pk_seed, adrs, node, sizeof(node)))
             return 0;
         leaf_id = tree_id & mask;
         tree_id >>= tree_height;

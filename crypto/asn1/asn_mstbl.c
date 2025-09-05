@@ -25,13 +25,16 @@ static int stbl_module_init(CONF_IMODULE *md, const CONF *cnf)
     CONF_VALUE *mval;
 
     stbl_section = CONF_imodule_get_value(md);
-    if ((sktmp = NCONF_get_section(cnf, stbl_section)) == NULL) {
+    if ((sktmp = NCONF_get_section(cnf, stbl_section)) == NULL)
+    {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_ERROR_LOADING_SECTION);
         return 0;
     }
-    for (i = 0; i < sk_CONF_VALUE_num(sktmp); i++) {
+    for (i = 0; i < sk_CONF_VALUE_num(sktmp); i++)
+    {
         mval = sk_CONF_VALUE_value(sktmp, i);
-        if (!do_tcreate(mval->value, mval->name)) {
+        if (!do_tcreate(mval->value, mval->name))
+        {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_INVALID_VALUE);
             return 0;
         }
@@ -70,45 +73,53 @@ static int do_tcreate(const char *value, const char *name)
     lst = X509V3_parse_list(value);
     if (!lst)
         goto err;
-    for (i = 0; i < sk_CONF_VALUE_num(lst); i++) {
+    for (i = 0; i < sk_CONF_VALUE_num(lst); i++)
+    {
         cnf = sk_CONF_VALUE_value(lst, i);
         if (cnf->value == NULL)
             goto err;
-        if (strcmp(cnf->name, "min") == 0) {
+        if (strcmp(cnf->name, "min") == 0)
+        {
             tbl_min = strtoul(cnf->value, &eptr, 0);
             if (*eptr)
                 goto err;
-        } else if (strcmp(cnf->name, "max") == 0) {
+        }
+        else if (strcmp(cnf->name, "max") == 0)
+        {
             tbl_max = strtoul(cnf->value, &eptr, 0);
             if (*eptr)
                 goto err;
-        } else if (strcmp(cnf->name, "mask") == 0) {
+        }
+        else if (strcmp(cnf->name, "mask") == 0)
+        {
             if (!ASN1_str2mask(cnf->value, &tbl_mask) || !tbl_mask)
                 goto err;
-        } else if (strcmp(cnf->name, "flags") == 0) {
+        }
+        else if (strcmp(cnf->name, "flags") == 0)
+        {
             if (strcmp(cnf->value, "nomask") == 0)
                 tbl_flags = STABLE_NO_MASK;
             else if (strcmp(cnf->value, "none") == 0)
                 tbl_flags = STABLE_FLAGS_CLEAR;
             else
                 goto err;
-        } else
+        }
+        else
             goto err;
     }
     rv = 1;
- err:
-    if (rv == 0) {
+err:
+    if (rv == 0)
+    {
         if (cnf)
-            ERR_raise_data(ERR_LIB_ASN1, ASN1_R_INVALID_STRING_TABLE_VALUE,
-                           "field=%s, value=%s", cnf->name,
-                                                 cnf->value != NULL ? cnf->value
-                                                 : value);
+            ERR_raise_data(ERR_LIB_ASN1, ASN1_R_INVALID_STRING_TABLE_VALUE, "field=%s, value=%s", cnf->name,
+                           cnf->value != NULL ? cnf->value : value);
         else
-            ERR_raise_data(ERR_LIB_ASN1, ASN1_R_INVALID_STRING_TABLE_VALUE,
-                           "name=%s, value=%s", name, value);
-    } else {
-        rv = ASN1_STRING_TABLE_add(nid, tbl_min, tbl_max,
-                                   tbl_mask, tbl_flags);
+            ERR_raise_data(ERR_LIB_ASN1, ASN1_R_INVALID_STRING_TABLE_VALUE, "name=%s, value=%s", name, value);
+    }
+    else
+    {
+        rv = ASN1_STRING_TABLE_add(nid, tbl_min, tbl_max, tbl_mask, tbl_flags);
         if (!rv)
             ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
     }

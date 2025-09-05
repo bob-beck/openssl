@@ -47,8 +47,8 @@ int ERR_pop_to_mark(void)
     if (es == NULL)
         return 0;
 
-    while (es->bottom != es->top
-           && es->err_marks[es->top] == 0) {
+    while (es->bottom != es->top && es->err_marks[es->top] == 0)
+    {
         err_clear(es, es->top, 0);
         es->top = es->top > 0 ? es->top - 1 : ERR_NUM_ERRORS - 1;
     }
@@ -69,8 +69,8 @@ int ERR_count_to_mark(void)
         return 0;
 
     top = es->top;
-    while (es->bottom != top
-           && es->err_marks[top] == 0) {
+    while (es->bottom != top && es->err_marks[top] == 0)
+    {
         ++count;
         top = top > 0 ? top - 1 : ERR_NUM_ERRORS - 1;
     }
@@ -88,8 +88,8 @@ int ERR_clear_last_mark(void)
         return 0;
 
     top = es->top;
-    while (es->bottom != top
-           && es->err_marks[top] == 0) {
+    while (es->bottom != top && es->err_marks[top] == 0)
+    {
         top = top > 0 ? top - 1 : ERR_NUM_ERRORS - 1;
     }
 
@@ -98,4 +98,3 @@ int ERR_clear_last_mark(void)
     es->err_marks[top]--;
     return 1;
 }
-

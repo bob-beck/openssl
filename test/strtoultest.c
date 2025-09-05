@@ -11,59 +11,39 @@
 #include <internal/nelem.h>
 #include "testutil.h"
 
-struct strtoul_test_entry {
-    char *input; /* the input string */
-    int base; /* the base we are converting in */
-    unsigned long expect_val; /* the expected value we should get */
-    int expect_err;  /* the expected error we expect to receive */
+struct strtoul_test_entry
+{
+    char *input;                 /* the input string */
+    int base;                    /* the base we are converting in */
+    unsigned long expect_val;    /* the expected value we should get */
+    int expect_err;              /* the expected error we expect to receive */
     size_t expect_endptr_offset; /* the expected endptr offset, +1 for NULL */
 };
 
 static struct strtoul_test_entry strtoul_tests[] = {
     /* pass on conv "0" to 0 */
-    {
-        "0", 0, 0, 1, 1
-    },
+    {"0", 0, 0, 1, 1},
     /* pass on conv "12345" to 12345 */
-    {
-        "12345", 0, 12345, 1, 5
-    },
+    {"12345", 0, 12345, 1, 5},
     /* pass on conv "0x12345" to 0x12345, base 16 */
-    {
-        "0x12345", 0, 0x12345, 1, 7
-    },
+    {"0x12345", 0, 0x12345, 1, 7},
     /* pass on base 10 translation, endptr points to 'x' */
-    {
-        "0x12345", 10, 0, 1, 1
-    },
+    {"0x12345", 10, 0, 1, 1},
 #if ULONG_MAX == 4294967295
     /* pass on ULONG_MAX translation */
-    {
-        "4294967295", 0, ULONG_MAX, 1, 10
-    },
+    {"4294967295", 0, ULONG_MAX, 1, 10},
 #else
-    {
-        "18446744073709551615", 0, ULONG_MAX, 1, 20
-    },
+    {"18446744073709551615", 0, ULONG_MAX, 1, 20},
 #endif
 
     /* fail on negative input */
-    {
-        "-1", 0, 0, 0, 0
-    },
+    {"-1", 0, 0, 0, 0},
     /* fail on non-numerical input */
-    {
-        "abcd", 0, 0, 0, 0
-    },
+    {"abcd", 0, 0, 0, 0},
     /* pass on decimal input */
-    {
-        "1.0", 0, 1, 1, 1
-    },
+    {"1.0", 0, 1, 1, 1},
     /* Fail on decimal input without leading number */
-    {
-        ".1", 0, 0, 0, 0
-    }
-};
+    {".1", 0, 0, 0, 0}};
 
 static int test_strtoul(int idx)
 {
@@ -91,12 +71,12 @@ static int test_strtoul(int idx)
      * And check that we received the proper translated value
      * Note, we only check the value if the conversion passed
      */
-    if (test->expect_err == 1) {
+    if (test->expect_err == 1)
+    {
         if (!TEST_ulong_eq(val, test->expect_val))
             return 0;
     }
     return 1;
-
 }
 
 int setup_tests(void)

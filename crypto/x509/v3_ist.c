@@ -23,64 +23,72 @@
  */
 
 ASN1_SEQUENCE(ISSUER_SIGN_TOOL) = {
-        ASN1_SIMPLE(ISSUER_SIGN_TOOL, signTool, ASN1_UTF8STRING),
-        ASN1_SIMPLE(ISSUER_SIGN_TOOL, cATool, ASN1_UTF8STRING),
-        ASN1_SIMPLE(ISSUER_SIGN_TOOL, signToolCert, ASN1_UTF8STRING),
-        ASN1_SIMPLE(ISSUER_SIGN_TOOL, cAToolCert, ASN1_UTF8STRING)
-} ASN1_SEQUENCE_END(ISSUER_SIGN_TOOL)
+    ASN1_SIMPLE(ISSUER_SIGN_TOOL, signTool, ASN1_UTF8STRING), ASN1_SIMPLE(ISSUER_SIGN_TOOL, cATool, ASN1_UTF8STRING),
+    ASN1_SIMPLE(ISSUER_SIGN_TOOL, signToolCert, ASN1_UTF8STRING),
+    ASN1_SIMPLE(ISSUER_SIGN_TOOL, cAToolCert, ASN1_UTF8STRING)} ASN1_SEQUENCE_END(ISSUER_SIGN_TOOL)
 
 IMPLEMENT_ASN1_FUNCTIONS(ISSUER_SIGN_TOOL)
 
-
-static ISSUER_SIGN_TOOL *v2i_issuer_sign_tool(X509V3_EXT_METHOD *method, X509V3_CTX *ctx,
-                        STACK_OF(CONF_VALUE) *nval)
+static ISSUER_SIGN_TOOL *v2i_issuer_sign_tool(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *nval)
 {
     ISSUER_SIGN_TOOL *ist = ISSUER_SIGN_TOOL_new();
     int i;
 
-    if (ist == NULL) {
+    if (ist == NULL)
+    {
         ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);
         return NULL;
     }
-    for (i = 0; i < sk_CONF_VALUE_num(nval); ++i) {
+    for (i = 0; i < sk_CONF_VALUE_num(nval); ++i)
+    {
         CONF_VALUE *cnf = sk_CONF_VALUE_value(nval, i);
 
-        if (cnf == NULL) {
+        if (cnf == NULL)
+        {
             continue;
         }
-        if (strcmp(cnf->name, "signTool") == 0) {
+        if (strcmp(cnf->name, "signTool") == 0)
+        {
             ist->signTool = ASN1_UTF8STRING_new();
-            if (ist->signTool == NULL
-                || cnf->value == NULL
-                || !ASN1_STRING_set(ist->signTool, cnf->value, (int)strlen(cnf->value))) {
+            if (ist->signTool == NULL || cnf->value == NULL ||
+                !ASN1_STRING_set(ist->signTool, cnf->value, (int)strlen(cnf->value)))
+            {
                 ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);
                 goto err;
             }
-        } else if (strcmp(cnf->name, "cATool") == 0) {
+        }
+        else if (strcmp(cnf->name, "cATool") == 0)
+        {
             ist->cATool = ASN1_UTF8STRING_new();
-            if (ist->cATool == NULL
-                || cnf->value == NULL
-                || !ASN1_STRING_set(ist->cATool, cnf->value, (int)strlen(cnf->value))) {
+            if (ist->cATool == NULL || cnf->value == NULL ||
+                !ASN1_STRING_set(ist->cATool, cnf->value, (int)strlen(cnf->value)))
+            {
                 ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);
                 goto err;
             }
-        } else if (strcmp(cnf->name, "signToolCert") == 0) {
+        }
+        else if (strcmp(cnf->name, "signToolCert") == 0)
+        {
             ist->signToolCert = ASN1_UTF8STRING_new();
-            if (ist->signToolCert == NULL
-                || cnf->value == NULL
-                || !ASN1_STRING_set(ist->signToolCert, cnf->value, (int)strlen(cnf->value))) {
+            if (ist->signToolCert == NULL || cnf->value == NULL ||
+                !ASN1_STRING_set(ist->signToolCert, cnf->value, (int)strlen(cnf->value)))
+            {
                 ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);
                 goto err;
             }
-        } else if (strcmp(cnf->name, "cAToolCert") == 0) {
+        }
+        else if (strcmp(cnf->name, "cAToolCert") == 0)
+        {
             ist->cAToolCert = ASN1_UTF8STRING_new();
-            if (ist->cAToolCert == NULL
-                || cnf->value == NULL
-                || !ASN1_STRING_set(ist->cAToolCert, cnf->value, (int)strlen(cnf->value))) {
+            if (ist->cAToolCert == NULL || cnf->value == NULL ||
+                !ASN1_STRING_set(ist->cAToolCert, cnf->value, (int)strlen(cnf->value)))
+            {
                 ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);
                 goto err;
             }
-        } else {
+        }
+        else
+        {
             ERR_raise(ERR_LIB_X509V3, ERR_R_PASSED_INVALID_ARGUMENT);
             goto err;
         }
@@ -92,39 +100,45 @@ err:
     return NULL;
 }
 
-static int i2r_issuer_sign_tool(X509V3_EXT_METHOD *method,
-                                 ISSUER_SIGN_TOOL *ist, BIO *out,
-                                 int indent)
+static int i2r_issuer_sign_tool(X509V3_EXT_METHOD *method, ISSUER_SIGN_TOOL *ist, BIO *out, int indent)
 {
     int new_line = 0;
 
-    if (ist == NULL) {
+    if (ist == NULL)
+    {
         ERR_raise(ERR_LIB_X509V3, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
     }
-    if (ist->signTool != NULL) {
+    if (ist->signTool != NULL)
+    {
         BIO_printf(out, "%*ssignTool    : ", indent, "");
         BIO_write(out, ist->signTool->data, ist->signTool->length);
         new_line = 1;
     }
-    if (ist->cATool != NULL) {
-        if (new_line == 1) {
+    if (ist->cATool != NULL)
+    {
+        if (new_line == 1)
+        {
             BIO_write(out, "\n", 1);
         }
         BIO_printf(out, "%*scATool      : ", indent, "");
         BIO_write(out, ist->cATool->data, ist->cATool->length);
         new_line = 1;
     }
-    if (ist->signToolCert != NULL) {
-        if (new_line == 1) {
+    if (ist->signToolCert != NULL)
+    {
+        if (new_line == 1)
+        {
             BIO_write(out, "\n", 1);
         }
         BIO_printf(out, "%*ssignToolCert: ", indent, "");
         BIO_write(out, ist->signToolCert->data, ist->signToolCert->length);
         new_line = 1;
     }
-    if (ist->cAToolCert != NULL) {
-        if (new_line == 1) {
+    if (ist->cAToolCert != NULL)
+    {
+        if (new_line == 1)
+        {
             BIO_write(out, "\n", 1);
         }
         BIO_printf(out, "%*scAToolCert  : ", indent, "");
@@ -135,10 +149,13 @@ static int i2r_issuer_sign_tool(X509V3_EXT_METHOD *method,
 }
 
 const X509V3_EXT_METHOD ossl_v3_issuer_sign_tool = {
-    NID_issuerSignTool,                   /* nid */
-    X509V3_EXT_MULTILINE,                 /* flags */
-    ASN1_ITEM_ref(ISSUER_SIGN_TOOL),      /* template */
-    0, 0, 0, 0,                           /* old functions, ignored */
+    NID_issuerSignTool,              /* nid */
+    X509V3_EXT_MULTILINE,            /* flags */
+    ASN1_ITEM_ref(ISSUER_SIGN_TOOL), /* template */
+    0,
+    0,
+    0,
+    0,                                    /* old functions, ignored */
     0,                                    /* i2s */
     0,                                    /* s2i */
     0,                                    /* i2v */

@@ -26,8 +26,7 @@
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 
-RSA *RSA_generate_key(int bits, unsigned long e_value,
-                      void (*callback) (int, int, void *), void *cb_arg)
+RSA *RSA_generate_key(int bits, unsigned long e_value, void (*callback)(int, int, void *), void *cb_arg)
 {
     int i;
     BN_GENCB *cb = BN_GENCB_new();
@@ -41,7 +40,8 @@ RSA *RSA_generate_key(int bits, unsigned long e_value,
      * The problem is when building with 8, 16, or 32 BN_ULONG, unsigned long
      * can be larger
      */
-    for (i = 0; i < (int)sizeof(unsigned long) * 8; i++) {
+    for (i = 0; i < (int)sizeof(unsigned long) * 8; i++)
+    {
         if (e_value & (1UL << i))
             if (BN_set_bit(e, i) == 0)
                 goto err;
@@ -49,12 +49,13 @@ RSA *RSA_generate_key(int bits, unsigned long e_value,
 
     BN_GENCB_set_old(cb, callback, cb_arg);
 
-    if (RSA_generate_key_ex(rsa, bits, e, cb)) {
+    if (RSA_generate_key_ex(rsa, bits, e, cb))
+    {
         BN_free(e);
         BN_GENCB_free(cb);
         return rsa;
     }
- err:
+err:
     BN_free(e);
     RSA_free(rsa);
     BN_GENCB_free(cb);

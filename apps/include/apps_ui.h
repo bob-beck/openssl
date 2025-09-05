@@ -8,11 +8,11 @@
  */
 
 #ifndef OSSL_APPS_UI_H
-# define OSSL_APPS_UI_H
+#define OSSL_APPS_UI_H
 
-
-# define PW_MIN_LENGTH 4
-typedef struct pw_cb_data {
+#define PW_MIN_LENGTH 4
+typedef struct pw_cb_data
+{
     const void *password;
     const char *prompt_info;
 } PW_CB_DATA;

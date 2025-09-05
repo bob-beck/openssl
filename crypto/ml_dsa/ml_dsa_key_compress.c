@@ -63,11 +63,14 @@ uint32_t ossl_ml_dsa_key_compress_high_bits(uint32_t r, uint32_t gamma2)
 {
     int32_t r1 = (r + 127) >> 7;
 
-    if (gamma2 == ML_DSA_GAMMA2_Q_MINUS1_DIV32) {
+    if (gamma2 == ML_DSA_GAMMA2_Q_MINUS1_DIV32)
+    {
         r1 = (r1 * 1025 + (1 << 21)) >> 22;
         r1 &= 15; /* mod 16 */
         return r1;
-    } else {
+    }
+    else
+    {
         r1 = (r1 * 11275 + (1 << 23)) >> 24;
         r1 ^= ((43 - r1) >> 31) & r1;
         return r1;
@@ -83,8 +86,7 @@ uint32_t ossl_ml_dsa_key_compress_high_bits(uint32_t r, uint32_t gamma2)
  * @param r1 The returned high order bits
  * @param r0 The returned low order bits
  */
-void ossl_ml_dsa_key_compress_decompose(uint32_t r, uint32_t gamma2,
-                                        uint32_t *r1, int32_t *r0)
+void ossl_ml_dsa_key_compress_decompose(uint32_t r, uint32_t gamma2, uint32_t *r1, int32_t *r0)
 {
     *r1 = ossl_ml_dsa_key_compress_high_bits(r, gamma2);
 
@@ -130,14 +132,12 @@ int32_t ossl_ml_dsa_key_compress_low_bits(uint32_t r, uint32_t gamma2)
  * @params w  (A * y)
  * @returns The hint bit.
  */
-int32_t ossl_ml_dsa_key_compress_make_hint(uint32_t ct0, uint32_t cs2,
-                                           uint32_t gamma2, uint32_t w)
+int32_t ossl_ml_dsa_key_compress_make_hint(uint32_t ct0, uint32_t cs2, uint32_t gamma2, uint32_t w)
 {
     uint32_t r_plus_z = mod_sub(w, cs2);
     uint32_t r = reduce_once(r_plus_z + ct0);
 
-    return  ossl_ml_dsa_key_compress_high_bits(r, gamma2)
-        !=  ossl_ml_dsa_key_compress_high_bits(r_plus_z, gamma2);
+    return ossl_ml_dsa_key_compress_high_bits(r, gamma2) != ossl_ml_dsa_key_compress_high_bits(r_plus_z, gamma2);
 }
 
 /*
@@ -151,8 +151,7 @@ int32_t ossl_ml_dsa_key_compress_make_hint(uint32_t ct0, uint32_t cs2,
  *
  * @returns The adjusted high bits or r.
  */
-uint32_t ossl_ml_dsa_key_compress_use_hint(uint32_t hint, uint32_t r,
-                                           uint32_t gamma2)
+uint32_t ossl_ml_dsa_key_compress_use_hint(uint32_t hint, uint32_t r, uint32_t gamma2)
 {
     uint32_t r1;
     int32_t r0;
@@ -162,10 +161,13 @@ uint32_t ossl_ml_dsa_key_compress_use_hint(uint32_t hint, uint32_t r,
     if (hint == 0)
         return r1;
 
-    if (gamma2 == ((ML_DSA_Q - 1) / 32)) {
+    if (gamma2 == ((ML_DSA_Q - 1) / 32))
+    {
         /* m = 16, thus |mod m| in the spec turns into |& 15| */
         return r0 > 0 ? (r1 + 1) & 15 : (r1 - 1) & 15;
-    } else {
+    }
+    else
+    {
         /* m = 44 if gamma2 = ((q - 1) / 88) */
         if (r0 > 0)
             return (r1 == 43) ? 0 : r1 + 1;

@@ -26,8 +26,10 @@ void ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx)
         return;
 
     curr = ctx->fds;
-    while (curr != NULL) {
-        if (!curr->del) {
+    while (curr != NULL)
+    {
+        if (!curr->del)
+        {
             /* Only try and cleanup if it hasn't been marked deleted */
             if (curr->cleanup != NULL)
                 curr->cleanup(ctx, curr->key, curr->fd, curr->custom_data);
@@ -41,10 +43,8 @@ void ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx)
     OPENSSL_free(ctx);
 }
 
-int ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
-                               OSSL_ASYNC_FD fd, void *custom_data,
-                               void (*cleanup)(ASYNC_WAIT_CTX *, const void *,
-                                               OSSL_ASYNC_FD, void *))
+int ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key, OSSL_ASYNC_FD fd, void *custom_data,
+                               void (*cleanup)(ASYNC_WAIT_CTX *, const void *, OSSL_ASYNC_FD, void *))
 {
     struct fd_lookup_st *fdlookup;
 
@@ -62,19 +62,21 @@ int ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
     return 1;
 }
 
-int ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
-                          OSSL_ASYNC_FD *fd, void **custom_data)
+int ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key, OSSL_ASYNC_FD *fd, void **custom_data)
 {
     struct fd_lookup_st *curr;
 
     curr = ctx->fds;
-    while (curr != NULL) {
-        if (curr->del) {
+    while (curr != NULL)
+    {
+        if (curr->del)
+        {
             /* This one has been marked deleted so do nothing */
             curr = curr->next;
             continue;
         }
-        if (curr->key == key) {
+        if (curr->key == key)
+        {
             *fd = curr->fd;
             *custom_data = curr->custom_data;
             return 1;
@@ -84,20 +86,22 @@ int ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
     return 0;
 }
 
-int ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
-                               size_t *numfds)
+int ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd, size_t *numfds)
 {
     struct fd_lookup_st *curr;
 
     curr = ctx->fds;
     *numfds = 0;
-    while (curr != NULL) {
-        if (curr->del) {
+    while (curr != NULL)
+    {
+        if (curr->del)
+        {
             /* This one has been marked deleted so do nothing */
             curr = curr->next;
             continue;
         }
-        if (fd != NULL) {
+        if (fd != NULL)
+        {
             *fd = curr->fd;
             fd++;
         }
@@ -107,8 +111,7 @@ int ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
     return 1;
 }
 
-int ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
-                                   size_t *numaddfds, OSSL_ASYNC_FD *delfd,
+int ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd, size_t *numaddfds, OSSL_ASYNC_FD *delfd,
                                    size_t *numdelfds)
 {
     struct fd_lookup_st *curr;
@@ -120,13 +123,16 @@ int ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
 
     curr = ctx->fds;
 
-    while (curr != NULL) {
+    while (curr != NULL)
+    {
         /* We ignore fds that have been marked as both added and deleted */
-        if (curr->del && !curr->add && (delfd != NULL)) {
+        if (curr->del && !curr->add && (delfd != NULL))
+        {
             *delfd = curr->fd;
             delfd++;
         }
-        if (curr->add && !curr->del && (addfd != NULL)) {
+        if (curr->add && !curr->del && (addfd != NULL))
+        {
             *addfd = curr->fd;
             addfd++;
         }
@@ -142,19 +148,26 @@ int ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key)
 
     curr = ctx->fds;
     prev = NULL;
-    while (curr != NULL) {
-        if (curr->del == 1) {
+    while (curr != NULL)
+    {
+        if (curr->del == 1)
+        {
             /* This one has been marked deleted already so do nothing */
             prev = curr;
             curr = curr->next;
             continue;
         }
-        if (curr->key == key) {
+        if (curr->key == key)
+        {
             /* If fd has just been added, remove it from the list */
-            if (curr->add == 1) {
-                if (ctx->fds == curr) {
+            if (curr->add == 1)
+            {
+                if (ctx->fds == curr)
+                {
                     ctx->fds = curr->next;
-                } else {
+                }
+                else
+                {
                     prev->next = curr->next;
                 }
 
@@ -181,39 +194,35 @@ int ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key)
     return 0;
 }
 
-int ASYNC_WAIT_CTX_set_callback(ASYNC_WAIT_CTX *ctx,
-                                ASYNC_callback_fn callback,
-                                void *callback_arg)
+int ASYNC_WAIT_CTX_set_callback(ASYNC_WAIT_CTX *ctx, ASYNC_callback_fn callback, void *callback_arg)
 {
-      if (ctx == NULL)
-          return 0;
+    if (ctx == NULL)
+        return 0;
 
-      ctx->callback = callback;
-      ctx->callback_arg = callback_arg;
-      return 1;
+    ctx->callback = callback;
+    ctx->callback_arg = callback_arg;
+    return 1;
 }
 
-int ASYNC_WAIT_CTX_get_callback(ASYNC_WAIT_CTX *ctx,
-                                ASYNC_callback_fn *callback,
-                                void **callback_arg)
+int ASYNC_WAIT_CTX_get_callback(ASYNC_WAIT_CTX *ctx, ASYNC_callback_fn *callback, void **callback_arg)
 {
-      if (ctx->callback == NULL)
-          return 0;
+    if (ctx->callback == NULL)
+        return 0;
 
-      *callback = ctx->callback;
-      *callback_arg = ctx->callback_arg;
-      return 1;
+    *callback = ctx->callback;
+    *callback_arg = ctx->callback_arg;
+    return 1;
 }
 
 int ASYNC_WAIT_CTX_set_status(ASYNC_WAIT_CTX *ctx, int status)
 {
-      ctx->status = status;
-      return 1;
+    ctx->status = status;
+    return 1;
 }
 
 int ASYNC_WAIT_CTX_get_status(ASYNC_WAIT_CTX *ctx)
 {
-      return ctx->status;
+    return ctx->status;
 }
 
 void async_wait_ctx_reset_counts(ASYNC_WAIT_CTX *ctx)
@@ -225,8 +234,10 @@ void async_wait_ctx_reset_counts(ASYNC_WAIT_CTX *ctx)
 
     curr = ctx->fds;
 
-    while (curr != NULL) {
-        if (curr->del) {
+    while (curr != NULL)
+    {
+        if (curr->del)
+        {
             if (prev == NULL)
                 ctx->fds = curr->next;
             else
@@ -238,7 +249,8 @@ void async_wait_ctx_reset_counts(ASYNC_WAIT_CTX *ctx)
                 curr = prev->next;
             continue;
         }
-        if (curr->add) {
+        if (curr->add)
+        {
             curr->add = 0;
         }
         prev = curr;

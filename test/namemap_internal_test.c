@@ -21,11 +21,9 @@ static int test_namemap_empty(void)
     OSSL_NAMEMAP *nm = NULL;
     int ok;
 
-    ok = TEST_int_eq(ossl_namemap_empty(NULL), 1)
-         && TEST_ptr(nm = ossl_namemap_new(NULL))
-         && TEST_int_eq(ossl_namemap_empty(nm), 1)
-         && TEST_int_ne(ossl_namemap_add_name(nm, 0, NAME1), 0)
-         && TEST_int_eq(ossl_namemap_empty(nm), 0);
+    ok = TEST_int_eq(ossl_namemap_empty(NULL), 1) && TEST_ptr(nm = ossl_namemap_new(NULL)) &&
+         TEST_int_eq(ossl_namemap_empty(nm), 1) && TEST_int_ne(ossl_namemap_add_name(nm, 0, NAME1), 0) &&
+         TEST_int_eq(ossl_namemap_empty(nm), 0);
     ossl_namemap_free(nm);
     return ok;
 }
@@ -42,15 +40,9 @@ static int test_namemap(OSSL_NAMEMAP *nm)
     int check4 = ossl_namemap_name2num(nm, ALIAS1_UC);
     int false1 = ossl_namemap_name2num(nm, "cookie");
 
-    return TEST_int_ne(num1, 0)
-        && TEST_int_ne(num2, 0)
-        && TEST_int_eq(num1, num3)
-        && TEST_int_eq(num3, num4)
-        && TEST_int_eq(num1, check1)
-        && TEST_int_eq(num2, check2)
-        && TEST_int_eq(num3, check3)
-        && TEST_int_eq(num4, check4)
-        && TEST_int_eq(false1, 0);
+    return TEST_int_ne(num1, 0) && TEST_int_ne(num2, 0) && TEST_int_eq(num1, num3) && TEST_int_eq(num3, num4) &&
+           TEST_int_eq(num1, check1) && TEST_int_eq(num2, check2) && TEST_int_eq(num3, check3) &&
+           TEST_int_eq(num4, check4) && TEST_int_eq(false1, 0);
 }
 
 static int test_namemap_independent(void)
@@ -66,8 +58,7 @@ static int test_namemap_stored(void)
 {
     OSSL_NAMEMAP *nm = ossl_namemap_stored(NULL);
 
-    return TEST_ptr(nm)
-        && test_namemap(nm);
+    return TEST_ptr(nm) && test_namemap(nm);
 }
 
 /*
@@ -137,11 +128,10 @@ static int test_cipher_is_a(void)
 
     if (!TEST_ptr(fetched))
         return 0;
-    if (!TEST_true(EVP_CIPHER_is_a(fetched, "id-aes256-CCM"))
-        || !TEST_false(EVP_CIPHER_is_a(fetched, "AES-128-GCM")))
+    if (!TEST_true(EVP_CIPHER_is_a(fetched, "id-aes256-CCM")) || !TEST_false(EVP_CIPHER_is_a(fetched, "AES-128-GCM")))
         rv = 0;
-    if (!TEST_true(EVP_CIPHER_is_a(EVP_aes_256_gcm(), "AES-256-GCM"))
-        || !TEST_false(EVP_CIPHER_is_a(EVP_aes_256_gcm(), "AES-128-CCM")))
+    if (!TEST_true(EVP_CIPHER_is_a(EVP_aes_256_gcm(), "AES-256-GCM")) ||
+        !TEST_false(EVP_CIPHER_is_a(EVP_aes_256_gcm(), "AES-128-CCM")))
         rv = 0;
 
     EVP_CIPHER_free(fetched);
@@ -159,11 +149,9 @@ static int test_digest_is_a(void)
 
     if (!TEST_ptr(fetched))
         return 0;
-    if (!TEST_true(EVP_MD_is_a(fetched, "SHA512"))
-        || !TEST_false(EVP_MD_is_a(fetched, "SHA1")))
+    if (!TEST_true(EVP_MD_is_a(fetched, "SHA512")) || !TEST_false(EVP_MD_is_a(fetched, "SHA1")))
         rv = 0;
-    if (!TEST_true(EVP_MD_is_a(EVP_sha256(), "SHA2-256"))
-        || !TEST_false(EVP_MD_is_a(EVP_sha256(), "SHA3-256")))
+    if (!TEST_true(EVP_MD_is_a(EVP_sha256(), "SHA2-256")) || !TEST_false(EVP_MD_is_a(EVP_sha256(), "SHA3-256")))
         rv = 0;
 
     EVP_MD_free(fetched);

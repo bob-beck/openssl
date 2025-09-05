@@ -26,12 +26,14 @@ void DES_string_to_key(const char *str, DES_cblock *key)
     length = strlen(str);
     if (length > INT_MAX)
         length = INT_MAX;
-    for (i = 0; i < (int)length; i++) {
+    for (i = 0; i < (int)length; i++)
+    {
         register unsigned char j = str[i];
 
         if ((i % 16) < 8)
             (*key)[i % 8] ^= (j << 1);
-        else {
+        else
+        {
             /* Reverse the bit order 05/05/92 eay */
             j = ((j << 4) & 0xf0) | ((j >> 4) & 0x0f);
             j = ((j << 2) & 0xcc) | ((j >> 2) & 0x33);
@@ -57,15 +59,19 @@ void DES_string_to_2keys(const char *str, DES_cblock *key1, DES_cblock *key2)
     length = strlen(str);
     if (length > INT_MAX)
         length = INT_MAX;
-    for (i = 0; i < (int)length; i++) {
+    for (i = 0; i < (int)length; i++)
+    {
         register unsigned char j = str[i];
 
-        if ((i % 32) < 16) {
+        if ((i % 32) < 16)
+        {
             if ((i % 16) < 8)
                 (*key1)[i % 8] ^= (j << 1);
             else
                 (*key2)[i % 8] ^= (j << 1);
-        } else {
+        }
+        else
+        {
             j = ((j << 4) & 0xf0) | ((j >> 4) & 0x0f);
             j = ((j << 2) & 0xcc) | ((j >> 2) & 0x33);
             j = ((j << 1) & 0xaa) | ((j >> 1) & 0x55);

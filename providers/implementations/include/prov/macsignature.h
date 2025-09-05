@@ -12,7 +12,8 @@
 #include "internal/refcount.h"
 #include "prov/provider_util.h"
 
-struct mac_key_st {
+struct mac_key_st
+{
     OSSL_LIB_CTX *libctx;
     CRYPTO_REF_COUNT refcnt;
     unsigned char *priv_key;

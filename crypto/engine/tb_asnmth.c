@@ -37,13 +37,13 @@ static void engine_unregister_all_pkey_asn1_meths(void)
 
 int ENGINE_register_pkey_asn1_meths(ENGINE *e)
 {
-    if (e->pkey_asn1_meths) {
+    if (e->pkey_asn1_meths)
+    {
         const int *nids;
         int num_nids = e->pkey_asn1_meths(e, NULL, &nids, 0);
         if (num_nids > 0)
-            return engine_table_register(&pkey_asn1_meth_table,
-                                         engine_unregister_all_pkey_asn1_meths,
-                                         e, nids, num_nids, 0);
+            return engine_table_register(&pkey_asn1_meth_table, engine_unregister_all_pkey_asn1_meths, e, nids,
+                                         num_nids, 0);
     }
     return 1;
 }
@@ -58,13 +58,13 @@ void ENGINE_register_all_pkey_asn1_meths(void)
 
 int ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
 {
-    if (e->pkey_asn1_meths) {
+    if (e->pkey_asn1_meths)
+    {
         const int *nids;
         int num_nids = e->pkey_asn1_meths(e, NULL, &nids, 0);
         if (num_nids > 0)
-            return engine_table_register(&pkey_asn1_meth_table,
-                                         engine_unregister_all_pkey_asn1_meths,
-                                         e, nids, num_nids, 1);
+            return engine_table_register(&pkey_asn1_meth_table, engine_unregister_all_pkey_asn1_meths, e, nids,
+                                         num_nids, 1);
     }
     return 1;
 }
@@ -76,8 +76,7 @@ int ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
  */
 ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid)
 {
-    return ossl_engine_table_select(&pkey_asn1_meth_table, nid,
-                                    OPENSSL_FILE, OPENSSL_LINE);
+    return ossl_engine_table_select(&pkey_asn1_meth_table, nid, OPENSSL_FILE, OPENSSL_LINE);
 }
 
 /*
@@ -88,7 +87,8 @@ const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid)
 {
     EVP_PKEY_ASN1_METHOD *ret;
     ENGINE_PKEY_ASN1_METHS_PTR fn = ENGINE_get_pkey_asn1_meths(e);
-    if (!fn || !fn(e, &ret, NULL, nid)) {
+    if (!fn || !fn(e, &ret, NULL, nid))
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_UNIMPLEMENTED_PUBLIC_KEY_METHOD);
         return NULL;
     }
@@ -117,12 +117,15 @@ void engine_pkey_asn1_meths_free(ENGINE *e)
 {
     int i;
     EVP_PKEY_ASN1_METHOD *pkm;
-    if (e->pkey_asn1_meths) {
+    if (e->pkey_asn1_meths)
+    {
         const int *pknids;
         int npknids;
         npknids = e->pkey_asn1_meths(e, NULL, &pknids, 0);
-        for (i = 0; i < npknids; i++) {
-            if (e->pkey_asn1_meths(e, &pkm, NULL, pknids[i])) {
+        for (i = 0; i < npknids; i++)
+        {
+            if (e->pkey_asn1_meths(e, &pkm, NULL, pknids[i]))
+            {
                 EVP_PKEY_asn1_free(pkm);
             }
         }
@@ -136,9 +139,7 @@ void engine_pkey_asn1_meths_free(ENGINE *e)
  * for speed critical operations.
  */
 
-const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
-                                                          const char *str,
-                                                          int len)
+const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth_str(ENGINE *e, const char *str, int len)
 {
     int i, nidcount;
     const int *nids;
@@ -148,17 +149,17 @@ const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
     if (len == -1)
         len = (int)strlen(str);
     nidcount = e->pkey_asn1_meths(e, NULL, &nids, 0);
-    for (i = 0; i < nidcount; i++) {
+    for (i = 0; i < nidcount; i++)
+    {
         e->pkey_asn1_meths(e, &ameth, NULL, nids[i]);
-        if (ameth != NULL
-            && ((int)strlen(ameth->pem_str) == len)
-            && OPENSSL_strncasecmp(ameth->pem_str, str, len) == 0)
+        if (ameth != NULL && ((int)strlen(ameth->pem_str) == len) && OPENSSL_strncasecmp(ameth->pem_str, str, len) == 0)
             return ameth;
     }
     return NULL;
 }
 
-typedef struct {
+typedef struct
+{
     ENGINE *e;
     const EVP_PKEY_ASN1_METHOD *ameth;
     const char *str;
@@ -171,13 +172,14 @@ static void look_str_cb(int nid, STACK_OF(ENGINE) *sk, ENGINE *def, void *arg)
     int i;
     if (lk->ameth)
         return;
-    for (i = 0; i < sk_ENGINE_num(sk); i++) {
+    for (i = 0; i < sk_ENGINE_num(sk); i++)
+    {
         ENGINE *e = sk_ENGINE_value(sk, i);
         EVP_PKEY_ASN1_METHOD *ameth;
         e->pkey_asn1_meths(e, &ameth, NULL, nid);
-        if (ameth != NULL
-                && ((int)strlen(ameth->pem_str) == lk->len)
-                && OPENSSL_strncasecmp(ameth->pem_str, lk->str, lk->len) == 0) {
+        if (ameth != NULL && ((int)strlen(ameth->pem_str) == lk->len) &&
+            OPENSSL_strncasecmp(ameth->pem_str, lk->str, lk->len) == 0)
+        {
             lk->e = e;
             lk->ameth = ameth;
             return;
@@ -185,9 +187,7 @@ static void look_str_cb(int nid, STACK_OF(ENGINE) *sk, ENGINE *def, void *arg)
     }
 }
 
-const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
-                                                      const char *str,
-                                                      int len)
+const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe, const char *str, int len)
 {
     ENGINE_FIND_STR fstr;
     fstr.e = NULL;
@@ -195,7 +195,8 @@ const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
     fstr.str = str;
     fstr.len = len;
 
-    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init)) {
+    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init))
+    {
         /* Maybe this should be raised in do_engine_lock_init() */
         ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
         return NULL;
@@ -205,10 +206,12 @@ const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
         return NULL;
     engine_table_doall(pkey_asn1_meth_table, look_str_cb, &fstr);
     /* If found obtain a structural reference to engine */
-    if (fstr.e != NULL) {
+    if (fstr.e != NULL)
+    {
         int ref;
 
-        if (!CRYPTO_UP_REF(&fstr.e->struct_ref, &ref)) {
+        if (!CRYPTO_UP_REF(&fstr.e->struct_ref, &ref))
+        {
             CRYPTO_THREAD_unlock(global_engine_lock);
             ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
             return NULL;

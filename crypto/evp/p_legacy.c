@@ -39,7 +39,8 @@ int EVP_PKEY_set1_RSA(EVP_PKEY *pkey, RSA *key)
 
 RSA *evp_pkey_get0_RSA_int(const EVP_PKEY *pkey)
 {
-    if (pkey->type != EVP_PKEY_RSA && pkey->type != EVP_PKEY_RSA_PSS) {
+    if (pkey->type != EVP_PKEY_RSA && pkey->type != EVP_PKEY_RSA_PSS)
+    {
         ERR_raise(ERR_LIB_EVP, EVP_R_EXPECTING_AN_RSA_KEY);
         return NULL;
     }
@@ -66,7 +67,8 @@ int EVP_PKEY_set1_EC_KEY(EVP_PKEY *pkey, EC_KEY *key)
 {
     if (!EC_KEY_up_ref(key))
         return 0;
-    if (!EVP_PKEY_assign_EC_KEY(pkey, key)) {
+    if (!EVP_PKEY_assign_EC_KEY(pkey, key))
+    {
         EC_KEY_free(key);
         return 0;
     }
@@ -75,7 +77,8 @@ int EVP_PKEY_set1_EC_KEY(EVP_PKEY *pkey, EC_KEY *key)
 
 EC_KEY *evp_pkey_get0_EC_KEY_int(const EVP_PKEY *pkey)
 {
-    if (EVP_PKEY_get_base_id(pkey) != EVP_PKEY_EC) {
+    if (EVP_PKEY_get_base_id(pkey) != EVP_PKEY_EC)
+    {
         ERR_raise(ERR_LIB_EVP, EVP_R_EXPECTING_A_EC_KEY);
         return NULL;
     }

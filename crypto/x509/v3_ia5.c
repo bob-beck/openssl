@@ -15,15 +15,10 @@
 #include "ext_dat.h"
 
 const X509V3_EXT_METHOD ossl_v3_ns_ia5_list[8] = {
-    EXT_IA5STRING(NID_netscape_base_url),
-    EXT_IA5STRING(NID_netscape_revocation_url),
-    EXT_IA5STRING(NID_netscape_ca_revocation_url),
-    EXT_IA5STRING(NID_netscape_renewal_url),
-    EXT_IA5STRING(NID_netscape_ca_policy_url),
-    EXT_IA5STRING(NID_netscape_ssl_server_name),
-    EXT_IA5STRING(NID_netscape_comment),
-    EXT_END
-};
+    EXT_IA5STRING(NID_netscape_base_url),          EXT_IA5STRING(NID_netscape_revocation_url),
+    EXT_IA5STRING(NID_netscape_ca_revocation_url), EXT_IA5STRING(NID_netscape_renewal_url),
+    EXT_IA5STRING(NID_netscape_ca_policy_url),     EXT_IA5STRING(NID_netscape_ssl_server_name),
+    EXT_IA5STRING(NID_netscape_comment),           EXT_END};
 
 char *i2s_ASN1_IA5STRING(X509V3_EXT_METHOD *method, ASN1_IA5STRING *ia5)
 {
@@ -38,24 +33,26 @@ char *i2s_ASN1_IA5STRING(X509V3_EXT_METHOD *method, ASN1_IA5STRING *ia5)
     return tmp;
 }
 
-ASN1_IA5STRING *s2i_ASN1_IA5STRING(X509V3_EXT_METHOD *method,
-                                   X509V3_CTX *ctx, const char *str)
+ASN1_IA5STRING *s2i_ASN1_IA5STRING(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, const char *str)
 {
     ASN1_IA5STRING *ia5;
-    if (str == NULL) {
+    if (str == NULL)
+    {
         ERR_raise(ERR_LIB_X509V3, X509V3_R_INVALID_NULL_ARGUMENT);
         return NULL;
     }
-    if ((ia5 = ASN1_IA5STRING_new()) == NULL) {
+    if ((ia5 = ASN1_IA5STRING_new()) == NULL)
+    {
         ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);
         return NULL;
     }
-    if (!ASN1_STRING_set((ASN1_STRING *)ia5, str, (int)strlen(str))) {
+    if (!ASN1_STRING_set((ASN1_STRING *)ia5, str, (int)strlen(str)))
+    {
         ASN1_IA5STRING_free(ia5);
         return NULL;
     }
 #ifdef CHARSET_EBCDIC
     ebcdic2ascii(ia5->data, ia5->data, ia5->length);
-#endif                          /* CHARSET_EBCDIC */
+#endif /* CHARSET_EBCDIC */
     return ia5;
 }

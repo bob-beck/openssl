@@ -36,11 +36,15 @@ SLH_DSA_HASH_CTX *ossl_slh_dsa_hash_ctx_new(const SLH_DSA_KEY *key)
         goto err;
     if (EVP_DigestInit_ex2(ret->md_ctx, key->md, NULL) != 1)
         goto err;
-    if (key->md_big != NULL) {
+    if (key->md_big != NULL)
+    {
         /* Gets here for SHA2 algorithms */
-        if (key->md_big == key->md) {
+        if (key->md_big == key->md)
+        {
             ret->md_big_ctx = ret->md_ctx;
-        } else {
+        }
+        else
+        {
             /* Only gets here for SHA2 */
             ret->md_big_ctx = EVP_MD_CTX_new();
             if (ret->md_big_ctx == NULL)
@@ -48,14 +52,15 @@ SLH_DSA_HASH_CTX *ossl_slh_dsa_hash_ctx_new(const SLH_DSA_KEY *key)
             if (EVP_DigestInit_ex2(ret->md_big_ctx, key->md_big, NULL) != 1)
                 goto err;
         }
-        if (key->hmac != NULL) {
+        if (key->hmac != NULL)
+        {
             ret->hmac_ctx = EVP_MAC_CTX_new(key->hmac);
             if (ret->hmac_ctx == NULL)
                 goto err;
         }
     }
     return ret;
- err:
+err:
     ossl_slh_dsa_hash_ctx_free(ret);
     return NULL;
 }
@@ -76,22 +81,24 @@ SLH_DSA_HASH_CTX *ossl_slh_dsa_hash_ctx_dup(const SLH_DSA_HASH_CTX *src)
     /* Note that the key is not ref counted, since it does not own the key */
     ret->key = src->key;
 
-    if (src->md_ctx != NULL
-            && (ret->md_ctx = EVP_MD_CTX_dup(src->md_ctx)) == NULL)
+    if (src->md_ctx != NULL && (ret->md_ctx = EVP_MD_CTX_dup(src->md_ctx)) == NULL)
         goto err;
-    if (src->md_big_ctx != NULL) {
-        if (src->md_big_ctx != src->md_ctx) {
+    if (src->md_big_ctx != NULL)
+    {
+        if (src->md_big_ctx != src->md_ctx)
+        {
             if ((ret->md_big_ctx = EVP_MD_CTX_dup(src->md_big_ctx)) == NULL)
                 goto err;
-        } else {
+        }
+        else
+        {
             ret->md_big_ctx = ret->md_ctx;
         }
     }
-    if (src->hmac_ctx != NULL
-            && (ret->hmac_ctx = EVP_MAC_CTX_dup(src->hmac_ctx)) == NULL)
+    if (src->hmac_ctx != NULL && (ret->hmac_ctx = EVP_MAC_CTX_dup(src->hmac_ctx)) == NULL)
         goto err;
     return ret;
- err:
+err:
     ossl_slh_dsa_hash_ctx_free(ret);
     return NULL;
 }

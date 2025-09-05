@@ -28,7 +28,8 @@ static void ctr128_inc(unsigned char *counter)
 {
     u32 n = 16, c = 1;
 
-    do {
+    do
+    {
         --n;
         c += counter[n];
         counter[n] = (u8)c;
@@ -42,7 +43,8 @@ static void ctr128_inc_aligned(unsigned char *counter)
     size_t *data, c, d, n;
     DECLARE_IS_ENDIAN;
 
-    if (IS_LITTLE_ENDIAN || ((size_t)counter % sizeof(size_t)) != 0) {
+    if (IS_LITTLE_ENDIAN || ((size_t)counter % sizeof(size_t)) != 0)
+    {
         ctr128_inc(counter);
         return;
     }
@@ -50,7 +52,8 @@ static void ctr128_inc_aligned(unsigned char *counter)
     data = (size_t *)counter;
     c = 1;
     n = 16 / sizeof(size_t);
-    do {
+    do
+    {
         --n;
         d = data[n] += c;
         /* did addition carry? */
@@ -70,11 +73,8 @@ static void ctr128_inc_aligned(unsigned char *counter)
  * implementation takes NO responsibility for checking that the counter
  * doesn't overflow into the rest of the IV when incremented.
  */
-void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
-                           size_t len, const void *key,
-                           unsigned char ivec[16],
-                           unsigned char ecount_buf[16], unsigned int *num,
-                           block128_f block)
+void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out, size_t len, const void *key,
+                           unsigned char ivec[16], unsigned char ecount_buf[16], unsigned int *num, block128_f block)
 {
     unsigned int n;
     size_t l = 0;
@@ -82,35 +82,38 @@ void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
     n = *num;
 
 #if !defined(OPENSSL_SMALL_FOOTPRINT)
-    if (16 % sizeof(size_t) == 0) { /* always true actually */
-        do {
-            while (n && len) {
+    if (16 % sizeof(size_t) == 0)
+    { /* always true actually */
+        do
+        {
+            while (n && len)
+            {
                 *(out++) = *(in++) ^ ecount_buf[n];
                 --len;
                 n = (n + 1) % 16;
             }
 
-# if defined(STRICT_ALIGNMENT)
-            if (((size_t)in | (size_t)out | (size_t)ecount_buf)
-                % sizeof(size_t) != 0)
+#if defined(STRICT_ALIGNMENT)
+            if (((size_t)in | (size_t)out | (size_t)ecount_buf) % sizeof(size_t) != 0)
                 break;
-# endif
-            while (len >= 16) {
-                (*block) (ivec, ecount_buf, key);
+#endif
+            while (len >= 16)
+            {
+                (*block)(ivec, ecount_buf, key);
                 ctr128_inc_aligned(ivec);
                 for (n = 0; n < 16; n += sizeof(size_t))
-                    *(size_t_aX *)(out + n) =
-                        *(size_t_aX *)(in + n)
-                        ^ *(size_t_aX *)(ecount_buf + n);
+                    *(size_t_aX *)(out + n) = *(size_t_aX *)(in + n) ^ *(size_t_aX *)(ecount_buf + n);
                 len -= 16;
                 out += 16;
                 in += 16;
                 n = 0;
             }
-            if (len) {
-                (*block) (ivec, ecount_buf, key);
+            if (len)
+            {
+                (*block)(ivec, ecount_buf, key);
                 ctr128_inc_aligned(ivec);
-                while (len--) {
+                while (len--)
+                {
                     out[n] = in[n] ^ ecount_buf[n];
                     ++n;
                 }
@@ -121,9 +124,11 @@ void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
     }
     /* the rest would be commonly eliminated by x86* compiler */
 #endif
-    while (l < len) {
-        if (n == 0) {
-            (*block) (ivec, ecount_buf, key);
+    while (l < len)
+    {
+        if (n == 0)
+        {
+            (*block)(ivec, ecount_buf, key);
             ctr128_inc(ivec);
         }
         out[l] = in[l] ^ ecount_buf[n];
@@ -139,7 +144,8 @@ static void ctr96_inc(unsigned char *counter)
 {
     u32 n = 12, c = 1;
 
-    do {
+    do
+    {
         --n;
         c += counter[n];
         counter[n] = (u8)c;
@@ -147,24 +153,23 @@ static void ctr96_inc(unsigned char *counter)
     } while (n);
 }
 
-void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
-                                 size_t len, const void *key,
-                                 unsigned char ivec[16],
-                                 unsigned char ecount_buf[16],
-                                 unsigned int *num, ctr128_f func)
+void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out, size_t len, const void *key,
+                                 unsigned char ivec[16], unsigned char ecount_buf[16], unsigned int *num, ctr128_f func)
 {
     unsigned int n, ctr32;
 
-   n = *num;
+    n = *num;
 
-    while (n && len) {
+    while (n && len)
+    {
         *(out++) = *(in++) ^ ecount_buf[n];
         --len;
         n = (n + 1) % 16;
     }
 
     ctr32 = GETU32(ivec + 12);
-    while (len >= 16) {
+    while (len >= 16)
+    {
         size_t blocks = len / 16;
         /*
          * 1<<28 is just a not-so-small yet not-so-large number...
@@ -180,11 +185,12 @@ void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
          * amount of blocks to the exact overflow point...
          */
         ctr32 += (u32)blocks;
-        if (ctr32 < blocks) {
+        if (ctr32 < blocks)
+        {
             blocks -= ctr32;
             ctr32 = 0;
         }
-        (*func) (in, out, blocks, key, ivec);
+        (*func)(in, out, blocks, key, ivec);
         /* (*ctr) does not update ivec, caller does: */
         PUTU32(ivec + 12, ctr32);
         /* ... overflow was detected, propagate carry. */
@@ -195,14 +201,16 @@ void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
         out += blocks;
         in += blocks;
     }
-    if (len) {
+    if (len)
+    {
         memset(ecount_buf, 0, 16);
-        (*func) (ecount_buf, ecount_buf, 1, key, ivec);
+        (*func)(ecount_buf, ecount_buf, 1, key, ivec);
         ++ctr32;
         PUTU32(ivec + 12, ctr32);
         if (ctr32 == 0)
             ctr96_inc(ivec);
-        while (len--) {
+        while (len--)
+        {
             out[n] = in[n] ^ ecount_buf[n];
             ++n;
         }

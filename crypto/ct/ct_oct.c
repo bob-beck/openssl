@@ -8,7 +8,7 @@
  */
 
 #ifdef OPENSSL_NO_CT
-# error "CT is disabled"
+#error "CT is disabled"
 #endif
 
 #include <limits.h>
@@ -27,7 +27,8 @@ int o2i_SCT_signature(SCT *sct, const unsigned char **in, size_t len)
     size_t len_remaining = len;
     const unsigned char *p;
 
-    if (sct->version != SCT_VERSION_V1) {
+    if (sct->version != SCT_VERSION_V1)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_UNSUPPORTED_VERSION);
         return -1;
     }
@@ -38,7 +39,8 @@ int o2i_SCT_signature(SCT *sct, const unsigned char **in, size_t len)
      * This explicitly rejects empty signatures: they're invalid for
      * all supported algorithms.
      */
-    if (len <= 4) {
+    if (len <= 4)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_INVALID_SIGNATURE);
         return -1;
     }
@@ -47,14 +49,16 @@ int o2i_SCT_signature(SCT *sct, const unsigned char **in, size_t len)
     /* Get hash and signature algorithm */
     sct->hash_alg = *p++;
     sct->sig_alg = *p++;
-    if (SCT_get_signature_nid(sct) == NID_undef) {
+    if (SCT_get_signature_nid(sct) == NID_undef)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_INVALID_SIGNATURE);
         return -1;
     }
     /* Retrieve signature and check it is consistent with the buffer length */
     n2s(p, siglen);
     len_remaining -= (p - *in);
-    if (siglen > len_remaining) {
+    if (siglen > len_remaining)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_INVALID_SIGNATURE);
         return -1;
     }
@@ -72,7 +76,8 @@ SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
     SCT *sct = NULL;
     const unsigned char *p;
 
-    if (len == 0 || len > MAX_SCT_SIZE) {
+    if (len == 0 || len > MAX_SCT_SIZE)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_INVALID);
         goto err;
     }
@@ -83,7 +88,8 @@ SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
     p = *in;
 
     sct->version = *p;
-    if (sct->version == SCT_VERSION_V1) {
+    if (sct->version == SCT_VERSION_V1)
+    {
         int sig_len;
         size_t len2;
         /*-
@@ -95,7 +101,8 @@ SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
          *     CtExtensions extensions; (2 bytes + ?)
          *   }
          */
-        if (len < 43) {
+        if (len < 43)
+        {
             ERR_raise(ERR_LIB_CT, CT_R_SCT_INVALID);
             goto err;
         }
@@ -110,11 +117,13 @@ SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
         n2l8(p, sct->timestamp);
 
         n2s(p, len2);
-        if (len < len2) {
+        if (len < len2)
+        {
             ERR_raise(ERR_LIB_CT, CT_R_SCT_INVALID);
             goto err;
         }
-        if (len2 > 0) {
+        if (len2 > 0)
+        {
             sct->ext = OPENSSL_memdup(p, len2);
             if (sct->ext == NULL)
                 goto err;
@@ -124,13 +133,16 @@ SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
         len -= len2;
 
         sig_len = o2i_SCT_signature(sct, &p, len);
-        if (sig_len <= 0) {
+        if (sig_len <= 0)
+        {
             ERR_raise(ERR_LIB_CT, CT_R_SCT_INVALID);
             goto err;
         }
         len -= sig_len;
         *in = p + len;
-    } else {
+    }
+    else
+    {
         /* If not V1 just cache encoding */
         sct->sct = OPENSSL_memdup(p, len);
         if (sct->sct == NULL)
@@ -139,7 +151,8 @@ SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len)
         *in = p + len;
     }
 
-    if (psct != NULL) {
+    if (psct != NULL)
+    {
         SCT_free(*psct);
         *psct = sct;
     }
@@ -155,28 +168,34 @@ int i2o_SCT_signature(const SCT *sct, unsigned char **out)
     size_t len;
     unsigned char *p = NULL, *pstart = NULL;
 
-    if (!SCT_signature_is_complete(sct)) {
+    if (!SCT_signature_is_complete(sct))
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_INVALID_SIGNATURE);
         goto err;
     }
 
-    if (sct->version != SCT_VERSION_V1) {
+    if (sct->version != SCT_VERSION_V1)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_UNSUPPORTED_VERSION);
         goto err;
     }
 
     /*
-    * (1 byte) Hash algorithm
-    * (1 byte) Signature algorithm
-    * (2 bytes + ?) Signature
-    */
+     * (1 byte) Hash algorithm
+     * (1 byte) Signature algorithm
+     * (2 bytes + ?) Signature
+     */
     len = 4 + sct->sig_len;
 
-    if (out != NULL) {
-        if (*out != NULL) {
+    if (out != NULL)
+    {
+        if (*out != NULL)
+        {
             p = *out;
             *out += len;
-        } else {
+        }
+        else
+        {
             pstart = p = OPENSSL_malloc(len);
             if (p == NULL)
                 goto err;
@@ -200,7 +219,8 @@ int i2o_SCT(const SCT *sct, unsigned char **out)
     size_t len;
     unsigned char *p = NULL, *pstart = NULL;
 
-    if (!SCT_is_complete(sct)) {
+    if (!SCT_is_complete(sct))
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_NOT_SET);
         goto err;
     }
@@ -220,29 +240,36 @@ int i2o_SCT(const SCT *sct, unsigned char **out)
     if (out == NULL)
         return (int)len;
 
-    if (*out != NULL) {
+    if (*out != NULL)
+    {
         p = *out;
         *out += len;
-    } else {
+    }
+    else
+    {
         pstart = p = OPENSSL_malloc(len);
         if (p == NULL)
             goto err;
         *out = p;
     }
 
-    if (sct->version == SCT_VERSION_V1) {
+    if (sct->version == SCT_VERSION_V1)
+    {
         *p++ = sct->version;
         memcpy(p, sct->log_id, CT_V1_HASHLEN);
         p += CT_V1_HASHLEN;
         l2n8(sct->timestamp, p);
         s2n(sct->ext_len, p);
-        if (sct->ext_len > 0) {
+        if (sct->ext_len > 0)
+        {
             memcpy(p, sct->ext, sct->ext_len);
             p += sct->ext_len;
         }
         if (i2o_SCT_signature(sct, &p) <= 0)
             goto err;
-    } else {
+    }
+    else
+    {
         memcpy(p, sct->sct, len);
     }
 
@@ -252,28 +279,32 @@ err:
     return -1;
 }
 
-STACK_OF(SCT) *o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
-                            size_t len)
+STACK_OF(SCT) *o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp, size_t len)
 {
     STACK_OF(SCT) *sk = NULL;
     size_t list_len, sct_len;
 
-    if (len < 2 || len > MAX_SCT_LIST_SIZE) {
+    if (len < 2 || len > MAX_SCT_LIST_SIZE)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_LIST_INVALID);
         return NULL;
     }
 
     n2s(*pp, list_len);
-    if (list_len != len - 2) {
+    if (list_len != len - 2)
+    {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_LIST_INVALID);
         return NULL;
     }
 
-    if (a == NULL || *a == NULL) {
+    if (a == NULL || *a == NULL)
+    {
         sk = sk_SCT_new_null();
         if (sk == NULL)
             return NULL;
-    } else {
+    }
+    else
+    {
         SCT *sct;
 
         /* Use the given stack, but empty it first. */
@@ -282,17 +313,20 @@ STACK_OF(SCT) *o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
             SCT_free(sct);
     }
 
-    while (list_len > 0) {
+    while (list_len > 0)
+    {
         SCT *sct;
 
-        if (list_len < 2) {
+        if (list_len < 2)
+        {
             ERR_raise(ERR_LIB_CT, CT_R_SCT_LIST_INVALID);
             goto err;
         }
         n2s(*pp, sct_len);
         list_len -= 2;
 
-        if (sct_len == 0 || sct_len > list_len) {
+        if (sct_len == 0 || sct_len > list_len)
+        {
             ERR_raise(ERR_LIB_CT, CT_R_SCT_LIST_INVALID);
             goto err;
         }
@@ -300,7 +334,8 @@ STACK_OF(SCT) *o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
 
         if ((sct = o2i_SCT(NULL, pp, sct_len)) == NULL)
             goto err;
-        if (!sk_SCT_push(sk, sct)) {
+        if (!sk_SCT_push(sk, sct))
+        {
             SCT_free(sct);
             goto err;
         }
@@ -310,7 +345,7 @@ STACK_OF(SCT) *o2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
         *a = sk;
     return sk;
 
- err:
+err:
     if (a == NULL || *a == NULL)
         SCT_LIST_free(sk);
     return NULL;
@@ -322,9 +357,12 @@ int i2o_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **pp)
     size_t len2;
     unsigned char *p = NULL, *p2;
 
-    if (pp != NULL) {
-        if (*pp == NULL) {
-            if ((len = i2o_SCT_LIST(a, NULL)) == -1) {
+    if (pp != NULL)
+    {
+        if (*pp == NULL)
+        {
+            if ((len = i2o_SCT_LIST(a, NULL)) == -1)
+            {
                 ERR_raise(ERR_LIB_CT, CT_R_SCT_LIST_INVALID);
                 return -1;
             }
@@ -336,16 +374,20 @@ int i2o_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **pp)
     }
 
     len2 = 2;
-    for (i = 0; i < sk_SCT_num(a); i++) {
-        if (pp != NULL) {
+    for (i = 0; i < sk_SCT_num(a); i++)
+    {
+        if (pp != NULL)
+        {
             p2 = p;
             p += 2;
             if ((sct_len = i2o_SCT(sk_SCT_value(a, i), &p)) == -1)
                 goto err;
             s2n(sct_len, p2);
-        } else {
-          if ((sct_len = i2o_SCT(sk_SCT_value(a, i), NULL)) == -1)
-              goto err;
+        }
+        else
+        {
+            if ((sct_len = i2o_SCT(sk_SCT_value(a, i), NULL)) == -1)
+                goto err;
         }
         len2 += 2 + sct_len;
     }
@@ -353,7 +395,8 @@ int i2o_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **pp)
     if (len2 > MAX_SCT_LIST_SIZE)
         goto err;
 
-    if (pp != NULL) {
+    if (pp != NULL)
+    {
         p = *pp;
         s2n(len2 - 2, p);
         if (!is_pp_new)
@@ -361,16 +404,16 @@ int i2o_SCT_LIST(const STACK_OF(SCT) *a, unsigned char **pp)
     }
     return (int)len2;
 
- err:
-    if (is_pp_new) {
+err:
+    if (is_pp_new)
+    {
         OPENSSL_free(*pp);
         *pp = NULL;
     }
     return -1;
 }
 
-STACK_OF(SCT) *d2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
-                            long len)
+STACK_OF(SCT) *d2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp, long len)
 {
     ASN1_OCTET_STRING *oct = NULL;
     STACK_OF(SCT) *sk = NULL;

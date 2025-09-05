@@ -10,17 +10,17 @@
 #include <openssl/core_names.h>
 #include <openssl/evp.h>
 
-struct quic_srt_gen_st {
-    EVP_MAC         *mac;
-    EVP_MAC_CTX     *mac_ctx;
+struct quic_srt_gen_st
+{
+    EVP_MAC *mac;
+    EVP_MAC_CTX *mac_ctx;
 };
 
 /*
  * Simple HMAC-SHA256-based stateless reset token generator.
  */
 
-QUIC_SRT_GEN *ossl_quic_srt_gen_new(OSSL_LIB_CTX *libctx, const char *propq,
-                                    const unsigned char *key, size_t key_len)
+QUIC_SRT_GEN *ossl_quic_srt_gen_new(OSSL_LIB_CTX *libctx, const char *propq, const unsigned char *key, size_t key_len)
 {
     QUIC_SRT_GEN *srt_gen;
     OSSL_PARAM params[3], *p = params;
@@ -36,8 +36,7 @@ QUIC_SRT_GEN *ossl_quic_srt_gen_new(OSSL_LIB_CTX *libctx, const char *propq,
 
     *p++ = OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, "SHA256", 7);
     if (propq != NULL)
-        *p++ = OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_PROPERTIES,
-                                                (char *)propq, 0);
+        *p++ = OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_PROPERTIES, (char *)propq, 0);
     *p++ = OSSL_PARAM_construct_end();
 
     if (!EVP_MAC_init(srt_gen->mac_ctx, key, key_len, params))
@@ -60,8 +59,7 @@ void ossl_quic_srt_gen_free(QUIC_SRT_GEN *srt_gen)
     OPENSSL_free(srt_gen);
 }
 
-int ossl_quic_srt_gen_calculate_token(QUIC_SRT_GEN *srt_gen,
-                                      const QUIC_CONN_ID *dcid,
+int ossl_quic_srt_gen_calculate_token(QUIC_SRT_GEN *srt_gen, const QUIC_CONN_ID *dcid,
                                       QUIC_STATELESS_RESET_TOKEN *token)
 {
     size_t outl = 0;
@@ -70,12 +68,10 @@ int ossl_quic_srt_gen_calculate_token(QUIC_SRT_GEN *srt_gen,
     if (!EVP_MAC_init(srt_gen->mac_ctx, NULL, 0, NULL))
         return 0;
 
-    if (!EVP_MAC_update(srt_gen->mac_ctx, (const unsigned char *)dcid->id,
-                        dcid->id_len))
+    if (!EVP_MAC_update(srt_gen->mac_ctx, (const unsigned char *)dcid->id, dcid->id_len))
         return 0;
 
-    if (!EVP_MAC_final(srt_gen->mac_ctx, mac, &outl, sizeof(mac))
-        || outl != sizeof(mac))
+    if (!EVP_MAC_final(srt_gen->mac_ctx, mac, &outl, sizeof(mac)) || outl != sizeof(mac))
         return 0;
 
     assert(sizeof(mac) >= sizeof(token->token));

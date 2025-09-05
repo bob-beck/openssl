@@ -82,11 +82,13 @@ static int changepass(PKCS12 *p12, EVP_PKEY *key, X509 *cert, STACK_OF(X509) *ca
         goto err;
     if (!TEST_true(PKCS12_parse(p12new, "NEWPASS", &key2, &cert2, &ca2)))
         goto err;
-    if (has_key) {
+    if (has_key)
+    {
         if (!TEST_ptr(key2) || !TEST_int_eq(EVP_PKEY_eq(key, key2), 1))
             goto err;
     }
-    if (has_cert) {
+    if (has_cert)
+    {
         if (!TEST_ptr(cert2) || !TEST_int_eq(X509_cmp(cert, cert2), 0))
             goto err;
     }
@@ -108,7 +110,8 @@ static int pkcs12_parse_test(void)
     X509 *cert = NULL;
     STACK_OF(X509) *ca = NULL;
 
-    if (in_file != NULL) {
+    if (in_file != NULL)
+    {
         p12 = PKCS12_load(in_file);
         if (!TEST_ptr(p12))
             goto err;
@@ -136,7 +139,7 @@ err:
 
 static int pkcs12_create_cb(PKCS12_SAFEBAG *bag, void *cbarg)
 {
-    int cb_ret = *((int*)cbarg);
+    int cb_ret = *((int *)cbarg);
     return cb_ret;
 }
 
@@ -168,13 +171,10 @@ static int pkcs12_create_ex2_test(int test)
     if (!TEST_ptr(p12))
         goto err;
 
-    if (test == 0) {
+    if (test == 0)
+    {
         /* Confirm PKCS12_create_ex2 returns NULL */
-        ptr = PKCS12_create_ex2(NULL, NULL, NULL,
-                                NULL, NULL, NID_undef, NID_undef,
-                                0, 0, 0,
-                                testctx, NULL,
-                                NULL, NULL);
+        ptr = PKCS12_create_ex2(NULL, NULL, NULL, NULL, NULL, NID_undef, NID_undef, 0, 0, 0, testctx, NULL, NULL, NULL);
         if (TEST_ptr(ptr))
             goto err;
 
@@ -184,33 +184,28 @@ static int pkcs12_create_ex2_test(int test)
 
         /* Specified call back called - return success */
         cb_ret = 1;
-        ptr = PKCS12_create_ex2(NULL, NULL, NULL,
-                                cert, NULL, NID_undef, NID_undef,
-                                0, 0, 0,
-                                testctx, NULL,
-                                pkcs12_create_cb, (void*)&cb_ret);
+        ptr = PKCS12_create_ex2(NULL, NULL, NULL, cert, NULL, NID_undef, NID_undef, 0, 0, 0, testctx, NULL,
+                                pkcs12_create_cb, (void *)&cb_ret);
         /* PKCS12 successfully created */
         if (!TEST_ptr(ptr))
             goto err;
-    } else if (test == 1) {
+    }
+    else if (test == 1)
+    {
         /* Specified call back called - return error*/
         cb_ret = -1;
-        ptr = PKCS12_create_ex2(NULL, NULL, NULL,
-                                cert, NULL, NID_undef, NID_undef,
-                                0, 0, 0,
-                                testctx, NULL,
-                                pkcs12_create_cb, (void*)&cb_ret);
+        ptr = PKCS12_create_ex2(NULL, NULL, NULL, cert, NULL, NID_undef, NID_undef, 0, 0, 0, testctx, NULL,
+                                pkcs12_create_cb, (void *)&cb_ret);
         /* PKCS12 not created */
-       if (TEST_ptr(ptr))
+        if (TEST_ptr(ptr))
             goto err;
-    } else if (test == 2) {
+    }
+    else if (test == 2)
+    {
         /* Specified call back called - return failure */
         cb_ret = 0;
-        ptr = PKCS12_create_ex2(NULL, NULL, NULL,
-                                cert, NULL, NID_undef, NID_undef,
-                                0, 0, 0,
-                                testctx, NULL,
-                                pkcs12_create_cb, (void*)&cb_ret);
+        ptr = PKCS12_create_ex2(NULL, NULL, NULL, cert, NULL, NID_undef, NID_undef, 0, 0, 0, testctx, NULL,
+                                pkcs12_create_cb, (void *)&cb_ret);
         /* PKCS12 successfully created */
         if (!TEST_ptr(ptr))
             goto err;
@@ -226,7 +221,8 @@ err:
     return TEST_true(ret);
 }
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_ERR = -1,
     OPT_EOF = 0,
     OPT_IN_FILE,
@@ -242,14 +238,13 @@ const OPTIONS *test_get_options(void)
 {
     static const OPTIONS options[] = {
         OPT_TEST_OPTIONS_DEFAULT_USAGE,
-        { "in",   OPT_IN_FILE,   '<', "PKCS12 input file" },
-        { "pass",   OPT_IN_PASS,   's', "PKCS12 input file password" },
-        { "has-key",   OPT_IN_HAS_KEY,  'n', "Whether the input file does contain an user key" },
-        { "has-cert",   OPT_IN_HAS_CERT, 'n', "Whether the input file does contain an user certificate" },
-        { "has-ca",   OPT_IN_HAS_CA,   'n', "Whether the input file does contain other certificate" },
-        { "legacy",  OPT_LEGACY,  '-', "Test the legacy APIs" },
-        { NULL }
-    };
+        {"in", OPT_IN_FILE, '<', "PKCS12 input file"},
+        {"pass", OPT_IN_PASS, 's', "PKCS12 input file password"},
+        {"has-key", OPT_IN_HAS_KEY, 'n', "Whether the input file does contain an user key"},
+        {"has-cert", OPT_IN_HAS_CERT, 'n', "Whether the input file does contain an user certificate"},
+        {"has-ca", OPT_IN_HAS_CA, 'n', "Whether the input file does contain other certificate"},
+        {"legacy", OPT_LEGACY, '-', "Test the legacy APIs"},
+        {NULL}};
     return options;
 }
 
@@ -257,8 +252,10 @@ int setup_tests(void)
 {
     OPTION_CHOICE o;
 
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_IN_FILE:
             in_file = opt_arg();
             break;
@@ -283,7 +280,8 @@ int setup_tests(void)
         }
     }
 
-    if (!test_get_libctx(&testctx, &nullprov, NULL, NULL, NULL)) {
+    if (!test_get_libctx(&testctx, &nullprov, NULL, NULL, NULL))
+    {
         OSSL_LIB_CTX_free(testctx);
         testctx = NULL;
         return 0;

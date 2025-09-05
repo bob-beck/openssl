@@ -19,9 +19,9 @@
 NON_EMPTY_TRANSLATION_UNIT
 #else
 
-# include "../field.h"
+#include "../field.h"
 
-void ossl_gf_mul(gf_s * RESTRICT cs, const gf as, const gf bs)
+void ossl_gf_mul(gf_s *RESTRICT cs, const gf as, const gf bs)
 {
     const uint64_t *a = as->limb, *b = bs->limb;
     uint64_t *c = cs->limb;
@@ -30,21 +30,25 @@ void ossl_gf_mul(gf_s * RESTRICT cs, const gf as, const gf bs)
     uint64_t aa[4], bb[4], bbb[4];
     unsigned int i, j;
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
         aa[i] = a[i] + a[i + 4];
         bb[i] = b[i] + b[i + 4];
         bbb[i] = bb[i] + b[i + 4];
     }
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
         accum2 = 0;
 
-        for (j = 0; j <= i; j++) {
+        for (j = 0; j <= i; j++)
+        {
             accum2 += widemul(a[j], b[i - j]);
             accum1 += widemul(aa[j], bb[i - j]);
             accum0 += widemul(a[j + 4], b[i - j + 4]);
         }
-        for (; j < 4; j++) {
+        for (; j < 4; j++)
+        {
             accum2 += widemul(a[j], b[i + 8 - j]);
             accum1 += widemul(aa[j], bbb[i + 4 - j]);
             accum0 += widemul(a[j + 4], bb[i + 4 - j]);
@@ -73,7 +77,7 @@ void ossl_gf_mul(gf_s * RESTRICT cs, const gf as, const gf bs)
     c[1] += ((uint64_t)(accum1));
 }
 
-void ossl_gf_mulw_unsigned(gf_s * RESTRICT cs, const gf as, uint32_t b)
+void ossl_gf_mulw_unsigned(gf_s *RESTRICT cs, const gf as, uint32_t b)
 {
     const uint64_t *a = as->limb;
     uint64_t *c = cs->limb;
@@ -81,7 +85,8 @@ void ossl_gf_mulw_unsigned(gf_s * RESTRICT cs, const gf as, uint32_t b)
     uint64_t mask = (1ULL << 56) - 1;
     int i;
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++)
+    {
         accum0 += widemul(b, a[i]);
         accum4 += widemul(b, a[i + 4]);
         c[i] = accum0 & mask;
@@ -99,7 +104,7 @@ void ossl_gf_mulw_unsigned(gf_s * RESTRICT cs, const gf as, uint32_t b)
     c[1] += accum4 >> 56;
 }
 
-void ossl_gf_sqr(gf_s * RESTRICT cs, const gf as)
+void ossl_gf_sqr(gf_s *RESTRICT cs, const gf as)
 {
     const uint64_t *a = as->limb;
     uint64_t *c = cs->limb;

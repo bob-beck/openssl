@@ -21,7 +21,8 @@ int TS_RESP_set_status_info(TS_RESP *a, TS_STATUS_INFO *status_info)
     if (a->status_info == status_info)
         return 1;
     new_status_info = TS_STATUS_INFO_dup(status_info);
-    if (new_status_info == NULL) {
+    if (new_status_info == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_TS_LIB);
         return 0;
     }
@@ -72,7 +73,8 @@ int TS_TST_INFO_set_policy_id(TS_TST_INFO *a, ASN1_OBJECT *policy)
     if (a->policy_id == policy)
         return 1;
     new_policy = OBJ_dup(policy);
-    if (new_policy == NULL) {
+    if (new_policy == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_OBJ_LIB);
         return 0;
     }
@@ -93,7 +95,8 @@ int TS_TST_INFO_set_msg_imprint(TS_TST_INFO *a, TS_MSG_IMPRINT *msg_imprint)
     if (a->msg_imprint == msg_imprint)
         return 1;
     new_msg_imprint = TS_MSG_IMPRINT_dup(msg_imprint);
-    if (new_msg_imprint == NULL) {
+    if (new_msg_imprint == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_TS_LIB);
         return 0;
     }
@@ -114,7 +117,8 @@ int TS_TST_INFO_set_serial(TS_TST_INFO *a, const ASN1_INTEGER *serial)
     if (a->serial == serial)
         return 1;
     new_serial = ASN1_INTEGER_dup(serial);
-    if (new_serial == NULL) {
+    if (new_serial == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_ASN1_LIB);
         return 0;
     }
@@ -135,7 +139,8 @@ int TS_TST_INFO_set_time(TS_TST_INFO *a, const ASN1_GENERALIZEDTIME *gtime)
     if (a->time == gtime)
         return 1;
     new_time = ASN1_STRING_dup(gtime);
-    if (new_time == NULL) {
+    if (new_time == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_ASN1_LIB);
         return 0;
     }
@@ -156,7 +161,8 @@ int TS_TST_INFO_set_accuracy(TS_TST_INFO *a, TS_ACCURACY *accuracy)
     if (a->accuracy == accuracy)
         return 1;
     new_accuracy = TS_ACCURACY_dup(accuracy);
-    if (new_accuracy == NULL) {
+    if (new_accuracy == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_TS_LIB);
         return 0;
     }
@@ -177,7 +183,8 @@ int TS_ACCURACY_set_seconds(TS_ACCURACY *a, const ASN1_INTEGER *seconds)
     if (a->seconds == seconds)
         return 1;
     new_seconds = ASN1_INTEGER_dup(seconds);
-    if (new_seconds == NULL) {
+    if (new_seconds == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_ASN1_LIB);
         return 0;
     }
@@ -197,9 +204,11 @@ int TS_ACCURACY_set_millis(TS_ACCURACY *a, const ASN1_INTEGER *millis)
 
     if (a->millis == millis)
         return 1;
-    if (millis != NULL) {
+    if (millis != NULL)
+    {
         new_millis = ASN1_INTEGER_dup(millis);
-        if (new_millis == NULL) {
+        if (new_millis == NULL)
+        {
             ERR_raise(ERR_LIB_TS, ERR_R_ASN1_LIB);
             return 0;
         }
@@ -220,9 +229,11 @@ int TS_ACCURACY_set_micros(TS_ACCURACY *a, const ASN1_INTEGER *micros)
 
     if (a->micros == micros)
         return 1;
-    if (micros != NULL) {
+    if (micros != NULL)
+    {
         new_micros = ASN1_INTEGER_dup(micros);
-        if (new_micros == NULL) {
+        if (new_micros == NULL)
+        {
             ERR_raise(ERR_LIB_TS, ERR_R_ASN1_LIB);
             return 0;
         }
@@ -255,7 +266,8 @@ int TS_TST_INFO_set_nonce(TS_TST_INFO *a, const ASN1_INTEGER *nonce)
     if (a->nonce == nonce)
         return 1;
     new_nonce = ASN1_INTEGER_dup(nonce);
-    if (new_nonce == NULL) {
+    if (new_nonce == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_ASN1_LIB);
         return 0;
     }
@@ -276,7 +288,8 @@ int TS_TST_INFO_set_tsa(TS_TST_INFO *a, GENERAL_NAME *tsa)
     if (a->tsa == tsa)
         return 1;
     new_tsa = GENERAL_NAME_dup(tsa);
-    if (new_tsa == NULL) {
+    if (new_tsa == NULL)
+    {
         ERR_raise(ERR_LIB_TS, ERR_R_ASN1_LIB);
         return 0;
     }
@@ -353,8 +366,7 @@ const ASN1_INTEGER *TS_STATUS_INFO_get0_status(const TS_STATUS_INFO *a)
     return a->status;
 }
 
-const STACK_OF(ASN1_UTF8STRING) *
-TS_STATUS_INFO_get0_text(const TS_STATUS_INFO *a)
+const STACK_OF(ASN1_UTF8STRING) *TS_STATUS_INFO_get0_text(const TS_STATUS_INFO *a)
 {
     return a->text;
 }

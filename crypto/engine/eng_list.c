@@ -43,7 +43,8 @@ static void engine_list_cleanup(void)
 {
     ENGINE *iterator = engine_list_head;
 
-    while (iterator != NULL) {
+    while (iterator != NULL)
+    {
         ENGINE_remove(iterator);
         iterator = engine_list_head;
     }
@@ -60,16 +61,19 @@ static int engine_list_add(ENGINE *e)
     ENGINE *iterator = NULL;
     int ref;
 
-    if (e == NULL) {
+    if (e == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
     iterator = engine_list_head;
-    while (iterator && !conflict) {
+    while (iterator && !conflict)
+    {
         conflict = (strcmp(iterator->id, e->id) == 0);
         iterator = iterator->next;
     }
-    if (conflict) {
+    if (conflict)
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_CONFLICTING_ENGINE_ID);
         return 0;
     }
@@ -77,14 +81,17 @@ static int engine_list_add(ENGINE *e)
     /*
      * Having the engine in the list assumes a structural reference.
      */
-    if (!CRYPTO_UP_REF(&e->struct_ref, &ref)) {
-            ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INTERNAL_LIST_ERROR);
-            return 0;
+    if (!CRYPTO_UP_REF(&e->struct_ref, &ref))
+    {
+        ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INTERNAL_LIST_ERROR);
+        return 0;
     }
     ENGINE_REF_PRINT(e, 0, 1);
-    if (engine_list_head == NULL) {
+    if (engine_list_head == NULL)
+    {
         /* We are adding to an empty list. */
-        if (engine_list_tail != NULL) {
+        if (engine_list_tail != NULL)
+        {
             CRYPTO_DOWN_REF(&e->struct_ref, &ref);
             ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INTERNAL_LIST_ERROR);
             return 0;
@@ -92,16 +99,20 @@ static int engine_list_add(ENGINE *e)
         /*
          * The first time the list allocates, we should register the cleanup.
          */
-        if (!engine_cleanup_add_last(engine_list_cleanup)) {
+        if (!engine_cleanup_add_last(engine_list_cleanup))
+        {
             CRYPTO_DOWN_REF(&e->struct_ref, &ref);
             ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INTERNAL_LIST_ERROR);
             return 0;
         }
         engine_list_head = e;
         e->prev = NULL;
-    } else {
+    }
+    else
+    {
         /* We are adding to the tail of an existing list. */
-        if ((engine_list_tail == NULL) || (engine_list_tail->next != NULL)) {
+        if ((engine_list_tail == NULL) || (engine_list_tail->next != NULL))
+        {
             CRYPTO_DOWN_REF(&e->struct_ref, &ref);
             ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INTERNAL_LIST_ERROR);
             return 0;
@@ -120,7 +131,8 @@ static int engine_list_remove(ENGINE *e)
 {
     ENGINE *iterator;
 
-    if (e == NULL) {
+    if (e == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
@@ -128,7 +140,8 @@ static int engine_list_remove(ENGINE *e)
     iterator = engine_list_head;
     while (iterator && (iterator != e))
         iterator = iterator->next;
-    if (iterator == NULL) {
+    if (iterator == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_ENGINE_IS_NOT_IN_LIST);
         return 0;
     }
@@ -147,8 +160,7 @@ static int engine_list_remove(ENGINE *e)
 }
 
 /* Add engine to dynamic engine list. */
-int engine_add_dynamic_id(ENGINE *e, ENGINE_DYNAMIC_ID dynamic_id,
-                          int not_locked)
+int engine_add_dynamic_id(ENGINE *e, ENGINE_DYNAMIC_ID dynamic_id, int not_locked)
 {
     int result = 0;
     ENGINE *iterator = NULL;
@@ -162,9 +174,11 @@ int engine_add_dynamic_id(ENGINE *e, ENGINE_DYNAMIC_ID dynamic_id,
     if (not_locked && !CRYPTO_THREAD_write_lock(global_engine_lock))
         return 0;
 
-    if (dynamic_id != NULL) {
+    if (dynamic_id != NULL)
+    {
         iterator = engine_dyn_list_head;
-        while (iterator != NULL) {
+        while (iterator != NULL)
+        {
             if (iterator->dynamic_id == dynamic_id)
                 goto err;
             iterator = iterator->next;
@@ -174,16 +188,18 @@ int engine_add_dynamic_id(ENGINE *e, ENGINE_DYNAMIC_ID dynamic_id,
         e->dynamic_id = dynamic_id;
     }
 
-    if (engine_dyn_list_head == NULL) {
+    if (engine_dyn_list_head == NULL)
+    {
         /* We are adding to an empty list. */
         if (engine_dyn_list_tail != NULL)
             goto err;
         engine_dyn_list_head = e;
         e->prev_dyn = NULL;
-    } else {
+    }
+    else
+    {
         /* We are adding to the tail of an existing list. */
-        if (engine_dyn_list_tail == NULL
-            || engine_dyn_list_tail->next_dyn != NULL)
+        if (engine_dyn_list_tail == NULL || engine_dyn_list_tail->next_dyn != NULL)
             goto err;
         engine_dyn_list_tail->next_dyn = e;
         e->prev_dyn = engine_dyn_list_tail;
@@ -193,7 +209,7 @@ int engine_add_dynamic_id(ENGINE *e, ENGINE_DYNAMIC_ID dynamic_id,
     e->next_dyn = NULL;
     result = 1;
 
- err:
+err:
     if (not_locked)
         CRYPTO_THREAD_unlock(global_engine_lock);
     return result;
@@ -230,7 +246,8 @@ ENGINE *ENGINE_get_first(void)
 {
     ENGINE *ret;
 
-    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init)) {
+    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init))
+    {
         /* Maybe this should be raised in do_engine_lock_init() */
         ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
         return NULL;
@@ -239,10 +256,12 @@ ENGINE *ENGINE_get_first(void)
     if (!CRYPTO_THREAD_write_lock(global_engine_lock))
         return NULL;
     ret = engine_list_head;
-    if (ret) {
+    if (ret)
+    {
         int ref;
 
-        if (!CRYPTO_UP_REF(&ret->struct_ref, &ref)) {
+        if (!CRYPTO_UP_REF(&ret->struct_ref, &ref))
+        {
             CRYPTO_THREAD_unlock(global_engine_lock);
             ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
             return NULL;
@@ -257,7 +276,8 @@ ENGINE *ENGINE_get_last(void)
 {
     ENGINE *ret;
 
-    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init)) {
+    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init))
+    {
         /* Maybe this should be raised in do_engine_lock_init() */
         ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
         return NULL;
@@ -266,10 +286,12 @@ ENGINE *ENGINE_get_last(void)
     if (!CRYPTO_THREAD_write_lock(global_engine_lock))
         return NULL;
     ret = engine_list_tail;
-    if (ret) {
+    if (ret)
+    {
         int ref;
 
-        if (!CRYPTO_UP_REF(&ret->struct_ref, &ref)) {
+        if (!CRYPTO_UP_REF(&ret->struct_ref, &ref))
+        {
             CRYPTO_THREAD_unlock(global_engine_lock);
             ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
             return NULL;
@@ -284,18 +306,21 @@ ENGINE *ENGINE_get_last(void)
 ENGINE *ENGINE_get_next(ENGINE *e)
 {
     ENGINE *ret = NULL;
-    if (e == NULL) {
+    if (e == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return NULL;
     }
     if (!CRYPTO_THREAD_write_lock(global_engine_lock))
         return NULL;
     ret = e->next;
-    if (ret) {
+    if (ret)
+    {
         int ref;
 
         /* Return a valid structural reference to the next ENGINE */
-        if (!CRYPTO_UP_REF(&ret->struct_ref, &ref)) {
+        if (!CRYPTO_UP_REF(&ret->struct_ref, &ref))
+        {
             CRYPTO_THREAD_unlock(global_engine_lock);
             ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
             return NULL;
@@ -311,18 +336,21 @@ ENGINE *ENGINE_get_next(ENGINE *e)
 ENGINE *ENGINE_get_prev(ENGINE *e)
 {
     ENGINE *ret = NULL;
-    if (e == NULL) {
+    if (e == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return NULL;
     }
     if (!CRYPTO_THREAD_write_lock(global_engine_lock))
         return NULL;
     ret = e->prev;
-    if (ret) {
+    if (ret)
+    {
         int ref;
 
         /* Return a valid structural reference to the next ENGINE */
-        if (!CRYPTO_UP_REF(&ret->struct_ref, &ref)) {
+        if (!CRYPTO_UP_REF(&ret->struct_ref, &ref))
+        {
             CRYPTO_THREAD_unlock(global_engine_lock);
             ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
             return NULL;
@@ -339,17 +367,20 @@ ENGINE *ENGINE_get_prev(ENGINE *e)
 int ENGINE_add(ENGINE *e)
 {
     int to_return = 1;
-    if (e == NULL) {
+    if (e == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if ((e->id == NULL) || (e->name == NULL)) {
+    if ((e->id == NULL) || (e->name == NULL))
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_ID_OR_NAME_MISSING);
         return 0;
     }
     if (!CRYPTO_THREAD_write_lock(global_engine_lock))
         return 0;
-    if (!engine_list_add(e)) {
+    if (!engine_list_add(e))
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INTERNAL_LIST_ERROR);
         to_return = 0;
     }
@@ -361,13 +392,15 @@ int ENGINE_add(ENGINE *e)
 int ENGINE_remove(ENGINE *e)
 {
     int to_return = 1;
-    if (e == NULL) {
+    if (e == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
     if (!CRYPTO_THREAD_write_lock(global_engine_lock))
         return 0;
-    if (!engine_list_remove(e)) {
+    if (!engine_list_remove(e))
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INTERNAL_LIST_ERROR);
         to_return = 0;
     }
@@ -409,13 +442,15 @@ ENGINE *ENGINE_by_id(const char *id)
 {
     ENGINE *iterator;
     const char *load_dir = NULL;
-    if (id == NULL) {
+    if (id == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return NULL;
     }
     ENGINE_load_builtin_engines();
 
-    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init)) {
+    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init))
+    {
         /* Maybe this should be raised in do_engine_lock_init() */
         ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
         return NULL;
@@ -426,24 +461,30 @@ ENGINE *ENGINE_by_id(const char *id)
     iterator = engine_list_head;
     while (iterator && (strcmp(id, iterator->id) != 0))
         iterator = iterator->next;
-    if (iterator != NULL) {
+    if (iterator != NULL)
+    {
         /*
          * We need to return a structural reference. If this is an ENGINE
          * type that returns copies, make a duplicate - otherwise increment
          * the existing ENGINE's reference count.
          */
-        if (iterator->flags & ENGINE_FLAGS_BY_ID_COPY) {
+        if (iterator->flags & ENGINE_FLAGS_BY_ID_COPY)
+        {
             ENGINE *cp = ENGINE_new();
             if (cp == NULL)
                 iterator = NULL;
-            else {
+            else
+            {
                 engine_cpy(cp, iterator);
                 iterator = cp;
             }
-        } else {
+        }
+        else
+        {
             int ref;
 
-            if (!CRYPTO_UP_REF(&iterator->struct_ref, &ref)) {
+            if (!CRYPTO_UP_REF(&iterator->struct_ref, &ref))
+            {
                 CRYPTO_THREAD_unlock(global_engine_lock);
                 ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
                 return NULL;
@@ -457,20 +498,19 @@ ENGINE *ENGINE_by_id(const char *id)
     /*
      * Prevent infinite recursion if we're looking for the dynamic engine.
      */
-    if (strcmp(id, "dynamic")) {
+    if (strcmp(id, "dynamic"))
+    {
         if ((load_dir = ossl_safe_getenv("OPENSSL_ENGINES")) == NULL)
             load_dir = ossl_get_enginesdir();
         iterator = ENGINE_by_id("dynamic");
         if (!iterator || !ENGINE_ctrl_cmd_string(iterator, "ID", id, 0) ||
             !ENGINE_ctrl_cmd_string(iterator, "DIR_LOAD", "2", 0) ||
-            !ENGINE_ctrl_cmd_string(iterator, "DIR_ADD",
-                                    load_dir, 0) ||
-            !ENGINE_ctrl_cmd_string(iterator, "LIST_ADD", "1", 0) ||
-            !ENGINE_ctrl_cmd_string(iterator, "LOAD", NULL, 0))
+            !ENGINE_ctrl_cmd_string(iterator, "DIR_ADD", load_dir, 0) ||
+            !ENGINE_ctrl_cmd_string(iterator, "LIST_ADD", "1", 0) || !ENGINE_ctrl_cmd_string(iterator, "LOAD", NULL, 0))
             goto notfound;
         return iterator;
     }
- notfound:
+notfound:
     ENGINE_free(iterator);
     ERR_raise_data(ERR_LIB_ENGINE, ENGINE_R_NO_SUCH_ENGINE, "id=%s", id);
     return NULL;
@@ -480,7 +520,8 @@ ENGINE *ENGINE_by_id(const char *id)
 int ENGINE_up_ref(ENGINE *e)
 {
     int i;
-    if (e == NULL) {
+    if (e == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }

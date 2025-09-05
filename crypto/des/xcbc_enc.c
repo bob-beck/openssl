@@ -17,10 +17,8 @@
 
 /* RSA's DESX */
 
-void DES_xcbc_encrypt(const unsigned char *in, unsigned char *out,
-                      long length, DES_key_schedule *schedule,
-                      DES_cblock *ivec, const_DES_cblock *inw,
-                      const_DES_cblock *outw, int enc)
+void DES_xcbc_encrypt(const unsigned char *in, unsigned char *out, long length, DES_key_schedule *schedule,
+                      DES_cblock *ivec, const_DES_cblock *inw, const_DES_cblock *outw, int enc)
 {
     register DES_LONG tin0, tin1;
     register DES_LONG tout0, tout1, xor0, xor1;
@@ -39,10 +37,12 @@ void DES_xcbc_encrypt(const unsigned char *in, unsigned char *out,
 
     iv = &(*ivec)[0];
 
-    if (enc) {
+    if (enc)
+    {
         c2l(iv, tout0);
         c2l(iv, tout1);
-        for (l -= 8; l >= 0; l -= 8) {
+        for (l -= 8; l >= 0; l -= 8)
+        {
             c2l(in, tin0);
             c2l(in, tin1);
             tin0 ^= tout0 ^ inW0;
@@ -55,7 +55,8 @@ void DES_xcbc_encrypt(const unsigned char *in, unsigned char *out,
             tout1 = tin[1] ^ outW1;
             l2c(tout1, out);
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             c2ln(in, tin0, tin1, l + 8);
             tin0 ^= tout0 ^ inW0;
             tin[0] = tin0;
@@ -70,10 +71,13 @@ void DES_xcbc_encrypt(const unsigned char *in, unsigned char *out,
         iv = &(*ivec)[0];
         l2c(tout0, iv);
         l2c(tout1, iv);
-    } else {
+    }
+    else
+    {
         c2l(iv, xor0);
         c2l(iv, xor1);
-        for (l -= 8; l > 0; l -= 8) {
+        for (l -= 8; l > 0; l -= 8)
+        {
             c2l(in, tin0);
             tin[0] = tin0 ^ outW0;
             c2l(in, tin1);
@@ -86,7 +90,8 @@ void DES_xcbc_encrypt(const unsigned char *in, unsigned char *out,
             xor0 = tin0;
             xor1 = tin1;
         }
-        if (l != -8) {
+        if (l != -8)
+        {
             c2l(in, tin0);
             tin[0] = tin0 ^ outW0;
             c2l(in, tin1);

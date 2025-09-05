@@ -13,10 +13,7 @@
 
 #ifndef OPENSSL_NO_ERR
 
-static ERR_STRING_DATA DASYNC_str_reasons[] = {
-    {ERR_PACK(0, 0, DASYNC_R_INIT_FAILED), "init failed"},
-    {0, NULL}
-};
+static ERR_STRING_DATA DASYNC_str_reasons[] = {{ERR_PACK(0, 0, DASYNC_R_INIT_FAILED), "init failed"}, {0, NULL}};
 
 #endif
 
@@ -28,7 +25,8 @@ static int ERR_load_DASYNC_strings(void)
     if (lib_code == 0)
         lib_code = ERR_get_next_error_library();
 
-    if (!error_loaded) {
+    if (!error_loaded)
+    {
 #ifndef OPENSSL_NO_ERR
         ERR_load_strings(lib_code, DASYNC_str_reasons);
 #endif
@@ -39,7 +37,8 @@ static int ERR_load_DASYNC_strings(void)
 
 static void ERR_unload_DASYNC_strings(void)
 {
-    if (error_loaded) {
+    if (error_loaded)
+    {
 #ifndef OPENSSL_NO_ERR
         ERR_unload_strings(lib_code, DASYNC_str_reasons);
 #endif

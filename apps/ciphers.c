@@ -16,7 +16,8 @@
 #include <openssl/ssl.h>
 #include "s_apps.h"
 
-typedef enum OPTION_choice {
+typedef enum OPTION_choice
+{
     OPT_COMMON,
     OPT_STDNAME,
     OPT_CONVERT,
@@ -28,58 +29,56 @@ typedef enum OPTION_choice {
     OPT_PSK,
     OPT_SRP,
     OPT_CIPHERSUITES,
-    OPT_V, OPT_UPPER_V, OPT_S, OPT_PROV_ENUM
+    OPT_V,
+    OPT_UPPER_V,
+    OPT_S,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
-const OPTIONS ciphers_options[] = {
-    {OPT_HELP_STR, 1, '-', "Usage: %s [options] [cipher]\n"},
+const OPTIONS ciphers_options[] = {{OPT_HELP_STR, 1, '-', "Usage: %s [options] [cipher]\n"},
 
-    OPT_SECTION("General"),
-    {"help", OPT_HELP, '-', "Display this summary"},
+                                   OPT_SECTION("General"),
+                                   {"help", OPT_HELP, '-', "Display this summary"},
 
-    OPT_SECTION("Output"),
-    {"v", OPT_V, '-', "Verbose listing of the SSL/TLS ciphers"},
-    {"V", OPT_UPPER_V, '-', "Even more verbose"},
-    {"stdname", OPT_STDNAME, '-', "Show standard cipher names"},
-    {"convert", OPT_CONVERT, 's', "Convert standard name into OpenSSL name"},
+                                   OPT_SECTION("Output"),
+                                   {"v", OPT_V, '-', "Verbose listing of the SSL/TLS ciphers"},
+                                   {"V", OPT_UPPER_V, '-', "Even more verbose"},
+                                   {"stdname", OPT_STDNAME, '-', "Show standard cipher names"},
+                                   {"convert", OPT_CONVERT, 's', "Convert standard name into OpenSSL name"},
 
-    OPT_SECTION("Cipher specification"),
-    {"s", OPT_S, '-', "Only supported ciphers"},
+                                   OPT_SECTION("Cipher specification"),
+                                   {"s", OPT_S, '-', "Only supported ciphers"},
 #ifndef OPENSSL_NO_SSL3
-    {"ssl3", OPT_SSL3, '-', "Ciphers compatible with SSL3"},
+                                   {"ssl3", OPT_SSL3, '-', "Ciphers compatible with SSL3"},
 #endif
 #ifndef OPENSSL_NO_TLS1
-    {"tls1", OPT_TLS1, '-', "Ciphers compatible with TLS1"},
+                                   {"tls1", OPT_TLS1, '-', "Ciphers compatible with TLS1"},
 #endif
 #ifndef OPENSSL_NO_TLS1_1
-    {"tls1_1", OPT_TLS1_1, '-', "Ciphers compatible with TLS1.1"},
+                                   {"tls1_1", OPT_TLS1_1, '-', "Ciphers compatible with TLS1.1"},
 #endif
 #ifndef OPENSSL_NO_TLS1_2
-    {"tls1_2", OPT_TLS1_2, '-', "Ciphers compatible with TLS1.2"},
+                                   {"tls1_2", OPT_TLS1_2, '-', "Ciphers compatible with TLS1.2"},
 #endif
 #ifndef OPENSSL_NO_TLS1_3
-    {"tls1_3", OPT_TLS1_3, '-', "Ciphers compatible with TLS1.3"},
+                                   {"tls1_3", OPT_TLS1_3, '-', "Ciphers compatible with TLS1.3"},
 #endif
 #ifndef OPENSSL_NO_PSK
-    {"psk", OPT_PSK, '-', "Include ciphersuites requiring PSK"},
+                                   {"psk", OPT_PSK, '-', "Include ciphersuites requiring PSK"},
 #endif
 #ifndef OPENSSL_NO_SRP
-    {"srp", OPT_SRP, '-', "(deprecated) Include ciphersuites requiring SRP"},
+                                   {"srp", OPT_SRP, '-', "(deprecated) Include ciphersuites requiring SRP"},
 #endif
-    {"ciphersuites", OPT_CIPHERSUITES, 's',
-     "Configure the TLSv1.3 ciphersuites to use"},
-    OPT_PROV_OPTIONS,
+                                   {"ciphersuites", OPT_CIPHERSUITES, 's', "Configure the TLSv1.3 ciphersuites to use"},
+                                   OPT_PROV_OPTIONS,
 
-    OPT_PARAMETERS(),
-    {"cipher", 0, 0, "Cipher string to decode (optional)"},
-    {NULL}
-};
+                                   OPT_PARAMETERS(),
+                                   {"cipher", 0, 0, "Cipher string to decode (optional)"},
+                                   {NULL}};
 
 #ifndef OPENSSL_NO_PSK
-static unsigned int dummy_psk(SSL *ssl, const char *hint, char *identity,
-                              unsigned int max_identity_len,
-                              unsigned char *psk,
-                              unsigned int max_psk_len)
+static unsigned int dummy_psk(SSL *ssl, const char *hint, char *identity, unsigned int max_identity_len,
+                              unsigned char *psk, unsigned int max_psk_len)
 {
     return 0;
 }
@@ -106,11 +105,13 @@ int ciphers_main(int argc, char **argv)
     int min_version = 0, max_version = 0;
 
     prog = opt_init(argc, argv, ciphers_options);
-    while ((o = opt_next()) != OPT_EOF) {
-        switch (o) {
+    while ((o = opt_next()) != OPT_EOF)
+    {
+        switch (o)
+        {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+        opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -179,9 +180,9 @@ int ciphers_main(int argc, char **argv)
     else if (!opt_check_rest_arg(NULL))
         goto opthelp;
 
-    if (convert != NULL) {
-        BIO_printf(bio_out, "OpenSSL cipher name: %s\n",
-                   OPENSSL_cipher_name(convert));
+    if (convert != NULL)
+    {
+        BIO_printf(bio_out, "OpenSSL cipher name: %s\n", OPENSSL_cipher_name(convert));
         ret = 0;
         goto end;
     }
@@ -203,13 +204,16 @@ int ciphers_main(int argc, char **argv)
         set_up_dummy_srp(ctx);
 #endif
 
-    if (ciphersuites != NULL && !SSL_CTX_set_ciphersuites(ctx, ciphersuites)) {
+    if (ciphersuites != NULL && !SSL_CTX_set_ciphersuites(ctx, ciphersuites))
+    {
         BIO_printf(bio_err, "Error setting TLSv1.3 ciphersuites\n");
         goto err;
     }
 
-    if (ciphers != NULL) {
-        if (!SSL_CTX_set_cipher_list(ctx, ciphers)) {
+    if (ciphers != NULL)
+    {
+        if (!SSL_CTX_set_cipher_list(ctx, ciphers))
+        {
             BIO_printf(bio_err, "Error in cipher list\n");
             goto err;
         }
@@ -223,8 +227,10 @@ int ciphers_main(int argc, char **argv)
     else
         sk = SSL_get_ciphers(ssl);
 
-    if (!verbose) {
-        for (i = 0; i < sk_SSL_CIPHER_num(sk); i++) {
+    if (!verbose)
+    {
+        for (i = 0; i < sk_SSL_CIPHER_num(sk); i++)
+        {
             const SSL_CIPHER *c = sk_SSL_CIPHER_value(sk, i);
 
             if (!ossl_assert(c != NULL))
@@ -238,9 +244,12 @@ int ciphers_main(int argc, char **argv)
             BIO_printf(bio_out, "%s", p);
         }
         BIO_printf(bio_out, "\n");
-    } else {
+    }
+    else
+    {
 
-        for (i = 0; i < sk_SSL_CIPHER_num(sk); i++) {
+        for (i = 0; i < sk_SSL_CIPHER_num(sk); i++)
+        {
             const SSL_CIPHER *c;
 
             c = sk_SSL_CIPHER_value(sk, i);
@@ -248,7 +257,8 @@ int ciphers_main(int argc, char **argv)
             if (!ossl_assert(c != NULL))
                 continue;
 
-            if (Verbose) {
+            if (Verbose)
+            {
                 unsigned long id = SSL_CIPHER_get_id(c);
                 int id0 = (int)(id >> 24);
                 int id1 = (int)((id >> 16) & 0xffL);
@@ -261,7 +271,8 @@ int ciphers_main(int argc, char **argv)
                 else
                     BIO_printf(bio_out, "0x%02X,0x%02X,0x%02X,0x%02X - ", id0, id1, id2, id3); /* whatever */
             }
-            if (stdname) {
+            if (stdname)
+            {
                 const char *nm = SSL_CIPHER_standard_name(c);
                 if (nm == NULL)
                     nm = "UNKNOWN";
@@ -273,9 +284,9 @@ int ciphers_main(int argc, char **argv)
 
     ret = 0;
     goto end;
- err:
+err:
     ERR_print_errors(bio_err);
- end:
+end:
     if (use_supported)
         sk_SSL_CIPHER_free(sk);
     SSL_CTX_free(ctx);

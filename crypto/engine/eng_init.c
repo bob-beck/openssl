@@ -27,14 +27,16 @@ int engine_unlocked_init(ENGINE *e)
          * initialisation so we do it now.
          */
         to_return = e->init(e);
-    if (to_return) {
+    if (to_return)
+    {
         int ref;
 
         /*
          * OK, we return a functional reference which is also a structural
          * reference.
          */
-        if (!CRYPTO_UP_REF(&e->struct_ref, &ref)) {
+        if (!CRYPTO_UP_REF(&e->struct_ref, &ref))
+        {
             e->finish(e);
             return 0;
         }
@@ -63,7 +65,8 @@ int engine_unlocked_finish(ENGINE *e, int unlock_for_handlers)
      */
     e->funct_ref--;
     ENGINE_REF_PRINT(e, 1, -1);
-    if ((e->funct_ref == 0) && e->finish) {
+    if ((e->funct_ref == 0) && e->finish)
+    {
         if (unlock_for_handlers)
             CRYPTO_THREAD_unlock(global_engine_lock);
         to_return = e->finish(e);
@@ -75,7 +78,8 @@ int engine_unlocked_finish(ENGINE *e, int unlock_for_handlers)
     }
     REF_ASSERT_ISNT(e->funct_ref < 0);
     /* Release the structural reference too */
-    if (!engine_free_util(e, 0)) {
+    if (!engine_free_util(e, 0))
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_FINISH_FAILED);
         return 0;
     }
@@ -86,11 +90,13 @@ int engine_unlocked_finish(ENGINE *e, int unlock_for_handlers)
 int ENGINE_init(ENGINE *e)
 {
     int ret;
-    if (e == NULL) {
+    if (e == NULL)
+    {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init)) {
+    if (!RUN_ONCE(&engine_lock_init, do_engine_lock_init))
+    {
         /* Maybe this should be raised in do_engine_lock_init() */
         ERR_raise(ERR_LIB_ENGINE, ERR_R_CRYPTO_LIB);
         return 0;
@@ -113,7 +119,8 @@ int ENGINE_finish(ENGINE *e)
         return 0;
     to_return = engine_unlocked_finish(e, 1);
     CRYPTO_THREAD_unlock(global_engine_lock);
-    if (!to_return) {
+    if (!to_return)
+    {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_FINISH_FAILED);
         return 0;
     }
