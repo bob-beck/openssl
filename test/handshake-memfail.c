@@ -30,8 +30,8 @@
  * - fcount:   Number of frees counted
  * - scount:   Number of mallocs counted prior to workload
  */
-static char *cert = NULL;
-static char *privkey = NULL;
+static char* cert = NULL;
+static char* privkey = NULL;
 static int mcount, rcount, fcount, scount;
 
 /**
@@ -47,34 +47,31 @@ static int mcount, rcount, fcount, scount;
  * @note The function uses @c TEST_true() macros to validate intermediate
  *       steps. All SSL objects and contexts are freed before returning.
  */
-static int do_handshake(OSSL_LIB_CTX *libctx)
-{
-    SSL_CTX *cctx = NULL, *sctx = NULL;
-    SSL *clientssl = NULL, *serverssl = NULL;
-    int testresult = 0;
+static int do_handshake(OSSL_LIB_CTX* libctx) {
+  SSL_CTX *cctx = NULL, *sctx = NULL;
+  SSL *clientssl = NULL, *serverssl = NULL;
+  int testresult = 0;
 
-    if (!TEST_true(create_ssl_ctx_pair(libctx, TLS_server_method(),
-                                       TLS_client_method(),
-                                       TLS1_VERSION, 0,
-                                       &sctx, &cctx, cert, privkey)))
-        return 0;
+  if (!TEST_true(create_ssl_ctx_pair(libctx, TLS_server_method(),
+                                     TLS_client_method(), TLS1_VERSION, 0,
+                                     &sctx, &cctx, cert, privkey)))
+    return 0;
 
-    /* Now do a handshake */
-    if (!TEST_true(create_ssl_objects(sctx, cctx, &serverssl,
-                                      &clientssl, NULL, NULL))
-            || !TEST_true(create_ssl_connection(serverssl, clientssl,
-                                                SSL_ERROR_NONE)))
-        goto end;
+  /* Now do a handshake */
+  if (!TEST_true(
+          create_ssl_objects(sctx, cctx, &serverssl, &clientssl, NULL, NULL)) ||
+      !TEST_true(create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)))
+    goto end;
 
-    testresult = 1;
+  testresult = 1;
 
 end:
-    SSL_free(serverssl);
-    SSL_free(clientssl);
-    SSL_CTX_free(sctx);
-    SSL_CTX_free(cctx);
+  SSL_free(serverssl);
+  SSL_free(clientssl);
+  SSL_CTX_free(sctx);
+  SSL_CTX_free(cctx);
 
-    return testresult;
+  return testresult;
 }
 
 /**
@@ -86,21 +83,19 @@ end:
  *
  * @return 1 if the handshake succeeds, 0 otherwise.
  */
-static int test_record_alloc_counts(void)
-{
-    int ret;
-    OSSL_LIB_CTX *libctx;
+static int test_record_alloc_counts(void) {
+  int ret;
+  OSSL_LIB_CTX* libctx;
 
-    libctx = OSSL_LIB_CTX_new();
-    if (!TEST_ptr(libctx))
-        return 0;
+  libctx = OSSL_LIB_CTX_new();
+  if (!TEST_ptr(libctx)) return 0;
 
-    ret = do_handshake(libctx);
+  ret = do_handshake(libctx);
 
-    OSSL_LIB_CTX_free(libctx);
-    libctx = NULL;
+  OSSL_LIB_CTX_free(libctx);
+  libctx = NULL;
 
-    return ret;
+  return ret;
 }
 
 /**
@@ -114,75 +109,66 @@ static int test_record_alloc_counts(void)
  * in effect, we can't expect things to work, so we always return success
  * so that the test keeps running.
  */
-static int test_alloc_failures(void)
-{
-    OSSL_LIB_CTX *libctx;
+static int test_alloc_failures(void) {
+  OSSL_LIB_CTX* libctx;
 
-    libctx = OSSL_LIB_CTX_new();
-    if (!TEST_ptr(libctx))
-        return 1;
+  libctx = OSSL_LIB_CTX_new();
+  if (!TEST_ptr(libctx)) return 1;
 
-    do_handshake(libctx);
+  do_handshake(libctx);
 
-    OSSL_LIB_CTX_free(libctx);
-    libctx = NULL;
+  OSSL_LIB_CTX_free(libctx);
+  libctx = NULL;
 
-    return 1;
+  return 1;
 }
 
-static int test_report_alloc_counts(void)
-{
-    CRYPTO_get_alloc_counts(&mcount, &rcount, &fcount);
-    /*
-     * Report our memory allocations from the count run
-     * NOTE: We report a number of allocations to skip here
-     * (the scount value).  These are the allocations that took
-     * place while the test harness itself was getting setup
-     * (i.e. calling OPENSSL_init_crypto/etc).  We can't fail
-     * those allocations as they will cause the test to fail before
-     * we have even run the workload.  So report them so we can
-     * allow them to function before we start doing any real testing
-     */
-    TEST_info("skip: %d count %d\n", scount, mcount - scount);
-    return 1;
+static int test_report_alloc_counts(void) {
+  CRYPTO_get_alloc_counts(&mcount, &rcount, &fcount);
+  /*
+   * Report our memory allocations from the count run
+   * NOTE: We report a number of allocations to skip here
+   * (the scount value).  These are the allocations that took
+   * place while the test harness itself was getting setup
+   * (i.e. calling OPENSSL_init_crypto/etc).  We can't fail
+   * those allocations as they will cause the test to fail before
+   * we have even run the workload.  So report them so we can
+   * allow them to function before we start doing any real testing
+   */
+  TEST_info("skip: %d count %d\n", scount, mcount - scount);
+  return 1;
 }
 
-int setup_tests(void)
-{
-    char *opmode = NULL;
-    char *certsdir = NULL;
+int setup_tests(void) {
+  char* opmode = NULL;
+  char* certsdir = NULL;
 
-    if (!TEST_ptr(opmode = test_get_argument(0)))
-        goto err;
+  if (!TEST_ptr(opmode = test_get_argument(0))) goto err;
 
-    if (!TEST_ptr(certsdir = test_get_argument(1)))
-        goto err;
+  if (!TEST_ptr(certsdir = test_get_argument(1))) goto err;
 
-    cert = test_mk_file_path(certsdir, "servercert.pem");
-    if (cert == NULL)
-        goto err;
+  cert = test_mk_file_path(certsdir, "servercert.pem");
+  if (cert == NULL) goto err;
 
-    privkey = test_mk_file_path(certsdir, "serverkey.pem");
-    if (privkey == NULL)
-        goto err;
+  privkey = test_mk_file_path(certsdir, "serverkey.pem");
+  if (privkey == NULL) goto err;
 
-    if (strcmp(opmode, "count") == 0) {
-        CRYPTO_get_alloc_counts(&scount, &rcount, &fcount);
-        ADD_TEST(test_record_alloc_counts);
-        ADD_TEST(test_report_alloc_counts);
-    } else {
-        ADD_TEST(test_alloc_failures);
-    }
-    return 1;
+  if (strcmp(opmode, "count") == 0) {
+    CRYPTO_get_alloc_counts(&scount, &rcount, &fcount);
+    ADD_TEST(test_record_alloc_counts);
+    ADD_TEST(test_report_alloc_counts);
+  } else {
+    ADD_TEST(test_alloc_failures);
+  }
+  return 1;
 
- err:
-    OPENSSL_free(cert);
-    OPENSSL_free(privkey);
-    return 0;
+err:
+  OPENSSL_free(cert);
+  OPENSSL_free(privkey);
+  return 0;
 }
 
-void cleanup_tests(void)
-{
-    OPENSSL_free(cert);
-    OPENSSL_free(privkey);
+void cleanup_tests(void) {
+  OPENSSL_free(cert);
+  OPENSSL_free(privkey);
 }

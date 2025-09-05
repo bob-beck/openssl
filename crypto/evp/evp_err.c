@@ -134,7 +134,8 @@ static const ERR_STRING_DATA EVP_str_reasons[] = {
      "operation not initialized"},
     {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE),
      "operation not supported for this keytype"},
-    {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_SIGNATURE_TYPE),
+    {ERR_PACK(ERR_LIB_EVP, 0,
+              EVP_R_OPERATION_NOT_SUPPORTED_FOR_THIS_SIGNATURE_TYPE),
      "operation not supported for this signature type"},
     {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_OUTPUT_WOULD_OVERFLOW),
      "output would overflow"},
@@ -145,7 +146,8 @@ static const ERR_STRING_DATA EVP_str_reasons[] = {
     {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_PBKDF2_ERROR), "pbkdf2 error"},
     {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_PIPELINE_NOT_SUPPORTED),
      "pipeline not supported"},
-    {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_PKEY_APPLICATION_ASN1_METHOD_ALREADY_REGISTERED),
+    {ERR_PACK(ERR_LIB_EVP, 0,
+              EVP_R_PKEY_APPLICATION_ASN1_METHOD_ALREADY_REGISTERED),
      "pkey application asn1 method already registered"},
     {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_PRIVATE_KEY_DECODE_ERROR),
      "private key decode error"},
@@ -218,16 +220,14 @@ static const ERR_STRING_DATA EVP_str_reasons[] = {
      "xts data unit is too large"},
     {ERR_PACK(ERR_LIB_EVP, 0, EVP_R_XTS_DUPLICATED_KEYS),
      "xts duplicated keys"},
-    {0, NULL}
-};
+    {0, NULL}};
 
 #endif
 
-int ossl_err_load_EVP_strings(void)
-{
+int ossl_err_load_EVP_strings(void) {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_reason_error_string(EVP_str_reasons[0].error) == NULL)
-        ERR_load_strings_const(EVP_str_reasons);
+  if (ERR_reason_error_string(EVP_str_reasons[0].error) == NULL)
+    ERR_load_strings_const(EVP_str_reasons);
 #endif
-    return 1;
+  return 1;
 }

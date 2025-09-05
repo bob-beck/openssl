@@ -19,7 +19,8 @@
  * reduce computations.
  *
  * 2) Montgomery multiplication
- * The multiplication of a.b mod q requires division by q which is a slow operation.
+ * The multiplication of a.b mod q requires division by q which is a slow
+ * operation.
  *
  * When many multiplications mod q are required montgomery multiplication
  * can be used. This requires a number R > q such that R & q are coprime
@@ -76,8 +77,7 @@ static const uint32_t zetas_montgomery[256] = {
     5341501, 3523897, 3866901, 269760,  2213111, 7404533, 1717735, 472078,
     7953734, 1723600, 6577327, 1910376, 6712985, 7276084, 8119771, 4546524,
     5441381, 6144432, 7959518, 6094090, 183443,  7403526, 1612842, 4834730,
-    7826001, 3919660, 8332111, 7018208, 3937738, 1400424, 7534263, 1976782
-};
+    7826001, 3919660, 8332111, 7018208, 3937738, 1400424, 7534263, 1976782};
 
 /*
  * @brief When multiplying 2 numbers mod q that are in montgomery form, the
@@ -90,31 +90,29 @@ static const uint32_t zetas_montgomery[256] = {
  * @returns The Montgomery form of 'a' with multiplier 2^32 in the range 0..q-1
  *          The result is congruent to x * 2^-32 mod q
  */
-static uint32_t reduce_montgomery(uint64_t a)
-{
-    uint64_t t = (uint32_t)a * (uint32_t)ML_DSA_Q_NEG_INV; /* a * -qinv */
-    uint64_t b = a + t * ML_DSA_Q; /* a - t * q */
-    uint32_t c = b >> 32; /* /2^32  = 0..2q */
+static uint32_t reduce_montgomery(uint64_t a) {
+  uint64_t t = (uint32_t)a * (uint32_t)ML_DSA_Q_NEG_INV; /* a * -qinv */
+  uint64_t b = a + t * ML_DSA_Q;                         /* a - t * q */
+  uint32_t c = b >> 32;                                  /* /2^32  = 0..2q */
 
-    return reduce_once(c); /* 0..q */
+  return reduce_once(c); /* 0..q */
 }
 
 /*
- * @brief Multiply two polynomials in the number theoretically transformed state.
- * See FIPS 204, Algorithm 45, MultiplyNTT()
- * This function has been modified to use montgomery multiplication
+ * @brief Multiply two polynomials in the number theoretically transformed
+ * state. See FIPS 204, Algorithm 45, MultiplyNTT() This function has been
+ * modified to use montgomery multiplication
  *
  * @param lhs A polynomial multiplicand
  * @param rhs A polynomial multiplier
  * @param out The returned result of the polynomial multiply
  */
-void ossl_ml_dsa_poly_ntt_mult(const POLY *lhs, const POLY *rhs, POLY *out)
-{
-    int i;
+void ossl_ml_dsa_poly_ntt_mult(const POLY* lhs, const POLY* rhs, POLY* out) {
+  int i;
 
-    for (i = 0; i < ML_DSA_NUM_POLY_COEFFICIENTS; i++)
-        out->coeff[i] =
-            reduce_montgomery((uint64_t)lhs->coeff[i] * (uint64_t)rhs->coeff[i]);
+  for (i = 0; i < ML_DSA_NUM_POLY_COEFFICIENTS; i++)
+    out->coeff[i] =
+        reduce_montgomery((uint64_t)lhs->coeff[i] * (uint64_t)rhs->coeff[i]);
 }
 
 /*
@@ -126,31 +124,29 @@ void ossl_ml_dsa_poly_ntt_mult(const POLY *lhs, const POLY *rhs, POLY *out)
  * @param p a polynomial that is used as the input, that is replaced with
  *        the NTT of the polynomial
  */
-void ossl_ml_dsa_poly_ntt(POLY *p)
-{
-    int i, j, k;
-    int step;
-    int offset = ML_DSA_NUM_POLY_COEFFICIENTS;
+void ossl_ml_dsa_poly_ntt(POLY* p) {
+  int i, j, k;
+  int step;
+  int offset = ML_DSA_NUM_POLY_COEFFICIENTS;
 
-    /* Step: 1, 2, 4, 8, ..., 128 */
-    for (step = 1; step < ML_DSA_NUM_POLY_COEFFICIENTS; step <<= 1) {
-        k = 0;
-        offset >>= 1; /* Offset: 128, 64, 32, 16, ..., 1 */
-        for (i = 0; i < step; i++) {
-            const uint32_t z_step_root = zetas_montgomery[step + i];
+  /* Step: 1, 2, 4, 8, ..., 128 */
+  for (step = 1; step < ML_DSA_NUM_POLY_COEFFICIENTS; step <<= 1) {
+    k = 0;
+    offset >>= 1; /* Offset: 128, 64, 32, 16, ..., 1 */
+    for (i = 0; i < step; i++) {
+      const uint32_t z_step_root = zetas_montgomery[step + i];
 
-            for (j = k; j < k + offset; j++) {
-                uint32_t w_even = p->coeff[j];
-                uint32_t t_odd =
-                    reduce_montgomery((uint64_t)z_step_root
-                                      * (uint64_t)p->coeff[j + offset]);
+      for (j = k; j < k + offset; j++) {
+        uint32_t w_even = p->coeff[j];
+        uint32_t t_odd = reduce_montgomery((uint64_t)z_step_root *
+                                           (uint64_t)p->coeff[j + offset]);
 
-                p->coeff[j] = reduce_once(w_even + t_odd);
-                p->coeff[j + offset] = mod_sub(w_even, t_odd);
-            }
-            k += 2 * offset;
-        }
+        p->coeff[j] = reduce_once(w_even + t_odd);
+        p->coeff[j + offset] = mod_sub(w_even, t_odd);
+      }
+      k += 2 * offset;
     }
+  }
 }
 
 /*
@@ -160,39 +156,38 @@ void ossl_ml_dsa_poly_ntt(POLY *p)
  * @param p a polynomial that is used as the input, that is overwritten with
  *          the inverse of the NTT.
  */
-void ossl_ml_dsa_poly_ntt_inverse(POLY *p)
-{
-    /*
-     * Step: 128, 64, 32, 16, ..., 1
-     * Offset: 1, 2, 4, 8, ..., 128
-     */
-    int i, j, k, offset, step = ML_DSA_NUM_POLY_COEFFICIENTS;
-    /*
-     * The multiplicative inverse of 256 mod q, in Montgomery form is
-     * ((256^-1 mod q) * ((2^32 * 2^32) mod q)) mod q = (8347681 * 2365951) mod 8380417
-     */
-    static const uint32_t inverse_degree_montgomery = 41978;
+void ossl_ml_dsa_poly_ntt_inverse(POLY* p) {
+  /*
+   * Step: 128, 64, 32, 16, ..., 1
+   * Offset: 1, 2, 4, 8, ..., 128
+   */
+  int i, j, k, offset, step = ML_DSA_NUM_POLY_COEFFICIENTS;
+  /*
+   * The multiplicative inverse of 256 mod q, in Montgomery form is
+   * ((256^-1 mod q) * ((2^32 * 2^32) mod q)) mod q = (8347681 * 2365951) mod
+   * 8380417
+   */
+  static const uint32_t inverse_degree_montgomery = 41978;
 
-    for (offset = 1; offset < ML_DSA_NUM_POLY_COEFFICIENTS; offset <<= 1) {
-        step >>= 1;
-        k = 0;
-        for (i = 0; i < step; i++) {
-            const uint32_t step_root =
-                ML_DSA_Q - zetas_montgomery[step + (step - 1 - i)];
+  for (offset = 1; offset < ML_DSA_NUM_POLY_COEFFICIENTS; offset <<= 1) {
+    step >>= 1;
+    k = 0;
+    for (i = 0; i < step; i++) {
+      const uint32_t step_root =
+          ML_DSA_Q - zetas_montgomery[step + (step - 1 - i)];
 
-            for (j = k; j < k + offset; j++) {
-                uint32_t even = p->coeff[j];
-                uint32_t odd = p->coeff[j + offset];
+      for (j = k; j < k + offset; j++) {
+        uint32_t even = p->coeff[j];
+        uint32_t odd = p->coeff[j + offset];
 
-                p->coeff[j] = reduce_once(odd + even);
-                p->coeff[j + offset] =
-                    reduce_montgomery((uint64_t)step_root
-                                      * (uint64_t)(ML_DSA_Q + even - odd));
-            }
-            k += 2 * offset;
-        }
+        p->coeff[j] = reduce_once(odd + even);
+        p->coeff[j + offset] = reduce_montgomery(
+            (uint64_t)step_root * (uint64_t)(ML_DSA_Q + even - odd));
+      }
+      k += 2 * offset;
     }
-    for (i = 0; i < ML_DSA_NUM_POLY_COEFFICIENTS; i++)
-        p->coeff[i] = reduce_montgomery((uint64_t)p->coeff[i] *
-                                        (uint64_t)inverse_degree_montgomery);
+  }
+  for (i = 0; i < ML_DSA_NUM_POLY_COEFFICIENTS; i++)
+    p->coeff[i] = reduce_montgomery((uint64_t)p->coeff[i] *
+                                    (uint64_t)inverse_degree_montgomery);
 }

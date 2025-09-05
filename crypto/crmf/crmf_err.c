@@ -14,7 +14,7 @@
 
 #ifndef OPENSSL_NO_CRMF
 
-# ifndef OPENSSL_NO_ERR
+#ifndef OPENSSL_NO_ERR
 
 static const ERR_STRING_DATA CRMF_str_reasons[] = {
     {ERR_PACK(ERR_LIB_CRMF, 0, CRMF_R_BAD_PBM_ITERATIONCOUNT),
@@ -69,18 +69,16 @@ static const ERR_STRING_DATA CRMF_str_reasons[] = {
      "unsupported method for creating popo"},
     {ERR_PACK(ERR_LIB_CRMF, 0, CRMF_R_UNSUPPORTED_POPO_METHOD),
      "unsupported popo method"},
-    {0, NULL}
-};
+    {0, NULL}};
 
-# endif
+#endif
 
-int ossl_err_load_CRMF_strings(void)
-{
-# ifndef OPENSSL_NO_ERR
-    if (ERR_reason_error_string(CRMF_str_reasons[0].error) == NULL)
-        ERR_load_strings_const(CRMF_str_reasons);
-# endif
-    return 1;
+int ossl_err_load_CRMF_strings(void) {
+#ifndef OPENSSL_NO_ERR
+  if (ERR_reason_error_string(CRMF_str_reasons[0].error) == NULL)
+    ERR_load_strings_const(CRMF_str_reasons);
+#endif
+  return 1;
 }
 #else
 NON_EMPTY_TRANSLATION_UNIT

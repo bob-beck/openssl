@@ -23,8 +23,8 @@
 #include "testutil.h"
 
 typedef struct cipher_id_name {
-    int id;
-    const char *name;
+  int id;
+  const char* name;
 } CIPHER_ID_NAME;
 
 /* Cipher suites, copied from t1_trce.c */
@@ -367,106 +367,109 @@ static CIPHER_ID_NAME cipher_names[] = {
     {0xFEFF, "SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA"},
 };
 
-static const char *get_std_name_by_id(int id)
-{
-    size_t i;
+static const char* get_std_name_by_id(int id) {
+  size_t i;
 
-    for (i = 0; i < OSSL_NELEM(cipher_names); i++)
-        if (cipher_names[i].id == id)
-            return cipher_names[i].name;
+  for (i = 0; i < OSSL_NELEM(cipher_names); i++)
+    if (cipher_names[i].id == id) return cipher_names[i].name;
 
-    return NULL;
+  return NULL;
 }
 
-static int test_cipher_name(void)
-{
-    SSL_CTX *ctx = NULL;
-    SSL *ssl = NULL;
-    const SSL_CIPHER *c;
-    STACK_OF(SSL_CIPHER) *sk = NULL;
-    const char *ciphers = "ALL:eNULL", *p, *q, *r;
-    int i, id = 0, ret = 0;
+static int test_cipher_name(void) {
+  SSL_CTX* ctx = NULL;
+  SSL* ssl = NULL;
+  const SSL_CIPHER* c;
+  STACK_OF(SSL_CIPHER)* sk = NULL;
+  const char *ciphers = "ALL:eNULL", *p, *q, *r;
+  int i, id = 0, ret = 0;
 
-    /* tests for invalid input */
-    p = SSL_CIPHER_standard_name(NULL);
-    if (!TEST_str_eq(p, "(NONE)")) {
-        TEST_info("test_cipher_name(std) failed: NULL input doesn't return \"(NONE)\"\n");
-        goto err;
-    }
+  /* tests for invalid input */
+  p = SSL_CIPHER_standard_name(NULL);
+  if (!TEST_str_eq(p, "(NONE)")) {
+    TEST_info(
+        "test_cipher_name(std) failed: NULL input doesn't return \"(NONE)\"\n");
+    goto err;
+  }
 
-    p = OPENSSL_cipher_name(NULL);
-    if (!TEST_str_eq(p, "(NONE)")) {
-        TEST_info("test_cipher_name(ossl) failed: NULL input doesn't return \"(NONE)\"\n");
-        goto err;
-    }
+  p = OPENSSL_cipher_name(NULL);
+  if (!TEST_str_eq(p, "(NONE)")) {
+    TEST_info(
+        "test_cipher_name(ossl) failed: NULL input doesn't return "
+        "\"(NONE)\"\n");
+    goto err;
+  }
 
-    p = OPENSSL_cipher_name("This is not a valid cipher");
-    if (!TEST_str_eq(p, "(NONE)")) {
-        TEST_info("test_cipher_name(ossl) failed: invalid input doesn't return \"(NONE)\"\n");
-        goto err;
-    }
+  p = OPENSSL_cipher_name("This is not a valid cipher");
+  if (!TEST_str_eq(p, "(NONE)")) {
+    TEST_info(
+        "test_cipher_name(ossl) failed: invalid input doesn't return "
+        "\"(NONE)\"\n");
+    goto err;
+  }
 
-    /* tests for valid input */
-    ctx = SSL_CTX_new(TLS_server_method());
-    if (ctx == NULL) {
-        TEST_info("test_cipher_name failed: internal error\n");
-        goto err;
-    }
+  /* tests for valid input */
+  ctx = SSL_CTX_new(TLS_server_method());
+  if (ctx == NULL) {
+    TEST_info("test_cipher_name failed: internal error\n");
+    goto err;
+  }
 
-    if (!SSL_CTX_set_cipher_list(ctx, ciphers)) {
-        TEST_info("test_cipher_name failed: internal error\n");
-        goto err;
-    }
+  if (!SSL_CTX_set_cipher_list(ctx, ciphers)) {
+    TEST_info("test_cipher_name failed: internal error\n");
+    goto err;
+  }
 
-    ssl = SSL_new(ctx);
-    if (ssl == NULL) {
-        TEST_info("test_cipher_name failed: internal error\n");
-        goto err;
-    }
+  ssl = SSL_new(ctx);
+  if (ssl == NULL) {
+    TEST_info("test_cipher_name failed: internal error\n");
+    goto err;
+  }
 
-    sk = SSL_get_ciphers(ssl);
-    if (sk == NULL) {
-        TEST_info("test_cipher_name failed: internal error\n");
-        goto err;
-    }
+  sk = SSL_get_ciphers(ssl);
+  if (sk == NULL) {
+    TEST_info("test_cipher_name failed: internal error\n");
+    goto err;
+  }
 
-    for (i = 0; i < sk_SSL_CIPHER_num(sk); i++) {
-        c = sk_SSL_CIPHER_value(sk, i);
-        id = SSL_CIPHER_get_id(c) & 0xFFFF;
-        if ((id == 0xC102) || (id == 0xFF85) ||(id == 0xFF87))
-            /* skip GOST2012-GOST8912-GOST891 and GOST2012-NULL-GOST12 */
-            continue;
-        p = SSL_CIPHER_standard_name(c);
-        q = get_std_name_by_id(id);
-        if (!TEST_ptr(p)) {
-            TEST_info("test_cipher_name failed: expected %s, got NULL, cipher %x\n",
-                      q, id);
-            goto err;
-        }
-        /* check if p is a valid standard name */
-        if (!TEST_str_eq(p, q)) {
-            TEST_info("test_cipher_name(std) failed: expected %s, got %s, cipher %x\n",
-                       q, p, id);
-            goto err;
-        }
-        /* test OPENSSL_cipher_name */
-        q = SSL_CIPHER_get_name(c);
-        r = OPENSSL_cipher_name(p);
-        if (!TEST_str_eq(r, q)) {
-            TEST_info("test_cipher_name(ossl) failed: expected %s, got %s, cipher %x\n",
-                       q, r, id);
-            goto err;
-        }
+  for (i = 0; i < sk_SSL_CIPHER_num(sk); i++) {
+    c = sk_SSL_CIPHER_value(sk, i);
+    id = SSL_CIPHER_get_id(c) & 0xFFFF;
+    if ((id == 0xC102) || (id == 0xFF85) || (id == 0xFF87))
+      /* skip GOST2012-GOST8912-GOST891 and GOST2012-NULL-GOST12 */
+      continue;
+    p = SSL_CIPHER_standard_name(c);
+    q = get_std_name_by_id(id);
+    if (!TEST_ptr(p)) {
+      TEST_info("test_cipher_name failed: expected %s, got NULL, cipher %x\n",
+                q, id);
+      goto err;
     }
-    ret = 1;
+    /* check if p is a valid standard name */
+    if (!TEST_str_eq(p, q)) {
+      TEST_info(
+          "test_cipher_name(std) failed: expected %s, got %s, cipher %x\n", q,
+          p, id);
+      goto err;
+    }
+    /* test OPENSSL_cipher_name */
+    q = SSL_CIPHER_get_name(c);
+    r = OPENSSL_cipher_name(p);
+    if (!TEST_str_eq(r, q)) {
+      TEST_info(
+          "test_cipher_name(ossl) failed: expected %s, got %s, cipher %x\n", q,
+          r, id);
+      goto err;
+    }
+  }
+  ret = 1;
 err:
-    SSL_CTX_free(ctx);
-    SSL_free(ssl);
-    return ret;
+  SSL_CTX_free(ctx);
+  SSL_free(ssl);
+  return ret;
 }
 
-int setup_tests(void)
-{
-    ADD_TEST(test_cipher_name);
-    return 1;
+int setup_tests(void) {
+  ADD_TEST(test_cipher_name);
+  return 1;
 }

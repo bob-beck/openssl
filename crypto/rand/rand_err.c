@@ -96,16 +96,14 @@ static const ERR_STRING_DATA RAND_str_reasons[] = {
      "unsupported drbg flags"},
     {ERR_PACK(ERR_LIB_RAND, 0, RAND_R_UNSUPPORTED_DRBG_TYPE),
      "unsupported drbg type"},
-    {0, NULL}
-};
+    {0, NULL}};
 
 #endif
 
-int ossl_err_load_RAND_strings(void)
-{
+int ossl_err_load_RAND_strings(void) {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_reason_error_string(RAND_str_reasons[0].error) == NULL)
-        ERR_load_strings_const(RAND_str_reasons);
+  if (ERR_reason_error_string(RAND_str_reasons[0].error) == NULL)
+    ERR_load_strings_const(RAND_str_reasons);
 #endif
-    return 1;
+  return 1;
 }
