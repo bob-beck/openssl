@@ -16,31 +16,30 @@ use OpenSSL::stackhash qw(generate_stack_macros);
 /* clang-format on */
 
 #ifndef OPENSSL_CT_H
-# define OPENSSL_CT_H
-# pragma once
+#define OPENSSL_CT_H
+#pragma once
 
-# include <openssl/macros.h>
-# ifndef OPENSSL_NO_DEPRECATED_3_0
-#  define HEADER_CT_H
-# endif
+#include <openssl/macros.h>
+#ifndef OPENSSL_NO_DEPRECATED_3_0
+#define HEADER_CT_H
+#endif
 
-# include <openssl/opensslconf.h>
+#include <openssl/opensslconf.h>
 
-# ifndef OPENSSL_NO_CT
-# include <openssl/types.h>
-# include <openssl/safestack.h>
-# include <openssl/x509.h>
-# include <openssl/cterr.h>
-# ifdef  __cplusplus
+#ifndef OPENSSL_NO_CT
+#include <openssl/types.h>
+#include <openssl/safestack.h>
+#include <openssl/x509.h>
+#include <openssl/cterr.h>
+#ifdef __cplusplus
 extern "C" {
-# endif
-
+#endif
 
 /* Minimum RSA key size, from RFC6962 */
-# define SCT_MIN_RSA_BITS 2048
+#define SCT_MIN_RSA_BITS 2048
 
 /* All hashes are SHA256 in v1 of Certificate Transparency */
-# define CT_V1_HASHLEN SHA256_DIGEST_LENGTH
+#define CT_V1_HASHLEN SHA256_DIGEST_LENGTH
 
 /* clang-format off */
 {-
@@ -49,32 +48,28 @@ extern "C" {
 -}
 /* clang-format on */
 
-
 typedef enum {
-    CT_LOG_ENTRY_TYPE_NOT_SET = -1,
-    CT_LOG_ENTRY_TYPE_X509 = 0,
-    CT_LOG_ENTRY_TYPE_PRECERT = 1
+  CT_LOG_ENTRY_TYPE_NOT_SET = -1,
+  CT_LOG_ENTRY_TYPE_X509 = 0,
+  CT_LOG_ENTRY_TYPE_PRECERT = 1
 } ct_log_entry_type_t;
 
-typedef enum {
-    SCT_VERSION_NOT_SET = -1,
-    SCT_VERSION_V1 = 0
-} sct_version_t;
+typedef enum { SCT_VERSION_NOT_SET = -1, SCT_VERSION_V1 = 0 } sct_version_t;
 
 typedef enum {
-    SCT_SOURCE_UNKNOWN,
-    SCT_SOURCE_TLS_EXTENSION,
-    SCT_SOURCE_X509V3_EXTENSION,
-    SCT_SOURCE_OCSP_STAPLED_RESPONSE
+  SCT_SOURCE_UNKNOWN,
+  SCT_SOURCE_TLS_EXTENSION,
+  SCT_SOURCE_X509V3_EXTENSION,
+  SCT_SOURCE_OCSP_STAPLED_RESPONSE
 } sct_source_t;
 
 typedef enum {
-    SCT_VALIDATION_STATUS_NOT_SET,
-    SCT_VALIDATION_STATUS_UNKNOWN_LOG,
-    SCT_VALIDATION_STATUS_VALID,
-    SCT_VALIDATION_STATUS_INVALID,
-    SCT_VALIDATION_STATUS_UNVERIFIED,
-    SCT_VALIDATION_STATUS_UNKNOWN_VERSION
+  SCT_VALIDATION_STATUS_NOT_SET,
+  SCT_VALIDATION_STATUS_UNKNOWN_LOG,
+  SCT_VALIDATION_STATUS_VALID,
+  SCT_VALIDATION_STATUS_INVALID,
+  SCT_VALIDATION_STATUS_UNVERIFIED,
+  SCT_VALIDATION_STATUS_UNKNOWN_VERSION
 } sct_validation_status_t;
 
 /******************************************
@@ -100,7 +95,7 @@ CT_POLICY_EVAL_CTX *CT_POLICY_EVAL_CTX_new(void);
 void CT_POLICY_EVAL_CTX_free(CT_POLICY_EVAL_CTX *ctx);
 
 /* Gets the peer certificate that the SCTs are for */
-X509* CT_POLICY_EVAL_CTX_get0_cert(const CT_POLICY_EVAL_CTX *ctx);
+X509 *CT_POLICY_EVAL_CTX_get0_cert(const CT_POLICY_EVAL_CTX *ctx);
 
 /*
  * Sets the certificate associated with the received SCTs.
@@ -110,7 +105,7 @@ X509* CT_POLICY_EVAL_CTX_get0_cert(const CT_POLICY_EVAL_CTX *ctx);
 int CT_POLICY_EVAL_CTX_set1_cert(CT_POLICY_EVAL_CTX *ctx, X509 *cert);
 
 /* Gets the issuer of the aforementioned certificate */
-X509* CT_POLICY_EVAL_CTX_get0_issuer(const CT_POLICY_EVAL_CTX *ctx);
+X509 *CT_POLICY_EVAL_CTX_get0_issuer(const CT_POLICY_EVAL_CTX *ctx);
 
 /*
  * Sets the issuer of the certificate associated with the received SCTs.
@@ -120,7 +115,8 @@ X509* CT_POLICY_EVAL_CTX_get0_issuer(const CT_POLICY_EVAL_CTX *ctx);
 int CT_POLICY_EVAL_CTX_set1_issuer(CT_POLICY_EVAL_CTX *ctx, X509 *issuer);
 
 /* Gets the CT logs that are trusted sources of SCTs */
-const CTLOG_STORE *CT_POLICY_EVAL_CTX_get0_log_store(const CT_POLICY_EVAL_CTX *ctx);
+const CTLOG_STORE *
+CT_POLICY_EVAL_CTX_get0_log_store(const CT_POLICY_EVAL_CTX *ctx);
 
 /* Sets the log store that is in use. It must outlive the CT_POLICY_EVAL_CTX. */
 void CT_POLICY_EVAL_CTX_set_shared_CTLOG_STORE(CT_POLICY_EVAL_CTX *ctx,
@@ -155,10 +151,8 @@ SCT *SCT_new(void);
  * Creates a new SCT from some base64-encoded strings.
  * The caller is responsible for calling SCT_free when finished with the SCT.
  */
-SCT *SCT_new_from_base64(unsigned char version,
-                         const char *logid_base64,
-                         ct_log_entry_type_t entry_type,
-                         uint64_t timestamp,
+SCT *SCT_new_from_base64(unsigned char version, const char *logid_base64,
+                         ct_log_entry_type_t entry_type, uint64_t timestamp,
                          const char *extensions_base64,
                          const char *signature_base64);
 
@@ -342,7 +336,6 @@ __owur int SCT_validate(SCT *sct, const CT_POLICY_EVAL_CTX *ctx);
 __owur int SCT_LIST_validate(const STACK_OF(SCT) *scts,
                              CT_POLICY_EVAL_CTX *ctx);
 
-
 /*********************************
  * SCT parsing and serialization *
  *********************************/
@@ -403,9 +396,9 @@ STACK_OF(SCT) *d2i_SCT_LIST(STACK_OF(SCT) **a, const unsigned char **pp,
 
 /*
  * Serialize (to TLS format) an |sct| and write it to |out|.
- * If |out| is null, no SCT will be output but the length will still be returned.
- * If |out| points to a null pointer, a string will be allocated to hold the
- * TLS-format SCT. It is the responsibility of the caller to free it.
+ * If |out| is null, no SCT will be output but the length will still be
+ * returned. If |out| points to a null pointer, a string will be allocated to
+ * hold the TLS-format SCT. It is the responsibility of the caller to free it.
  * If |out| points to an allocated string, the TLS-format SCT will be written
  * to it.
  * The length of the SCT in TLS format will be returned.
@@ -437,8 +430,8 @@ SCT *o2i_SCT(SCT **psct, const unsigned char **in, size_t len);
  * Returns NULL if malloc fails or if |public_key| cannot be converted to DER.
  * Should be deleted by the caller using CTLOG_free when no longer needed.
  */
-CTLOG *CTLOG_new_ex(EVP_PKEY *public_key, const char *name, OSSL_LIB_CTX *libctx,
-                    const char *propq);
+CTLOG *CTLOG_new_ex(EVP_PKEY *public_key, const char *name,
+                    OSSL_LIB_CTX *libctx, const char *propq);
 
 /*
  * The same as CTLOG_new_ex except that the default library context and
@@ -463,8 +456,8 @@ int CTLOG_new_from_base64_ex(CTLOG **ct_log, const char *pkey_base64,
  * library context and property query string are used.
  * Returns 1 on success, 0 on failure.
  */
-int CTLOG_new_from_base64(CTLOG ** ct_log,
-                          const char *pkey_base64, const char *name);
+int CTLOG_new_from_base64(CTLOG **ct_log, const char *pkey_base64,
+                          const char *name);
 
 /*
  * Deletes a CT log instance and its fields.
@@ -522,8 +515,8 @@ __owur int CTLOG_STORE_load_file(CTLOG_STORE *store, const char *file);
  */
 __owur int CTLOG_STORE_load_default_file(CTLOG_STORE *store);
 
-#  ifdef  __cplusplus
+#ifdef __cplusplus
 }
-#  endif
-# endif
+#endif
+#endif
 #endif
