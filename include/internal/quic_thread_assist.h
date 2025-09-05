@@ -8,17 +8,17 @@
  */
 
 #ifndef OSSL_QUIC_THREAD_ASSIST_H
-# define OSSL_QUIC_THREAD_ASSIST_H
+#define OSSL_QUIC_THREAD_ASSIST_H
 
-# include <openssl/ssl.h>
-# include "internal/thread.h"
-# include "internal/time.h"
+#include <openssl/ssl.h>
+#include "internal/thread.h"
+#include "internal/time.h"
 
-# if defined(OPENSSL_NO_QUIC) || defined(OPENSSL_NO_THREAD_POOL)
-#  define OPENSSL_NO_QUIC_THREAD_ASSIST
-# endif
+#if defined(OPENSSL_NO_QUIC) || defined(OPENSSL_NO_THREAD_POOL)
+#define OPENSSL_NO_QUIC_THREAD_ASSIST
+#endif
 
-# ifndef OPENSSL_NO_QUIC_THREAD_ASSIST
+#ifndef OPENSSL_NO_QUIC_THREAD_ASSIST
 
 /*
  * QUIC Thread Assisted Functionality
@@ -42,11 +42,12 @@
  * amounts to an automatic ticking of the QUIC engine when timeouts expire,
  * synchronised correctly with an application's own threads using locking.
  */
-typedef struct quic_thread_assist_st {
-    QUIC_CHANNEL *ch;
-    CRYPTO_CONDVAR *cv;
-    CRYPTO_THREAD *t;
-    int teardown, joined;
+typedef struct quic_thread_assist_st
+{
+  QUIC_CHANNEL* ch;
+  CRYPTO_CONDVAR* cv;
+  CRYPTO_THREAD* t;
+  int teardown, joined;
 } QUIC_THREAD_ASSIST;
 
 /*
@@ -55,8 +56,8 @@ typedef struct quic_thread_assist_st {
  * the mutex is currently held when this function is called. This function does
  * not affect the state of the mutex.
  */
-int ossl_quic_thread_assist_init_start(QUIC_THREAD_ASSIST *qta,
-                                       QUIC_CHANNEL *ch);
+int
+ossl_quic_thread_assist_init_start(QUIC_THREAD_ASSIST* qta, QUIC_CHANNEL* ch);
 
 /*
  * Request the thread assist helper to begin stopping the assist thread. This
@@ -65,7 +66,8 @@ int ossl_quic_thread_assist_init_start(QUIC_THREAD_ASSIST *qta,
  *
  * Precondition: channel mutex must be held (unchecked)
  */
-int ossl_quic_thread_assist_stop_async(QUIC_THREAD_ASSIST *qta);
+int
+ossl_quic_thread_assist_stop_async(QUIC_THREAD_ASSIST* qta);
 
 /*
  * Wait until the thread assist helper is torn down. This automatically implies
@@ -74,7 +76,8 @@ int ossl_quic_thread_assist_stop_async(QUIC_THREAD_ASSIST *qta);
  *
  * Precondition: channel mutex must be held (unchecked)
  */
-int ossl_quic_thread_assist_wait_stopped(QUIC_THREAD_ASSIST *qta);
+int
+ossl_quic_thread_assist_wait_stopped(QUIC_THREAD_ASSIST* qta);
 
 /*
  * Deallocates state associated with the thread assist helper.
@@ -84,15 +87,17 @@ int ossl_quic_thread_assist_wait_stopped(QUIC_THREAD_ASSIST *qta);
  * Precondition: ossl_quic_thread_assist_wait_stopped() has returned 1
  *               (asserted)
  */
-int ossl_quic_thread_assist_cleanup(QUIC_THREAD_ASSIST *qta);
+int
+ossl_quic_thread_assist_cleanup(QUIC_THREAD_ASSIST* qta);
 
 /*
  * Must be called to notify the assist thread if the channel deadline changes.
  *
  * Precondition: channel mutex must be held (unchecked)
  */
-int ossl_quic_thread_assist_notify_deadline_changed(QUIC_THREAD_ASSIST *qta);
+int
+ossl_quic_thread_assist_notify_deadline_changed(QUIC_THREAD_ASSIST* qta);
 
-# endif
+#endif
 
 #endif

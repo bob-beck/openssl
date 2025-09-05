@@ -7,9 +7,10 @@
  * https://www.openssl.org/source/license.html
  */
 
-struct ml_dsa_sig_st {
-    VECTOR z;
-    VECTOR hint;
-    uint8_t *c_tilde;
-    size_t c_tilde_len;
+struct ml_dsa_sig_st
+{
+  VECTOR z;
+  VECTOR hint;
+  uint8_t* c_tilde;
+  size_t c_tilde_len;
 };

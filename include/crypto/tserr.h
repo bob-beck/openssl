@@ -9,22 +9,23 @@
  */
 
 #ifndef OSSL_CRYPTO_TSERR_H
-# define OSSL_CRYPTO_TSERR_H
-# pragma once
+#define OSSL_CRYPTO_TSERR_H
+#pragma once
 
-# include <openssl/opensslconf.h>
-# include <openssl/symhacks.h>
+#include <openssl/opensslconf.h>
+#include <openssl/symhacks.h>
 
-# ifdef  __cplusplus
-extern "C" {
-# endif
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-# ifndef OPENSSL_NO_TS
+#ifndef OPENSSL_NO_TS
 
-int ossl_err_load_TS_strings(void);
-# endif
+  int ossl_err_load_TS_strings(void);
+#endif
 
-# ifdef  __cplusplus
+#ifdef __cplusplus
 }
-# endif
+#endif
 #endif

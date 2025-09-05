@@ -11,47 +11,58 @@
 #include "prov/ciphercommon.h"
 #include "crypto/aes_platform.h"
 
-typedef struct prov_aes_ctx_st {
-    PROV_CIPHER_CTX base;      /* Must be first */
-    union {
-        OSSL_UNION_ALIGN;
-        AES_KEY ks;
-    } ks;
+typedef struct prov_aes_ctx_st
+{
+  PROV_CIPHER_CTX base; /* Must be first */
+  union
+  {
+    OSSL_UNION_ALIGN;
+    AES_KEY ks;
+  } ks;
 
-    /* Platform specific data */
-    union {
-        int dummy;
+  /* Platform specific data */
+  union
+  {
+    int dummy;
 #if defined(OPENSSL_CPUID_OBJ) && defined(__s390__)
-        struct {
-            union {
-                OSSL_UNION_ALIGN;
-                /*-
-                 * KM-AES parameter block - begin
-                 * (see z/Architecture Principles of Operation >= SA22-7832-06)
-                 */
-                struct {
-                    unsigned char k[32];
-                } km;
-                /* KM-AES parameter block - end */
-                /*-
-                 * KMO-AES/KMF-AES parameter block - begin
-                 * (see z/Architecture Principles of Operation >= SA22-7832-08)
-                 */
-                struct {
-                    unsigned char cv[16];
-                    unsigned char k[32];
-                } kmo_kmf;
-                /* KMO-AES/KMF-AES parameter block - end */
-            } param;
-            unsigned int fc;
-        } s390x;
+    struct
+    {
+      union
+      {
+        OSSL_UNION_ALIGN;
+        /*-
+         * KM-AES parameter block - begin
+         * (see z/Architecture Principles of Operation >= SA22-7832-06)
+         */
+        struct
+        {
+          unsigned char k[32];
+        } km;
+        /* KM-AES parameter block - end */
+        /*-
+         * KMO-AES/KMF-AES parameter block - begin
+         * (see z/Architecture Principles of Operation >= SA22-7832-08)
+         */
+        struct
+        {
+          unsigned char cv[16];
+          unsigned char k[32];
+        } kmo_kmf;
+        /* KMO-AES/KMF-AES parameter block - end */
+      } param;
+      unsigned int fc;
+    } s390x;
 #endif /* defined(OPENSSL_CPUID_OBJ) && defined(__s390__) */
-    } plat;
+  } plat;
 
 } PROV_AES_CTX;
 
 #define ossl_prov_cipher_hw_aes_ofb ossl_prov_cipher_hw_aes_ofb128
-const PROV_CIPHER_HW *ossl_prov_cipher_hw_aes_ecb(size_t keybits);
-const PROV_CIPHER_HW *ossl_prov_cipher_hw_aes_cbc(size_t keybits);
-const PROV_CIPHER_HW *ossl_prov_cipher_hw_aes_ofb128(size_t keybits);
-const PROV_CIPHER_HW *ossl_prov_cipher_hw_aes_ctr(size_t keybits);
+const PROV_CIPHER_HW*
+ossl_prov_cipher_hw_aes_ecb(size_t keybits);
+const PROV_CIPHER_HW*
+ossl_prov_cipher_hw_aes_cbc(size_t keybits);
+const PROV_CIPHER_HW*
+ossl_prov_cipher_hw_aes_ofb128(size_t keybits);
+const PROV_CIPHER_HW*
+ossl_prov_cipher_hw_aes_ctr(size_t keybits);

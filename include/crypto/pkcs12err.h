@@ -9,19 +9,20 @@
  */
 
 #ifndef OSSL_CRYPTO_PKCS12ERR_H
-# define OSSL_CRYPTO_PKCS12ERR_H
-# pragma once
+#define OSSL_CRYPTO_PKCS12ERR_H
+#pragma once
 
-# include <openssl/opensslconf.h>
-# include <openssl/symhacks.h>
+#include <openssl/opensslconf.h>
+#include <openssl/symhacks.h>
 
-# ifdef  __cplusplus
-extern "C" {
-# endif
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
-int ossl_err_load_PKCS12_strings(void);
+  int ossl_err_load_PKCS12_strings(void);
 
-# ifdef  __cplusplus
+#ifdef __cplusplus
 }
-# endif
+#endif
 #endif

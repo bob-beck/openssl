@@ -7,13 +7,13 @@
  * https://www.openssl.org/source/license.html
  */
 #ifndef OSSL_QUIC_REACTOR_WAIT_CTX_H
-# define OSSL_QUIC_REACTOR_WAIT_CTX_H
+#define OSSL_QUIC_REACTOR_WAIT_CTX_H
 
-# include "internal/quic_predef.h"
-# include "internal/quic_reactor.h"
-# include "internal/list.h"
+#include "internal/quic_predef.h"
+#include "internal/quic_reactor.h"
+#include "internal/list.h"
 
-# ifndef OPENSSL_NO_QUIC
+#ifndef OPENSSL_NO_QUIC
 
 /*
  * QUIC_REACTOR_WAIT_CTX
@@ -85,20 +85,24 @@ typedef struct quic_reactor_wait_slot_st QUIC_REACTOR_WAIT_SLOT;
 
 DECLARE_LIST_OF(quic_reactor_wait_slot, QUIC_REACTOR_WAIT_SLOT);
 
-struct quic_reactor_wait_ctx_st {
-    OSSL_LIST(quic_reactor_wait_slot) slots;
+struct quic_reactor_wait_ctx_st
+{
+  OSSL_LIST(quic_reactor_wait_slot) slots;
 };
 
 /* Initialises a wait context. */
-void ossl_quic_reactor_wait_ctx_init(QUIC_REACTOR_WAIT_CTX *ctx);
+void
+ossl_quic_reactor_wait_ctx_init(QUIC_REACTOR_WAIT_CTX* ctx);
 
 /* Uprefs a given reactor. */
-int ossl_quic_reactor_wait_ctx_enter(QUIC_REACTOR_WAIT_CTX *ctx,
-                                     QUIC_REACTOR *rtor);
+int
+ossl_quic_reactor_wait_ctx_enter(QUIC_REACTOR_WAIT_CTX* ctx,
+                                 QUIC_REACTOR* rtor);
 
 /* Downrefs a given reactor. */
-void ossl_quic_reactor_wait_ctx_leave(QUIC_REACTOR_WAIT_CTX *ctx,
-                                      QUIC_REACTOR *rtor);
+void
+ossl_quic_reactor_wait_ctx_leave(QUIC_REACTOR_WAIT_CTX* ctx,
+                                 QUIC_REACTOR* rtor);
 
 /*
  * Destroys a wait context. Must be called after calling init().
@@ -107,8 +111,9 @@ void ossl_quic_reactor_wait_ctx_leave(QUIC_REACTOR_WAIT_CTX *ctx,
  * been balanced with corresponding leave() calls before calling this
  * (unchecked).
  */
-void ossl_quic_reactor_wait_ctx_cleanup(QUIC_REACTOR_WAIT_CTX *ctx);
+void
+ossl_quic_reactor_wait_ctx_cleanup(QUIC_REACTOR_WAIT_CTX* ctx);
 
-# endif
+#endif
 
 #endif

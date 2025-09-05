@@ -9,4 +9,5 @@
 
 #include <openssl/objects.h>
 
-void ossl_obj_cleanup_int(void);
+void
+ossl_obj_cleanup_int(void);

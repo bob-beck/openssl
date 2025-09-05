@@ -11,10 +11,10 @@
  */
 
 #ifndef OSSL_CRYPTO_EC_CURVE448_POINT_448_H
-# define OSSL_CRYPTO_EC_CURVE448_POINT_448_H
+#define OSSL_CRYPTO_EC_CURVE448_POINT_448_H
 
-# include "curve448utils.h"
-# include "field.h"
+#include "curve448utils.h"
+#include "field.h"
 
 /* Comb config: number of combs, n, t, s. */
 #define COMBS_N 5
@@ -22,39 +22,43 @@
 #define COMBS_S 18
 
 /* Projective Niels coordinates */
-typedef struct {
-    gf a, b, c;
+typedef struct
+{
+  gf a, b, c;
 } niels_s, niels_t[1];
-typedef struct {
-    niels_t n;
-    gf z;
+typedef struct
+{
+  niels_t n;
+  gf z;
 } pniels_t[1];
 
 /* Precomputed base */
-struct curve448_precomputed_s {
-    niels_t table[COMBS_N << (COMBS_T - 1)];
+struct curve448_precomputed_s
+{
+  niels_t table[COMBS_N << (COMBS_T - 1)];
 };
 
-# define C448_SCALAR_LIMBS ((446-1)/C448_WORD_BITS+1)
+#define C448_SCALAR_LIMBS ((446 - 1) / C448_WORD_BITS + 1)
 
 /* The number of bits in a scalar */
-# define C448_SCALAR_BITS 446
+#define C448_SCALAR_BITS 446
 
 /* Number of bytes in a serialized scalar. */
-# define C448_SCALAR_BYTES 56
+#define C448_SCALAR_BYTES 56
 
 /* X448 encoding ratio. */
-# define X448_ENCODE_RATIO 2
+#define X448_ENCODE_RATIO 2
 
 /* Number of bytes in an x448 public key */
-# define X448_PUBLIC_BYTES 56
+#define X448_PUBLIC_BYTES 56
 
 /* Number of bytes in an x448 private key */
-# define X448_PRIVATE_BYTES 56
+#define X448_PRIVATE_BYTES 56
 
 /* Twisted Edwards extended homogeneous coordinates */
-typedef struct curve448_point_s {
-    gf x, y, z, t;
+typedef struct curve448_point_s
+{
+  gf x, y, z, t;
 } curve448_point_t[1];
 
 /* Precomputed table based on a point.  Can be trivial implementation. */
@@ -64,8 +68,9 @@ struct curve448_precomputed_s;
 typedef struct curve448_precomputed_s curve448_precomputed_s;
 
 /* Scalar is stored packed, because we don't need the speed. */
-typedef struct curve448_scalar_s {
-    c448_word_t limb[C448_SCALAR_LIMBS];
+typedef struct curve448_scalar_s
+{
+  c448_word_t limb[C448_SCALAR_LIMBS];
 } curve448_scalar_t[1];
 
 /* A scalar equal to 1. */
@@ -78,8 +83,8 @@ extern const curve448_scalar_t ossl_curve448_scalar_zero;
 extern const curve448_point_t ossl_curve448_point_identity;
 
 /* Precomputed table for the base point on the curve. */
-extern const struct curve448_precomputed_s *ossl_curve448_precomputed_base;
-extern const niels_t *ossl_curve448_wnaf_base;
+extern const struct curve448_precomputed_s* ossl_curve448_precomputed_base;
+extern const niels_t* ossl_curve448_wnaf_base;
 
 /*
  * Read a scalar from wire format or from bytes.
@@ -105,7 +110,8 @@ ossl_curve448_scalar_decode(curve448_scalar_t out,
  */
 void
 ossl_curve448_scalar_decode_long(curve448_scalar_t out,
-                                 const unsigned char *ser, size_t ser_len);
+                                 const unsigned char* ser,
+                                 size_t ser_len);
 
 /*
  * Serialize a scalar to wire format.
@@ -126,7 +132,8 @@ ossl_curve448_scalar_encode(unsigned char ser[C448_SCALAR_BYTES],
  */
 void
 ossl_curve448_scalar_add(curve448_scalar_t out,
-                         const curve448_scalar_t a, const curve448_scalar_t b);
+                         const curve448_scalar_t a,
+                         const curve448_scalar_t b);
 
 /*
  * Subtract two scalars.  |a|, |b| and |out| may alias each other.
@@ -136,7 +143,8 @@ ossl_curve448_scalar_add(curve448_scalar_t out,
  */
 void
 ossl_curve448_scalar_sub(curve448_scalar_t out,
-                         const curve448_scalar_t a, const curve448_scalar_t b);
+                         const curve448_scalar_t a,
+                         const curve448_scalar_t b);
 
 /*
  * Multiply two scalars. |a|, |b| and |out| may alias each other.
@@ -147,14 +155,15 @@ ossl_curve448_scalar_sub(curve448_scalar_t out,
  */
 void
 ossl_curve448_scalar_mul(curve448_scalar_t out,
-                         const curve448_scalar_t a, const curve448_scalar_t b);
+                         const curve448_scalar_t a,
+                         const curve448_scalar_t b);
 
 /*
-* Halve a scalar.  |a| and |out| may alias each other.
-*
-* a (in): A scalar.
-* out (out): a/2.
-*/
+ * Halve a scalar.  |a| and |out| may alias each other.
+ *
+ * a (in): A scalar.
+ * out (out): a/2.
+ */
 void
 ossl_curve448_scalar_halve(curve448_scalar_t out, const curve448_scalar_t a);
 
@@ -165,10 +174,10 @@ ossl_curve448_scalar_halve(curve448_scalar_t out, const curve448_scalar_t a);
  * a (in): A scalar.
  * out (out): Will become a copy of a.
  */
-static ossl_inline void curve448_scalar_copy(curve448_scalar_t out,
-                                             const curve448_scalar_t a)
+static ossl_inline void
+curve448_scalar_copy(curve448_scalar_t out, const curve448_scalar_t a)
 {
-    *out = *a;
+  *out = *a;
 }
 
 /*
@@ -178,10 +187,10 @@ static ossl_inline void curve448_scalar_copy(curve448_scalar_t out,
  * a (out): A copy of the point.
  * b (in): Any point.
  */
-static ossl_inline void curve448_point_copy(curve448_point_t a,
-                                            const curve448_point_t b)
+static ossl_inline void
+curve448_point_copy(curve448_point_t a, const curve448_point_t b)
 {
-    *a = *b;
+  *a = *b;
 }
 
 /*
@@ -196,8 +205,7 @@ static ossl_inline void curve448_point_copy(curve448_point_t a,
  * C448_FALSE: The points are not equal.
  */
 __owur c448_bool_t
-ossl_curve448_point_eq(const curve448_point_t a,
-                       const curve448_point_t b);
+ossl_curve448_point_eq(const curve448_point_t a, const curve448_point_t b);
 
 /*
  * Double a point. Equivalent to curve448_point_add(two_a,a,a), but potentially
@@ -248,8 +256,8 @@ ossl_x448_int(uint8_t out[X448_PUBLIC_BYTES],
  */
 void
 ossl_curve448_point_mul_by_ratio_and_encode_like_x448(
-                                        uint8_t out[X448_PUBLIC_BYTES],
-                                        const curve448_point_t p);
+  uint8_t out[X448_PUBLIC_BYTES],
+  const curve448_point_t p);
 
 /*
  * RFC 7748 Diffie-Hellman base point scalarmul.  This function uses a different
@@ -271,7 +279,7 @@ ossl_x448_derive_public_key(uint8_t out[X448_PUBLIC_BYTES],
  */
 void
 ossl_curve448_precomputed_scalarmul(curve448_point_t scaled,
-                                    const curve448_precomputed_s *base,
+                                    const curve448_precomputed_s* base,
                                     const curve448_scalar_t scalar);
 
 /*
@@ -308,9 +316,11 @@ __owur c448_bool_t
 ossl_curve448_point_valid(const curve448_point_t to_test);
 
 /* Overwrite scalar with zeros. */
-void ossl_curve448_scalar_destroy(curve448_scalar_t scalar);
+void
+ossl_curve448_scalar_destroy(curve448_scalar_t scalar);
 
 /* Overwrite point with zeros. */
-void ossl_curve448_point_destroy(curve448_point_t point);
+void
+ossl_curve448_point_destroy(curve448_point_t point);
 
-#endif                          /* OSSL_CRYPTO_EC_CURVE448_POINT_448_H */
+#endif /* OSSL_CRYPTO_EC_CURVE448_POINT_448_H */
