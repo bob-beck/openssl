@@ -42,7 +42,7 @@ static const unsigned char key_table[256] = {
 };
 
 #if defined(_MSC_VER) && defined(_ARM_)
-# pragma optimize("g",off)
+#pragma optimize("g", off)
 #endif
 
 /*
@@ -52,53 +52,52 @@ static const unsigned char key_table[256] = {
  * shipped is the same as specifying 1024 for the 'bits' parameter.  Bsafe
  * uses a version where the bits parameter is the same as len*8
  */
-void RC2_set_key(RC2_KEY *key, int len, const unsigned char *data, int bits)
-{
-    int i, j;
-    unsigned char *k;
-    RC2_INT *ki;
-    unsigned int c, d;
+void RC2_set_key(RC2_KEY* key, int len, const unsigned char* data, int bits) {
+  int i, j;
+  unsigned char* k;
+  RC2_INT* ki;
+  unsigned int c, d;
 
-    k = (unsigned char *)&(key->data[0]);
-    *k = 0;                     /* for if there is a zero length key */
+  k = (unsigned char*)&(key->data[0]);
+  *k = 0; /* for if there is a zero length key */
 
-    if (len > 128)
-        len = 128;
-    if (bits <= 0)
-        bits = 1024;
-    if (bits > 1024)
-        bits = 1024;
+  if (len > 128)
+    len = 128;
+  if (bits <= 0)
+    bits = 1024;
+  if (bits > 1024)
+    bits = 1024;
 
-    for (i = 0; i < len; i++)
-        k[i] = data[i];
+  for (i = 0; i < len; i++)
+    k[i] = data[i];
 
-    /* expand table */
-    d = k[len - 1];
-    j = 0;
-    for (i = len; i < 128; i++, j++) {
-        d = key_table[(k[j] + d) & 0xff];
-        k[i] = d;
-    }
-
-    /* hmm.... key reduction to 'bits' bits */
-
-    j = (bits + 7) >> 3;
-    i = 128 - j;
-    c = (0xff >> (-bits & 0x07));
-
-    d = key_table[k[i] & c];
+  /* expand table */
+  d = k[len - 1];
+  j = 0;
+  for (i = len; i < 128; i++, j++) {
+    d = key_table[(k[j] + d) & 0xff];
     k[i] = d;
-    while (i--) {
-        d = key_table[k[i + j] ^ d];
-        k[i] = d;
-    }
+  }
 
-    /* copy from bytes into RC2_INT's */
-    ki = &(key->data[63]);
-    for (i = 127; i >= 0; i -= 2)
-        *(ki--) = ((k[i] << 8) | k[i - 1]) & 0xffff;
+  /* hmm.... key reduction to 'bits' bits */
+
+  j = (bits + 7) >> 3;
+  i = 128 - j;
+  c = (0xff >> (-bits & 0x07));
+
+  d = key_table[k[i] & c];
+  k[i] = d;
+  while (i--) {
+    d = key_table[k[i + j] ^ d];
+    k[i] = d;
+  }
+
+  /* copy from bytes into RC2_INT's */
+  ki = &(key->data[63]);
+  for (i = 127; i >= 0; i -= 2)
+    *(ki--) = ((k[i] << 8) | k[i - 1]) & 0xffff;
 }
 
 #if defined(_MSC_VER)
-# pragma optimize("",on)
+#pragma optimize("", on)
 #endif

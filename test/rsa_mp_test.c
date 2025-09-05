@@ -136,194 +136,187 @@ static const unsigned char ex_coefficient[] =
     "\x1a\xff\x7a\xc7\xf9\xf9\x67\x2d\xa0\x9d\x61\xf8\xf6\x47\x5c\x2f"
     "\xe7\x66\xe8\x3c\x3a\xe8";
 
-static int key2048_key(RSA *key)
-{
-    if (!TEST_int_eq(RSA_set0_key(key,
-                                  BN_bin2bn(n, sizeof(n) - 1, NULL),
-                                  BN_bin2bn(e, sizeof(e) - 1, NULL),
-                                  BN_bin2bn(d, sizeof(d) - 1, NULL)), 1))
-        return 0;
+static int key2048_key(RSA* key) {
+  if (!TEST_int_eq(RSA_set0_key(key, BN_bin2bn(n, sizeof(n) - 1, NULL),
+                                BN_bin2bn(e, sizeof(e) - 1, NULL),
+                                BN_bin2bn(d, sizeof(d) - 1, NULL)),
+                   1))
+    return 0;
 
-    return RSA_size(key);
+  return RSA_size(key);
 }
 
-static int key2048p3_v1(RSA *key)
-{
-    BIGNUM **pris = NULL, **exps = NULL, **coeffs = NULL;
-    int rv = RSA_size(key);
+static int key2048p3_v1(RSA* key) {
+  BIGNUM **pris = NULL, **exps = NULL, **coeffs = NULL;
+  int rv = RSA_size(key);
 
+  if (!TEST_int_eq(RSA_set0_factors(key, BN_bin2bn(p, sizeof(p) - 1, NULL),
+                                    BN_bin2bn(q, sizeof(q) - 1, NULL)),
+                   1))
+    goto err;
 
-    if (!TEST_int_eq(RSA_set0_factors(key,
-                                      BN_bin2bn(p, sizeof(p) - 1, NULL),
-                                      BN_bin2bn(q, sizeof(q) - 1, NULL)), 1))
-        goto err;
+  if (!TEST_int_eq(
+          RSA_set0_crt_params(key, BN_bin2bn(dmp1, sizeof(dmp1) - 1, NULL),
+                              BN_bin2bn(dmq1, sizeof(dmq1) - 1, NULL),
+                              BN_bin2bn(iqmp, sizeof(iqmp) - 1, NULL)),
+          1))
+    return 0;
 
-    if (!TEST_int_eq(RSA_set0_crt_params(key,
-                                         BN_bin2bn(dmp1, sizeof(dmp1) - 1, NULL),
-                                         BN_bin2bn(dmq1, sizeof(dmq1) - 1, NULL),
-                                         BN_bin2bn(iqmp, sizeof(iqmp) - 1,
-                                                   NULL)), 1))
-        return 0;
+  pris = OPENSSL_zalloc(sizeof(BIGNUM*));
+  exps = OPENSSL_zalloc(sizeof(BIGNUM*));
+  coeffs = OPENSSL_zalloc(sizeof(BIGNUM*));
+  if (!TEST_ptr(pris) || !TEST_ptr(exps) || !TEST_ptr(coeffs))
+    goto err;
 
-    pris = OPENSSL_zalloc(sizeof(BIGNUM *));
-    exps = OPENSSL_zalloc(sizeof(BIGNUM *));
-    coeffs = OPENSSL_zalloc(sizeof(BIGNUM *));
-    if (!TEST_ptr(pris) || !TEST_ptr(exps) || !TEST_ptr(coeffs))
-        goto err;
+  pris[0] = BN_bin2bn(ex_prime, sizeof(ex_prime) - 1, NULL);
+  exps[0] = BN_bin2bn(ex_exponent, sizeof(ex_exponent) - 1, NULL);
+  coeffs[0] = BN_bin2bn(ex_coefficient, sizeof(ex_coefficient) - 1, NULL);
+  if (!TEST_ptr(pris[0]) || !TEST_ptr(exps[0]) || !TEST_ptr(coeffs[0]))
+    goto err;
 
-    pris[0] = BN_bin2bn(ex_prime, sizeof(ex_prime) - 1, NULL);
-    exps[0] = BN_bin2bn(ex_exponent, sizeof(ex_exponent) - 1, NULL);
-    coeffs[0] = BN_bin2bn(ex_coefficient, sizeof(ex_coefficient) - 1, NULL);
-    if (!TEST_ptr(pris[0]) || !TEST_ptr(exps[0]) || !TEST_ptr(coeffs[0]))
-        goto err;
+  if (!TEST_true(RSA_set0_multi_prime_params(key, pris, exps, coeffs,
+                                             NUM_EXTRA_PRIMES)))
+    goto err;
 
-    if (!TEST_true(RSA_set0_multi_prime_params(key, pris, exps,
-                                               coeffs, NUM_EXTRA_PRIMES)))
-        goto err;
-
- ret:
-    OPENSSL_free(pris);
-    OPENSSL_free(exps);
-    OPENSSL_free(coeffs);
-    return rv;
- err:
-    if (pris != NULL)
-        BN_free(pris[0]);
-    if (exps != NULL)
-        BN_free(exps[0]);
-    if (coeffs != NULL)
-        BN_free(coeffs[0]);
-    rv = 0;
-    goto ret;
-}
-
-static int key2048p3_v2(RSA *key)
-{
-    STACK_OF(BIGNUM) *primes = NULL, *exps = NULL, *coeffs = NULL;
-    BIGNUM *num = NULL;
-    int rv = RSA_size(key);
-
-    if (!TEST_ptr(primes = sk_BIGNUM_new_null())
-        || !TEST_ptr(exps = sk_BIGNUM_new_null())
-        || !TEST_ptr(coeffs = sk_BIGNUM_new_null()))
-        goto err;
-
-    if (!TEST_ptr(num = BN_bin2bn(p, sizeof(p) - 1, NULL))
-        || !TEST_int_ne(sk_BIGNUM_push(primes, num), 0)
-        || !TEST_ptr(num = BN_bin2bn(q, sizeof(q) - 1, NULL))
-        || !TEST_int_ne(sk_BIGNUM_push(primes, num), 0)
-        || !TEST_ptr(num = BN_bin2bn(ex_prime, sizeof(ex_prime) - 1, NULL))
-        || !TEST_int_ne(sk_BIGNUM_push(primes, num), 0))
-        goto err;
-
-    if (!TEST_ptr(num = BN_bin2bn(dmp1, sizeof(dmp1) - 1, NULL))
-        || !TEST_int_ne(sk_BIGNUM_push(exps, num), 0)
-        || !TEST_ptr(num = BN_bin2bn(dmq1, sizeof(dmq1) - 1, NULL))
-        || !TEST_int_ne(sk_BIGNUM_push(exps, num), 0)
-        || !TEST_ptr(num = BN_bin2bn(ex_exponent, sizeof(ex_exponent) - 1, NULL))
-        || !TEST_int_ne(sk_BIGNUM_push(exps, num), 0))
-        goto err;
-
-    if (!TEST_ptr(num = BN_bin2bn(iqmp, sizeof(iqmp) - 1, NULL))
-        || !TEST_int_ne(sk_BIGNUM_push(coeffs, num), 0)
-        || !TEST_ptr(num = BN_bin2bn(ex_coefficient, sizeof(ex_coefficient) - 1, NULL))
-        || !TEST_int_ne(sk_BIGNUM_push(coeffs, num), 0))
-        goto err;
-
-    if (!TEST_true(ossl_rsa_set0_all_params(key, primes, exps, coeffs)))
-        goto err;
-
- ret:
-    sk_BIGNUM_free(primes);
-    sk_BIGNUM_free(exps);
-    sk_BIGNUM_free(coeffs);
-    return rv;
- err:
-    sk_BIGNUM_pop_free(primes, BN_free);
-    sk_BIGNUM_pop_free(exps, BN_free);
-    sk_BIGNUM_pop_free(coeffs, BN_free);
-    primes = exps = coeffs = NULL;
-    rv = 0;
-    goto ret;
-}
-
-static int test_rsa_mp(int i)
-{
-    int ret = 0;
-    RSA *key;
-    unsigned char ptext[256];
-    unsigned char ctext[256];
-    static unsigned char ptext_ex[] = "\x54\x85\x9b\x34\x2c\x49\xea\x2a";
-    int plen;
-    int clen = 0;
-    int num;
-    static int (*param_set[])(RSA *) = {
-        key2048p3_v1,
-        key2048p3_v2,
-    };
-
-    plen = sizeof(ptext_ex) - 1;
-    key = RSA_new();
-    if (!TEST_ptr(key))
-        goto err;
-
-    if (!TEST_int_eq((clen = key2048_key(key)), 256)
-        || !TEST_int_eq((clen = param_set[i](key)), 256))
-        goto err;
-
-    if (!TEST_true(RSA_check_key_ex(key, NULL)))
-        goto err;
-
-    num = RSA_public_encrypt(plen, ptext_ex, ctext, key,
-                             RSA_PKCS1_PADDING);
-    if (!TEST_int_eq(num, clen))
-        goto err;
-
-    num = RSA_private_decrypt(num, ctext, ptext, key, RSA_PKCS1_PADDING);
-    if (!TEST_mem_eq(ptext, num, ptext_ex, plen))
-        goto err;
-
-    ret = 1;
+ret:
+  OPENSSL_free(pris);
+  OPENSSL_free(exps);
+  OPENSSL_free(coeffs);
+  return rv;
 err:
-    RSA_free(key);
-    return ret;
+  if (pris != NULL)
+    BN_free(pris[0]);
+  if (exps != NULL)
+    BN_free(exps[0]);
+  if (coeffs != NULL)
+    BN_free(coeffs[0]);
+  rv = 0;
+  goto ret;
 }
 
-static int test_rsa_mp_gen_bad_input(void)
-{
-    int ret = 0;
-    RSA *rsa = NULL;
-    BIGNUM *ebn = NULL;
+static int key2048p3_v2(RSA* key) {
+  STACK_OF(BIGNUM)*primes = NULL, *exps = NULL, *coeffs = NULL;
+  BIGNUM* num = NULL;
+  int rv = RSA_size(key);
 
-    if (!TEST_ptr(rsa = RSA_new()))
-        goto err;
+  if (!TEST_ptr(primes = sk_BIGNUM_new_null()) ||
+      !TEST_ptr(exps = sk_BIGNUM_new_null()) ||
+      !TEST_ptr(coeffs = sk_BIGNUM_new_null()))
+    goto err;
 
-    if (!TEST_ptr(ebn = BN_new()))
-        goto err;
-    if (!TEST_true(BN_set_word(ebn, 65537)))
-        goto err;
+  if (!TEST_ptr(num = BN_bin2bn(p, sizeof(p) - 1, NULL)) ||
+      !TEST_int_ne(sk_BIGNUM_push(primes, num), 0) ||
+      !TEST_ptr(num = BN_bin2bn(q, sizeof(q) - 1, NULL)) ||
+      !TEST_int_ne(sk_BIGNUM_push(primes, num), 0) ||
+      !TEST_ptr(num = BN_bin2bn(ex_prime, sizeof(ex_prime) - 1, NULL)) ||
+      !TEST_int_ne(sk_BIGNUM_push(primes, num), 0))
+    goto err;
 
-    /* Test that a NULL exponent fails and does not segfault */
-    if (!TEST_int_eq(RSA_generate_multi_prime_key(rsa, 1024, 2, NULL, NULL), 0))
-        goto err;
+  if (!TEST_ptr(num = BN_bin2bn(dmp1, sizeof(dmp1) - 1, NULL)) ||
+      !TEST_int_ne(sk_BIGNUM_push(exps, num), 0) ||
+      !TEST_ptr(num = BN_bin2bn(dmq1, sizeof(dmq1) - 1, NULL)) ||
+      !TEST_int_ne(sk_BIGNUM_push(exps, num), 0) ||
+      !TEST_ptr(num = BN_bin2bn(ex_exponent, sizeof(ex_exponent) - 1, NULL)) ||
+      !TEST_int_ne(sk_BIGNUM_push(exps, num), 0))
+    goto err;
 
-    /* Test invalid bitsize fails */
-    if (!TEST_int_eq(RSA_generate_multi_prime_key(rsa, 500, 2, ebn, NULL), 0))
-        goto err;
+  if (!TEST_ptr(num = BN_bin2bn(iqmp, sizeof(iqmp) - 1, NULL)) ||
+      !TEST_int_ne(sk_BIGNUM_push(coeffs, num), 0) ||
+      !TEST_ptr(
+          num = BN_bin2bn(ex_coefficient, sizeof(ex_coefficient) - 1, NULL)) ||
+      !TEST_int_ne(sk_BIGNUM_push(coeffs, num), 0))
+    goto err;
 
-    /* Test invalid prime count fails */
-    if (!TEST_int_eq(RSA_generate_multi_prime_key(rsa, 1024, 1, ebn, NULL), 0))
-        goto err;
-    ret = 1;
+  if (!TEST_true(ossl_rsa_set0_all_params(key, primes, exps, coeffs)))
+    goto err;
+
+ret:
+  sk_BIGNUM_free(primes);
+  sk_BIGNUM_free(exps);
+  sk_BIGNUM_free(coeffs);
+  return rv;
 err:
-    BN_free(ebn);
-    RSA_free(rsa);
-    return ret;
+  sk_BIGNUM_pop_free(primes, BN_free);
+  sk_BIGNUM_pop_free(exps, BN_free);
+  sk_BIGNUM_pop_free(coeffs, BN_free);
+  primes = exps = coeffs = NULL;
+  rv = 0;
+  goto ret;
 }
 
-int setup_tests(void)
-{
-    ADD_TEST(test_rsa_mp_gen_bad_input);
-    ADD_ALL_TESTS(test_rsa_mp, 2);
-    return 1;
+static int test_rsa_mp(int i) {
+  int ret = 0;
+  RSA* key;
+  unsigned char ptext[256];
+  unsigned char ctext[256];
+  static unsigned char ptext_ex[] = "\x54\x85\x9b\x34\x2c\x49\xea\x2a";
+  int plen;
+  int clen = 0;
+  int num;
+  static int (*param_set[])(RSA*) = {
+      key2048p3_v1,
+      key2048p3_v2,
+  };
+
+  plen = sizeof(ptext_ex) - 1;
+  key = RSA_new();
+  if (!TEST_ptr(key))
+    goto err;
+
+  if (!TEST_int_eq((clen = key2048_key(key)), 256) ||
+      !TEST_int_eq((clen = param_set[i](key)), 256))
+    goto err;
+
+  if (!TEST_true(RSA_check_key_ex(key, NULL)))
+    goto err;
+
+  num = RSA_public_encrypt(plen, ptext_ex, ctext, key, RSA_PKCS1_PADDING);
+  if (!TEST_int_eq(num, clen))
+    goto err;
+
+  num = RSA_private_decrypt(num, ctext, ptext, key, RSA_PKCS1_PADDING);
+  if (!TEST_mem_eq(ptext, num, ptext_ex, plen))
+    goto err;
+
+  ret = 1;
+err:
+  RSA_free(key);
+  return ret;
+}
+
+static int test_rsa_mp_gen_bad_input(void) {
+  int ret = 0;
+  RSA* rsa = NULL;
+  BIGNUM* ebn = NULL;
+
+  if (!TEST_ptr(rsa = RSA_new()))
+    goto err;
+
+  if (!TEST_ptr(ebn = BN_new()))
+    goto err;
+  if (!TEST_true(BN_set_word(ebn, 65537)))
+    goto err;
+
+  /* Test that a NULL exponent fails and does not segfault */
+  if (!TEST_int_eq(RSA_generate_multi_prime_key(rsa, 1024, 2, NULL, NULL), 0))
+    goto err;
+
+  /* Test invalid bitsize fails */
+  if (!TEST_int_eq(RSA_generate_multi_prime_key(rsa, 500, 2, ebn, NULL), 0))
+    goto err;
+
+  /* Test invalid prime count fails */
+  if (!TEST_int_eq(RSA_generate_multi_prime_key(rsa, 1024, 1, ebn, NULL), 0))
+    goto err;
+  ret = 1;
+err:
+  BN_free(ebn);
+  RSA_free(rsa);
+  return ret;
+}
+
+int setup_tests(void) {
+  ADD_TEST(test_rsa_mp_gen_bad_input);
+  ADD_ALL_TESTS(test_rsa_mp, 2);
+  return 1;
 }

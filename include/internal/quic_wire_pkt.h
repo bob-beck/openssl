@@ -8,141 +8,134 @@
  */
 
 #ifndef OSSL_QUIC_WIRE_PKT_H
-# define OSSL_QUIC_WIRE_PKT_H
+#define OSSL_QUIC_WIRE_PKT_H
 
-# include <openssl/ssl.h>
-# include "internal/packet_quic.h"
-# include "internal/quic_types.h"
+#include <openssl/ssl.h>
+#include "internal/packet_quic.h"
+#include "internal/quic_types.h"
 
-# ifndef OPENSSL_NO_QUIC
+#ifndef OPENSSL_NO_QUIC
 
-#  define QUIC_VERSION_NONE   ((uint32_t)0)   /* Used for version negotiation */
-#  define QUIC_VERSION_1      ((uint32_t)1)   /* QUIC v1 */
+#define QUIC_VERSION_NONE ((uint32_t)0) /* Used for version negotiation */
+#define QUIC_VERSION_1 ((uint32_t)1)    /* QUIC v1 */
 
 /* QUIC logical packet type. These do not match wire values. */
-#  define QUIC_PKT_TYPE_INITIAL        1
-#  define QUIC_PKT_TYPE_0RTT           2
-#  define QUIC_PKT_TYPE_HANDSHAKE      3
-#  define QUIC_PKT_TYPE_RETRY          4
-#  define QUIC_PKT_TYPE_1RTT           5
-#  define QUIC_PKT_TYPE_VERSION_NEG    6
+#define QUIC_PKT_TYPE_INITIAL 1
+#define QUIC_PKT_TYPE_0RTT 2
+#define QUIC_PKT_TYPE_HANDSHAKE 3
+#define QUIC_PKT_TYPE_RETRY 4
+#define QUIC_PKT_TYPE_1RTT 5
+#define QUIC_PKT_TYPE_VERSION_NEG 6
 
 /*
  * Determine encryption level from packet type. Returns QUIC_ENC_LEVEL_NUM if
  * the packet is not of a type which is encrypted.
  */
 static ossl_inline ossl_unused uint32_t
-ossl_quic_pkt_type_to_enc_level(uint32_t pkt_type)
-{
-    switch (pkt_type) {
-        case QUIC_PKT_TYPE_INITIAL:
-            return QUIC_ENC_LEVEL_INITIAL;
-        case QUIC_PKT_TYPE_HANDSHAKE:
-            return QUIC_ENC_LEVEL_HANDSHAKE;
-        case QUIC_PKT_TYPE_0RTT:
-            return QUIC_ENC_LEVEL_0RTT;
-        case QUIC_PKT_TYPE_1RTT:
-            return QUIC_ENC_LEVEL_1RTT;
-        default:
-            return QUIC_ENC_LEVEL_NUM;
-    }
+ossl_quic_pkt_type_to_enc_level(uint32_t pkt_type) {
+  switch (pkt_type) {
+    case QUIC_PKT_TYPE_INITIAL:
+      return QUIC_ENC_LEVEL_INITIAL;
+    case QUIC_PKT_TYPE_HANDSHAKE:
+      return QUIC_ENC_LEVEL_HANDSHAKE;
+    case QUIC_PKT_TYPE_0RTT:
+      return QUIC_ENC_LEVEL_0RTT;
+    case QUIC_PKT_TYPE_1RTT:
+      return QUIC_ENC_LEVEL_1RTT;
+    default:
+      return QUIC_ENC_LEVEL_NUM;
+  }
 }
 
 static ossl_inline ossl_unused uint32_t
-ossl_quic_enc_level_to_pkt_type(uint32_t enc_level)
-{
-    switch (enc_level) {
-        case QUIC_ENC_LEVEL_INITIAL:
-            return QUIC_PKT_TYPE_INITIAL;
-        case QUIC_ENC_LEVEL_HANDSHAKE:
-            return QUIC_PKT_TYPE_HANDSHAKE;
-        case QUIC_ENC_LEVEL_0RTT:
-            return QUIC_PKT_TYPE_0RTT;
-        case QUIC_ENC_LEVEL_1RTT:
-            return QUIC_PKT_TYPE_1RTT;
-        default:
-            return UINT32_MAX;
-    }
+ossl_quic_enc_level_to_pkt_type(uint32_t enc_level) {
+  switch (enc_level) {
+    case QUIC_ENC_LEVEL_INITIAL:
+      return QUIC_PKT_TYPE_INITIAL;
+    case QUIC_ENC_LEVEL_HANDSHAKE:
+      return QUIC_PKT_TYPE_HANDSHAKE;
+    case QUIC_ENC_LEVEL_0RTT:
+      return QUIC_PKT_TYPE_0RTT;
+    case QUIC_ENC_LEVEL_1RTT:
+      return QUIC_PKT_TYPE_1RTT;
+    default:
+      return UINT32_MAX;
+  }
 }
 
 /* Determine if a packet type contains an encrypted payload. */
-static ossl_inline ossl_unused int
-ossl_quic_pkt_type_is_encrypted(uint32_t pkt_type)
-{
-    switch (pkt_type) {
-        case QUIC_PKT_TYPE_RETRY:
-        case QUIC_PKT_TYPE_VERSION_NEG:
-            return 0;
-        default:
-            return 1;
-    }
+static ossl_inline ossl_unused int ossl_quic_pkt_type_is_encrypted(
+    uint32_t pkt_type) {
+  switch (pkt_type) {
+    case QUIC_PKT_TYPE_RETRY:
+    case QUIC_PKT_TYPE_VERSION_NEG:
+      return 0;
+    default:
+      return 1;
+  }
 }
 
 /* Determine if a packet type contains a PN field. */
-static ossl_inline ossl_unused int
-ossl_quic_pkt_type_has_pn(uint32_t pkt_type)
-{
-    /*
-     * Currently a packet has a PN iff it is encrypted. This could change
-     * someday.
-     */
-    return ossl_quic_pkt_type_is_encrypted(pkt_type);
+static ossl_inline ossl_unused int ossl_quic_pkt_type_has_pn(
+    uint32_t pkt_type) {
+  /*
+   * Currently a packet has a PN iff it is encrypted. This could change
+   * someday.
+   */
+  return ossl_quic_pkt_type_is_encrypted(pkt_type);
 }
 
 /*
  * Determine if a packet type can appear with other packets in a datagram. Some
  * packet types must be the sole packet in a datagram.
  */
-static ossl_inline ossl_unused int
-ossl_quic_pkt_type_can_share_dgram(uint32_t pkt_type)
-{
-    /*
-     * Currently only the encrypted packet types can share a datagram. This
-     * could change someday.
-     */
-    return ossl_quic_pkt_type_is_encrypted(pkt_type);
+static ossl_inline ossl_unused int ossl_quic_pkt_type_can_share_dgram(
+    uint32_t pkt_type) {
+  /*
+   * Currently only the encrypted packet types can share a datagram. This
+   * could change someday.
+   */
+  return ossl_quic_pkt_type_is_encrypted(pkt_type);
 }
 
 /*
  * Determine if the packet type must come at the end of the datagram (due to the
  * lack of a length field).
  */
-static ossl_inline ossl_unused int
-ossl_quic_pkt_type_must_be_last(uint32_t pkt_type)
-{
-    /*
-     * Any packet type which cannot share a datagram obviously must come last.
-     * 1-RTT also must come last as it lacks a length field.
-     */
-    return !ossl_quic_pkt_type_can_share_dgram(pkt_type)
-        || pkt_type == QUIC_PKT_TYPE_1RTT;
+static ossl_inline ossl_unused int ossl_quic_pkt_type_must_be_last(
+    uint32_t pkt_type) {
+  /*
+   * Any packet type which cannot share a datagram obviously must come last.
+   * 1-RTT also must come last as it lacks a length field.
+   */
+  return !ossl_quic_pkt_type_can_share_dgram(pkt_type) ||
+         pkt_type == QUIC_PKT_TYPE_1RTT;
 }
 
 /*
  * Determine if the packet type has a version field.
  */
-static ossl_inline ossl_unused int
-ossl_quic_pkt_type_has_version(uint32_t pkt_type)
-{
-    return pkt_type != QUIC_PKT_TYPE_1RTT && pkt_type != QUIC_PKT_TYPE_VERSION_NEG;
+static ossl_inline ossl_unused int ossl_quic_pkt_type_has_version(
+    uint32_t pkt_type) {
+  return pkt_type != QUIC_PKT_TYPE_1RTT &&
+         pkt_type != QUIC_PKT_TYPE_VERSION_NEG;
 }
 
 /*
  * Determine if the packet type has a SCID field.
  */
-static ossl_inline ossl_unused int
-ossl_quic_pkt_type_has_scid(uint32_t pkt_type)
-{
-    return pkt_type != QUIC_PKT_TYPE_1RTT;
+static ossl_inline ossl_unused int ossl_quic_pkt_type_has_scid(
+    uint32_t pkt_type) {
+  return pkt_type != QUIC_PKT_TYPE_1RTT;
 }
 
 /*
  * Smallest possible QUIC packet size as per RFC (aside from version negotiation
  * packets).
  */
-#  define QUIC_MIN_VALID_PKT_LEN_CRYPTO      21
-#  define QUIC_MIN_VALID_PKT_LEN_VERSION_NEG  7
-#  define QUIC_MIN_VALID_PKT_LEN              QUIC_MIN_VALID_PKT_LEN_VERSION_NEG
+#define QUIC_MIN_VALID_PKT_LEN_CRYPTO 21
+#define QUIC_MIN_VALID_PKT_LEN_VERSION_NEG 7
+#define QUIC_MIN_VALID_PKT_LEN QUIC_MIN_VALID_PKT_LEN_VERSION_NEG
 
 typedef struct quic_pkt_hdr_ptrs_st QUIC_PKT_HDR_PTRS;
 
@@ -155,16 +148,16 @@ typedef struct quic_pkt_hdr_ptrs_st QUIC_PKT_HDR_PTRS;
  * destroyed using ossl_quic_hdr_protector_cleanup when no longer needed.
  */
 typedef struct quic_hdr_protector_st {
-    OSSL_LIB_CTX       *libctx;
-    const char         *propq;
-    EVP_CIPHER_CTX     *cipher_ctx;
-    EVP_CIPHER         *cipher;
-    uint32_t            cipher_id;
+  OSSL_LIB_CTX* libctx;
+  const char* propq;
+  EVP_CIPHER_CTX* cipher_ctx;
+  EVP_CIPHER* cipher;
+  uint32_t cipher_id;
 } QUIC_HDR_PROTECTOR;
 
-#  define QUIC_HDR_PROT_CIPHER_AES_128    1
-#  define QUIC_HDR_PROT_CIPHER_AES_256    2
-#  define QUIC_HDR_PROT_CIPHER_CHACHA     3
+#define QUIC_HDR_PROT_CIPHER_AES_128 1
+#define QUIC_HDR_PROT_CIPHER_AES_256 2
+#define QUIC_HDR_PROT_CIPHER_CHACHA 3
 
 /*
  * Initialises a header protector.
@@ -185,11 +178,11 @@ typedef struct quic_hdr_protector_st {
  *
  * Returns 1 on success and 0 on failure.
  */
-int ossl_quic_hdr_protector_init(QUIC_HDR_PROTECTOR *hpr,
-                                 OSSL_LIB_CTX *libctx,
-                                 const char *propq,
+int ossl_quic_hdr_protector_init(QUIC_HDR_PROTECTOR* hpr,
+                                 OSSL_LIB_CTX* libctx,
+                                 const char* propq,
                                  uint32_t cipher_id,
-                                 const unsigned char *quic_hp_key,
+                                 const unsigned char* quic_hp_key,
                                  size_t quic_hp_key_len);
 
 /*
@@ -197,7 +190,7 @@ int ossl_quic_hdr_protector_init(QUIC_HDR_PROTECTOR *hpr,
  * OSSL_QUIC_HDR_PROTECTOR structure which has not been initialized, or which
  * has already been destroyed.
  */
-void ossl_quic_hdr_protector_cleanup(QUIC_HDR_PROTECTOR *hpr);
+void ossl_quic_hdr_protector_cleanup(QUIC_HDR_PROTECTOR* hpr);
 
 /*
  * Removes header protection from a packet. The packet payload must currently be
@@ -211,8 +204,8 @@ void ossl_quic_hdr_protector_cleanup(QUIC_HDR_PROTECTOR *hpr);
  *
  * Returns 1 on success and 0 on failure.
  */
-int ossl_quic_hdr_protector_decrypt(QUIC_HDR_PROTECTOR *hpr,
-                                    QUIC_PKT_HDR_PTRS *ptrs);
+int ossl_quic_hdr_protector_decrypt(QUIC_HDR_PROTECTOR* hpr,
+                                    QUIC_PKT_HDR_PTRS* ptrs);
 
 /*
  * Applies header protection to a packet. The packet payload must already have
@@ -224,8 +217,8 @@ int ossl_quic_hdr_protector_decrypt(QUIC_HDR_PROTECTOR *hpr,
  *
  * Returns 1 on success and 0 on failure.
  */
-int ossl_quic_hdr_protector_encrypt(QUIC_HDR_PROTECTOR *hpr,
-                                    QUIC_PKT_HDR_PTRS *ptrs);
+int ossl_quic_hdr_protector_encrypt(QUIC_HDR_PROTECTOR* hpr,
+                                    QUIC_PKT_HDR_PTRS* ptrs);
 
 /*
  * Removes header protection from a packet. The packet payload must currently
@@ -247,21 +240,21 @@ int ossl_quic_hdr_protector_encrypt(QUIC_HDR_PROTECTOR *hpr,
  *
  * Returns 1 on success and 0 on failure.
  */
-int ossl_quic_hdr_protector_decrypt_fields(QUIC_HDR_PROTECTOR *hpr,
-                                           const unsigned char *sample,
+int ossl_quic_hdr_protector_decrypt_fields(QUIC_HDR_PROTECTOR* hpr,
+                                           const unsigned char* sample,
                                            size_t sample_len,
-                                           unsigned char *first_byte,
-                                           unsigned char *pn_bytes);
+                                           unsigned char* first_byte,
+                                           unsigned char* pn_bytes);
 
 /*
  * Works analogously to ossl_hdr_protector_decrypt_fields, but applies header
  * protection instead of removing it.
  */
-int ossl_quic_hdr_protector_encrypt_fields(QUIC_HDR_PROTECTOR *hpr,
-                                           const unsigned char *sample,
+int ossl_quic_hdr_protector_encrypt_fields(QUIC_HDR_PROTECTOR* hpr,
+                                           const unsigned char* sample,
                                            size_t sample_len,
-                                           unsigned char *first_byte,
-                                           unsigned char *pn_bytes);
+                                           unsigned char* first_byte,
+                                           unsigned char* pn_bytes);
 
 /*
  * QUIC Packet Header
@@ -309,122 +302,122 @@ int ossl_quic_hdr_protector_encrypt_fields(QUIC_HDR_PROTECTOR *hpr,
  * NULL value.
  */
 typedef struct quic_pkt_hdr_st {
-    /* [ALL] A QUIC_PKT_TYPE_* value. Always valid. */
-    unsigned int    type        :8;
+  /* [ALL] A QUIC_PKT_TYPE_* value. Always valid. */
+  unsigned int type : 8;
 
-    /* [S] Value of the spin bit. Valid if (type == 1RTT). */
-    unsigned int    spin_bit    :1;
+  /* [S] Value of the spin bit. Valid if (type == 1RTT). */
+  unsigned int spin_bit : 1;
 
-    /*
-     * [S] Value of the Key Phase bit in the short packet.
-     * Valid if (type == 1RTT && !partial).
-     */
-    unsigned int    key_phase   :1;
+  /*
+   * [S] Value of the Key Phase bit in the short packet.
+   * Valid if (type == 1RTT && !partial).
+   */
+  unsigned int key_phase : 1;
 
-    /*
-     * [1i0h] Length of packet number in bytes. This is the decoded value.
-     * Valid if ((type == 1RTT || (version && type != RETRY)) && !partial).
-     */
-    unsigned int    pn_len      :4;
+  /*
+   * [1i0h] Length of packet number in bytes. This is the decoded value.
+   * Valid if ((type == 1RTT || (version && type != RETRY)) && !partial).
+   */
+  unsigned int pn_len : 4;
 
-    /*
-     * [ALL] Set to 1 if this is a partial decode because the packet header
-     * has not yet been deprotected. pn_len, pn and key_phase are not valid if
-     * this is set.
-     */
-    unsigned int    partial     :1;
+  /*
+   * [ALL] Set to 1 if this is a partial decode because the packet header
+   * has not yet been deprotected. pn_len, pn and key_phase are not valid if
+   * this is set.
+   */
+  unsigned int partial : 1;
 
-    /*
-     * [ALL] Whether the fixed bit was set. Note that only Version Negotiation
-     * packets are allowed to have this unset, so this will always be 1 for all
-     * other packet types (decode will fail if it is not set). Ignored when
-     * encoding unless encoding a Version Negotiation packet.
-     */
-    unsigned int    fixed       :1;
+  /*
+   * [ALL] Whether the fixed bit was set. Note that only Version Negotiation
+   * packets are allowed to have this unset, so this will always be 1 for all
+   * other packet types (decode will fail if it is not set). Ignored when
+   * encoding unless encoding a Version Negotiation packet.
+   */
+  unsigned int fixed : 1;
 
-    /*
-     * The unused bits in the low 4 bits of a Retry packet header's first byte.
-     * This is used to ensure that Retry packets have the same bit-for-bit
-     * representation in their header when decoding and encoding them again.
-     * This is necessary to validate Retry packet headers.
-     */
-    unsigned int    unused      :4;
+  /*
+   * The unused bits in the low 4 bits of a Retry packet header's first byte.
+   * This is used to ensure that Retry packets have the same bit-for-bit
+   * representation in their header when decoding and encoding them again.
+   * This is necessary to validate Retry packet headers.
+   */
+  unsigned int unused : 4;
 
-    /*
-     * The 'Reserved' bits in an Initial, Handshake, 0-RTT or 1-RTT packet
-     * header's first byte. These are provided so that the caller can validate
-     * that they are zero, as this must be done after packet protection is
-     * successfully removed to avoid creating a timing channel.
-     */
-    unsigned int    reserved    :2;
+  /*
+   * The 'Reserved' bits in an Initial, Handshake, 0-RTT or 1-RTT packet
+   * header's first byte. These are provided so that the caller can validate
+   * that they are zero, as this must be done after packet protection is
+   * successfully removed to avoid creating a timing channel.
+   */
+  unsigned int reserved : 2;
 
-    /* [L] Version field. Valid if (type != 1RTT). */
-    uint32_t        version;
+  /* [L] Version field. Valid if (type != 1RTT). */
+  uint32_t version;
 
-    /* [ALL] The destination connection ID. Always valid. */
-    QUIC_CONN_ID    dst_conn_id;
+  /* [ALL] The destination connection ID. Always valid. */
+  QUIC_CONN_ID dst_conn_id;
 
-    /*
-     * [L] The source connection ID.
-     * Valid if (type != 1RTT).
-     */
-    QUIC_CONN_ID    src_conn_id;
+  /*
+   * [L] The source connection ID.
+   * Valid if (type != 1RTT).
+   */
+  QUIC_CONN_ID src_conn_id;
 
-    /*
-     * [1i0h] Relatively-encoded packet number in raw, encoded form. The correct
-     * decoding of this value is context-dependent. The number of bytes valid in
-     * this buffer is determined by pn_len above. If the decode was partial,
-     * this field is not valid.
-     *
-     * Valid if ((type == 1RTT || (version && type != RETRY)) && !partial).
-     */
-    unsigned char           pn[4];
+  /*
+   * [1i0h] Relatively-encoded packet number in raw, encoded form. The correct
+   * decoding of this value is context-dependent. The number of bytes valid in
+   * this buffer is determined by pn_len above. If the decode was partial,
+   * this field is not valid.
+   *
+   * Valid if ((type == 1RTT || (version && type != RETRY)) && !partial).
+   */
+  unsigned char pn[4];
 
-    /*
-     * [i] Token field in Initial packet. Points to memory inside the decoded
-     * PACKET, and therefore is valid for as long as the PACKET's buffer is
-     * valid. token_len is the length of the token in bytes.
-     *
-     * Valid if (type == INITIAL).
-     */
-    const unsigned char    *token;
-    size_t                  token_len;
+  /*
+   * [i] Token field in Initial packet. Points to memory inside the decoded
+   * PACKET, and therefore is valid for as long as the PACKET's buffer is
+   * valid. token_len is the length of the token in bytes.
+   *
+   * Valid if (type == INITIAL).
+   */
+  const unsigned char* token;
+  size_t token_len;
 
-    /*
-     * [ALL] Payload length in bytes.
-     *
-     * Though 1-RTT, Retry and Version Negotiation packets do not contain an
-     * explicit length field, this field is always valid and is used by the
-     * packet header encoding and decoding routines to describe the payload
-     * length, regardless of whether the packet type encoded or decoded uses an
-     * explicit length indication.
-     */
-    size_t                  len;
+  /*
+   * [ALL] Payload length in bytes.
+   *
+   * Though 1-RTT, Retry and Version Negotiation packets do not contain an
+   * explicit length field, this field is always valid and is used by the
+   * packet header encoding and decoding routines to describe the payload
+   * length, regardless of whether the packet type encoded or decoded uses an
+   * explicit length indication.
+   */
+  size_t len;
 
-    /*
-     * Pointer to start of payload data in the packet. Points to memory inside
-     * the decoded PACKET, and therefore is valid for as long as the PACKET'S
-     * buffer is valid. The length of the buffer in bytes is in len above.
-     *
-     * For Version Negotiation packets, points to the array of supported
-     * versions.
-     *
-     * For Retry packets, points to the Retry packet payload, which comprises
-     * the Retry Token followed by a 16-byte Retry Integrity Tag.
-     *
-     * Regardless of whether a packet is a Version Negotiation packet (where the
-     * payload contains a list of supported versions), a Retry packet (where the
-     * payload contains a Retry Token and Retry Integrity Tag), or any other
-     * packet type (where the payload contains frames), the payload is not
-     * validated and the user must parse the payload bearing this in mind.
-     *
-     * If the decode was partial (partial is set), this points to the start of
-     * the packet number field, rather than the protected payload, as the length
-     * of the packet number field is unknown. The len field reflects this in
-     * this case (i.e., the len field is the number of payload bytes plus the
-     * number of bytes comprising the PN).
-     */
-    const unsigned char    *data;
+  /*
+   * Pointer to start of payload data in the packet. Points to memory inside
+   * the decoded PACKET, and therefore is valid for as long as the PACKET'S
+   * buffer is valid. The length of the buffer in bytes is in len above.
+   *
+   * For Version Negotiation packets, points to the array of supported
+   * versions.
+   *
+   * For Retry packets, points to the Retry packet payload, which comprises
+   * the Retry Token followed by a 16-byte Retry Integrity Tag.
+   *
+   * Regardless of whether a packet is a Version Negotiation packet (where the
+   * payload contains a list of supported versions), a Retry packet (where the
+   * payload contains a Retry Token and Retry Integrity Tag), or any other
+   * packet type (where the payload contains frames), the payload is not
+   * validated and the user must parse the payload bearing this in mind.
+   *
+   * If the decode was partial (partial is set), this points to the start of
+   * the packet number field, rather than the protected payload, as the length
+   * of the packet number field is unknown. The len field reflects this in
+   * this case (i.e., the len field is the number of payload bytes plus the
+   * number of bytes comprising the PN).
+   */
+  const unsigned char* data;
 } QUIC_PKT_HDR;
 
 /*
@@ -433,15 +426,15 @@ typedef struct quic_pkt_hdr_st {
  * needing to partially re-decode the packet header.
  */
 struct quic_pkt_hdr_ptrs_st {
-    unsigned char    *raw_start;        /* start of packet */
-    unsigned char    *raw_sample;       /* start of sampling range */
-    size_t            raw_sample_len;   /* maximum length of sampling range */
+  unsigned char* raw_start;  /* start of packet */
+  unsigned char* raw_sample; /* start of sampling range */
+  size_t raw_sample_len;     /* maximum length of sampling range */
 
-    /*
-     * Start of PN field. Guaranteed to be NULL unless at least four bytes are
-     * available via this pointer.
-     */
-    unsigned char    *raw_pn;
+  /*
+   * Start of PN field. Guaranteed to be NULL unless at least four bytes are
+   * available via this pointer.
+   */
+  unsigned char* raw_pn;
 };
 
 /*
@@ -472,16 +465,16 @@ struct quic_pkt_hdr_ptrs_st {
  * Returns 1 on success and 0 on failure.
  */
 
-#  define QUIC_PKT_HDR_DECODE_DECODE_ERR  (1 << 0)
-#  define QUIC_PKT_HDR_DECODE_BAD_VERSION (1 << 1)
+#define QUIC_PKT_HDR_DECODE_DECODE_ERR (1 << 0)
+#define QUIC_PKT_HDR_DECODE_BAD_VERSION (1 << 1)
 
-int ossl_quic_wire_decode_pkt_hdr(PACKET *pkt,
+int ossl_quic_wire_decode_pkt_hdr(PACKET* pkt,
                                   size_t short_conn_id_len,
                                   int partial,
                                   int nodata,
-                                  QUIC_PKT_HDR *hdr,
-                                  QUIC_PKT_HDR_PTRS *ptrs,
-                                  uint64_t *fail_cause);
+                                  QUIC_PKT_HDR* hdr,
+                                  QUIC_PKT_HDR_PTRS* ptrs,
+                                  uint64_t* fail_cause);
 
 /*
  * Encodes a packet header. The packet is written to pkt.
@@ -518,10 +511,10 @@ int ossl_quic_wire_decode_pkt_hdr(PACKET *pkt,
  *
  * Returns 1 on success and 0 on failure.
  */
-int ossl_quic_wire_encode_pkt_hdr(WPACKET *pkt,
+int ossl_quic_wire_encode_pkt_hdr(WPACKET* pkt,
                                   size_t short_conn_id_len,
-                                  const QUIC_PKT_HDR *hdr,
-                                  QUIC_PKT_HDR_PTRS *ptrs);
+                                  const QUIC_PKT_HDR* hdr,
+                                  QUIC_PKT_HDR_PTRS* ptrs);
 
 /*
  * Retrieves only the DCID from a packet header. This is intended for demuxer
@@ -533,10 +526,10 @@ int ossl_quic_wire_encode_pkt_hdr(WPACKET *pkt,
  *
  * Returns 1 on success and 0 on failure.
  */
-int ossl_quic_wire_get_pkt_hdr_dst_conn_id(const unsigned char *buf,
+int ossl_quic_wire_get_pkt_hdr_dst_conn_id(const unsigned char* buf,
                                            size_t buf_len,
                                            size_t short_conn_id_len,
-                                           QUIC_CONN_ID *dst_conn_id);
+                                           QUIC_CONN_ID* dst_conn_id);
 
 /*
  * Precisely predicts the encoded length of a packet header structure.
@@ -546,7 +539,7 @@ int ossl_quic_wire_get_pkt_hdr_dst_conn_id(const unsigned char *buf,
  * ossl_quic_wire_encode_pkt_hdr() will succeed.
  */
 size_t ossl_quic_wire_get_encoded_pkt_hdr_len(size_t short_conn_id_len,
-                                              const QUIC_PKT_HDR *hdr);
+                                              const QUIC_PKT_HDR* hdr);
 
 /*
  * Packet Number Encoding
@@ -564,10 +557,10 @@ size_t ossl_quic_wire_get_encoded_pkt_hdr_len(size_t short_conn_id_len,
  *
  * Returns 1 on success or 0 on failure.
  */
-int ossl_quic_wire_decode_pkt_hdr_pn(const unsigned char *enc_pn,
+int ossl_quic_wire_decode_pkt_hdr_pn(const unsigned char* enc_pn,
                                      size_t enc_pn_len,
                                      QUIC_PN largest_pn,
-                                     QUIC_PN *res_pn);
+                                     QUIC_PN* res_pn);
 
 /*
  * Determine how many bytes should be used to encode a PN. Returns the number of
@@ -584,7 +577,7 @@ int ossl_quic_wire_determine_pn_len(QUIC_PN pn, QUIC_PN largest_acked);
  * Returns 1 on success and 0 on failure.
  */
 int ossl_quic_wire_encode_pkt_hdr_pn(QUIC_PN pn,
-                                     unsigned char *enc_pn,
+                                     unsigned char* enc_pn,
                                      size_t enc_pn_len);
 
 /*
@@ -592,7 +585,7 @@ int ossl_quic_wire_encode_pkt_hdr_pn(QUIC_PN pn,
  * ====================
  */
 
-#  define QUIC_RETRY_INTEGRITY_TAG_LEN    16
+#define QUIC_RETRY_INTEGRITY_TAG_LEN 16
 
 /*
  * Validate a retry integrity tag. Returns 1 if the tag is valid.
@@ -606,10 +599,11 @@ int ossl_quic_wire_encode_pkt_hdr_pn(QUIC_PN pn,
  * Returns 0 if the tag is invalid, if called on any other type of packet or if
  * the body is too short.
  */
-int ossl_quic_validate_retry_integrity_tag(OSSL_LIB_CTX *libctx,
-                                           const char *propq,
-                                           const QUIC_PKT_HDR *hdr,
-                                           const QUIC_CONN_ID *client_initial_dcid);
+int ossl_quic_validate_retry_integrity_tag(
+    OSSL_LIB_CTX* libctx,
+    const char* propq,
+    const QUIC_PKT_HDR* hdr,
+    const QUIC_CONN_ID* client_initial_dcid);
 
 /*
  * Calculates a retry integrity tag. Returns 0 on error, for example if hdr does
@@ -627,12 +621,13 @@ int ossl_quic_validate_retry_integrity_tag(OSSL_LIB_CTX *libctx,
  * the tag argument.) This function fails if hdr->len is too short to contain a
  * Retry Integrity Tag.
  */
-int ossl_quic_calculate_retry_integrity_tag(OSSL_LIB_CTX *libctx,
-                                            const char *propq,
-                                            const QUIC_PKT_HDR *hdr,
-                                            const QUIC_CONN_ID *client_initial_dcid,
-                                            unsigned char *tag);
+int ossl_quic_calculate_retry_integrity_tag(
+    OSSL_LIB_CTX* libctx,
+    const char* propq,
+    const QUIC_PKT_HDR* hdr,
+    const QUIC_CONN_ID* client_initial_dcid,
+    unsigned char* tag);
 
-# endif
+#endif
 
 #endif

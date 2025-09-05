@@ -19,7 +19,9 @@ static const ERR_STRING_DATA SSL_str_reasons[] = {
      "application data after close notify"},
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_APP_DATA_IN_HANDSHAKE),
      "app data in handshake"},
-    {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_ATTEMPT_TO_REUSE_SESSION_IN_DIFFERENT_CONTEXT),
+    {ERR_PACK(ERR_LIB_SSL,
+              0,
+              SSL_R_ATTEMPT_TO_REUSE_SESSION_IN_DIFFERENT_CONTEXT),
      "attempt to reuse session in different context"},
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_AT_LEAST_TLS_1_2_NEEDED_IN_SUITEB_MODE),
      "at least (D)TLS 1.2 needed in Suite B mode"},
@@ -346,7 +348,9 @@ static const ERR_STRING_DATA SSL_str_reasons[] = {
      "ocsp callback failure"},
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_OLD_SESSION_CIPHER_NOT_RETURNED),
      "old session cipher not returned"},
-    {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_OLD_SESSION_COMPRESSION_ALGORITHM_NOT_RETURNED),
+    {ERR_PACK(ERR_LIB_SSL,
+              0,
+              SSL_R_OLD_SESSION_COMPRESSION_ALGORITHM_NOT_RETURNED),
      "old session compression algorithm not returned"},
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_OVERFLOW_ERROR), "overflow error"},
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_PACKET_LENGTH_TOO_LONG),
@@ -620,16 +624,14 @@ static const ERR_STRING_DATA SSL_str_reasons[] = {
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_X509_LIB), "x509 lib"},
     {ERR_PACK(ERR_LIB_SSL, 0, SSL_R_X509_VERIFICATION_SETUP_PROBLEMS),
      "x509 verification setup problems"},
-    {0, NULL}
-};
+    {0, NULL}};
 
 #endif
 
-int ossl_err_load_SSL_strings(void)
-{
+int ossl_err_load_SSL_strings(void) {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_reason_error_string(SSL_str_reasons[0].error) == NULL)
-        ERR_load_strings_const(SSL_str_reasons);
+  if (ERR_reason_error_string(SSL_str_reasons[0].error) == NULL)
+    ERR_load_strings_const(SSL_str_reasons);
 #endif
-    return 1;
+  return 1;
 }

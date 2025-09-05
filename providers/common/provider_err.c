@@ -89,7 +89,9 @@ static const ERR_STRING_DATA PROV_str_reasons[] = {
      "invalid digest length"},
     {ERR_PACK(ERR_LIB_PROV, 0, PROV_R_INVALID_DIGEST_SIZE),
      "invalid digest size"},
-    {ERR_PACK(ERR_LIB_PROV, 0, PROV_R_INVALID_EDDSA_INSTANCE_FOR_ATTEMPTED_OPERATION),
+    {ERR_PACK(ERR_LIB_PROV,
+              0,
+              PROV_R_INVALID_EDDSA_INSTANCE_FOR_ATTEMPTED_OPERATION),
      "invalid eddsa instance for attempted operation"},
     {ERR_PACK(ERR_LIB_PROV, 0, PROV_R_INVALID_INPUT_LENGTH),
      "invalid input length"},
@@ -252,16 +254,14 @@ static const ERR_STRING_DATA PROV_str_reasons[] = {
      "xts data unit is too large"},
     {ERR_PACK(ERR_LIB_PROV, 0, PROV_R_XTS_DUPLICATED_KEYS),
      "xts duplicated keys"},
-    {0, NULL}
-};
+    {0, NULL}};
 
 #endif
 
-int ossl_err_load_PROV_strings(void)
-{
+int ossl_err_load_PROV_strings(void) {
 #ifndef OPENSSL_NO_ERR
-    if (ERR_reason_error_string(PROV_str_reasons[0].error) == NULL)
-        ERR_load_strings_const(PROV_str_reasons);
+  if (ERR_reason_error_string(PROV_str_reasons[0].error) == NULL)
+    ERR_load_strings_const(PROV_str_reasons);
 #endif
-    return 1;
+  return 1;
 }

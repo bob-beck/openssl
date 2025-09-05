@@ -25,11 +25,13 @@ static const EVP_MD whirlpool_md = {
     WHIRLPOOL_DIGEST_LENGTH,
     0,
     EVP_ORIG_GLOBAL,
-    LEGACY_EVP_MD_METH_TABLE(wp_init, wp_update, wp_final, NULL,
+    LEGACY_EVP_MD_METH_TABLE(wp_init,
+                             wp_update,
+                             wp_final,
+                             NULL,
                              WHIRLPOOL_BBLOCK / 8),
 };
 
-const EVP_MD *EVP_whirlpool(void)
-{
-    return &whirlpool_md;
+const EVP_MD* EVP_whirlpool(void) {
+  return &whirlpool_md;
 }
