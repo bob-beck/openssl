@@ -8,8 +8,8 @@
  */
 
 #ifndef OSSL_CRYPTO_ASN1_DSA_H
-# define OSSL_CRYPTO_ASN1_DSA_H
-# pragma once
+#define OSSL_CRYPTO_ASN1_DSA_H
+#pragma once
 
 #include "internal/packet.h"
 

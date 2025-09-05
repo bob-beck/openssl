@@ -12,12 +12,11 @@
 #include "aes_local.h"
 
 #ifndef OPENSSL_NO_DEPRECATED_3_0
-const char *AES_options(void)
-{
-# ifdef FULL_UNROLL
-    return "aes(full)";
-# else
-    return "aes(partial)";
-# endif
+const char *AES_options(void) {
+#ifdef FULL_UNROLL
+  return "aes(full)";
+#else
+  return "aes(partial)";
+#endif
 }
 #endif

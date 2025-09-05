@@ -8,8 +8,8 @@
  */
 
 #ifndef OSSL_INTERNAL_PASSPHRASE_H
-# define OSSL_INTERNAL_PASSPHRASE_H
-# pragma once
+#define OSSL_INTERNAL_PASSPHRASE_H
+#pragma once
 
 /*
  * This is a passphrase reader bridge with bells and whistles.
@@ -39,47 +39,47 @@
  * or freed it on the heap is offered.
  */
 struct ossl_passphrase_data_st {
-    enum {
-        is_expl_passphrase = 1, /* Explicit passphrase given by user */
-        is_pem_password,        /* pem_password_cb given by user */
-        is_ossl_passphrase,     /* OSSL_PASSPHRASE_CALLBACK given by user */
-        is_ui_method            /* UI_METHOD given by user */
-    } type;
-    union {
-        struct {
-            char *passphrase_copy;
-            size_t passphrase_len;
-        } expl_passphrase;
+  enum {
+    is_expl_passphrase = 1, /* Explicit passphrase given by user */
+    is_pem_password,        /* pem_password_cb given by user */
+    is_ossl_passphrase,     /* OSSL_PASSPHRASE_CALLBACK given by user */
+    is_ui_method            /* UI_METHOD given by user */
+  } type;
+  union {
+    struct {
+      char *passphrase_copy;
+      size_t passphrase_len;
+    } expl_passphrase;
 
-        struct {
-            pem_password_cb *password_cb;
-            void *password_cbarg;
-        } pem_password;
+    struct {
+      pem_password_cb *password_cb;
+      void *password_cbarg;
+    } pem_password;
 
-        struct {
-            OSSL_PASSPHRASE_CALLBACK *passphrase_cb;
-            void *passphrase_cbarg;
-        } ossl_passphrase;
+    struct {
+      OSSL_PASSPHRASE_CALLBACK *passphrase_cb;
+      void *passphrase_cbarg;
+    } ossl_passphrase;
 
-        struct {
-            const UI_METHOD *ui_method;
-            void *ui_method_data;
-        } ui_method;
-    } _;
+    struct {
+      const UI_METHOD *ui_method;
+      void *ui_method_data;
+    } ui_method;
+  } _;
 
-    /*-
-     * Flags section
-     */
+  /*-
+   * Flags section
+   */
 
-    /* Set to indicate that caching should be done */
-    unsigned int flag_cache_passphrase:1;
+  /* Set to indicate that caching should be done */
+  unsigned int flag_cache_passphrase : 1;
 
-    /*-
-     * Misc section: caches and other
-     */
+  /*-
+   * Misc section: caches and other
+   */
 
-    char *cached_passphrase;
-    size_t cached_passphrase_len;
+  char *cached_passphrase;
+  size_t cached_passphrase_len;
 };
 
 /* Structure manipulation */

@@ -1,23 +1,23 @@
 /*
-* Copyright 2023-2025 The OpenSSL Project Authors. All Rights Reserved.
-*
-* Licensed under the Apache License 2.0 (the "License").  You may not use
-* this file except in compliance with the License.  You can obtain a copy
-* in the file LICENSE in the source distribution or at
-* https://www.openssl.org/source/license.html
-*/
+ * Copyright 2023-2025 The OpenSSL Project Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License 2.0 (the "License").  You may not use
+ * this file except in compliance with the License.  You can obtain a copy
+ * in the file LICENSE in the source distribution or at
+ * https://www.openssl.org/source/license.html
+ */
 
 #ifndef OSSL_INTERNAL_QUIC_LCIDM_H
-# define OSSL_INTERNAL_QUIC_LCIDM_H
-# pragma once
+#define OSSL_INTERNAL_QUIC_LCIDM_H
+#pragma once
 
-# include "internal/e_os.h"
-# include "internal/time.h"
-# include "internal/quic_types.h"
-# include "internal/quic_wire.h"
-# include "internal/quic_predef.h"
+#include "internal/e_os.h"
+#include "internal/time.h"
+#include "internal/quic_types.h"
+#include "internal/quic_wire.h"
+#include "internal/quic_predef.h"
 
-# ifndef OPENSSL_NO_QUIC
+#ifndef OPENSSL_NO_QUIC
 
 /*
  * QUIC Local Connection ID Manager
@@ -162,8 +162,7 @@ int ossl_quic_lcidm_retire_odcid(QUIC_LCIDM *lcidm, void *opaque);
  *
  * May not be called more than once for a given opaque pointer value.
  */
-int ossl_quic_lcidm_generate_initial(QUIC_LCIDM *lcidm,
-                                     void *opaque,
+int ossl_quic_lcidm_generate_initial(QUIC_LCIDM *lcidm, void *opaque,
                                      QUIC_CONN_ID *initial_lcid);
 
 /*
@@ -177,8 +176,7 @@ int ossl_quic_lcidm_generate_initial(QUIC_LCIDM *lcidm,
  * After this function returns successfully, the caller can for example
  * register the new LCID with a DEMUX and queue the NEW_CONN_ID frame.
  */
-int ossl_quic_lcidm_generate(QUIC_LCIDM *lcidm,
-                             void *opaque,
+int ossl_quic_lcidm_generate(QUIC_LCIDM *lcidm, void *opaque,
                              OSSL_QUIC_FRAME_NEW_CONN_ID *ncid_frame);
 
 /*
@@ -204,13 +202,11 @@ int ossl_quic_lcidm_generate(QUIC_LCIDM *lcidm,
  * Returns 1 on success and 0 on failure. If arguments are valid but zero LCIDs
  * are retired, this is considered a success condition.
  */
-int ossl_quic_lcidm_retire(QUIC_LCIDM *lcidm,
-                           void *opaque,
+int ossl_quic_lcidm_retire(QUIC_LCIDM *lcidm, void *opaque,
                            uint64_t retire_prior_to,
                            const QUIC_CONN_ID *containing_pkt_dcid,
                            QUIC_CONN_ID *retired_lcid,
-                           uint64_t *retired_seq_num,
-                           int *did_retire);
+                           uint64_t *retired_seq_num, int *did_retire);
 
 /*
  * Cull all LCIDM state relating to a given opaque pointer value. This is useful
@@ -228,20 +224,17 @@ int ossl_quic_lcidm_cull(QUIC_LCIDM *lcidm, void *opaque);
  * If the LCID is for an Initial ODCID, *seq_num is set to
  * LCIDM_ODCID_SEQ_NUM.
  */
-#define LCIDM_ODCID_SEQ_NUM     UINT64_MAX
+#define LCIDM_ODCID_SEQ_NUM UINT64_MAX
 
-int ossl_quic_lcidm_lookup(QUIC_LCIDM *lcidm,
-                           const QUIC_CONN_ID *lcid,
-                           uint64_t *seq_num,
-                           void **opaque);
+int ossl_quic_lcidm_lookup(QUIC_LCIDM *lcidm, const QUIC_CONN_ID *lcid,
+                           uint64_t *seq_num, void **opaque);
 
 /*
  * Debug call to manually remove a specific LCID. Should not be needed in normal
  * usage. Returns 1 if the LCID was successfully found and removed and 0
  * otherwise.
  */
-int ossl_quic_lcidm_debug_remove(QUIC_LCIDM *lcidm,
-                                 const QUIC_CONN_ID *lcid);
+int ossl_quic_lcidm_debug_remove(QUIC_LCIDM *lcidm, const QUIC_CONN_ID *lcid);
 
 /*
  * Debug call to manually add a numbered LCID with a specific CID value and
@@ -249,8 +242,7 @@ int ossl_quic_lcidm_debug_remove(QUIC_LCIDM *lcidm,
  * and 0 on failure.
  */
 int ossl_quic_lcidm_debug_add(QUIC_LCIDM *lcidm, void *opaque,
-                              const QUIC_CONN_ID *lcid,
-                              uint64_t seq_num);
+                              const QUIC_CONN_ID *lcid, uint64_t seq_num);
 
 /*
  * Obtain a local connection id which is not used yet.
@@ -264,6 +256,6 @@ int ossl_quic_lcidm_get_unused_cid(QUIC_LCIDM *lcidm, QUIC_CONN_ID *cid);
  */
 int ossl_quic_lcidm_bind_channel(QUIC_LCIDM *lcidm, void *opaque,
                                  const QUIC_CONN_ID *lcid);
-# endif
+#endif
 
 #endif

@@ -8,12 +8,12 @@
  */
 
 #ifndef OSSL_QUIC_FC_H
-# define OSSL_QUIC_FC_H
+#define OSSL_QUIC_FC_H
 
-# include <openssl/ssl.h>
-# include "internal/time.h"
+#include <openssl/ssl.h>
+#include "internal/time.h"
 
-# ifndef OPENSSL_NO_QUIC
+#ifndef OPENSSL_NO_QUIC
 
 /*
  * TX Flow Controller (TXFC)
@@ -24,9 +24,9 @@
 typedef struct quic_txfc_st QUIC_TXFC;
 
 struct quic_txfc_st {
-    QUIC_TXFC   *parent; /* stream-level iff non-NULL */
-    uint64_t    swm, cwm;
-    char        has_become_blocked;
+  QUIC_TXFC *parent; /* stream-level iff non-NULL */
+  uint64_t swm, cwm;
+  char has_become_blocked;
 };
 
 /*
@@ -126,20 +126,20 @@ uint64_t ossl_quic_txfc_get_swm(QUIC_TXFC *txfc);
 typedef struct quic_rxfc_st QUIC_RXFC;
 
 struct quic_rxfc_st {
-    /*
-     * swm is the sent/received watermark, which tracks how much we have
-     * received from the peer. rwm is the retired watermark, which tracks how
-     * much has been passed to the application. esrwm is the rwm value at which
-     * the current auto-tuning epoch started. hwm is the highest stream length
-     * (STREAM frame offset + payload length) we have seen from a STREAM frame
-     * yet.
-     */
-    uint64_t        cwm, swm, rwm, esrwm, hwm, cur_window_size, max_window_size;
-    OSSL_TIME       epoch_start;
-    OSSL_TIME       (*now)(void *arg);
-    void            *now_arg;
-    QUIC_RXFC       *parent;
-    unsigned char   error_code, has_cwm_changed, is_fin, standalone;
+  /*
+   * swm is the sent/received watermark, which tracks how much we have
+   * received from the peer. rwm is the retired watermark, which tracks how
+   * much has been passed to the application. esrwm is the rwm value at which
+   * the current auto-tuning epoch started. hwm is the highest stream length
+   * (STREAM frame offset + payload length) we have seen from a STREAM frame
+   * yet.
+   */
+  uint64_t cwm, swm, rwm, esrwm, hwm, cur_window_size, max_window_size;
+  OSSL_TIME epoch_start;
+  OSSL_TIME (*now)(void *arg);
+  void *now_arg;
+  QUIC_RXFC *parent;
+  unsigned char error_code, has_cwm_changed, is_fin, standalone;
 };
 
 /*
@@ -151,10 +151,8 @@ struct quic_rxfc_st {
  * to transmit more data at a time.
  */
 int ossl_quic_rxfc_init(QUIC_RXFC *rxfc, QUIC_RXFC *conn_rxfc,
-                        uint64_t initial_window_size,
-                        uint64_t max_window_size,
-                        OSSL_TIME (*now)(void *arg),
-                        void *now_arg);
+                        uint64_t initial_window_size, uint64_t max_window_size,
+                        OSSL_TIME (*now)(void *arg), void *now_arg);
 
 /*
  * Initialises an RX flow controller which is used by itself and not under a
@@ -163,8 +161,7 @@ int ossl_quic_rxfc_init(QUIC_RXFC *rxfc, QUIC_RXFC *conn_rxfc,
  */
 int ossl_quic_rxfc_init_standalone(QUIC_RXFC *rxfc,
                                    uint64_t initial_window_size,
-                                   OSSL_TIME (*now)(void *arg),
-                                   void *now_arg);
+                                   OSSL_TIME (*now)(void *arg), void *now_arg);
 
 /*
  * Gets the parent (i.e., connection-level) RXFC. Returns NULL if called on a
@@ -196,8 +193,8 @@ void ossl_quic_rxfc_set_max_window_size(QUIC_RXFC *rxfc,
  *
  * Returns 1 on success or 0 on failure.
  */
-int ossl_quic_rxfc_on_rx_stream_frame(QUIC_RXFC *rxfc,
-                                      uint64_t end, int is_fin);
+int ossl_quic_rxfc_on_rx_stream_frame(QUIC_RXFC *rxfc, uint64_t end,
+                                      int is_fin);
 
 /*
  * To be called whenever controlled bytes are retired, i.e. when bytes are
@@ -216,8 +213,7 @@ int ossl_quic_rxfc_on_rx_stream_frame(QUIC_RXFC *rxfc,
  *
  * Returns 1 on success and 0 on failure.
  */
-int ossl_quic_rxfc_on_retire(QUIC_RXFC *rxfc,
-                             uint64_t num_bytes,
+int ossl_quic_rxfc_on_retire(QUIC_RXFC *rxfc, uint64_t num_bytes,
                              OSSL_TIME rtt);
 
 /*
@@ -278,6 +274,6 @@ int ossl_quic_rxfc_get_error(QUIC_RXFC *rxfc, int clear);
  */
 int ossl_quic_rxfc_get_final_size(const QUIC_RXFC *rxfc, uint64_t *final_size);
 
-# endif
+#endif
 
 #endif

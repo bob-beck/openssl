@@ -8,7 +8,7 @@
  */
 
 #if defined(_WIN32)
-# include <windows.h>
+#include <windows.h>
 #endif
 
 #include <string.h>
@@ -18,66 +18,55 @@
 
 typedef unsigned int thread_t;
 
-static int run_thread(thread_t *t, void (*f)(void))
-{
-    f();
-    return 1;
+static int run_thread(thread_t *t, void (*f)(void)) {
+  f();
+  return 1;
 }
 
-static int wait_for_thread(thread_t thread)
-{
-    return 1;
-}
+static int wait_for_thread(thread_t thread) { return 1; }
 
 #elif defined(OPENSSL_SYS_WINDOWS)
 
 typedef HANDLE thread_t;
 
-static DWORD WINAPI thread_run(LPVOID arg)
-{
-    void (*f)(void);
+static DWORD WINAPI thread_run(LPVOID arg) {
+  void (*f)(void);
 
-    *(void **) (&f) = arg;
+  *(void **)(&f) = arg;
 
-    f();
-    return 0;
+  f();
+  return 0;
 }
 
-static int run_thread(thread_t *t, void (*f)(void))
-{
-    *t = CreateThread(NULL, 0, thread_run, *(void **) &f, 0, NULL);
-    return *t != NULL;
+static int run_thread(thread_t *t, void (*f)(void)) {
+  *t = CreateThread(NULL, 0, thread_run, *(void **)&f, 0, NULL);
+  return *t != NULL;
 }
 
-static int wait_for_thread(thread_t thread)
-{
-    return WaitForSingleObject(thread, INFINITE) == 0;
+static int wait_for_thread(thread_t thread) {
+  return WaitForSingleObject(thread, INFINITE) == 0;
 }
 
 #else
 
 typedef pthread_t thread_t;
 
-static void *thread_run(void *arg)
-{
-    void (*f)(void);
+static void *thread_run(void *arg) {
+  void (*f)(void);
 
-    *(void **) (&f) = arg;
+  *(void **)(&f) = arg;
 
-    f();
-    OPENSSL_thread_stop();
-    return NULL;
+  f();
+  OPENSSL_thread_stop();
+  return NULL;
 }
 
-static int run_thread(thread_t *t, void (*f)(void))
-{
-    return pthread_create(t, NULL, thread_run, *(void **) &f) == 0;
+static int run_thread(thread_t *t, void (*f)(void)) {
+  return pthread_create(t, NULL, thread_run, *(void **)&f) == 0;
 }
 
-static int wait_for_thread(thread_t thread)
-{
-    return pthread_join(thread, NULL) == 0;
+static int wait_for_thread(thread_t thread) {
+  return pthread_join(thread, NULL) == 0;
 }
 
 #endif
-

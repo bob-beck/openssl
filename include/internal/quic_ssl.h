@@ -8,17 +8,17 @@
  */
 
 #ifndef OSSL_QUIC_SSL_H
-# define OSSL_QUIC_SSL_H
+#define OSSL_QUIC_SSL_H
 
-# include <openssl/ssl.h>
-# include <openssl/bio.h>
-# include "internal/refcount.h"
-# include "internal/quic_record_rx.h" /* OSSL_QRX */
-# include "internal/quic_ackm.h"      /* OSSL_ACKM */
-# include "internal/quic_channel.h"   /* QUIC_CHANNEL */
-# include "internal/quic_predef.h"
+#include <openssl/ssl.h>
+#include <openssl/bio.h>
+#include "internal/refcount.h"
+#include "internal/quic_record_rx.h" /* OSSL_QRX */
+#include "internal/quic_ackm.h"      /* OSSL_ACKM */
+#include "internal/quic_channel.h"   /* QUIC_CHANNEL */
+#include "internal/quic_predef.h"
 
-# ifndef OPENSSL_NO_QUIC
+#ifndef OPENSSL_NO_QUIC
 
 __owur SSL *ossl_quic_new(SSL_CTX *ctx);
 __owur SSL *ossl_quic_new_listener(SSL_CTX *ctx, uint64_t flags);
@@ -30,21 +30,20 @@ __owur SSL *ossl_quic_new_domain(SSL_CTX *ctx, uint64_t flags);
  * Datatype returned from ossl_quic_get_peer_token
  */
 typedef struct quic_token_st {
-    CRYPTO_REF_COUNT references;
-    uint8_t *hashkey;
-    size_t hashkey_len;
-    uint8_t *token;
-    size_t token_len;
+  CRYPTO_REF_COUNT references;
+  uint8_t *hashkey;
+  size_t hashkey_len;
+  uint8_t *token;
+  size_t token_len;
 } QUIC_TOKEN;
 
 SSL_TOKEN_STORE *ossl_quic_new_token_store(void);
 void ossl_quic_free_token_store(SSL_TOKEN_STORE *hdl);
 SSL_TOKEN_STORE *ossl_quic_get0_token_store(SSL_CTX *ctx);
 int ossl_quic_set1_token_store(SSL_CTX *ctx, SSL_TOKEN_STORE *hdl);
-int ossl_quic_set_peer_token(SSL_CTX *ctx, BIO_ADDR *peer,
-                             const uint8_t *token, size_t token_len);
-int ossl_quic_get_peer_token(SSL_CTX *ctx, BIO_ADDR *peer,
-                             QUIC_TOKEN **token);
+int ossl_quic_set_peer_token(SSL_CTX *ctx, BIO_ADDR *peer, const uint8_t *token,
+                             size_t token_len);
+int ossl_quic_get_peer_token(SSL_CTX *ctx, BIO_ADDR *peer, QUIC_TOKEN **token);
 void ossl_quic_free_peer_token(QUIC_TOKEN *token);
 
 __owur int ossl_quic_init(SSL *s);
@@ -58,11 +57,13 @@ __owur int ossl_quic_read(SSL *s, void *buf, size_t len, size_t *readbytes);
 __owur int ossl_quic_peek(SSL *s, void *buf, size_t len, size_t *readbytes);
 __owur int ossl_quic_write_flags(SSL *s, const void *buf, size_t len,
                                  uint64_t flags, size_t *written);
-__owur int ossl_quic_write(SSL *s, const void *buf, size_t len, size_t *written);
+__owur int ossl_quic_write(SSL *s, const void *buf, size_t len,
+                           size_t *written);
 __owur long ossl_quic_ctrl(SSL *s, int cmd, long larg, void *parg);
 __owur long ossl_quic_ctx_ctrl(SSL_CTX *ctx, int cmd, long larg, void *parg);
-__owur long ossl_quic_callback_ctrl(SSL *s, int cmd, void (*fp) (void));
-__owur long ossl_quic_ctx_callback_ctrl(SSL_CTX *ctx, int cmd, void (*fp) (void));
+__owur long ossl_quic_callback_ctrl(SSL *s, int cmd, void (*fp)(void));
+__owur long ossl_quic_ctx_callback_ctrl(SSL_CTX *ctx, int cmd,
+                                        void (*fp)(void));
 __owur size_t ossl_quic_pending(const SSL *s);
 __owur int ossl_quic_key_update(SSL *s, int update_type);
 __owur int ossl_quic_get_key_update_type(const SSL *s);
@@ -121,8 +122,7 @@ __owur SSL *ossl_quic_accept_connection(SSL *ssl, uint64_t flags);
 __owur size_t ossl_quic_get_accept_connection_queue_len(SSL *ssl);
 __owur int ossl_quic_listen(SSL *ssl);
 
-__owur int ossl_quic_stream_reset(SSL *ssl,
-                                  const SSL_STREAM_RESET_ARGS *args,
+__owur int ossl_quic_stream_reset(SSL *ssl, const SSL_STREAM_RESET_ARGS *args,
                                   size_t args_len);
 
 __owur int ossl_quic_get_stream_read_state(SSL *ssl);
@@ -131,8 +131,7 @@ __owur int ossl_quic_get_stream_read_error_code(SSL *ssl,
                                                 uint64_t *app_error_code);
 __owur int ossl_quic_get_stream_write_error_code(SSL *ssl,
                                                  uint64_t *app_error_code);
-__owur int ossl_quic_get_conn_close_info(SSL *ssl,
-                                         SSL_CONN_CLOSE_INFO *info,
+__owur int ossl_quic_get_conn_close_info(SSL *ssl, SSL_CONN_CLOSE_INFO *info,
                                          size_t info_len);
 
 uint64_t ossl_quic_set_options(SSL *s, uint64_t opts);
@@ -147,8 +146,7 @@ __owur int ossl_quic_set_write_buffer_size(SSL *s, size_t size);
  * overridden at any time, expect strange results if you change it after
  * connecting.
  */
-int ossl_quic_set_override_now_cb(SSL *s,
-                                  OSSL_TIME (*now_cb)(void *arg),
+int ossl_quic_set_override_now_cb(SSL *s, OSSL_TIME (*now_cb)(void *arg),
                                   void *now_cb_arg);
 
 /*
@@ -180,6 +178,6 @@ int ossl_quic_get_notifier_fd(SSL *ssl);
 void ossl_quic_enter_blocking_section(SSL *ssl, QUIC_REACTOR_WAIT_CTX *wctx);
 void ossl_quic_leave_blocking_section(SSL *ssl, QUIC_REACTOR_WAIT_CTX *wctx);
 
-# endif
+#endif
 
 #endif

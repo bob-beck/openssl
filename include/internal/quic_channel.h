@@ -8,18 +8,18 @@
  */
 
 #ifndef OSSL_QUIC_CHANNEL_H
-# define OSSL_QUIC_CHANNEL_H
+#define OSSL_QUIC_CHANNEL_H
 
-# include <openssl/ssl.h>
-# include "internal/quic_types.h"
-# include "internal/quic_record_tx.h"
-# include "internal/quic_wire.h"
-# include "internal/quic_predef.h"
-# include "internal/qlog.h"
-# include "internal/time.h"
-# include "internal/thread.h"
+#include <openssl/ssl.h>
+#include "internal/quic_types.h"
+#include "internal/quic_record_tx.h"
+#include "internal/quic_wire.h"
+#include "internal/quic_predef.h"
+#include "internal/qlog.h"
+#include "internal/time.h"
+#include "internal/thread.h"
 
-# ifndef OPENSSL_NO_QUIC
+#ifndef OPENSSL_NO_QUIC
 
 /*
  * QUIC Channel
@@ -71,7 +71,7 @@
  *
  *   Precondition: must hold channel mutex (unchecked)
  */
-#  define QUIC_NEEDS_LOCK
+#define QUIC_NEEDS_LOCK
 
 /*
  * The function acquires the channel mutex and releases it before returning in
@@ -83,7 +83,7 @@
  *   Precondition: must not hold channel mutex (unchecked)
  *   Postcondition: channel mutex is not held (by calling thread)
  */
-#  define QUIC_TAKES_LOCK
+#define QUIC_TAKES_LOCK
 
 /*
  * The function acquires the channel mutex and leaves it acquired
@@ -96,80 +96,80 @@
  *   Postcondition: channel mutex is held by calling thread
  *      or function returned failure
  */
-#  define QUIC_ACQUIRES_LOCK
+#define QUIC_ACQUIRES_LOCK
 
-#  define QUIC_TODO_LOCK
+#define QUIC_TODO_LOCK
 
-#  define QUIC_CHANNEL_STATE_IDLE                        0
-#  define QUIC_CHANNEL_STATE_ACTIVE                      1
-#  define QUIC_CHANNEL_STATE_TERMINATING_CLOSING         2
-#  define QUIC_CHANNEL_STATE_TERMINATING_DRAINING        3
-#  define QUIC_CHANNEL_STATE_TERMINATED                  4
+#define QUIC_CHANNEL_STATE_IDLE 0
+#define QUIC_CHANNEL_STATE_ACTIVE 1
+#define QUIC_CHANNEL_STATE_TERMINATING_CLOSING 2
+#define QUIC_CHANNEL_STATE_TERMINATING_DRAINING 3
+#define QUIC_CHANNEL_STATE_TERMINATED 4
 
 typedef struct quic_channel_args_st {
-    /*
-     * The QUIC_PORT which the channel is to belong to. The lifetime of the
-     * QUIC_PORT must exceed that of the created channel.
-     */
-    QUIC_PORT       *port;
-    /* LCIDM to register LCIDs with. */
-    QUIC_LCIDM      *lcidm;
-    /* SRTM to register SRTs with. */
-    QUIC_SRTM       *srtm;
-    OSSL_QRX        *qrx;
+  /*
+   * The QUIC_PORT which the channel is to belong to. The lifetime of the
+   * QUIC_PORT must exceed that of the created channel.
+   */
+  QUIC_PORT *port;
+  /* LCIDM to register LCIDs with. */
+  QUIC_LCIDM *lcidm;
+  /* SRTM to register SRTs with. */
+  QUIC_SRTM *srtm;
+  OSSL_QRX *qrx;
 
-    int             is_server;
-    SSL             *tls;
+  int is_server;
+  SSL *tls;
 
-    /* Whether to use qlog. */
-    int             use_qlog;
+  /* Whether to use qlog. */
+  int use_qlog;
 
-    int             is_tserver_ch;
+  int is_tserver_ch;
 
-    /* Title to use for the qlog session, or NULL. */
-    const char      *qlog_title;
+  /* Title to use for the qlog session, or NULL. */
+  const char *qlog_title;
 } QUIC_CHANNEL_ARGS;
 
 /* Represents the cause for a connection's termination. */
 typedef struct quic_terminate_cause_st {
-    /*
-     * If we are in a TERMINATING or TERMINATED state, this is the error code
-     * associated with the error. This field is valid iff we are in the
-     * TERMINATING or TERMINATED states.
-     */
-    uint64_t                        error_code;
+  /*
+   * If we are in a TERMINATING or TERMINATED state, this is the error code
+   * associated with the error. This field is valid iff we are in the
+   * TERMINATING or TERMINATED states.
+   */
+  uint64_t error_code;
 
-    /*
-     * If terminate_app is set and this is nonzero, this is the frame type which
-     * caused the connection to be terminated.
-     */
-    uint64_t                        frame_type;
+  /*
+   * If terminate_app is set and this is nonzero, this is the frame type which
+   * caused the connection to be terminated.
+   */
+  uint64_t frame_type;
 
-    /*
-     * Optional reason string. When calling ossl_quic_channel_local_close, if a
-     * reason string pointer is passed, it is copied and stored inside
-     * QUIC_CHANNEL for the remainder of the lifetime of the channel object.
-     * Thus the string pointed to by this value, if non-NULL, is valid for the
-     * lifetime of the QUIC_CHANNEL object.
-     */
-    const char                      *reason;
+  /*
+   * Optional reason string. When calling ossl_quic_channel_local_close, if a
+   * reason string pointer is passed, it is copied and stored inside
+   * QUIC_CHANNEL for the remainder of the lifetime of the channel object.
+   * Thus the string pointed to by this value, if non-NULL, is valid for the
+   * lifetime of the QUIC_CHANNEL object.
+   */
+  const char *reason;
 
-    /*
-     * Length of reason in bytes. The reason is supposed to contain a UTF-8
-     * string but may be arbitrary data if the reason came from the network.
-     */
-    size_t                          reason_len;
+  /*
+   * Length of reason in bytes. The reason is supposed to contain a UTF-8
+   * string but may be arbitrary data if the reason came from the network.
+   */
+  size_t reason_len;
 
-    /* Is this error code in the transport (0) or application (1) space? */
-    unsigned int                    app : 1;
+  /* Is this error code in the transport (0) or application (1) space? */
+  unsigned int app : 1;
 
-    /*
-     * If set, the cause of the termination is a received CONNECTION_CLOSE
-     * frame. Otherwise, we decided to terminate ourselves and sent a
-     * CONNECTION_CLOSE frame (regardless of whether the peer later also sends
-     * one).
-     */
-    unsigned int                    remote : 1;
+  /*
+   * If set, the cause of the termination is a received CONNECTION_CLOSE
+   * frame. Otherwise, we decided to terminate ourselves and sent a
+   * CONNECTION_CLOSE frame (regardless of whether the peer later also sends
+   * one).
+   */
+  unsigned int remote : 1;
 } QUIC_TERMINATE_CAUSE;
 
 /*
@@ -181,7 +181,6 @@ typedef struct quic_terminate_cause_st {
 QUIC_CHANNEL *ossl_quic_channel_alloc(const QUIC_CHANNEL_ARGS *args);
 int ossl_quic_channel_init(QUIC_CHANNEL *ch);
 void ossl_quic_channel_bind_qrx(QUIC_CHANNEL *tserver_ch, OSSL_QRX *qrx);
-
 
 /* No-op if ch is NULL. */
 void ossl_quic_channel_free(QUIC_CHANNEL *ch);
@@ -240,33 +239,22 @@ int ossl_quic_channel_on_handshake_confirmed(QUIC_CHANNEL *ch);
  * directly for passing through existing call site information from an existing
  * error.
  */
-void ossl_quic_channel_raise_protocol_error_loc(QUIC_CHANNEL *ch,
-                                                uint64_t error_code,
-                                                uint64_t frame_type,
-                                                const char *reason,
-                                                ERR_STATE *err_state,
-                                                const char *src_file,
-                                                int src_line,
-                                                const char *src_func);
+void ossl_quic_channel_raise_protocol_error_loc(
+    QUIC_CHANNEL *ch, uint64_t error_code, uint64_t frame_type,
+    const char *reason, ERR_STATE *err_state, const char *src_file,
+    int src_line, const char *src_func);
 
-#define ossl_quic_channel_raise_protocol_error(ch, error_code, frame_type, reason) \
-    ossl_quic_channel_raise_protocol_error_loc((ch), (error_code),  \
-                                               (frame_type),        \
-                                               (reason),            \
-                                               NULL,                \
-                                               OPENSSL_FILE,        \
-                                               OPENSSL_LINE,        \
-                                               OPENSSL_FUNC)
+#define ossl_quic_channel_raise_protocol_error(ch, error_code, frame_type,     \
+                                               reason)                         \
+  ossl_quic_channel_raise_protocol_error_loc((ch), (error_code), (frame_type), \
+                                             (reason), NULL, OPENSSL_FILE,     \
+                                             OPENSSL_LINE, OPENSSL_FUNC)
 
-#define ossl_quic_channel_raise_protocol_error_state(ch, error_code, frame_type, reason, state) \
-    ossl_quic_channel_raise_protocol_error_loc((ch), (error_code),  \
-                                               (frame_type),        \
-                                               (reason),            \
-                                               (state),             \
-                                               OPENSSL_FILE,        \
-                                               OPENSSL_LINE,        \
-                                               OPENSSL_FUNC)
-
+#define ossl_quic_channel_raise_protocol_error_state(                          \
+    ch, error_code, frame_type, reason, state)                                 \
+  ossl_quic_channel_raise_protocol_error_loc((ch), (error_code), (frame_type), \
+                                             (reason), (state), OPENSSL_FILE,  \
+                                             OPENSSL_LINE, OPENSSL_FUNC)
 
 /*
  * Returns 1 if permanent net error was detected on the QUIC_CHANNEL,
@@ -327,7 +315,8 @@ size_t ossl_quic_channel_get_short_header_conn_id_len(QUIC_CHANNEL *ch);
  * starting a channel in client mode.
  */
 int ossl_quic_channel_get_peer_addr(QUIC_CHANNEL *ch, BIO_ADDR *peer_addr);
-int ossl_quic_channel_set_peer_addr(QUIC_CHANNEL *ch, const BIO_ADDR *peer_addr);
+int ossl_quic_channel_set_peer_addr(QUIC_CHANNEL *ch,
+                                    const BIO_ADDR *peer_addr);
 
 /*
  * Returns an existing stream by stream ID. Returns NULL if the stream does not
@@ -443,7 +432,8 @@ void ossl_quic_channel_get_diag_local_cid(QUIC_CHANNEL *ch, QUIC_CONN_ID *cid);
  * Returns 1 if stream count flow control allows us to create a new
  * locally-initiated stream.
  */
-int ossl_quic_channel_is_new_local_stream_admissible(QUIC_CHANNEL *ch, int is_uni);
+int ossl_quic_channel_is_new_local_stream_admissible(QUIC_CHANNEL *ch,
+                                                     int is_uni);
 
 /*
  * Returns the number of additional streams that can currently be created based
@@ -459,12 +449,15 @@ uint64_t ossl_quic_channel_get_remote_stream_count_avail(const QUIC_CHANNEL *ch,
  */
 int ossl_quic_channel_have_generated_transport_params(const QUIC_CHANNEL *ch);
 
-/* Configures the idle timeout to request from peer (milliseconds, 0=no timeout). */
-void ossl_quic_channel_set_max_idle_timeout_request(QUIC_CHANNEL *ch, uint64_t ms);
+/* Configures the idle timeout to request from peer (milliseconds, 0=no
+ * timeout). */
+void ossl_quic_channel_set_max_idle_timeout_request(QUIC_CHANNEL *ch,
+                                                    uint64_t ms);
 /* Get the configured idle timeout to request from peer. */
 uint64_t ossl_quic_channel_get_max_idle_timeout_request(const QUIC_CHANNEL *ch);
 /* Get the idle timeout requested by the peer. */
-uint64_t ossl_quic_channel_get_max_idle_timeout_peer_request(const QUIC_CHANNEL *ch);
+uint64_t
+ossl_quic_channel_get_max_idle_timeout_peer_request(const QUIC_CHANNEL *ch);
 /* Get the idle timeout actually negotiated. */
 uint64_t ossl_quic_channel_get_max_idle_timeout_actual(const QUIC_CHANNEL *ch);
 
@@ -474,6 +467,6 @@ int ossl_quic_bind_channel(QUIC_CHANNEL *ch, const BIO_ADDR *peer,
 
 void ossl_quic_channel_set_tcause(QUIC_CHANNEL *ch, uint64_t app_error_code,
                                   const char *app_reason);
-# endif
+#endif
 
 #endif

@@ -11,29 +11,29 @@
 #include <openssl/types.h>
 
 typedef struct {
-    /*
-     * References to the underlying cipher implementation.  |cipher| caches
-     * the cipher, always.  |alloc_cipher| only holds a reference to an
-     * explicitly fetched cipher.
-     */
-    const EVP_CIPHER *cipher;   /* cipher */
-    EVP_CIPHER *alloc_cipher;   /* fetched cipher */
+  /*
+   * References to the underlying cipher implementation.  |cipher| caches
+   * the cipher, always.  |alloc_cipher| only holds a reference to an
+   * explicitly fetched cipher.
+   */
+  const EVP_CIPHER *cipher; /* cipher */
+  EVP_CIPHER *alloc_cipher; /* fetched cipher */
 
-    /* Conditions for legacy EVP_CIPHER uses */
-    ENGINE *engine;             /* cipher engine */
+  /* Conditions for legacy EVP_CIPHER uses */
+  ENGINE *engine; /* cipher engine */
 } PROV_CIPHER;
 
 typedef struct {
-    /*
-     * References to the underlying digest implementation.  |md| caches
-     * the digest, always.  |alloc_md| only holds a reference to an explicitly
-     * fetched digest.
-     */
-    const EVP_MD *md;           /* digest */
-    EVP_MD *alloc_md;           /* fetched digest */
+  /*
+   * References to the underlying digest implementation.  |md| caches
+   * the digest, always.  |alloc_md| only holds a reference to an explicitly
+   * fetched digest.
+   */
+  const EVP_MD *md; /* digest */
+  EVP_MD *alloc_md; /* fetched digest */
 
-    /* Conditions for legacy EVP_MD uses */
-    ENGINE *engine;             /* digest engine */
+  /* Conditions for legacy EVP_MD uses */
+  ENGINE *engine; /* digest engine */
 } PROV_DIGEST;
 
 /* Cipher functions */
@@ -78,7 +78,7 @@ const EVP_MD *ossl_prov_digest_fetch(PROV_DIGEST *pd, OSSL_LIB_CTX *libctx,
 int ossl_prov_digest_load_from_params(PROV_DIGEST *pd,
                                       const OSSL_PARAM params[],
                                       OSSL_LIB_CTX *ctx);
-int ossl_prov_digest_load(PROV_DIGEST *pd,const OSSL_PARAM *digest,
+int ossl_prov_digest_load(PROV_DIGEST *pd, const OSSL_PARAM *digest,
                           const OSSL_PARAM *propq, const OSSL_PARAM *engine,
                           OSSL_LIB_CTX *ctx);
 
@@ -100,17 +100,14 @@ void ossl_prov_digest_set_md(PROV_DIGEST *pd, EVP_MD *md);
  * If any of the supplied ciphername/mdname etc are NULL then the values
  * from the supplied params (if non NULL) are used instead.
  */
-int ossl_prov_macctx_load(EVP_MAC_CTX **macctx,
-                          const OSSL_PARAM *pmac, const OSSL_PARAM *pcipher,
-                          const OSSL_PARAM *pdigest, const OSSL_PARAM *propq,
-                          const OSSL_PARAM *pengine,
+int ossl_prov_macctx_load(EVP_MAC_CTX **macctx, const OSSL_PARAM *pmac,
+                          const OSSL_PARAM *pcipher, const OSSL_PARAM *pdigest,
+                          const OSSL_PARAM *propq, const OSSL_PARAM *pengine,
                           const char *macname, const char *ciphername,
                           const char *mdname, OSSL_LIB_CTX *libctx);
 
-int ossl_prov_set_macctx(EVP_MAC_CTX *macctx,
-                         const char *ciphername,
-                         const char *mdname,
-                         const char *engine,
+int ossl_prov_set_macctx(EVP_MAC_CTX *macctx, const char *ciphername,
+                         const char *mdname, const char *engine,
                          const char *properties);
 
 /* MAC functions */
@@ -134,12 +131,11 @@ int ossl_prov_macctx_load_from_params(EVP_MAC_CTX **macctx,
                                       const OSSL_PARAM params[],
                                       const char *macname,
                                       const char *ciphername,
-                                      const char *mdname,
-                                      OSSL_LIB_CTX *ctx);
+                                      const char *mdname, OSSL_LIB_CTX *ctx);
 
 typedef struct ag_capable_st {
-    OSSL_ALGORITHM alg;
-    int (*capable)(void);
+  OSSL_ALGORITHM alg;
+  int (*capable)(void);
 } OSSL_ALGORITHM_CAPABLE;
 
 /*
@@ -150,5 +146,5 @@ void ossl_prov_cache_exported_algorithms(const OSSL_ALGORITHM_CAPABLE *in,
                                          OSSL_ALGORITHM *out);
 
 /* Duplicate a lump of memory safely */
-int ossl_prov_memdup(const void *src, size_t src_len,
-                     unsigned char **dest, size_t *dest_len);
+int ossl_prov_memdup(const void *src, size_t src_len, unsigned char **dest,
+                     size_t *dest_len);

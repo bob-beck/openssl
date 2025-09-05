@@ -9,17 +9,18 @@
  */
 
 #ifndef OSSL_INTERNAL_PROPERTY_H
-# define OSSL_INTERNAL_PROPERTY_H
-# pragma once
+#define OSSL_INTERNAL_PROPERTY_H
+#pragma once
 
-# include "internal/cryptlib.h"
+#include "internal/cryptlib.h"
 
 typedef struct ossl_method_store_st OSSL_METHOD_STORE;
 typedef struct ossl_property_list_st OSSL_PROPERTY_LIST;
 
 typedef enum {
-    OSSL_PROPERTY_TYPE_STRING, OSSL_PROPERTY_TYPE_NUMBER,
-    OSSL_PROPERTY_TYPE_VALUE_UNDEFINED
+  OSSL_PROPERTY_TYPE_STRING,
+  OSSL_PROPERTY_TYPE_NUMBER,
+  OSSL_PROPERTY_TYPE_VALUE_UNDEFINED
 } OSSL_PROPERTY_TYPE;
 typedef struct ossl_property_definition_st OSSL_PROPERTY_DEFINITION;
 
@@ -34,7 +35,7 @@ OSSL_PROPERTY_LIST *ossl_parse_query(OSSL_LIB_CTX *ctx, const char *s,
 /* Property checker of query vs definition */
 int ossl_property_match_count(const OSSL_PROPERTY_LIST *query,
                               const OSSL_PROPERTY_LIST *defn);
-int ossl_property_is_enabled(OSSL_LIB_CTX *ctx,  const char *property_name,
+int ossl_property_is_enabled(OSSL_LIB_CTX *ctx, const char *property_name,
                              const OSSL_PROPERTY_LIST *prop_list);
 /* Free a parsed property list */
 void ossl_property_free(OSSL_PROPERTY_LIST *p);
@@ -44,10 +45,10 @@ const OSSL_PROPERTY_DEFINITION *
 ossl_property_find_property(const OSSL_PROPERTY_LIST *list,
                             OSSL_LIB_CTX *libctx, const char *name);
 OSSL_PROPERTY_TYPE ossl_property_get_type(const OSSL_PROPERTY_DEFINITION *prop);
-const char *ossl_property_get_string_value(OSSL_LIB_CTX *libctx,
-                                           const OSSL_PROPERTY_DEFINITION *prop);
+const char *
+ossl_property_get_string_value(OSSL_LIB_CTX *libctx,
+                               const OSSL_PROPERTY_DEFINITION *prop);
 int64_t ossl_property_get_number_value(const OSSL_PROPERTY_DEFINITION *prop);
-
 
 /* Implementation store functions */
 OSSL_METHOD_STORE *ossl_method_store_new(OSSL_LIB_CTX *ctx);
@@ -65,9 +66,9 @@ int ossl_method_store_remove(OSSL_METHOD_STORE *store, int nid,
 void ossl_method_store_do_all(OSSL_METHOD_STORE *store,
                               void (*fn)(int id, void *method, void *fnarg),
                               void *fnarg);
-int ossl_method_store_fetch(OSSL_METHOD_STORE *store,
-                            int nid, const char *prop_query,
-                            const OSSL_PROVIDER **prov, void **method);
+int ossl_method_store_fetch(OSSL_METHOD_STORE *store, int nid,
+                            const char *prop_query, const OSSL_PROVIDER **prov,
+                            void **method);
 int ossl_method_store_remove_all_provided(OSSL_METHOD_STORE *store,
                                           const OSSL_PROVIDER *prov);
 

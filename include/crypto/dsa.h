@@ -8,20 +8,20 @@
  */
 
 #ifndef OSSL_CRYPTO_DSA_H
-# define OSSL_CRYPTO_DSA_H
-# pragma once
+#define OSSL_CRYPTO_DSA_H
+#pragma once
 
-# include <openssl/core.h>
-# include <openssl/dsa.h>
-# include "internal/ffc.h"
+#include <openssl/core.h>
+#include <openssl/dsa.h>
+#include "internal/ffc.h"
 
 /*
  * DSA Paramgen types
  * Note, adding to this list requires adjustments to various checks
  * in dsa_gen range validation checks
  */
-#define DSA_PARAMGEN_TYPE_FIPS_186_4   0   /* Use FIPS186-4 standard */
-#define DSA_PARAMGEN_TYPE_FIPS_186_2   1   /* Use legacy FIPS186-2 standard */
+#define DSA_PARAMGEN_TYPE_FIPS_186_4 0 /* Use FIPS186-4 standard */
+#define DSA_PARAMGEN_TYPE_FIPS_186_2 1 /* Use legacy FIPS186-2 standard */
 #define DSA_PARAMGEN_TYPE_FIPS_DEFAULT 2
 
 DSA *ossl_dsa_new(OSSL_LIB_CTX *libctx);

@@ -9,63 +9,60 @@
  */
 
 #ifndef OPENSSL_PARAMS_H
-# define OPENSSL_PARAMS_H
-# pragma once
+#define OPENSSL_PARAMS_H
+#pragma once
 
-# include <openssl/core.h>
-# include <openssl/bn.h>
+#include <openssl/core.h>
+#include <openssl/bn.h>
 
-# ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
-# endif
+#endif
 
-# define OSSL_PARAM_UNMODIFIED ((size_t)-1)
+#define OSSL_PARAM_UNMODIFIED ((size_t)-1)
 
-# define OSSL_PARAM_END \
-    { NULL, 0, NULL, 0, 0 }
+#define OSSL_PARAM_END {NULL, 0, NULL, 0, 0}
 
-# define OSSL_PARAM_DEFN(key, type, addr, sz)    \
-    { (key), (type), (addr), (sz), OSSL_PARAM_UNMODIFIED }
+#define OSSL_PARAM_DEFN(key, type, addr, sz)                                   \
+  {(key), (type), (addr), (sz), OSSL_PARAM_UNMODIFIED}
 
 /* Basic parameter types without return sizes */
-# define OSSL_PARAM_int(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_INTEGER, (addr), sizeof(int))
-# define OSSL_PARAM_uint(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (addr), \
-                    sizeof(unsigned int))
-# define OSSL_PARAM_long(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_INTEGER, (addr), sizeof(long int))
-# define OSSL_PARAM_ulong(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (addr), \
-                    sizeof(unsigned long int))
-# define OSSL_PARAM_int32(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_INTEGER, (addr), sizeof(int32_t))
-# define OSSL_PARAM_uint32(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (addr), \
-                    sizeof(uint32_t))
-# define OSSL_PARAM_int64(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_INTEGER, (addr), sizeof(int64_t))
-# define OSSL_PARAM_uint64(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (addr), \
-                    sizeof(uint64_t))
-# define OSSL_PARAM_size_t(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (addr), sizeof(size_t))
-# define OSSL_PARAM_time_t(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_INTEGER, (addr), sizeof(time_t))
-# define OSSL_PARAM_double(key, addr) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_REAL, (addr), sizeof(double))
+#define OSSL_PARAM_int(key, addr)                                              \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_INTEGER, (addr), sizeof(int))
+#define OSSL_PARAM_uint(key, addr)                                             \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (addr),                  \
+                  sizeof(unsigned int))
+#define OSSL_PARAM_long(key, addr)                                             \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_INTEGER, (addr), sizeof(long int))
+#define OSSL_PARAM_ulong(key, addr)                                            \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (addr),                  \
+                  sizeof(unsigned long int))
+#define OSSL_PARAM_int32(key, addr)                                            \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_INTEGER, (addr), sizeof(int32_t))
+#define OSSL_PARAM_uint32(key, addr)                                           \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (addr), sizeof(uint32_t))
+#define OSSL_PARAM_int64(key, addr)                                            \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_INTEGER, (addr), sizeof(int64_t))
+#define OSSL_PARAM_uint64(key, addr)                                           \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (addr), sizeof(uint64_t))
+#define OSSL_PARAM_size_t(key, addr)                                           \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (addr), sizeof(size_t))
+#define OSSL_PARAM_time_t(key, addr)                                           \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_INTEGER, (addr), sizeof(time_t))
+#define OSSL_PARAM_double(key, addr)                                           \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_REAL, (addr), sizeof(double))
 
-# define OSSL_PARAM_BN(key, bn, sz) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (bn), (sz))
-# define OSSL_PARAM_utf8_string(key, addr, sz) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_UTF8_STRING, (addr), sz)
-# define OSSL_PARAM_octet_string(key, addr, sz) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_OCTET_STRING, (addr), sz)
+#define OSSL_PARAM_BN(key, bn, sz)                                             \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_UNSIGNED_INTEGER, (bn), (sz))
+#define OSSL_PARAM_utf8_string(key, addr, sz)                                  \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_UTF8_STRING, (addr), sz)
+#define OSSL_PARAM_octet_string(key, addr, sz)                                 \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_OCTET_STRING, (addr), sz)
 
-# define OSSL_PARAM_utf8_ptr(key, addr, sz) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_UTF8_PTR, (addr), sz)
-# define OSSL_PARAM_octet_ptr(key, addr, sz) \
-    OSSL_PARAM_DEFN((key), OSSL_PARAM_OCTET_PTR, (addr), sz)
+#define OSSL_PARAM_utf8_ptr(key, addr, sz)                                     \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_UTF8_PTR, (addr), sz)
+#define OSSL_PARAM_octet_ptr(key, addr, sz)                                    \
+  OSSL_PARAM_DEFN((key), OSSL_PARAM_OCTET_PTR, (addr), sz)
 
 /* Search an OSSL_PARAM array for a matching name */
 OSSL_PARAM *OSSL_PARAM_locate(OSSL_PARAM *p, const char *key);
@@ -95,8 +92,7 @@ OSSL_PARAM OSSL_PARAM_construct_octet_ptr(const char *key, void **buf,
                                           size_t bsize);
 OSSL_PARAM OSSL_PARAM_construct_end(void);
 
-int OSSL_PARAM_allocate_from_text(OSSL_PARAM *to,
-                                  const OSSL_PARAM *paramdefs,
+int OSSL_PARAM_allocate_from_text(OSSL_PARAM *to, const OSSL_PARAM *paramdefs,
                                   const char *key, const char *value,
                                   size_t value_n, int *found);
 
@@ -143,8 +139,7 @@ int OSSL_PARAM_set_utf8_ptr(OSSL_PARAM *p, const char *val);
 
 int OSSL_PARAM_get_octet_ptr(const OSSL_PARAM *p, const void **val,
                              size_t *used_len);
-int OSSL_PARAM_set_octet_ptr(OSSL_PARAM *p, const void *val,
-                             size_t used_len);
+int OSSL_PARAM_set_octet_ptr(OSSL_PARAM *p, const void *val, size_t used_len);
 
 int OSSL_PARAM_get_utf8_string_ptr(const OSSL_PARAM *p, const char **val);
 int OSSL_PARAM_get_octet_string_ptr(const OSSL_PARAM *p, const void **val,
@@ -160,7 +155,7 @@ void OSSL_PARAM_free(OSSL_PARAM *p);
 int OSSL_PARAM_set_octet_string_or_ptr(OSSL_PARAM *p, const void *val,
                                        size_t len);
 
-# ifdef  __cplusplus
+#ifdef __cplusplus
 }
-# endif
+#endif
 #endif

@@ -7,10 +7,11 @@
  * https://www.openssl.org/source/license.html
  */
 
-/* A 'k' by 'l' Matrix object ('k' rows and 'l' columns) containing polynomial scalars */
+/* A 'k' by 'l' Matrix object ('k' rows and 'l' columns) containing polynomial
+ * scalars */
 struct matrix_st {
-    POLY *m_poly;
-    size_t k, l;
+  POLY *m_poly;
+  size_t k, l;
 };
 
 /**
@@ -22,23 +23,21 @@ struct matrix_st {
  * @param k The number of rows
  * @param l The number of columns
  */
-static ossl_inline ossl_unused void
-matrix_init(MATRIX *m, POLY *polys, size_t k, size_t l)
-{
-    m->k = k;
-    m->l = l;
-    m->m_poly = polys;
+static ossl_inline ossl_unused void matrix_init(MATRIX *m, POLY *polys,
+                                                size_t k, size_t l) {
+  m->k = k;
+  m->l = l;
+  m->m_poly = polys;
 }
 
 static ossl_inline ossl_unused void
-matrix_mult_vector(const MATRIX *a, const VECTOR *s, VECTOR *t)
-{
-    ossl_ml_dsa_matrix_mult_vector(a, s, t);
+matrix_mult_vector(const MATRIX *a, const VECTOR *s, VECTOR *t) {
+  ossl_ml_dsa_matrix_mult_vector(a, s, t);
 }
 
-static ossl_inline ossl_unused int
-matrix_expand_A(EVP_MD_CTX *g_ctx, const EVP_MD *md, const uint8_t *rho,
-                MATRIX *out)
-{
-    return ossl_ml_dsa_matrix_expand_A(g_ctx, md, rho, out);
+static ossl_inline ossl_unused int matrix_expand_A(EVP_MD_CTX *g_ctx,
+                                                   const EVP_MD *md,
+                                                   const uint8_t *rho,
+                                                   MATRIX *out) {
+  return ossl_ml_dsa_matrix_expand_A(g_ctx, md, rho, out);
 }

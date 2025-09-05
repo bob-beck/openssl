@@ -25,8 +25,8 @@ int ossl_namemap_add_name(OSSL_NAMEMAP *namemap, int number, const char *name);
  * number->name mapping is an iterator.
  */
 int ossl_namemap_name2num(const OSSL_NAMEMAP *namemap, const char *name);
-int ossl_namemap_name2num_n(const OSSL_NAMEMAP *namemap,
-                            const char *name, size_t name_len);
+int ossl_namemap_name2num_n(const OSSL_NAMEMAP *namemap, const char *name,
+                            size_t name_len);
 const char *ossl_namemap_num2name(const OSSL_NAMEMAP *namemap, int number,
                                   int idx);
 int ossl_namemap_doall_names(const OSSL_NAMEMAP *namemap, int number,
@@ -37,5 +37,5 @@ int ossl_namemap_doall_names(const OSSL_NAMEMAP *namemap, int number,
  * A utility that handles several names in a string, divided by a given
  * separator.
  */
-int ossl_namemap_add_names(OSSL_NAMEMAP *namemap, int number,
-                           const char *names, const char separator);
+int ossl_namemap_add_names(OSSL_NAMEMAP *namemap, int number, const char *names,
+                           const char separator);

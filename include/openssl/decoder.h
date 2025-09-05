@@ -8,23 +8,23 @@
  */
 
 #ifndef OPENSSL_DECODER_H
-# define OPENSSL_DECODER_H
-# pragma once
+#define OPENSSL_DECODER_H
+#pragma once
 
-# include <openssl/opensslconf.h>
+#include <openssl/opensslconf.h>
 
-# ifndef OPENSSL_NO_STDIO
-#  include <stdio.h>
-# endif
-# include <stdarg.h>
-# include <stddef.h>
-# include <openssl/decodererr.h>
-# include <openssl/types.h>
-# include <openssl/core.h>
+#ifndef OPENSSL_NO_STDIO
+#include <stdio.h>
+#endif
+#include <stdarg.h>
+#include <stddef.h>
+#include <openssl/decodererr.h>
+#include <openssl/types.h>
+#include <openssl/core.h>
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-# endif
+#endif
 
 OSSL_DECODER *OSSL_DECODER_fetch(OSSL_LIB_CTX *libctx, const char *name,
                                  const char *properties);
@@ -75,8 +75,8 @@ int OSSL_DECODER_CTX_set_input_type(OSSL_DECODER_CTX *ctx,
 int OSSL_DECODER_CTX_set_input_structure(OSSL_DECODER_CTX *ctx,
                                          const char *input_structure);
 int OSSL_DECODER_CTX_add_decoder(OSSL_DECODER_CTX *ctx, OSSL_DECODER *decoder);
-int OSSL_DECODER_CTX_add_extra(OSSL_DECODER_CTX *ctx,
-                               OSSL_LIB_CTX *libctx, const char *propq);
+int OSSL_DECODER_CTX_add_extra(OSSL_DECODER_CTX *ctx, OSSL_LIB_CTX *libctx,
+                               const char *propq);
 int OSSL_DECODER_CTX_get_num_decoders(OSSL_DECODER_CTX *ctx);
 
 typedef struct ossl_decoder_instance_st OSSL_DECODER_INSTANCE;
@@ -105,9 +105,9 @@ OSSL_DECODER_CONSTRUCT *OSSL_DECODER_CTX_get_construct(OSSL_DECODER_CTX *ctx);
 void *OSSL_DECODER_CTX_get_construct_data(OSSL_DECODER_CTX *ctx);
 OSSL_DECODER_CLEANUP *OSSL_DECODER_CTX_get_cleanup(OSSL_DECODER_CTX *ctx);
 
-int OSSL_DECODER_export(OSSL_DECODER_INSTANCE *decoder_inst,
-                        void *reference, size_t reference_sz,
-                        OSSL_CALLBACK *export_cb, void *export_cbarg);
+int OSSL_DECODER_export(OSSL_DECODER_INSTANCE *decoder_inst, void *reference,
+                        size_t reference_sz, OSSL_CALLBACK *export_cb,
+                        void *export_cbarg);
 
 int OSSL_DECODER_from_bio(OSSL_DECODER_CTX *ctx, BIO *in);
 #ifndef OPENSSL_NO_STDIO
@@ -121,13 +121,12 @@ int OSSL_DECODER_from_data(OSSL_DECODER_CTX *ctx, const unsigned char **pdata,
  * an implicit OSSL_DECODER_fetch(), suitable for the object of that type.
  */
 OSSL_DECODER_CTX *
-OSSL_DECODER_CTX_new_for_pkey(EVP_PKEY **pkey,
-                              const char *input_type,
-                              const char *input_struct,
-                              const char *keytype, int selection,
-                              OSSL_LIB_CTX *libctx, const char *propquery);
+OSSL_DECODER_CTX_new_for_pkey(EVP_PKEY **pkey, const char *input_type,
+                              const char *input_struct, const char *keytype,
+                              int selection, OSSL_LIB_CTX *libctx,
+                              const char *propquery);
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 }
-# endif
+#endif
 #endif

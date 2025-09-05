@@ -8,7 +8,6 @@
  * https://www.openssl.org/source/license.html
  */
 
-
 #include "crypto/evp.h"
 #include "../evp/legacy_meth.h"
 #include "internal/sm3.h"
@@ -25,7 +24,4 @@ static const EVP_MD sm3_md = {
                              SM3_CBLOCK),
 };
 
-const EVP_MD *EVP_sm3(void)
-{
-    return &sm3_md;
-}
+const EVP_MD *EVP_sm3(void) { return &sm3_md; }

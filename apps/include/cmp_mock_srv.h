@@ -9,12 +9,12 @@
  */
 
 #ifndef OSSL_APPS_CMP_MOCK_SRV_H
-# define OSSL_APPS_CMP_MOCK_SRV_H
+#define OSSL_APPS_CMP_MOCK_SRV_H
 
-# include <openssl/opensslconf.h>
-# ifndef OPENSSL_NO_CMP
+#include <openssl/opensslconf.h>
+#ifndef OPENSSL_NO_CMP
 
-#  include <openssl/cmp.h>
+#include <openssl/cmp.h>
 
 OSSL_CMP_SRV_CTX *ossl_cmp_mock_srv_new(OSSL_LIB_CTX *libctx,
                                         const char *propq);
@@ -37,5 +37,5 @@ int ossl_cmp_mock_srv_set_sendError(OSSL_CMP_SRV_CTX *srv_ctx, int bodytype);
 int ossl_cmp_mock_srv_set_pollCount(OSSL_CMP_SRV_CTX *srv_ctx, int count);
 int ossl_cmp_mock_srv_set_checkAfterTime(OSSL_CMP_SRV_CTX *srv_ctx, int sec);
 
-# endif /* !defined(OPENSSL_NO_CMP) */
+#endif /* !defined(OPENSSL_NO_CMP) */
 #endif /* !defined(OSSL_APPS_CMP_MOCK_SRV_H) */

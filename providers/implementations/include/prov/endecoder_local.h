@@ -14,8 +14,10 @@
 
 OSSL_FUNC_keymgmt_new_fn *ossl_prov_get_keymgmt_new(const OSSL_DISPATCH *fns);
 OSSL_FUNC_keymgmt_free_fn *ossl_prov_get_keymgmt_free(const OSSL_DISPATCH *fns);
-OSSL_FUNC_keymgmt_import_fn *ossl_prov_get_keymgmt_import(const OSSL_DISPATCH *fns);
-OSSL_FUNC_keymgmt_export_fn *ossl_prov_get_keymgmt_export(const OSSL_DISPATCH *fns);
+OSSL_FUNC_keymgmt_import_fn *
+ossl_prov_get_keymgmt_import(const OSSL_DISPATCH *fns);
+OSSL_FUNC_keymgmt_export_fn *
+ossl_prov_get_keymgmt_export(const OSSL_DISPATCH *fns);
 
 int ossl_prov_der_from_p8(unsigned char **new_der, long *new_der_len,
                           unsigned char *input_der, long input_der_len,
@@ -24,5 +26,5 @@ int ossl_prov_der_from_p8(unsigned char **new_der, long *new_der_len,
 void *ossl_prov_import_key(const OSSL_DISPATCH *fns, void *provctx,
                            int selection, const OSSL_PARAM params[]);
 void ossl_prov_free_key(const OSSL_DISPATCH *fns, void *key);
-int ossl_read_der(PROV_CTX *provctx, OSSL_CORE_BIO *cin,  unsigned char **data,
+int ossl_read_der(PROV_CTX *provctx, OSSL_CORE_BIO *cin, unsigned char **data,
                   long *len);

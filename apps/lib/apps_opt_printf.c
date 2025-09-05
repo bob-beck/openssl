@@ -12,14 +12,12 @@
 #include "apps_ui.h"
 
 /* This function is defined here due to visibility of bio_err */
-int opt_printf_stderr(const char *fmt, ...)
-{
-    va_list ap;
-    int ret;
+int opt_printf_stderr(const char *fmt, ...) {
+  va_list ap;
+  int ret;
 
-    va_start(ap, fmt);
-    ret = BIO_vprintf(bio_err, fmt, ap);
-    va_end(ap);
-    return ret;
+  va_start(ap, fmt);
+  ret = BIO_vprintf(bio_err, fmt, ap);
+  va_end(ap);
+  return ret;
 }
-

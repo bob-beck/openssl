@@ -11,7 +11,6 @@
 
 unsigned int OPENSSL_loongarch_hwcap_P = 0;
 
-void OPENSSL_cpuid_setup(void)
-{
-    OPENSSL_loongarch_hwcap_P = getauxval(AT_HWCAP);
+void OPENSSL_cpuid_setup(void) {
+  OPENSSL_loongarch_hwcap_P = getauxval(AT_HWCAP);
 }

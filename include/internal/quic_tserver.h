@@ -8,16 +8,16 @@
  */
 
 #ifndef OSSL_QUIC_TSERVER_H
-# define OSSL_QUIC_TSERVER_H
+#define OSSL_QUIC_TSERVER_H
 
-# include <openssl/ssl.h>
-# include <openssl/bio.h>
-# include "internal/quic_stream.h"
-# include "internal/quic_channel.h"
-# include "internal/statem.h"
-# include "internal/time.h"
+#include <openssl/ssl.h>
+#include <openssl/bio.h>
+#include "internal/quic_stream.h"
+#include "internal/quic_channel.h"
+#include "internal/statem.h"
+#include "internal/time.h"
 
-# ifndef OPENSSL_NO_QUIC
+#ifndef OPENSSL_NO_QUIC
 
 /*
  * QUIC Test Server Module
@@ -35,14 +35,14 @@
 typedef struct quic_tserver_st QUIC_TSERVER;
 
 typedef struct quic_tserver_args_st {
-    OSSL_LIB_CTX *libctx;
-    const char *propq;
-    SSL_CTX *ctx;
-    BIO *net_rbio, *net_wbio;
-    OSSL_TIME (*now_cb)(void *arg);
-    void *now_cb_arg;
-    const unsigned char *alpn;
-    size_t alpnlen;
+  OSSL_LIB_CTX *libctx;
+  const char *propq;
+  SSL_CTX *ctx;
+  BIO *net_rbio, *net_wbio;
+  OSSL_TIME (*now_cb)(void *arg);
+  void *now_cb_arg;
+  const unsigned char *alpn;
+  size_t alpnlen;
 } QUIC_TSERVER_ARGS;
 
 QUIC_TSERVER *ossl_quic_tserver_new(const QUIC_TSERVER_ARGS *args,
@@ -51,15 +51,14 @@ QUIC_TSERVER *ossl_quic_tserver_new(const QUIC_TSERVER_ARGS *args,
 void ossl_quic_tserver_free(QUIC_TSERVER *srv);
 
 /* Set mutator callbacks for test framework support */
-int ossl_quic_tserver_set_plain_packet_mutator(QUIC_TSERVER *srv,
-                                               ossl_mutate_packet_cb mutatecb,
-                                               ossl_finish_mutate_cb finishmutatecb,
-                                               void *mutatearg);
+int ossl_quic_tserver_set_plain_packet_mutator(
+    QUIC_TSERVER *srv, ossl_mutate_packet_cb mutatecb,
+    ossl_finish_mutate_cb finishmutatecb, void *mutatearg);
 
-int ossl_quic_tserver_set_handshake_mutator(QUIC_TSERVER *srv,
-                                            ossl_statem_mutate_handshake_cb mutate_handshake_cb,
-                                            ossl_statem_finish_mutate_handshake_cb finish_mutate_handshake_cb,
-                                            void *mutatearg);
+int ossl_quic_tserver_set_handshake_mutator(
+    QUIC_TSERVER *srv, ossl_statem_mutate_handshake_cb mutate_handshake_cb,
+    ossl_statem_finish_mutate_handshake_cb finish_mutate_handshake_cb,
+    void *mutatearg);
 
 /* Advances the state machine. */
 int ossl_quic_tserver_tick(QUIC_TSERVER *srv);
@@ -93,10 +92,8 @@ size_t ossl_quic_tserver_get_short_header_conn_id_len(const QUIC_TSERVER *srv);
  * the stream has reached the end of stream condition, returns 0; call
  * ossl_quic_tserver_has_read_ended() to identify this condition.
  */
-int ossl_quic_tserver_read(QUIC_TSERVER *srv,
-                           uint64_t stream_id,
-                           unsigned char *buf,
-                           size_t buf_len,
+int ossl_quic_tserver_read(QUIC_TSERVER *srv, uint64_t stream_id,
+                           unsigned char *buf, size_t buf_len,
                            size_t *bytes_read);
 
 /*
@@ -115,10 +112,8 @@ int ossl_quic_tserver_has_read_ended(QUIC_TSERVER *srv, uint64_t stream_id);
  *
  * Returns 0 if connection is not currently active.
  */
-int ossl_quic_tserver_write(QUIC_TSERVER *srv,
-                            uint64_t stream_id,
-                            const unsigned char *buf,
-                            size_t buf_len,
+int ossl_quic_tserver_write(QUIC_TSERVER *srv, uint64_t stream_id,
+                            const unsigned char *buf, size_t buf_len,
                             size_t *bytes_written);
 
 /*
@@ -130,8 +125,7 @@ int ossl_quic_tserver_conclude(QUIC_TSERVER *srv, uint64_t stream_id);
  * Create a server-initiated stream. The stream ID of the newly
  * created stream is written to *stream_id.
  */
-int ossl_quic_tserver_stream_new(QUIC_TSERVER *srv,
-                                 int is_uni,
+int ossl_quic_tserver_stream_new(QUIC_TSERVER *srv, int is_uni,
                                  uint64_t *stream_id);
 
 BIO *ossl_quic_tserver_get0_rbio(QUIC_TSERVER *srv);
@@ -218,6 +212,6 @@ int ossl_quic_tserver_set_max_early_data(QUIC_TSERVER *srv,
 void ossl_quic_tserver_set_psk_find_session_cb(QUIC_TSERVER *srv,
                                                SSL_psk_find_session_cb_func cb);
 
-# endif
+#endif
 
 #endif

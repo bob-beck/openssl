@@ -23,7 +23,7 @@
  */
 
 #ifndef OSSL_CRYPTO_CAMELLIA_CMLL_LOCAL_H
-# define OSSL_CRYPTO_CAMELLIA_CMLL_LOCAL_H
+#define OSSL_CRYPTO_CAMELLIA_CMLL_LOCAL_H
 
 typedef unsigned int u32;
 typedef unsigned char u8;
@@ -40,4 +40,4 @@ void Camellia_EncryptBlock(int keyBitLength, const u8 plaintext[],
                            const KEY_TABLE_TYPE keyTable, u8 ciphertext[]);
 void Camellia_DecryptBlock(int keyBitLength, const u8 ciphertext[],
                            const KEY_TABLE_TYPE keyTable, u8 plaintext[]);
-#endif                          /* #ifndef OSSL_CRYPTO_CAMELLIA_CMLL_LOCAL_H */
+#endif /* #ifndef OSSL_CRYPTO_CAMELLIA_CMLL_LOCAL_H */

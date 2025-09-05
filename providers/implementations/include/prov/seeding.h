@@ -24,7 +24,7 @@ size_t ossl_prov_get_entropy(PROV_CTX *prov_ctx, unsigned char **pout,
 void ossl_prov_cleanup_entropy(PROV_CTX *prov_ctx, unsigned char *buf,
                                size_t len);
 size_t ossl_prov_get_nonce(PROV_CTX *prov_ctx, unsigned char **pout,
-                           size_t min_len, size_t max_len,
-                           const void *salt, size_t salt_len);
+                           size_t min_len, size_t max_len, const void *salt,
+                           size_t salt_len);
 void ossl_prov_cleanup_nonce(PROV_CTX *prov_ctx, unsigned char *buf,
                              size_t len);

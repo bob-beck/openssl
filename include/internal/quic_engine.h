@@ -7,15 +7,15 @@
  * https://www.openssl.org/source/license.html
  */
 #ifndef OSSL_QUIC_ENGINE_H
-# define OSSL_QUIC_ENGINE_H
+#define OSSL_QUIC_ENGINE_H
 
-# include <openssl/ssl.h>
+#include <openssl/ssl.h>
 
-# include "internal/quic_predef.h"
-# include "internal/quic_port.h"
-# include "internal/thread_arch.h"
+#include "internal/quic_predef.h"
+#include "internal/quic_port.h"
+#include "internal/thread_arch.h"
 
-# ifndef OPENSSL_NO_QUIC
+#ifndef OPENSSL_NO_QUIC
 
 /*
  * QUIC Engine
@@ -37,24 +37,24 @@
  * clock management, the QUIC_REACTOR instance, etc.).
  */
 typedef struct quic_engine_args_st {
-    OSSL_LIB_CTX    *libctx;
-    const char      *propq;
+  OSSL_LIB_CTX *libctx;
+  const char *propq;
 
-    /*
-     * This must be a mutex the lifetime of which will exceed that of the engine
-     * and all ports and channels. The instantiator of the engine is responsible
-     * for providing a mutex as this makes it easier to handle instantiation and
-     * teardown of channels in situations potentially requiring locking.
-     *
-     * Note that this is a MUTEX not a RWLOCK as it needs to be an OS mutex for
-     * compatibility with an OS's condition variable wait API, whereas RWLOCK
-     * may, depending on the build configuration, be implemented using an OS's
-     * mutex primitive or using its RW mutex primitive.
-     */
-    CRYPTO_MUTEX    *mutex;
+  /*
+   * This must be a mutex the lifetime of which will exceed that of the engine
+   * and all ports and channels. The instantiator of the engine is responsible
+   * for providing a mutex as this makes it easier to handle instantiation and
+   * teardown of channels in situations potentially requiring locking.
+   *
+   * Note that this is a MUTEX not a RWLOCK as it needs to be an OS mutex for
+   * compatibility with an OS's condition variable wait API, whereas RWLOCK
+   * may, depending on the build configuration, be implemented using an OS's
+   * mutex primitive or using its RW mutex primitive.
+   */
+  CRYPTO_MUTEX *mutex;
 
-    /* Flags to pass when initialising the reactor. */
-    uint64_t        reactor_flags;
+  /* Flags to pass when initialising the reactor. */
+  uint64_t reactor_flags;
 } QUIC_ENGINE_ARGS;
 
 QUIC_ENGINE *ossl_quic_engine_new(const QUIC_ENGINE_ARGS *args);
@@ -102,6 +102,6 @@ const char *ossl_quic_engine_get0_propq(QUIC_ENGINE *qeng);
  */
 void ossl_quic_engine_update_poll_descriptors(QUIC_ENGINE *qeng, int force);
 
-# endif
+#endif
 
 #endif
