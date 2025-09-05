@@ -13,11 +13,12 @@
 #include "crypto/aes_platform.h"
 
 typedef struct prov_aes_gcm_ctx_st {
-    PROV_GCM_CTX base;          /* must be first entry in struct */
+    PROV_GCM_CTX base; /* must be first entry in struct */
+
     union {
         OSSL_UNION_ALIGN;
         AES_KEY ks;
-    } ks;                       /* AES key schedule to use */
+    } ks; /* AES key schedule to use */
 
     /* Platform specific data */
     union {
@@ -28,15 +29,16 @@ typedef struct prov_aes_gcm_ctx_st {
                 OSSL_UNION_ALIGN;
                 S390X_KMA_PARAMS kma;
             } param;
-            unsigned int fc;
-            unsigned int hsflag;    /* hash subkey set flag */
+
+            unsigned int  fc;
+            unsigned int  hsflag; /* hash subkey set flag */
             unsigned char ares[16];
             unsigned char mres[16];
             unsigned char kres[16];
-            int areslen;
-            int mreslen;
-            int kreslen;
-            int res;
+            int           areslen;
+            int           mreslen;
+            int           kreslen;
+            int           res;
         } s390x;
 #endif /* defined(OPENSSL_CPUID_OBJ) && defined(__s390__) */
     } plat;

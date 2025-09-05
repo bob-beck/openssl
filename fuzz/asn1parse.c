@@ -21,7 +21,7 @@
 
 static BIO *bio_out;
 
-int FuzzerInitialize(int *argc, char ***argv)
+int         FuzzerInitialize(int *argc, char ***argv)
 {
     bio_out = BIO_new(BIO_s_null()); /* output will be ignored */
     if (bio_out == NULL)

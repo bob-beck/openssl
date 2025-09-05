@@ -19,7 +19,7 @@
 
 unsigned char *MDC2(const unsigned char *d, size_t n, unsigned char *md)
 {
-    MDC2_CTX c;
+    MDC2_CTX             c;
     static unsigned char m[MDC2_DIGEST_LENGTH];
 
     if (md == NULL)

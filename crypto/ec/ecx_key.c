@@ -17,15 +17,14 @@
 # include "s390x_arch.h"
 #endif
 
-ECX_KEY *ossl_ecx_key_new(OSSL_LIB_CTX *libctx, ECX_KEY_TYPE type, int haspubkey,
-                          const char *propq)
+ECX_KEY *ossl_ecx_key_new(OSSL_LIB_CTX *libctx, ECX_KEY_TYPE type, int haspubkey, const char *propq)
 {
     ECX_KEY *ret = OPENSSL_zalloc(sizeof(*ret));
 
     if (ret == NULL)
         return NULL;
 
-    ret->libctx = libctx;
+    ret->libctx    = libctx;
     ret->haspubkey = haspubkey;
     switch (type) {
     case ECX_KEY_TYPE_X25519:
@@ -107,18 +106,19 @@ unsigned char *ossl_ecx_key_allocate_privkey(ECX_KEY *key)
     return key->privkey;
 }
 
-int ossl_ecx_compute_key(ECX_KEY *peer, ECX_KEY *priv, size_t keylen,
-                         unsigned char *secret, size_t *secretlen, size_t outlen)
+int ossl_ecx_compute_key(ECX_KEY       *peer,
+                         ECX_KEY       *priv,
+                         size_t         keylen,
+                         unsigned char *secret,
+                         size_t        *secretlen,
+                         size_t         outlen)
 {
-    if (priv == NULL
-            || priv->privkey == NULL
-            || peer == NULL) {
+    if (priv == NULL || priv->privkey == NULL || peer == NULL) {
         ERR_raise(ERR_LIB_PROV, PROV_R_MISSING_KEY);
         return 0;
     }
 
-    if (!ossl_assert(keylen == X25519_KEYLEN
-            || keylen == X448_KEYLEN)) {
+    if (!ossl_assert(keylen == X25519_KEYLEN || keylen == X448_KEYLEN)) {
         ERR_raise(ERR_LIB_PROV, PROV_R_INVALID_KEY_LENGTH);
         return 0;
     }
@@ -134,29 +134,27 @@ int ossl_ecx_compute_key(ECX_KEY *peer, ECX_KEY *priv, size_t keylen,
 
     if (keylen == X25519_KEYLEN) {
 #ifdef S390X_EC_ASM
-        if (OPENSSL_s390xcap_P.pcc[1]
-                & S390X_CAPBIT(S390X_SCALAR_MULTIPLY_X25519)) {
+        if (OPENSSL_s390xcap_P.pcc[1] & S390X_CAPBIT(S390X_SCALAR_MULTIPLY_X25519)) {
             if (s390x_x25519_mul(secret, peer->pubkey, priv->privkey) == 0) {
                 ERR_raise(ERR_LIB_PROV, PROV_R_FAILED_DURING_DERIVATION);
                 return 0;
             }
         } else
 #endif
-        if (ossl_x25519(secret, priv->privkey, peer->pubkey) == 0) {
+            if (ossl_x25519(secret, priv->privkey, peer->pubkey) == 0) {
             ERR_raise(ERR_LIB_PROV, PROV_R_FAILED_DURING_DERIVATION);
             return 0;
         }
     } else {
 #ifdef S390X_EC_ASM
-        if (OPENSSL_s390xcap_P.pcc[1]
-                & S390X_CAPBIT(S390X_SCALAR_MULTIPLY_X448)) {
+        if (OPENSSL_s390xcap_P.pcc[1] & S390X_CAPBIT(S390X_SCALAR_MULTIPLY_X448)) {
             if (s390x_x448_mul(secret, peer->pubkey, priv->privkey) == 0) {
                 ERR_raise(ERR_LIB_PROV, PROV_R_FAILED_DURING_DERIVATION);
                 return 0;
             }
         } else
 #endif
-        if (ossl_x448(secret, priv->privkey, peer->pubkey) == 0) {
+            if (ossl_x448(secret, priv->privkey, peer->pubkey) == 0) {
             ERR_raise(ERR_LIB_PROV, PROV_R_FAILED_DURING_DERIVATION);
             return 0;
         }

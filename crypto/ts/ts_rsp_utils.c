@@ -353,8 +353,7 @@ const ASN1_INTEGER *TS_STATUS_INFO_get0_status(const TS_STATUS_INFO *a)
     return a->status;
 }
 
-const STACK_OF(ASN1_UTF8STRING) *
-TS_STATUS_INFO_get0_text(const TS_STATUS_INFO *a)
+const STACK_OF(ASN1_UTF8STRING) *TS_STATUS_INFO_get0_text(const TS_STATUS_INFO *a)
 {
     return a->text;
 }

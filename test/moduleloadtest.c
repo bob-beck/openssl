@@ -21,9 +21,9 @@
 static int test_load(const char *path, const char *symbol)
 {
 #ifdef SD_INIT
-    SD sd = SD_INIT;
+    SD     sd = SD_INIT;
     SD_SYM sym;
-    int ret;
+    int    ret;
 
     if (!sd_load(path, &sd, SD_MODULE))
         return 0;

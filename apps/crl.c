@@ -20,11 +20,34 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_INFORM, OPT_IN, OPT_OUTFORM, OPT_OUT, OPT_KEYFORM, OPT_KEY,
-    OPT_ISSUER, OPT_LASTUPDATE, OPT_NEXTUPDATE, OPT_FINGERPRINT,
-    OPT_CRLNUMBER, OPT_BADSIG, OPT_GENDELTA, OPT_CAPATH, OPT_CAFILE, OPT_CASTORE,
-    OPT_NOCAPATH, OPT_NOCAFILE, OPT_NOCASTORE, OPT_VERIFY, OPT_DATEOPT, OPT_TEXT, OPT_HASH,
-    OPT_HASH_OLD, OPT_NOOUT, OPT_NAMEOPT, OPT_MD, OPT_PROV_ENUM
+    OPT_INFORM,
+    OPT_IN,
+    OPT_OUTFORM,
+    OPT_OUT,
+    OPT_KEYFORM,
+    OPT_KEY,
+    OPT_ISSUER,
+    OPT_LASTUPDATE,
+    OPT_NEXTUPDATE,
+    OPT_FINGERPRINT,
+    OPT_CRLNUMBER,
+    OPT_BADSIG,
+    OPT_GENDELTA,
+    OPT_CAPATH,
+    OPT_CAFILE,
+    OPT_CASTORE,
+    OPT_NOCAPATH,
+    OPT_NOCAFILE,
+    OPT_NOCASTORE,
+    OPT_VERIFY,
+    OPT_DATEOPT,
+    OPT_TEXT,
+    OPT_HASH,
+    OPT_HASH_OLD,
+    OPT_NOOUT,
+    OPT_NAMEOPT,
+    OPT_MD,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS crl_options[] = {
@@ -57,43 +80,40 @@ const OPTIONS crl_options[] = {
     {"noout", OPT_NOOUT, '-', "No CRL output"},
     {"fingerprint", OPT_FINGERPRINT, '-', "Print the crl fingerprint"},
     {"crlnumber", OPT_CRLNUMBER, '-', "Print CRL number"},
-    {"badsig", OPT_BADSIG, '-', "Corrupt last byte of loaded CRL signature (for test)" },
+    {"badsig", OPT_BADSIG, '-', "Corrupt last byte of loaded CRL signature (for test)"},
     {"gendelta", OPT_GENDELTA, '<', "Other CRL to compare/diff to the Input one"},
 
     OPT_SECTION("Certificate"),
     {"CApath", OPT_CAPATH, '/', "Verify CRL using certificates in dir"},
     {"CAfile", OPT_CAFILE, '<', "Verify CRL using certificates in file name"},
     {"CAstore", OPT_CASTORE, ':', "Verify CRL using certificates in store URI"},
-    {"no-CAfile", OPT_NOCAFILE, '-',
-     "Do not load the default certificates file"},
-    {"no-CApath", OPT_NOCAPATH, '-',
-     "Do not load certificates from the default certificates directory"},
-    {"no-CAstore", OPT_NOCASTORE, '-',
-     "Do not load certificates from the default certificates store"},
+    {"no-CAfile", OPT_NOCAFILE, '-', "Do not load the default certificates file"},
+    {"no-CApath", OPT_NOCAPATH, '-', "Do not load certificates from the default certificates directory"},
+    {"no-CAstore", OPT_NOCASTORE, '-', "Do not load certificates from the default certificates store"},
     OPT_PROV_OPTIONS,
     {NULL}
 };
 
 int crl_main(int argc, char **argv)
 {
-    X509_CRL *x = NULL;
-    BIO *out = NULL;
-    X509_STORE *store = NULL;
-    X509_STORE_CTX *ctx = NULL;
-    X509_LOOKUP *lookup = NULL;
-    X509_OBJECT *xobj = NULL;
-    EVP_PKEY *pkey;
-    EVP_MD *digest = (EVP_MD *)EVP_sha1();
-    char *infile = NULL, *outfile = NULL, *crldiff = NULL, *keyfile = NULL;
-    char *digestname = NULL;
-    const char *CAfile = NULL, *CApath = NULL, *CAstore = NULL, *prog;
-    OPTION_CHOICE o;
-    int hash = 0, issuer = 0, lastupdate = 0, nextupdate = 0, noout = 0;
-    int informat = FORMAT_UNDEF, outformat = FORMAT_PEM, keyformat = FORMAT_UNDEF;
-    int ret = 1, num = 0, badsig = 0, fingerprint = 0, crlnumber = 0;
-    int text = 0, do_ver = 0, noCAfile = 0, noCApath = 0, noCAstore = 0;
-    unsigned long dateopt = ASN1_DTFLGS_RFC822;
-    int i;
+    X509_CRL       *x      = NULL;
+    BIO            *out    = NULL;
+    X509_STORE     *store  = NULL;
+    X509_STORE_CTX *ctx    = NULL;
+    X509_LOOKUP    *lookup = NULL;
+    X509_OBJECT    *xobj   = NULL;
+    EVP_PKEY       *pkey;
+    EVP_MD         *digest = (EVP_MD *)EVP_sha1();
+    char           *infile = NULL, *outfile = NULL, *crldiff = NULL, *keyfile = NULL;
+    char           *digestname = NULL;
+    const char     *CAfile = NULL, *CApath = NULL, *CAstore = NULL, *prog;
+    OPTION_CHOICE   o;
+    int             hash = 0, issuer = 0, lastupdate = 0, nextupdate = 0, noout = 0;
+    int             informat = FORMAT_UNDEF, outformat = FORMAT_PEM, keyformat = FORMAT_UNDEF;
+    int             ret = 1, num = 0, badsig = 0, fingerprint = 0, crlnumber = 0;
+    int             text = 0, do_ver = 0, noCAfile = 0, noCApath = 0, noCAstore = 0;
+    unsigned long   dateopt = ASN1_DTFLGS_RFC822;
+    int             i;
 #ifndef OPENSSL_NO_MD5
     int hash_old = 0;
 #endif
@@ -104,7 +124,7 @@ int crl_main(int argc, char **argv)
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -145,16 +165,16 @@ int crl_main(int argc, char **argv)
             break;
         case OPT_CASTORE:
             CAstore = opt_arg();
-            do_ver = 1;
+            do_ver  = 1;
             break;
         case OPT_NOCAPATH:
-            noCApath =  1;
+            noCApath = 1;
             break;
         case OPT_NOCAFILE:
-            noCAfile =  1;
+            noCAfile = 1;
             break;
         case OPT_NOCASTORE:
-            noCAstore =  1;
+            noCAstore = 1;
             break;
         case OPT_HASH_OLD:
 #ifndef OPENSSL_NO_MD5
@@ -220,8 +240,7 @@ int crl_main(int argc, char **argv)
         goto end;
 
     if (do_ver) {
-        if ((store = setup_verify(CAfile, noCAfile, CApath, noCApath,
-                                  CAstore, noCAstore)) == NULL)
+        if ((store = setup_verify(CAfile, noCAfile, CApath, noCApath, CAstore, noCAstore)) == NULL)
             goto end;
         lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file());
         if (lookup == NULL)
@@ -232,8 +251,7 @@ int crl_main(int argc, char **argv)
             goto end;
         }
 
-        xobj = X509_STORE_CTX_get_obj_by_subject(ctx, X509_LU_X509,
-                                                 X509_CRL_get_issuer(x));
+        xobj = X509_STORE_CTX_get_obj_by_subject(ctx, X509_LU_X509, X509_CRL_get_issuer(x));
         if (xobj == NULL) {
             BIO_printf(bio_err, "Error getting CRL issuer certificate\n");
             goto end;
@@ -309,10 +327,9 @@ int crl_main(int argc, char **argv)
                 BIO_printf(bio_out, "\n");
             }
             if (hash == i) {
-                int ok;
+                int           ok;
                 unsigned long hash_value =
-                    X509_NAME_hash_ex(X509_CRL_get_issuer(x), app_get0_libctx(),
-                                      app_get0_propq(), &ok);
+                    X509_NAME_hash_ex(X509_CRL_get_issuer(x), app_get0_libctx(), app_get0_propq(), &ok);
 
                 if (num > 1)
                     BIO_printf(bio_out, "issuer name hash=");
@@ -327,8 +344,7 @@ int crl_main(int argc, char **argv)
             if (hash_old == i) {
                 if (num > 1)
                     BIO_printf(bio_out, "issuer name old hash=");
-                BIO_printf(bio_out, "%08lx\n",
-                           X509_NAME_hash_old(X509_CRL_get_issuer(x)));
+                BIO_printf(bio_out, "%08lx\n", X509_NAME_hash_old(X509_CRL_get_issuer(x)));
             }
 #endif
             if (lastupdate == i) {
@@ -345,19 +361,17 @@ int crl_main(int argc, char **argv)
                 BIO_printf(bio_out, "\n");
             }
             if (fingerprint == i) {
-                int j;
-                unsigned int n;
+                int           j;
+                unsigned int  n;
                 unsigned char md[EVP_MAX_MD_SIZE];
 
                 if (!X509_CRL_digest(x, digest, md, &n)) {
                     BIO_printf(bio_err, "out of memory\n");
                     goto end;
                 }
-                BIO_printf(bio_out, "%s Fingerprint=",
-                           EVP_MD_get0_name(digest));
+                BIO_printf(bio_out, "%s Fingerprint=", EVP_MD_get0_name(digest));
                 for (j = 0; j < (int)n; j++) {
-                    BIO_printf(bio_out, "%02X%c", md[j], (j + 1 == (int)n)
-                               ? '\n' : ':');
+                    BIO_printf(bio_out, "%02X%c", md[j], (j + 1 == (int)n) ? '\n' : ':');
                 }
             }
         }
@@ -384,7 +398,7 @@ int crl_main(int argc, char **argv)
     }
     ret = 0;
 
- end:
+end:
     if (ret != 0)
         ERR_print_errors(bio_err);
     BIO_free_all(out);

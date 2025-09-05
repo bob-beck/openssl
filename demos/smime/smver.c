@@ -14,11 +14,11 @@
 
 int main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL, *tbio = NULL, *cont = NULL;
-    X509_STORE *st = NULL;
-    X509 *cacert = NULL;
-    PKCS7 *p7 = NULL;
-    int ret = EXIT_FAILURE;
+    BIO        *in = NULL, *out = NULL, *tbio = NULL, *cont = NULL;
+    X509_STORE *st     = NULL;
+    X509       *cacert = NULL;
+    PKCS7      *p7     = NULL;
+    int         ret    = EXIT_FAILURE;
 
     OpenSSL_add_all_algorithms();
     ERR_load_crypto_strings();
@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     printf("Verification Successful\n");
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS) {
         fprintf(stderr, "Error Verifying Data\n");
         ERR_print_errors_fp(stderr);

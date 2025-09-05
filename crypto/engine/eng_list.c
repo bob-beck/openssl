@@ -24,8 +24,8 @@
  * pointer account for the list itself assuming exactly 1 structural
  * reference on each list member.
  */
-static ENGINE *engine_list_head = NULL;
-static ENGINE *engine_list_tail = NULL;
+static ENGINE *engine_list_head     = NULL;
+static ENGINE *engine_list_tail     = NULL;
 
 /*
  * The linked list of currently loaded dynamic engines.
@@ -39,7 +39,7 @@ static ENGINE *engine_dyn_list_tail = NULL;
  * cleanup.
  */
 
-static void engine_list_cleanup(void)
+static void    engine_list_cleanup(void)
 {
     ENGINE *iterator = engine_list_head;
 
@@ -56,9 +56,9 @@ static void engine_list_cleanup(void)
  */
 static int engine_list_add(ENGINE *e)
 {
-    int conflict = 0;
+    int     conflict = 0;
     ENGINE *iterator = NULL;
-    int ref;
+    int     ref;
 
     if (e == NULL) {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
@@ -78,8 +78,8 @@ static int engine_list_add(ENGINE *e)
      * Having the engine in the list assumes a structural reference.
      */
     if (!CRYPTO_UP_REF(&e->struct_ref, &ref)) {
-            ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INTERNAL_LIST_ERROR);
-            return 0;
+        ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INTERNAL_LIST_ERROR);
+        return 0;
     }
     ENGINE_REF_PRINT(e, 0, 1);
     if (engine_list_head == NULL) {
@@ -98,7 +98,7 @@ static int engine_list_add(ENGINE *e)
             return 0;
         }
         engine_list_head = e;
-        e->prev = NULL;
+        e->prev          = NULL;
     } else {
         /* We are adding to the tail of an existing list. */
         if ((engine_list_tail == NULL) || (engine_list_tail->next != NULL)) {
@@ -107,12 +107,12 @@ static int engine_list_add(ENGINE *e)
             return 0;
         }
         engine_list_tail->next = e;
-        e->prev = engine_list_tail;
+        e->prev                = engine_list_tail;
     }
 
     /* However it came to be, e is the last item in the list. */
     engine_list_tail = e;
-    e->next = NULL;
+    e->next          = NULL;
     return 1;
 }
 
@@ -147,10 +147,9 @@ static int engine_list_remove(ENGINE *e)
 }
 
 /* Add engine to dynamic engine list. */
-int engine_add_dynamic_id(ENGINE *e, ENGINE_DYNAMIC_ID dynamic_id,
-                          int not_locked)
+int engine_add_dynamic_id(ENGINE *e, ENGINE_DYNAMIC_ID dynamic_id, int not_locked)
 {
-    int result = 0;
+    int     result   = 0;
     ENGINE *iterator = NULL;
 
     if (e == NULL)
@@ -179,21 +178,20 @@ int engine_add_dynamic_id(ENGINE *e, ENGINE_DYNAMIC_ID dynamic_id,
         if (engine_dyn_list_tail != NULL)
             goto err;
         engine_dyn_list_head = e;
-        e->prev_dyn = NULL;
+        e->prev_dyn          = NULL;
     } else {
         /* We are adding to the tail of an existing list. */
-        if (engine_dyn_list_tail == NULL
-            || engine_dyn_list_tail->next_dyn != NULL)
+        if (engine_dyn_list_tail == NULL || engine_dyn_list_tail->next_dyn != NULL)
             goto err;
         engine_dyn_list_tail->next_dyn = e;
-        e->prev_dyn = engine_dyn_list_tail;
+        e->prev_dyn                    = engine_dyn_list_tail;
     }
 
     engine_dyn_list_tail = e;
-    e->next_dyn = NULL;
-    result = 1;
+    e->next_dyn          = NULL;
+    result               = 1;
 
- err:
+err:
     if (not_locked)
         CRYPTO_THREAD_unlock(global_engine_lock);
     return result;
@@ -377,8 +375,8 @@ int ENGINE_remove(ENGINE *e)
 
 static void engine_cpy(ENGINE *dest, const ENGINE *src)
 {
-    dest->id = src->id;
-    dest->name = src->name;
+    dest->id       = src->id;
+    dest->name     = src->name;
     dest->rsa_meth = src->rsa_meth;
 #ifndef OPENSSL_NO_DSA
     dest->dsa_meth = src->dsa_meth;
@@ -389,25 +387,25 @@ static void engine_cpy(ENGINE *dest, const ENGINE *src)
 #ifndef OPENSSL_NO_EC
     dest->ec_meth = src->ec_meth;
 #endif
-    dest->rand_meth = src->rand_meth;
-    dest->ciphers = src->ciphers;
-    dest->digests = src->digests;
-    dest->pkey_meths = src->pkey_meths;
-    dest->destroy = src->destroy;
-    dest->init = src->init;
-    dest->finish = src->finish;
-    dest->ctrl = src->ctrl;
+    dest->rand_meth    = src->rand_meth;
+    dest->ciphers      = src->ciphers;
+    dest->digests      = src->digests;
+    dest->pkey_meths   = src->pkey_meths;
+    dest->destroy      = src->destroy;
+    dest->init         = src->init;
+    dest->finish       = src->finish;
+    dest->ctrl         = src->ctrl;
     dest->load_privkey = src->load_privkey;
-    dest->load_pubkey = src->load_pubkey;
-    dest->cmd_defns = src->cmd_defns;
-    dest->flags = src->flags;
-    dest->dynamic_id = src->dynamic_id;
+    dest->load_pubkey  = src->load_pubkey;
+    dest->cmd_defns    = src->cmd_defns;
+    dest->flags        = src->flags;
+    dest->dynamic_id   = src->dynamic_id;
     engine_add_dynamic_id(dest, NULL, 0);
 }
 
 ENGINE *ENGINE_by_id(const char *id)
 {
-    ENGINE *iterator;
+    ENGINE     *iterator;
     const char *load_dir = NULL;
     if (id == NULL) {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
@@ -461,16 +459,15 @@ ENGINE *ENGINE_by_id(const char *id)
         if ((load_dir = ossl_safe_getenv("OPENSSL_ENGINES")) == NULL)
             load_dir = ossl_get_enginesdir();
         iterator = ENGINE_by_id("dynamic");
-        if (!iterator || !ENGINE_ctrl_cmd_string(iterator, "ID", id, 0) ||
-            !ENGINE_ctrl_cmd_string(iterator, "DIR_LOAD", "2", 0) ||
-            !ENGINE_ctrl_cmd_string(iterator, "DIR_ADD",
-                                    load_dir, 0) ||
-            !ENGINE_ctrl_cmd_string(iterator, "LIST_ADD", "1", 0) ||
-            !ENGINE_ctrl_cmd_string(iterator, "LOAD", NULL, 0))
+        if (!iterator || !ENGINE_ctrl_cmd_string(iterator, "ID", id, 0)
+            || !ENGINE_ctrl_cmd_string(iterator, "DIR_LOAD", "2", 0)
+            || !ENGINE_ctrl_cmd_string(iterator, "DIR_ADD", load_dir, 0)
+            || !ENGINE_ctrl_cmd_string(iterator, "LIST_ADD", "1", 0)
+            || !ENGINE_ctrl_cmd_string(iterator, "LOAD", NULL, 0))
             goto notfound;
         return iterator;
     }
- notfound:
+notfound:
     ENGINE_free(iterator);
     ERR_raise_data(ERR_LIB_ENGINE, ENGINE_R_NO_SUCH_ENGINE, "id=%s", id);
     return NULL;

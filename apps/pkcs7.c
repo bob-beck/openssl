@@ -22,9 +22,17 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_INFORM, OPT_OUTFORM, OPT_IN, OPT_OUT, OPT_NOOUT,
-    OPT_TEXT, OPT_PRINT, OPT_PRINT_CERTS, OPT_QUIET,
-    OPT_ENGINE, OPT_PROV_ENUM
+    OPT_INFORM,
+    OPT_OUTFORM,
+    OPT_IN,
+    OPT_OUT,
+    OPT_NOOUT,
+    OPT_TEXT,
+    OPT_PRINT,
+    OPT_PRINT_CERTS,
+    OPT_QUIET,
+    OPT_ENGINE,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS pkcs7_options[] = {
@@ -44,10 +52,8 @@ const OPTIONS pkcs7_options[] = {
     {"noout", OPT_NOOUT, '-', "Don't output encoded data"},
     {"text", OPT_TEXT, '-', "Print full details of certificates"},
     {"print", OPT_PRINT, '-', "Print out all fields of the PKCS7 structure"},
-    {"print_certs", OPT_PRINT_CERTS, '-',
-     "Print_certs  print any certs or crl in the input"},
-    {"quiet", OPT_QUIET, '-',
-     "When used with -print_certs, it produces a cleaner output"},
+    {"print_certs", OPT_PRINT_CERTS, '-', "Print_certs  print any certs or crl in the input"},
+    {"quiet", OPT_QUIET, '-', "When used with -print_certs, it produces a cleaner output"},
 
     OPT_PROV_OPTIONS,
     {NULL}
@@ -55,21 +61,21 @@ const OPTIONS pkcs7_options[] = {
 
 int pkcs7_main(int argc, char **argv)
 {
-    ENGINE *e = NULL;
-    PKCS7 *p7 = NULL, *p7i;
-    BIO *in = NULL, *out = NULL;
-    int informat = FORMAT_PEM, outformat = FORMAT_PEM;
-    char *infile = NULL, *outfile = NULL, *prog;
-    int i, print_certs = 0, text = 0, noout = 0, p7_print = 0, quiet = 0, ret = 1;
+    ENGINE       *e  = NULL;
+    PKCS7        *p7 = NULL, *p7i;
+    BIO          *in = NULL, *out = NULL;
+    int           informat = FORMAT_PEM, outformat = FORMAT_PEM;
+    char         *infile = NULL, *outfile = NULL, *prog;
+    int           i, print_certs = 0, text = 0, noout = 0, p7_print = 0, quiet = 0, ret = 1;
     OPTION_CHOICE o;
     OSSL_LIB_CTX *libctx = app_get0_libctx();
 
-    prog = opt_init(argc, argv, pkcs7_options);
+    prog                 = opt_init(argc, argv, pkcs7_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -148,21 +154,21 @@ int pkcs7_main(int argc, char **argv)
         PKCS7_print_ctx(out, p7, 0, NULL);
 
     if (print_certs) {
-        STACK_OF(X509) *certs = NULL;
-        STACK_OF(X509_CRL) *crls = NULL;
+        STACK_OF(X509)     *certs = NULL;
+        STACK_OF(X509_CRL) *crls  = NULL;
 
-        i = OBJ_obj2nid(p7->type);
+        i                         = OBJ_obj2nid(p7->type);
         switch (i) {
         case NID_pkcs7_signed:
             if (p7->d.sign != NULL) {
                 certs = p7->d.sign->cert;
-                crls = p7->d.sign->crl;
+                crls  = p7->d.sign->crl;
             }
             break;
         case NID_pkcs7_signedAndEnveloped:
             if (p7->d.signed_and_enveloped != NULL) {
                 certs = p7->d.signed_and_enveloped->cert;
-                crls = p7->d.signed_and_enveloped->crl;
+                crls  = p7->d.signed_and_enveloped->crl;
             }
             break;
         default:
@@ -215,7 +221,7 @@ int pkcs7_main(int argc, char **argv)
         }
     }
     ret = 0;
- end:
+end:
     PKCS7_free(p7);
     release_engine(e);
     BIO_free(in);

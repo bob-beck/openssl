@@ -24,21 +24,31 @@
 # include "evp_local.h"
 # include <openssl/rc5.h>
 
-static int r_32_12_16_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-                               const unsigned char *iv, int enc);
+static int r_32_12_16_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key, const unsigned char *iv, int enc);
 static int rc5_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr);
 
 typedef struct {
-    int rounds;                 /* number of rounds */
-    RC5_32_KEY ks;              /* key schedule */
+    int        rounds; /* number of rounds */
+    RC5_32_KEY ks;     /* key schedule */
 } EVP_RC5_KEY;
 
 # define data(ctx)       EVP_C_DATA(EVP_RC5_KEY,ctx)
 
-IMPLEMENT_BLOCK_CIPHER(rc5_32_12_16, ks, RC5_32, EVP_RC5_KEY, NID_rc5,
-                       8, RC5_32_KEY_LENGTH, 8, 64,
+IMPLEMENT_BLOCK_CIPHER(rc5_32_12_16,
+                       ks,
+                       RC5_32,
+                       EVP_RC5_KEY,
+                       NID_rc5,
+                       8,
+                       RC5_32_KEY_LENGTH,
+                       8,
+                       64,
                        EVP_CIPH_VARIABLE_LENGTH | EVP_CIPH_CTRL_INIT,
-                       r_32_12_16_init_key, NULL, NULL, NULL, rc5_ctrl)
+                       r_32_12_16_init_key,
+                       NULL,
+                       NULL,
+                       NULL,
+                       rc5_ctrl)
 
 static int rc5_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
 {
@@ -69,8 +79,7 @@ static int rc5_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
     }
 }
 
-static int r_32_12_16_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-                               const unsigned char *iv, int enc)
+static int r_32_12_16_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key, const unsigned char *iv, int enc)
 {
     const int key_len = EVP_CIPHER_CTX_get_key_length(ctx);
 

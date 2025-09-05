@@ -27,11 +27,11 @@ void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 
 void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
 {
-    const ASN1_TEMPLATE *tt = NULL, *seqtt;
+    const ASN1_TEMPLATE     *tt = NULL, *seqtt;
     const ASN1_EXTERN_FUNCS *ef;
-    const ASN1_AUX *aux = it->funcs;
-    ASN1_aux_cb *asn1_cb;
-    int i;
+    const ASN1_AUX          *aux = it->funcs;
+    ASN1_aux_cb             *asn1_cb;
+    int                      i;
 
     if (pval == NULL)
         return;
@@ -43,7 +43,6 @@ void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed
         asn1_cb = 0;
 
     switch (it->itype) {
-
     case ASN1_ITYPE_PRIMITIVE:
         if (it->templates)
             ossl_asn1_template_free(pval, it->templates);
@@ -65,7 +64,7 @@ void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed
         if ((i >= 0) && (i < it->tcount)) {
             ASN1_VALUE **pchval;
 
-            tt = it->templates + i;
+            tt     = it->templates + i;
             pchval = ossl_asn1_get_field_ptr(pval, tt);
             ossl_asn1_template_free(pchval, tt);
         }
@@ -125,7 +124,7 @@ void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed
 
 void ossl_asn1_template_free(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
 {
-    int embed = tt->flags & ASN1_TFLG_EMBED;
+    int         embed = tt->flags & ASN1_TFLG_EMBED;
     ASN1_VALUE *tval;
     if (embed) {
         tval = (ASN1_VALUE *)pval;
@@ -133,7 +132,7 @@ void ossl_asn1_template_free(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
     }
     if (tt->flags & ASN1_TFLG_SK_MASK) {
         STACK_OF(ASN1_VALUE) *sk = (STACK_OF(ASN1_VALUE) *)*pval;
-        int i;
+        int                   i;
 
         for (i = 0; i < sk_ASN1_VALUE_num(sk); i++) {
             ASN1_VALUE *vtmp = sk_ASN1_VALUE_value(sk, i);
@@ -170,8 +169,8 @@ void ossl_asn1_primitive_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
     if (!it) {
         ASN1_TYPE *typ = (ASN1_TYPE *)*pval;
 
-        utype = typ->type;
-        pval = &typ->value.asn1_value;
+        utype          = typ->type;
+        pval           = &typ->value.asn1_value;
         if (*pval == NULL)
             return;
     } else if (it->itype == ASN1_ITYPE_MSTRING) {

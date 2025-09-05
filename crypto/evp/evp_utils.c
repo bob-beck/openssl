@@ -12,9 +12,9 @@
 #include <openssl/core.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
-#include <openssl/asn1.h>        /* evp_local.h needs it */
-#include <openssl/safestack.h>   /* evp_local.h needs it */
-#include "crypto/evp.h"    /* evp_local.h needs it */
+#include <openssl/asn1.h>      /* evp_local.h needs it */
+#include <openssl/safestack.h> /* evp_local.h needs it */
+#include "crypto/evp.h"        /* evp_local.h needs it */
 #include "evp_local.h"
 
 /*
@@ -48,10 +48,7 @@ int name (const type *obj, void *algctx, OSSL_PARAM params[])                  \
     return obj->func(algctx, params);                                          \
 }
 
-#define PARAM_FUNCTIONS(type,                                                  \
-                        getname, getfunc,                                      \
-                        getctxname, getctxfunc,                                \
-                        setctxname, setctxfunc)                                \
+#define PARAM_FUNCTIONS(type, getname, getfunc, getctxname, getctxfunc, setctxname, setctxfunc)                                \
     PARAM_FUNC(getname, getfunc, type, geterr)                                 \
     PARAM_CTX_FUNC(getctxname, getctxfunc, type, geterr)                       \
     PARAM_CTX_FUNC(setctxname, setctxfunc, type, seterr)
@@ -71,11 +68,17 @@ static void seterr(void)
 }
 
 PARAM_FUNCTIONS(EVP_CIPHER,
-                evp_do_ciph_getparams, get_params,
-                evp_do_ciph_ctx_getparams, get_ctx_params,
-                evp_do_ciph_ctx_setparams, set_ctx_params)
+                evp_do_ciph_getparams,
+                get_params,
+                evp_do_ciph_ctx_getparams,
+                get_ctx_params,
+                evp_do_ciph_ctx_setparams,
+                set_ctx_params)
 
 PARAM_FUNCTIONS(EVP_MD,
-                evp_do_md_getparams, get_params,
-                evp_do_md_ctx_getparams, get_ctx_params,
-                evp_do_md_ctx_setparams, set_ctx_params)
+                evp_do_md_getparams,
+                get_params,
+                evp_do_md_ctx_getparams,
+                get_ctx_params,
+                evp_do_md_ctx_setparams,
+                set_ctx_params)

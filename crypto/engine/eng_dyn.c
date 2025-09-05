@@ -21,14 +21,13 @@
  */
 
 /* Our ENGINE handlers */
-static int dynamic_init(ENGINE *e);
-static int dynamic_finish(ENGINE *e);
-static int dynamic_ctrl(ENGINE *e, int cmd, long i, void *p,
-                        void (*f) (void));
+static int                         dynamic_init(ENGINE *e);
+static int                         dynamic_finish(ENGINE *e);
+static int                         dynamic_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f)(void));
 /* Predeclare our context type */
 typedef struct st_dynamic_data_ctx dynamic_data_ctx;
 /* The implementation for the important control command */
-static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx);
+static int                         dynamic_load(ENGINE *e, dynamic_data_ctx *ctx);
 
 #define DYNAMIC_CMD_SO_PATH             ENGINE_CMD_BASE
 #define DYNAMIC_CMD_NO_VCHECK           (ENGINE_CMD_BASE + 1)
@@ -39,38 +38,23 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx);
 #define DYNAMIC_CMD_LOAD                (ENGINE_CMD_BASE + 6)
 
 /* The constants used when creating the ENGINE */
-static const char *engine_dynamic_id = "dynamic";
-static const char *engine_dynamic_name = "Dynamic engine loading support";
+static const char           *engine_dynamic_id   = "dynamic";
+static const char           *engine_dynamic_name = "Dynamic engine loading support";
 static const ENGINE_CMD_DEFN dynamic_cmd_defns[] = {
-    {DYNAMIC_CMD_SO_PATH,
-     "SO_PATH",
-     "Specifies the path to the new ENGINE shared library",
-     ENGINE_CMD_FLAG_STRING},
+    {DYNAMIC_CMD_SO_PATH,   "SO_PATH", "Specifies the path to the new ENGINE shared library",                           ENGINE_CMD_FLAG_STRING  },
     {DYNAMIC_CMD_NO_VCHECK,
-     "NO_VCHECK",
-     "Specifies to continue even if version checking fails (boolean)",
-     ENGINE_CMD_FLAG_NUMERIC},
-    {DYNAMIC_CMD_ID,
-     "ID",
-     "Specifies an ENGINE id name for loading",
-     ENGINE_CMD_FLAG_STRING},
+     "NO_VCHECK",                      "Specifies to continue even if version checking fails (boolean)",
+     ENGINE_CMD_FLAG_NUMERIC                                                                                                                    },
+    {DYNAMIC_CMD_ID,        "ID",      "Specifies an ENGINE id name for loading",                                       ENGINE_CMD_FLAG_STRING  },
     {DYNAMIC_CMD_LIST_ADD,
-     "LIST_ADD",
-     "Whether to add a loaded ENGINE to the internal list (0=no,1=yes,2=mandatory)",
-     ENGINE_CMD_FLAG_NUMERIC},
+     "LIST_ADD",                       "Whether to add a loaded ENGINE to the internal list (0=no,1=yes,2=mandatory)",
+     ENGINE_CMD_FLAG_NUMERIC                                                                                                                    },
     {DYNAMIC_CMD_DIR_LOAD,
-     "DIR_LOAD",
-     "Specifies whether to load from 'DIR_ADD' directories (0=no,1=yes,2=mandatory)",
-     ENGINE_CMD_FLAG_NUMERIC},
-    {DYNAMIC_CMD_DIR_ADD,
-     "DIR_ADD",
-     "Adds a directory from which ENGINEs can be loaded",
-     ENGINE_CMD_FLAG_STRING},
-    {DYNAMIC_CMD_LOAD,
-     "LOAD",
-     "Load up the ENGINE specified by other settings",
-     ENGINE_CMD_FLAG_NO_INPUT},
-    {0, NULL, NULL, 0}
+     "DIR_LOAD",                       "Specifies whether to load from 'DIR_ADD' directories (0=no,1=yes,2=mandatory)",
+     ENGINE_CMD_FLAG_NUMERIC                                                                                                                    },
+    {DYNAMIC_CMD_DIR_ADD,   "DIR_ADD", "Adds a directory from which ENGINEs can be loaded",                             ENGINE_CMD_FLAG_STRING  },
+    {DYNAMIC_CMD_LOAD,      "LOAD",    "Load up the ENGINE specified by other settings",                                ENGINE_CMD_FLAG_NO_INPUT},
+    {0,                     NULL,      NULL,                                                                            0                       }
 };
 
 /*
@@ -80,36 +64,36 @@ static const ENGINE_CMD_DEFN dynamic_cmd_defns[] = {
  */
 struct st_dynamic_data_ctx {
     /* The DSO object we load that supplies the ENGINE code */
-    DSO *dynamic_dso;
+    DSO                      *dynamic_dso;
     /*
      * The function pointer to the version checking shared library function
      */
-    dynamic_v_check_fn v_check;
+    dynamic_v_check_fn        v_check;
     /*
      * The function pointer to the engine-binding shared library function
      */
-    dynamic_bind_engine bind_engine;
+    dynamic_bind_engine       bind_engine;
     /* The default name/path for loading the shared library */
-    char *DYNAMIC_LIBNAME;
+    char                     *DYNAMIC_LIBNAME;
     /* Whether to continue loading on a version check failure */
-    int no_vcheck;
+    int                       no_vcheck;
     /* If non-NULL, stipulates the 'id' of the ENGINE to be loaded */
-    char *engine_id;
+    char                     *engine_id;
     /*
      * If non-zero, a successfully loaded ENGINE should be added to the
      * internal ENGINE list. If 2, the add must succeed or the entire load
      * should fail.
      */
-    int list_add_value;
+    int                       list_add_value;
     /* The symbol name for the version checking function */
-    const char *DYNAMIC_F1;
+    const char               *DYNAMIC_F1;
     /* The symbol name for the "initialise ENGINE structure" function */
-    const char *DYNAMIC_F2;
+    const char               *DYNAMIC_F2;
     /*
      * Whether to never use 'dirs', use 'dirs' as a fallback, or only use
      * 'dirs' for loading. Default is to use 'dirs' as a fallback.
      */
-    int dir_load;
+    int                       dir_load;
     /* A stack of directories from which ENGINEs could be loaded */
     STACK_OF(OPENSSL_STRING) *dirs;
 };
@@ -118,7 +102,7 @@ struct st_dynamic_data_ctx {
  * This is the "ex_data" index we obtain and reserve for use with our context
  * structure.
  */
-static int dynamic_ex_data_idx = -1;
+static int  dynamic_ex_data_idx = -1;
 
 static void int_free_str(char *s)
 {
@@ -134,9 +118,7 @@ static void int_free_str(char *s)
  * a "free" handler and that will get called if an ENGINE is being destroyed
  * and there was an ex_data element corresponding to our context type.
  */
-static void dynamic_data_ctx_free_func(void *parent, void *ptr,
-                                       CRYPTO_EX_DATA *ad, int idx, long argl,
-                                       void *argp)
+static void dynamic_data_ctx_free_func(void *parent, void *ptr, CRYPTO_EX_DATA *ad, int idx, long argl, void *argp)
 {
     if (ptr) {
         dynamic_data_ctx *ctx = (dynamic_data_ctx *)ptr;
@@ -156,8 +138,8 @@ static void dynamic_data_ctx_free_func(void *parent, void *ptr,
  */
 static int dynamic_set_data_ctx(ENGINE *e, dynamic_data_ctx **ctx)
 {
-    dynamic_data_ctx *c = OPENSSL_zalloc(sizeof(*c));
-    int ret = 0;
+    dynamic_data_ctx *c   = OPENSSL_zalloc(sizeof(*c));
+    int               ret = 0;
 
     if (c == NULL)
         return 0;
@@ -168,17 +150,15 @@ static int dynamic_set_data_ctx(ENGINE *e, dynamic_data_ctx **ctx)
     }
     c->DYNAMIC_F1 = "v_check";
     c->DYNAMIC_F2 = "bind_engine";
-    c->dir_load = 1;
+    c->dir_load   = 1;
     if (!CRYPTO_THREAD_write_lock(global_engine_lock))
         goto end;
-    if ((*ctx = (dynamic_data_ctx *)ENGINE_get_ex_data(e,
-                                                       dynamic_ex_data_idx))
-        == NULL) {
+    if ((*ctx = (dynamic_data_ctx *)ENGINE_get_ex_data(e, dynamic_ex_data_idx)) == NULL) {
         /* Good, we're the first */
         ret = ENGINE_set_ex_data(e, dynamic_ex_data_idx, c);
         if (ret) {
             *ctx = c;
-            c = NULL;
+            c    = NULL;
         }
     }
     CRYPTO_THREAD_unlock(global_engine_lock);
@@ -207,8 +187,7 @@ static dynamic_data_ctx *dynamic_get_data_ctx(ENGINE *e)
          * function with it to ensure any allocated contexts get freed when
          * an ENGINE goes underground.
          */
-        int new_idx = ENGINE_get_ex_new_index(0, NULL, NULL, NULL,
-                                              dynamic_data_ctx_free_func);
+        int new_idx = ENGINE_get_ex_new_index(0, NULL, NULL, NULL, dynamic_data_ctx_free_func);
         if (new_idx == -1) {
             ERR_raise(ERR_LIB_ENGINE, ENGINE_R_NO_INDEX);
             return NULL;
@@ -219,7 +198,7 @@ static dynamic_data_ctx *dynamic_get_data_ctx(ENGINE *e)
         if (dynamic_ex_data_idx < 0) {
             /* Good, someone didn't beat us to it */
             dynamic_ex_data_idx = new_idx;
-            new_idx = -1;
+            new_idx             = -1;
         }
         CRYPTO_THREAD_unlock(global_engine_lock);
         /*
@@ -240,13 +219,10 @@ static ENGINE *engine_dynamic(void)
     ENGINE *ret = ENGINE_new();
     if (ret == NULL)
         return NULL;
-    if (!ENGINE_set_id(ret, engine_dynamic_id) ||
-        !ENGINE_set_name(ret, engine_dynamic_name) ||
-        !ENGINE_set_init_function(ret, dynamic_init) ||
-        !ENGINE_set_finish_function(ret, dynamic_finish) ||
-        !ENGINE_set_ctrl_function(ret, dynamic_ctrl) ||
-        !ENGINE_set_flags(ret, ENGINE_FLAGS_BY_ID_COPY) ||
-        !ENGINE_set_cmd_defns(ret, dynamic_cmd_defns)) {
+    if (!ENGINE_set_id(ret, engine_dynamic_id) || !ENGINE_set_name(ret, engine_dynamic_name)
+        || !ENGINE_set_init_function(ret, dynamic_init) || !ENGINE_set_finish_function(ret, dynamic_finish)
+        || !ENGINE_set_ctrl_function(ret, dynamic_ctrl) || !ENGINE_set_flags(ret, ENGINE_FLAGS_BY_ID_COPY)
+        || !ENGINE_set_cmd_defns(ret, dynamic_cmd_defns)) {
         ENGINE_free(ret);
         return NULL;
     }
@@ -292,10 +268,10 @@ static int dynamic_finish(ENGINE *e)
     return 0;
 }
 
-static int dynamic_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
+static int dynamic_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f)(void))
 {
     dynamic_data_ctx *ctx = dynamic_get_data_ctx(e);
-    int initialised;
+    int               initialised;
 
     if (!ctx) {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_NOT_LOADED);
@@ -375,16 +351,14 @@ static int int_load(dynamic_data_ctx *ctx)
 {
     int num, loop;
     /* Unless told not to, try a direct load */
-    if ((ctx->dir_load != 2) && (DSO_load(ctx->dynamic_dso,
-                                          ctx->DYNAMIC_LIBNAME, NULL,
-                                          0)) != NULL)
+    if ((ctx->dir_load != 2) && (DSO_load(ctx->dynamic_dso, ctx->DYNAMIC_LIBNAME, NULL, 0)) != NULL)
         return 1;
     /* If we're not allowed to use 'dirs' or we have none, fail */
     if (!ctx->dir_load || (num = sk_OPENSSL_STRING_num(ctx->dirs)) < 1)
         return 0;
     for (loop = 0; loop < num; loop++) {
-        const char *s = sk_OPENSSL_STRING_value(ctx->dirs, loop);
-        char *merge = DSO_merge(ctx->dynamic_dso, ctx->DYNAMIC_LIBNAME, s);
+        const char *s     = sk_OPENSSL_STRING_value(ctx->dirs, loop);
+        char       *merge = DSO_merge(ctx->dynamic_dso, ctx->DYNAMIC_LIBNAME, s);
         if (!merge)
             return 0;
         if (DSO_load(ctx->dynamic_dso, merge, NULL, 0)) {
@@ -419,7 +393,7 @@ static int using_libcrypto_11(dynamic_data_ctx *ctx)
 
 static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
 {
-    ENGINE cpy;
+    ENGINE      cpy;
     dynamic_fns fns;
 
     if (ctx->dynamic_dso == NULL)
@@ -429,10 +403,8 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
     if (!ctx->DYNAMIC_LIBNAME) {
         if (!ctx->engine_id)
             return 0;
-        DSO_ctrl(ctx->dynamic_dso, DSO_CTRL_SET_FLAGS,
-                 DSO_FLAG_NAME_TRANSLATION_EXT_ONLY, NULL);
-        ctx->DYNAMIC_LIBNAME =
-            DSO_convert_filename(ctx->dynamic_dso, ctx->engine_id);
+        DSO_ctrl(ctx->dynamic_dso, DSO_CTRL_SET_FLAGS, DSO_FLAG_NAME_TRANSLATION_EXT_ONLY, NULL);
+        ctx->DYNAMIC_LIBNAME = DSO_convert_filename(ctx->dynamic_dso, ctx->engine_id);
     }
     if (!int_load(ctx)) {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_DSO_NOT_FOUND);
@@ -441,10 +413,7 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
         return 0;
     }
     /* We have to find a bind function otherwise it'll always end badly */
-    if (!
-        (ctx->bind_engine =
-         (dynamic_bind_engine) DSO_bind_func(ctx->dynamic_dso,
-                                             ctx->DYNAMIC_F2))) {
+    if (!(ctx->bind_engine = (dynamic_bind_engine)DSO_bind_func(ctx->dynamic_dso, ctx->DYNAMIC_F2))) {
         ctx->bind_engine = NULL;
         DSO_free(ctx->dynamic_dso);
         ctx->dynamic_dso = NULL;
@@ -458,9 +427,7 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
          * Now we try to find a version checking function and decide how to
          * cope with failure if/when it fails.
          */
-        ctx->v_check =
-            (dynamic_v_check_fn) DSO_bind_func(ctx->dynamic_dso,
-                                               ctx->DYNAMIC_F1);
+        ctx->v_check             = (dynamic_v_check_fn)DSO_bind_func(ctx->dynamic_dso, ctx->DYNAMIC_F1);
         if (ctx->v_check)
             vcheck_res = ctx->v_check(OSSL_DYNAMIC_VERSION);
         /*
@@ -471,7 +438,7 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
         if (vcheck_res < OSSL_DYNAMIC_OLDEST || using_libcrypto_11(ctx)) {
             /* Fail */
             ctx->bind_engine = NULL;
-            ctx->v_check = NULL;
+            ctx->v_check     = NULL;
             DSO_free(ctx->dynamic_dso);
             ctx->dynamic_dso = NULL;
             ERR_raise(ERR_LIB_ENGINE, ENGINE_R_VERSION_INCOMPATIBILITY);
@@ -491,8 +458,7 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
      * would also increase opaqueness.
      */
     fns.static_state = ENGINE_get_static_state();
-    CRYPTO_get_mem_functions(&fns.mem_fns.malloc_fn, &fns.mem_fns.realloc_fn,
-                             &fns.mem_fns.free_fn);
+    CRYPTO_get_mem_functions(&fns.mem_fns.malloc_fn, &fns.mem_fns.realloc_fn, &fns.mem_fns.free_fn);
     /*
      * Now that we've loaded the dynamic engine, make sure no "dynamic"
      * ENGINE elements will show through.
@@ -501,10 +467,10 @@ static int dynamic_load(ENGINE *e, dynamic_data_ctx *ctx)
 
     /* Try to bind the ENGINE onto our own ENGINE structure */
     if (!engine_add_dynamic_id(e, (ENGINE_DYNAMIC_ID)ctx->bind_engine, 1)
-            || !ctx->bind_engine(e, ctx->engine_id, &fns)) {
+        || !ctx->bind_engine(e, ctx->engine_id, &fns)) {
         engine_remove_dynamic_id(e, 1);
         ctx->bind_engine = NULL;
-        ctx->v_check = NULL;
+        ctx->v_check     = NULL;
         DSO_free(ctx->dynamic_dso);
         ctx->dynamic_dso = NULL;
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INIT_FAILED);

@@ -15,7 +15,7 @@
 
 int i2a_ASN1_STRING(BIO *bp, const ASN1_STRING *a, int type)
 {
-    int i, n = 0;
+    int  i, n = 0;
     char buf[2];
 
     if (a == NULL)
@@ -39,16 +39,16 @@ int i2a_ASN1_STRING(BIO *bp, const ASN1_STRING *a, int type)
         }
     }
     return n;
- err:
+err:
     return -1;
 }
 
 int a2i_ASN1_STRING(BIO *bp, ASN1_STRING *bs, char *buf, int size)
 {
-    int i, j, k, m, n, again, bufsize;
+    int            i, j, k, m, n, again, bufsize;
     unsigned char *s = NULL, *sp;
     unsigned char *bufp;
-    int num = 0, slen = 0, first = 1;
+    int            num = 0, slen = 0, first = 1;
 
     bufsize = BIO_gets(bp, buf, size);
     for (;;) {
@@ -60,7 +60,7 @@ int a2i_ASN1_STRING(BIO *bp, ASN1_STRING *bs, char *buf, int size)
         }
         first = 0;
 
-        i = bufsize;
+        i     = bufsize;
         if (buf[i - 1] == '\n')
             buf[--i] = '\0';
         if (i == 0)
@@ -84,10 +84,10 @@ int a2i_ASN1_STRING(BIO *bp, ASN1_STRING *bs, char *buf, int size)
         if (i < 2)
             goto err;
 
-        bufp = (unsigned char *)buf;
+        bufp  = (unsigned char *)buf;
 
-        k = 0;
-        i -= again;
+        k     = 0;
+        i    -= again;
         if (i % 2 != 0) {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ODD_NUMBER_OF_CHARS);
             OPENSSL_free(s);
@@ -100,7 +100,7 @@ int a2i_ASN1_STRING(BIO *bp, ASN1_STRING *bs, char *buf, int size)
                 OPENSSL_free(s);
                 return 0;
             }
-            s = sp;
+            s    = sp;
             slen = num + i * 2;
         }
         for (j = 0; j < i; j++, k += 2) {
@@ -112,7 +112,7 @@ int a2i_ASN1_STRING(BIO *bp, ASN1_STRING *bs, char *buf, int size)
                     return 0;
                 }
                 s[num + j] <<= 4;
-                s[num + j] |= m;
+                s[num + j]  |= m;
             }
         }
         num += i;
@@ -122,10 +122,10 @@ int a2i_ASN1_STRING(BIO *bp, ASN1_STRING *bs, char *buf, int size)
             break;
     }
     bs->length = num;
-    bs->data = s;
+    bs->data   = s;
     return 1;
 
- err:
+err:
     ERR_raise(ERR_LIB_ASN1, ASN1_R_SHORT_LINE);
     OPENSSL_free(s);
     return 0;

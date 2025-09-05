@@ -27,8 +27,7 @@ static int test_thread_reported_flags(void)
     if (!TEST_int_eq(flags & OSSL_THREAD_SUPPORT_FLAG_THREAD_POOL, 0))
         return 0;
 #else
-    if (!TEST_int_eq(flags & OSSL_THREAD_SUPPORT_FLAG_THREAD_POOL,
-                     OSSL_THREAD_SUPPORT_FLAG_THREAD_POOL))
+    if (!TEST_int_eq(flags & OSSL_THREAD_SUPPORT_FLAG_THREAD_POOL, OSSL_THREAD_SUPPORT_FLAG_THREAD_POOL))
         return 0;
 #endif
 
@@ -36,8 +35,7 @@ static int test_thread_reported_flags(void)
     if (!TEST_int_eq(flags & OSSL_THREAD_SUPPORT_FLAG_DEFAULT_SPAWN, 0))
         return 0;
 #else
-    if (!TEST_int_eq(flags & OSSL_THREAD_SUPPORT_FLAG_DEFAULT_SPAWN,
-                     OSSL_THREAD_SUPPORT_FLAG_DEFAULT_SPAWN))
+    if (!TEST_int_eq(flags & OSSL_THREAD_SUPPORT_FLAG_DEFAULT_SPAWN, OSSL_THREAD_SUPPORT_FLAG_DEFAULT_SPAWN))
         return 0;
 #endif
 
@@ -47,24 +45,26 @@ static int test_thread_reported_flags(void)
 #ifndef OPENSSL_NO_THREAD_POOL
 
 # define TEST_THREAD_NATIVE_FN_SET_VALUE 1
+
 static uint32_t test_thread_native_fn(void *data)
 {
-    uint32_t *ldata = (uint32_t*) data;
-    *ldata = *ldata + 1;
+    uint32_t *ldata = (uint32_t *)data;
+    *ldata          = *ldata + 1;
     return *ldata - 1;
 }
+
 /* Tests of native threads */
 
 static int test_thread_native(void)
 {
-    uint32_t retval;
-    uint32_t local;
+    uint32_t       retval;
+    uint32_t       local;
     CRYPTO_THREAD *t;
 
     /* thread spawn, join */
 
     local = 1;
-    t = ossl_crypto_thread_native_start(test_thread_native_fn, &local, 1);
+    t     = ossl_crypto_thread_native_start(test_thread_native_fn, &local, 1);
     if (!TEST_ptr(t))
         return 0;
 
@@ -95,16 +95,16 @@ static int test_thread_native(void)
 # if !defined(OPENSSL_NO_DEFAULT_THREAD_POOL)
 static int test_thread_internal(void)
 {
-    uint32_t retval[3];
-    uint32_t local[3] = { 0 };
-    uint32_t threads_supported;
-    uint32_t i;
-    void *t[3];
-    int status = 0;
-    OSSL_LIB_CTX *cust_ctx = OSSL_LIB_CTX_new();
+    uint32_t      retval[3];
+    uint32_t      local[3] = {0};
+    uint32_t      threads_supported;
+    uint32_t      i;
+    void         *t[3];
+    int           status    = 0;
+    OSSL_LIB_CTX *cust_ctx  = OSSL_LIB_CTX_new();
 
-    threads_supported = OSSL_get_thread_support_flags();
-    threads_supported &= OSSL_THREAD_SUPPORT_FLAG_DEFAULT_SPAWN;
+    threads_supported       = OSSL_get_thread_support_flags();
+    threads_supported      &= OSSL_THREAD_SUPPORT_FLAG_DEFAULT_SPAWN;
 
     if (threads_supported == 0) {
         if (!TEST_uint64_t_eq(OSSL_get_max_threads(NULL), 0))
@@ -165,7 +165,7 @@ static int test_thread_internal(void)
     for (i = 0; i < OSSL_NELEM(t); ++i) {
         local[0] = i + 1;
 
-        t[i] = ossl_crypto_thread_start(NULL, test_thread_native_fn, &local[0]);
+        t[i]     = ossl_crypto_thread_start(NULL, test_thread_native_fn, &local[0]);
         if (!TEST_ptr(t[i]))
             goto cleanup;
 
@@ -198,7 +198,7 @@ static int test_thread_internal(void)
 
     for (i = 0; i < OSSL_NELEM(t); ++i) {
         local[i] = i + 1;
-        t[i] = ossl_crypto_thread_start(NULL, test_thread_native_fn, &local[i]);
+        t[i]     = ossl_crypto_thread_start(NULL, test_thread_native_fn, &local[i]);
         if (!TEST_ptr(t[i]))
             goto cleanup;
     }
@@ -220,7 +220,7 @@ static int test_thread_internal(void)
 
     for (i = 0; i < OSSL_NELEM(t); ++i) {
         local[i] = i + 1;
-        t[i] = ossl_crypto_thread_start(NULL, test_thread_native_fn, &local[i]);
+        t[i]     = ossl_crypto_thread_start(NULL, test_thread_native_fn, &local[i]);
         if (!TEST_ptr(t[i]))
             goto cleanup;
     }
@@ -266,7 +266,7 @@ static int test_thread_native_multiple_joins(void)
 {
     CRYPTO_THREAD *t, *t1, *t2;
 
-    t = ossl_crypto_thread_native_start(test_thread_native_multiple_joins_fn1, NULL, 1);
+    t  = ossl_crypto_thread_native_start(test_thread_native_multiple_joins_fn1, NULL, 1);
     t1 = ossl_crypto_thread_native_start(test_thread_native_multiple_joins_fn2, t, 1);
     t2 = ossl_crypto_thread_native_start(test_thread_native_multiple_joins_fn3, t, 1);
 

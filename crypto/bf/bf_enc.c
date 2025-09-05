@@ -29,13 +29,13 @@ to modify the code.
 
 void BF_encrypt(BF_LONG *data, const BF_KEY *key)
 {
-    register BF_LONG l, r;
+    register BF_LONG        l, r;
     register const BF_LONG *p, *s;
 
-    p = key->P;
-    s = &(key->S[0]);
-    l = data[0];
-    r = data[1];
+    p  = key->P;
+    s  = &(key->S[0]);
+    l  = data[0];
+    r  = data[1];
 
     l ^= p[0];
     BF_ENC(r, l, s, p[1]);
@@ -54,35 +54,35 @@ void BF_encrypt(BF_LONG *data, const BF_KEY *key)
     BF_ENC(l, r, s, p[14]);
     BF_ENC(r, l, s, p[15]);
     BF_ENC(l, r, s, p[16]);
-# if BF_ROUNDS == 20
+#if BF_ROUNDS == 20
     BF_ENC(r, l, s, p[17]);
     BF_ENC(l, r, s, p[18]);
     BF_ENC(r, l, s, p[19]);
     BF_ENC(l, r, s, p[20]);
-# endif
-    r ^= p[BF_ROUNDS + 1];
+#endif
+    r       ^= p[BF_ROUNDS + 1];
 
-    data[1] = l & 0xffffffffU;
-    data[0] = r & 0xffffffffU;
+    data[1]  = l & 0xffffffffU;
+    data[0]  = r & 0xffffffffU;
 }
 
 void BF_decrypt(BF_LONG *data, const BF_KEY *key)
 {
-    register BF_LONG l, r;
+    register BF_LONG        l, r;
     register const BF_LONG *p, *s;
 
-    p = key->P;
-    s = &(key->S[0]);
-    l = data[0];
-    r = data[1];
+    p  = key->P;
+    s  = &(key->S[0]);
+    l  = data[0];
+    r  = data[1];
 
     l ^= p[BF_ROUNDS + 1];
-#  if BF_ROUNDS == 20
+#if BF_ROUNDS == 20
     BF_ENC(r, l, s, p[20]);
     BF_ENC(l, r, s, p[19]);
     BF_ENC(r, l, s, p[18]);
     BF_ENC(l, r, s, p[17]);
-#  endif
+#endif
     BF_ENC(r, l, s, p[16]);
     BF_ENC(l, r, s, p[15]);
     BF_ENC(r, l, s, p[14]);
@@ -99,19 +99,23 @@ void BF_decrypt(BF_LONG *data, const BF_KEY *key)
     BF_ENC(l, r, s, p[3]);
     BF_ENC(r, l, s, p[2]);
     BF_ENC(l, r, s, p[1]);
-    r ^= p[0];
+    r       ^= p[0];
 
-    data[1] = l & 0xffffffffU;
-    data[0] = r & 0xffffffffU;
+    data[1]  = l & 0xffffffffU;
+    data[0]  = r & 0xffffffffU;
 }
 
-void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
-                    const BF_KEY *schedule, unsigned char *ivec, int encrypt)
+void BF_cbc_encrypt(const unsigned char *in,
+                    unsigned char       *out,
+                    long                 length,
+                    const BF_KEY        *schedule,
+                    unsigned char       *ivec,
+                    int                  encrypt)
 {
     register BF_LONG tin0, tin1;
     register BF_LONG tout0, tout1, xor0, xor1;
-    register long l = length;
-    BF_LONG tin[2];
+    register long    l = length;
+    BF_LONG          tin[2];
 
     if (encrypt) {
         n2l(ivec, tout0);
@@ -120,10 +124,10 @@ void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
         for (l -= 8; l >= 0; l -= 8) {
             n2l(in, tin0);
             n2l(in, tin1);
-            tin0 ^= tout0;
-            tin1 ^= tout1;
-            tin[0] = tin0;
-            tin[1] = tin1;
+            tin0   ^= tout0;
+            tin1   ^= tout1;
+            tin[0]  = tin0;
+            tin[1]  = tin1;
             BF_encrypt(tin, schedule);
             tout0 = tin[0];
             tout1 = tin[1];
@@ -132,10 +136,10 @@ void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
         }
         if (l != -8) {
             n2ln(in, tin0, tin1, l + 8);
-            tin0 ^= tout0;
-            tin1 ^= tout1;
-            tin[0] = tin0;
-            tin[1] = tin1;
+            tin0   ^= tout0;
+            tin1   ^= tout1;
+            tin[0]  = tin0;
+            tin[1]  = tin1;
             BF_encrypt(tin, schedule);
             tout0 = tin[0];
             tout1 = tin[1];

@@ -14,7 +14,7 @@
 
 CRYPTO_RWLOCK *global_engine_lock;
 
-CRYPTO_ONCE engine_lock_init = CRYPTO_ONCE_STATIC_INIT;
+CRYPTO_ONCE    engine_lock_init = CRYPTO_ONCE_STATIC_INIT;
 
 /* The "new"/"free" stuff first */
 
@@ -55,23 +55,23 @@ ENGINE *ENGINE_new(void)
  */
 void engine_set_all_null(ENGINE *e)
 {
-    e->id = NULL;
-    e->name = NULL;
-    e->rsa_meth = NULL;
-    e->dsa_meth = NULL;
-    e->dh_meth = NULL;
-    e->rand_meth = NULL;
-    e->ciphers = NULL;
-    e->digests = NULL;
-    e->destroy = NULL;
-    e->init = NULL;
-    e->finish = NULL;
-    e->ctrl = NULL;
+    e->id           = NULL;
+    e->name         = NULL;
+    e->rsa_meth     = NULL;
+    e->dsa_meth     = NULL;
+    e->dh_meth      = NULL;
+    e->rand_meth    = NULL;
+    e->ciphers      = NULL;
+    e->digests      = NULL;
+    e->destroy      = NULL;
+    e->init         = NULL;
+    e->finish       = NULL;
+    e->ctrl         = NULL;
     e->load_privkey = NULL;
-    e->load_pubkey = NULL;
-    e->cmd_defns = NULL;
-    e->flags = 0;
-    e->dynamic_id = NULL;
+    e->load_pubkey  = NULL;
+    e->cmd_defns    = NULL;
+    e->flags        = 0;
+    e->dynamic_id   = NULL;
 }
 
 int engine_free_util(ENGINE *e, int not_locked)
@@ -115,7 +115,8 @@ int ENGINE_free(ENGINE *e)
  * into code "X" will cause X's cleanup function to end up here.
  */
 static STACK_OF(ENGINE_CLEANUP_ITEM) *cleanup_stack = NULL;
-static int int_cleanup_check(int create)
+
+static int                            int_cleanup_check(int create)
 {
     if (cleanup_stack)
         return 1;
@@ -168,15 +169,14 @@ int engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb)
 /* The API function that performs all cleanup */
 static void engine_cleanup_cb_free(ENGINE_CLEANUP_ITEM *item)
 {
-    (*(item->cb)) ();
+    (*(item->cb))();
     OPENSSL_free(item);
 }
 
 void engine_cleanup_int(void)
 {
     if (int_cleanup_check(0)) {
-        sk_ENGINE_CLEANUP_ITEM_pop_free(cleanup_stack,
-                                        engine_cleanup_cb_free);
+        sk_ENGINE_CLEANUP_ITEM_pop_free(cleanup_stack, engine_cleanup_cb_free);
         cleanup_stack = NULL;
     }
     CRYPTO_THREAD_lock_free(global_engine_lock);
@@ -303,7 +303,7 @@ const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e)
 
 static int internal_static_hack = 0;
 
-void *ENGINE_get_static_state(void)
+void      *ENGINE_get_static_state(void)
 {
     return &internal_static_hack;
 }

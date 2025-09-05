@@ -23,15 +23,15 @@
 
 static OSSL_FUNC_cipher_encrypt_init_fn rc4_einit;
 static OSSL_FUNC_cipher_decrypt_init_fn rc4_dinit;
-static OSSL_FUNC_cipher_freectx_fn rc4_freectx;
-static OSSL_FUNC_cipher_dupctx_fn rc4_dupctx;
+static OSSL_FUNC_cipher_freectx_fn      rc4_freectx;
+static OSSL_FUNC_cipher_dupctx_fn       rc4_dupctx;
 
-static void rc4_freectx(void *vctx)
+static void                             rc4_freectx(void *vctx)
 {
     PROV_RC4_CTX *ctx = (PROV_RC4_CTX *)vctx;
 
     ossl_cipher_generic_reset_ctx((PROV_CIPHER_CTX *)vctx);
-    OPENSSL_clear_free(ctx,  sizeof(*ctx));
+    OPENSSL_clear_free(ctx, sizeof(*ctx));
 }
 
 static void *rc4_dupctx(void *ctx)
@@ -50,18 +50,24 @@ static void *rc4_dupctx(void *ctx)
     return ret;
 }
 
-static int rc4_einit(void *ctx, const unsigned char *key, size_t keylen,
-                          const unsigned char *iv, size_t ivlen,
-                          const OSSL_PARAM params[])
+static int rc4_einit(void                *ctx,
+                     const unsigned char *key,
+                     size_t               keylen,
+                     const unsigned char *iv,
+                     size_t               ivlen,
+                     const OSSL_PARAM     params[])
 {
     if (!ossl_cipher_generic_einit(ctx, key, keylen, iv, ivlen, NULL))
         return 0;
     return ossl_cipher_var_keylen_set_ctx_params(ctx, params);
 }
 
-static int rc4_dinit(void *ctx, const unsigned char *key, size_t keylen,
-                          const unsigned char *iv, size_t ivlen,
-                          const OSSL_PARAM params[])
+static int rc4_dinit(void                *ctx,
+                     const unsigned char *key,
+                     size_t               keylen,
+                     const unsigned char *iv,
+                     size_t               ivlen,
+                     const OSSL_PARAM     params[])
 {
     if (!ossl_cipher_generic_dinit(ctx, key, keylen, iv, ivlen, NULL))
         return 0;

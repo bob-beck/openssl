@@ -13,11 +13,11 @@
 
 static int test_txpim(void)
 {
-    int testresult = 0;
-    QUIC_TXPIM *txpim;
-    size_t i, j;
-    QUIC_TXPIM_PKT *pkts[10] = {NULL};
-    QUIC_TXPIM_CHUNK chunks[3];
+    int                     testresult = 0;
+    QUIC_TXPIM             *txpim;
+    size_t                  i, j;
+    QUIC_TXPIM_PKT         *pkts[10] = {NULL};
+    QUIC_TXPIM_CHUNK        chunks[3];
     const QUIC_TXPIM_CHUNK *rchunks;
 
     if (!TEST_ptr(txpim = ossl_quic_txpim_new()))
@@ -39,13 +39,11 @@ static int test_txpim(void)
                 goto err;
         }
 
-        if (!TEST_size_t_eq(ossl_quic_txpim_pkt_get_num_chunks(pkts[i]),
-                            OSSL_NELEM(chunks)))
+        if (!TEST_size_t_eq(ossl_quic_txpim_pkt_get_num_chunks(pkts[i]), OSSL_NELEM(chunks)))
             goto err;
 
         rchunks = ossl_quic_txpim_pkt_get_chunks(pkts[i]);
-        if (!TEST_uint64_t_eq(rchunks[0].stream_id, 98)
-            || !TEST_uint64_t_eq(rchunks[1].stream_id, 99)
+        if (!TEST_uint64_t_eq(rchunks[0].stream_id, 98) || !TEST_uint64_t_eq(rchunks[1].stream_id, 99)
             || !TEST_uint64_t_eq(rchunks[2].stream_id, 100))
             goto err;
     }

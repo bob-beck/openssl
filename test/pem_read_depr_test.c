@@ -23,16 +23,16 @@
 
 static const char *datadir;
 
-static BIO *getfile(const char *filename)
+static BIO        *getfile(const char *filename)
 {
     char *paramsfile = test_mk_file_path(datadir, filename);
-    BIO *infile = NULL;
+    BIO  *infile     = NULL;
 
     if (!TEST_ptr(paramsfile))
         goto err;
     infile = BIO_new_file(paramsfile, "r");
 
- err:
+err:
     OPENSSL_free(paramsfile);
     return infile;
 }
@@ -40,9 +40,9 @@ static BIO *getfile(const char *filename)
 #ifndef OPENSSL_NO_DH
 static int test_read_dh_params(void)
 {
-    int testresult = 0;
-    BIO *infile = getfile("dhparams.pem");
-    DH *dh = NULL;
+    int  testresult = 0;
+    BIO *infile     = getfile("dhparams.pem");
+    DH  *dh         = NULL;
 
     if (!TEST_ptr(infile))
         goto err;
@@ -53,7 +53,7 @@ static int test_read_dh_params(void)
 
     testresult = 1;
 
- err:
+err:
     BIO_free(infile);
     DH_free(dh);
     return testresult;
@@ -61,9 +61,9 @@ static int test_read_dh_params(void)
 
 static int test_read_dh_x942_params(void)
 {
-    int testresult = 0;
-    BIO *infile = getfile("x942params.pem");
-    DH *dh = NULL;
+    int  testresult = 0;
+    BIO *infile     = getfile("x942params.pem");
+    DH  *dh         = NULL;
 
     if (!TEST_ptr(infile))
         goto err;
@@ -74,7 +74,7 @@ static int test_read_dh_x942_params(void)
 
     testresult = 1;
 
- err:
+err:
     BIO_free(infile);
     DH_free(dh);
     return testresult;
@@ -84,9 +84,9 @@ static int test_read_dh_x942_params(void)
 #ifndef OPENSSL_NO_DSA
 static int test_read_dsa_params(void)
 {
-    int testresult = 0;
-    BIO *infile = getfile("dsaparams.pem");
-    DSA *dsa = NULL;
+    int  testresult = 0;
+    BIO *infile     = getfile("dsaparams.pem");
+    DSA *dsa        = NULL;
 
     if (!TEST_ptr(infile))
         goto err;
@@ -97,7 +97,7 @@ static int test_read_dsa_params(void)
 
     testresult = 1;
 
- err:
+err:
     BIO_free(infile);
     DSA_free(dsa);
     return testresult;
@@ -105,9 +105,9 @@ static int test_read_dsa_params(void)
 
 static int test_read_dsa_private(void)
 {
-    int testresult = 0;
-    BIO *infile = getfile("dsaprivatekey.pem");
-    DSA *dsa = NULL;
+    int  testresult = 0;
+    BIO *infile     = getfile("dsaprivatekey.pem");
+    DSA *dsa        = NULL;
 
     if (!TEST_ptr(infile))
         goto err;
@@ -118,7 +118,7 @@ static int test_read_dsa_private(void)
 
     testresult = 1;
 
- err:
+err:
     BIO_free(infile);
     DSA_free(dsa);
     return testresult;
@@ -126,9 +126,9 @@ static int test_read_dsa_private(void)
 
 static int test_read_dsa_public(void)
 {
-    int testresult = 0;
-    BIO *infile = getfile("dsapublickey.pem");
-    DSA *dsa = NULL;
+    int  testresult = 0;
+    BIO *infile     = getfile("dsapublickey.pem");
+    DSA *dsa        = NULL;
 
     if (!TEST_ptr(infile))
         goto err;
@@ -139,7 +139,7 @@ static int test_read_dsa_public(void)
 
     testresult = 1;
 
- err:
+err:
     BIO_free(infile);
     DSA_free(dsa);
     return testresult;
@@ -148,9 +148,9 @@ static int test_read_dsa_public(void)
 
 static int test_read_rsa_private(void)
 {
-    int testresult = 0;
-    BIO *infile = getfile("rsaprivatekey.pem");
-    RSA *rsa = NULL;
+    int  testresult = 0;
+    BIO *infile     = getfile("rsaprivatekey.pem");
+    RSA *rsa        = NULL;
 
     if (!TEST_ptr(infile))
         goto err;
@@ -161,7 +161,7 @@ static int test_read_rsa_private(void)
 
     testresult = 1;
 
- err:
+err:
     BIO_free(infile);
     RSA_free(rsa);
     return testresult;
@@ -169,9 +169,9 @@ static int test_read_rsa_private(void)
 
 static int test_read_rsa_public(void)
 {
-    int testresult = 0;
-    BIO *infile = getfile("rsapublickey.pem");
-    RSA *rsa = NULL;
+    int  testresult = 0;
+    BIO *infile     = getfile("rsapublickey.pem");
+    RSA *rsa        = NULL;
 
     if (!TEST_ptr(infile))
         goto err;
@@ -182,7 +182,7 @@ static int test_read_rsa_public(void)
 
     testresult = 1;
 
- err:
+err:
     BIO_free(infile);
     RSA_free(rsa);
     return testresult;

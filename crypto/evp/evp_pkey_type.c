@@ -15,7 +15,7 @@
 #ifndef OPENSSL_NO_DEPRECATED_3_6
 # include <openssl/engine.h>
 # include "crypto/asn1.h"
-#include <openssl/types.h>
+# include <openssl/types.h>
 #else
 # include "internal/nelem.h"
 #endif
@@ -32,40 +32,40 @@ struct pkid2bid {
 };
 
 static const struct pkid2bid base_id_conversion[] = {
-    {EVP_PKEY_RSA, EVP_PKEY_RSA},
-    {EVP_PKEY_RSA2, EVP_PKEY_RSA},
+    {EVP_PKEY_RSA,     EVP_PKEY_RSA    },
+    {EVP_PKEY_RSA2,    EVP_PKEY_RSA    },
     {EVP_PKEY_RSA_PSS, EVP_PKEY_RSA_PSS},
-#ifndef OPENSSL_NO_DH
-    {EVP_PKEY_DH, EVP_PKEY_DH},
-    {EVP_PKEY_DHX, EVP_PKEY_DHX},
-#endif
-#ifndef OPENSSL_NO_DSA
-    {EVP_PKEY_DSA1, EVP_PKEY_DSA},
-    {EVP_PKEY_DSA4, EVP_PKEY_DSA2},
-    {EVP_PKEY_DSA3, EVP_PKEY_DSA2},
-    {EVP_PKEY_DSA, EVP_PKEY_DSA},
-#endif
-#ifndef OPENSSL_NO_EC
-    {EVP_PKEY_EC, EVP_PKEY_EC},
-#endif
-#ifndef OPENSSL_NO_ECX
-    {EVP_PKEY_X25519, EVP_PKEY_X25519},
-    {EVP_PKEY_X448, EVP_PKEY_X448},
+# ifndef OPENSSL_NO_DH
+    {EVP_PKEY_DH,      EVP_PKEY_DH     },
+    {EVP_PKEY_DHX,     EVP_PKEY_DHX    },
+# endif
+# ifndef OPENSSL_NO_DSA
+    {EVP_PKEY_DSA1,    EVP_PKEY_DSA    },
+    {EVP_PKEY_DSA4,    EVP_PKEY_DSA2   },
+    {EVP_PKEY_DSA3,    EVP_PKEY_DSA2   },
+    {EVP_PKEY_DSA,     EVP_PKEY_DSA    },
+# endif
+# ifndef OPENSSL_NO_EC
+    {EVP_PKEY_EC,      EVP_PKEY_EC     },
+# endif
+# ifndef OPENSSL_NO_ECX
+    {EVP_PKEY_X25519,  EVP_PKEY_X25519 },
+    {EVP_PKEY_X448,    EVP_PKEY_X448   },
     {EVP_PKEY_ED25519, EVP_PKEY_ED25519},
-    {EVP_PKEY_ED448, EVP_PKEY_ED448},
-#endif
-#ifndef OPENSSL_NO_SM2
-    {EVP_PKEY_SM2, EVP_PKEY_EC},
-#endif
+    {EVP_PKEY_ED448,   EVP_PKEY_ED448  },
+# endif
+# ifndef OPENSSL_NO_SM2
+    {EVP_PKEY_SM2,     EVP_PKEY_EC     },
+# endif
 };
 #endif
 
 int EVP_PKEY_type(int type)
 {
 #ifndef OPENSSL_NO_DEPRECATED_3_6
-    int ret;
+    int                         ret;
     const EVP_PKEY_ASN1_METHOD *ameth;
-    ENGINE *e;
+    ENGINE                     *e;
 
     ameth = EVP_PKEY_asn1_find(&e, type);
     if (ameth)

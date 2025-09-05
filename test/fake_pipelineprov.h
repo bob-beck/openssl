@@ -11,4 +11,4 @@
 
 /* Fake pipeline provider implementation */
 OSSL_PROVIDER *fake_pipeline_start(OSSL_LIB_CTX *libctx);
-void fake_pipeline_finish(OSSL_PROVIDER *p);
+void           fake_pipeline_finish(OSSL_PROVIDER *p);

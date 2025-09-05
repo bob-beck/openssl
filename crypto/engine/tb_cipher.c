@@ -14,7 +14,7 @@
 
 static ENGINE_TABLE *cipher_table = NULL;
 
-void ENGINE_unregister_ciphers(ENGINE *e)
+void                 ENGINE_unregister_ciphers(ENGINE *e)
 {
     engine_table_unregister(&cipher_table, e);
 }
@@ -28,11 +28,9 @@ int ENGINE_register_ciphers(ENGINE *e)
 {
     if (e->ciphers) {
         const int *nids;
-        int num_nids = e->ciphers(e, NULL, &nids, 0);
+        int        num_nids = e->ciphers(e, NULL, &nids, 0);
         if (num_nids > 0)
-            return engine_table_register(&cipher_table,
-                                         engine_unregister_all_ciphers, e,
-                                         nids, num_nids, 0);
+            return engine_table_register(&cipher_table, engine_unregister_all_ciphers, e, nids, num_nids, 0);
     }
     return 1;
 }
@@ -49,11 +47,9 @@ int ENGINE_set_default_ciphers(ENGINE *e)
 {
     if (e->ciphers) {
         const int *nids;
-        int num_nids = e->ciphers(e, NULL, &nids, 0);
+        int        num_nids = e->ciphers(e, NULL, &nids, 0);
         if (num_nids > 0)
-            return engine_table_register(&cipher_table,
-                                         engine_unregister_all_ciphers, e,
-                                         nids, num_nids, 1);
+            return engine_table_register(&cipher_table, engine_unregister_all_ciphers, e, nids, num_nids, 1);
     }
     return 1;
 }
@@ -65,14 +61,13 @@ int ENGINE_set_default_ciphers(ENGINE *e)
  */
 ENGINE *ENGINE_get_cipher_engine(int nid)
 {
-    return ossl_engine_table_select(&cipher_table, nid,
-                                    OPENSSL_FILE, OPENSSL_LINE);
+    return ossl_engine_table_select(&cipher_table, nid, OPENSSL_FILE, OPENSSL_LINE);
 }
 
 /* Obtains a cipher implementation from an ENGINE functional reference */
 const EVP_CIPHER *ENGINE_get_cipher(ENGINE *e, int nid)
 {
-    const EVP_CIPHER *ret;
+    const EVP_CIPHER  *ret;
     ENGINE_CIPHERS_PTR fn = ENGINE_get_ciphers(e);
     if (!fn || !fn(e, &ret, NULL, nid)) {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_UNIMPLEMENTED_CIPHER);

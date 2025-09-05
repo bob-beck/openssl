@@ -22,7 +22,7 @@
 int RSA_print_fp(FILE *fp, const RSA *x, int off)
 {
     BIO *b;
-    int ret;
+    int  ret;
 
     if ((b = BIO_new(BIO_s_file())) == NULL) {
         ERR_raise(ERR_LIB_RSA, ERR_R_BUF_LIB);
@@ -38,7 +38,7 @@ int RSA_print_fp(FILE *fp, const RSA *x, int off)
 int RSA_print(BIO *bp, const RSA *x, int off)
 {
     EVP_PKEY *pk;
-    int ret;
+    int       ret;
     pk = EVP_PKEY_new();
     if (pk == NULL)
         return 0;

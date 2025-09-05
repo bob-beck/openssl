@@ -12,13 +12,13 @@
 #include "bio_local.h"
 #include "internal/cryptlib.h"
 
-static int buffer_write(BIO *h, const char *buf, int num);
-static int buffer_read(BIO *h, char *buf, int size);
-static int buffer_puts(BIO *h, const char *str);
-static int buffer_gets(BIO *h, char *str, int size);
+static int  buffer_write(BIO *h, const char *buf, int num);
+static int  buffer_read(BIO *h, char *buf, int size);
+static int  buffer_puts(BIO *h, const char *str);
+static int  buffer_gets(BIO *h, char *str, int size);
 static long buffer_ctrl(BIO *h, int cmd, long arg1, void *arg2);
-static int buffer_new(BIO *h);
-static int buffer_free(BIO *data);
+static int  buffer_new(BIO *h);
+static int  buffer_free(BIO *data);
 static long buffer_callback_ctrl(BIO *h, int cmd, BIO_info_cb *fp);
 #define DEFAULT_BUFFER_SIZE     4096
 
@@ -49,21 +49,21 @@ static int buffer_new(BIO *bi)
     if (ctx == NULL)
         return 0;
     ctx->ibuf_size = DEFAULT_BUFFER_SIZE;
-    ctx->ibuf = OPENSSL_malloc(DEFAULT_BUFFER_SIZE);
+    ctx->ibuf      = OPENSSL_malloc(DEFAULT_BUFFER_SIZE);
     if (ctx->ibuf == NULL) {
         OPENSSL_free(ctx);
         return 0;
     }
     ctx->obuf_size = DEFAULT_BUFFER_SIZE;
-    ctx->obuf = OPENSSL_malloc(DEFAULT_BUFFER_SIZE);
+    ctx->obuf      = OPENSSL_malloc(DEFAULT_BUFFER_SIZE);
     if (ctx->obuf == NULL) {
         OPENSSL_free(ctx->ibuf);
         OPENSSL_free(ctx);
         return 0;
     }
 
-    bi->init = 1;
-    bi->ptr = (char *)ctx;
+    bi->init  = 1;
+    bi->ptr   = (char *)ctx;
     bi->flags = 0;
     return 1;
 }
@@ -78,15 +78,15 @@ static int buffer_free(BIO *a)
     OPENSSL_free(b->ibuf);
     OPENSSL_free(b->obuf);
     OPENSSL_free(a->ptr);
-    a->ptr = NULL;
-    a->init = 0;
+    a->ptr   = NULL;
+    a->init  = 0;
     a->flags = 0;
     return 1;
 }
 
 static int buffer_read(BIO *b, char *out, int outl)
 {
-    int i, num = 0;
+    int               i, num = 0;
     BIO_F_BUFFER_CTX *ctx;
 
     if (out == NULL)
@@ -98,7 +98,7 @@ static int buffer_read(BIO *b, char *out, int outl)
     num = 0;
     BIO_clear_retry_flags(b);
 
- start:
+start:
     i = ctx->ibuf_len;
     /* If there is stuff left over, grab it */
     if (i != 0) {
@@ -107,11 +107,11 @@ static int buffer_read(BIO *b, char *out, int outl)
         memcpy(out, &(ctx->ibuf[ctx->ibuf_off]), i);
         ctx->ibuf_off += i;
         ctx->ibuf_len -= i;
-        num += i;
+        num           += i;
         if (outl == i)
             return num;
         outl -= i;
-        out += i;
+        out  += i;
     }
 
     /*
@@ -133,7 +133,7 @@ static int buffer_read(BIO *b, char *out, int outl)
             num += i;
             if (outl == i)
                 return num;
-            out += i;
+            out  += i;
             outl -= i;
         }
     }
@@ -157,7 +157,7 @@ static int buffer_read(BIO *b, char *out, int outl)
 
 static int buffer_write(BIO *b, const char *in, int inl)
 {
-    int i, num = 0;
+    int               i, num = 0;
     BIO_F_BUFFER_CTX *ctx;
 
     if ((in == NULL) || (inl <= 0))
@@ -167,7 +167,7 @@ static int buffer_write(BIO *b, const char *in, int inl)
         return 0;
 
     BIO_clear_retry_flags(b);
- start:
+start:
     i = ctx->obuf_size - (ctx->obuf_len + ctx->obuf_off);
     /* add to buffer and return */
     if (i >= inl) {
@@ -178,17 +178,16 @@ static int buffer_write(BIO *b, const char *in, int inl)
     /* else */
     /* stuff already in buffer, so add to it first, then flush */
     if (ctx->obuf_len != 0) {
-        if (i > 0) {            /* lets fill it up if we can */
+        if (i > 0) { /* lets fill it up if we can */
             memcpy(&(ctx->obuf[ctx->obuf_off + ctx->obuf_len]), in, i);
-            in += i;
-            inl -= i;
-            num += i;
+            in            += i;
+            inl           -= i;
+            num           += i;
             ctx->obuf_len += i;
         }
         /* we now have a full buffer needing flushing */
         for (;;) {
-            i = BIO_write(b->next_bio, &(ctx->obuf[ctx->obuf_off]),
-                          ctx->obuf_len);
+            i = BIO_write(b->next_bio, &(ctx->obuf[ctx->obuf_off]), ctx->obuf_len);
             if (i <= 0) {
                 BIO_copy_next_retry(b);
 
@@ -220,7 +219,7 @@ static int buffer_write(BIO *b, const char *in, int inl)
                 return num;
         }
         num += i;
-        in += i;
+        in  += i;
         inl -= i;
         if (inl == 0)
             return num;
@@ -234,12 +233,12 @@ static int buffer_write(BIO *b, const char *in, int inl)
 
 static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
 {
-    BIO *dbio;
+    BIO              *dbio;
     BIO_F_BUFFER_CTX *ctx;
-    long ret = 1;
-    char *p1, *p2;
-    int r, i, *ip;
-    int ibs, obs;
+    long              ret = 1;
+    char             *p1, *p2;
+    int               r, i, *ip;
+    int               ibs, obs;
 
     ctx = (BIO_F_BUFFER_CTX *)b->ptr;
 
@@ -263,7 +262,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         break;
     case BIO_C_GET_BUFF_NUM_LINES:
         ret = 0;
-        p1 = ctx->ibuf;
+        p1  = ctx->ibuf;
         for (i = 0; i < ctx->ibuf_len; i++) {
             if (p1[ctx->ibuf_off + i] == '\n')
                 ret++;
@@ -306,7 +305,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
             if (*ip == 0) {
                 ibs = (int)num;
                 obs = ctx->obuf_size;
-            } else {            /* if (*ip == 1) */
+            } else { /* if (*ip == 1) */
 
                 ibs = ctx->ibuf_size;
                 obs = (int)num;
@@ -334,16 +333,16 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         }
         if (ctx->ibuf != p1) {
             OPENSSL_free(ctx->ibuf);
-            ctx->ibuf = p1;
-            ctx->ibuf_off = 0;
-            ctx->ibuf_len = 0;
+            ctx->ibuf      = p1;
+            ctx->ibuf_off  = 0;
+            ctx->ibuf_len  = 0;
             ctx->ibuf_size = ibs;
         }
         if (ctx->obuf != p2) {
             OPENSSL_free(ctx->obuf);
-            ctx->obuf = p2;
-            ctx->obuf_off = 0;
-            ctx->obuf_len = 0;
+            ctx->obuf      = p2;
+            ctx->obuf_off  = 0;
+            ctx->obuf_len  = 0;
             ctx->obuf_size = obs;
         }
         break;
@@ -367,8 +366,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         for (;;) {
             BIO_clear_retry_flags(b);
             if (ctx->obuf_len > 0) {
-                r = BIO_write(b->next_bio,
-                              &(ctx->obuf[ctx->obuf_off]), ctx->obuf_len);
+                r = BIO_write(b->next_bio, &(ctx->obuf[ctx->obuf_off]), ctx->obuf_len);
                 BIO_copy_next_retry(b);
                 if (r <= 0)
                     return (long)r;
@@ -385,8 +383,7 @@ static long buffer_ctrl(BIO *b, int cmd, long num, void *ptr)
         break;
     case BIO_CTRL_DUP:
         dbio = (BIO *)ptr;
-        if (BIO_set_read_buffer_size(dbio, ctx->ibuf_size) <= 0 ||
-            BIO_set_write_buffer_size(dbio, ctx->obuf_size) <= 0)
+        if (BIO_set_read_buffer_size(dbio, ctx->ibuf_size) <= 0 || BIO_set_write_buffer_size(dbio, ctx->obuf_size) <= 0)
             ret = 0;
         break;
     case BIO_CTRL_PEEK:
@@ -419,16 +416,16 @@ static long buffer_callback_ctrl(BIO *b, int cmd, BIO_info_cb *fp)
 static int buffer_gets(BIO *b, char *buf, int size)
 {
     BIO_F_BUFFER_CTX *ctx;
-    int num = 0, i, flag;
-    char *p;
+    int               num = 0, i, flag;
+    char             *p;
 
     ctx = (BIO_F_BUFFER_CTX *)b->ptr;
-    size--;                     /* reserve space for a '\0' */
+    size--; /* reserve space for a '\0' */
     BIO_clear_retry_flags(b);
 
     for (;;) {
         if (ctx->ibuf_len > 0) {
-            p = &(ctx->ibuf[ctx->ibuf_off]);
+            p    = &(ctx->ibuf[ctx->ibuf_off]);
             flag = 0;
             for (i = 0; (i < ctx->ibuf_len) && (i < size); i++) {
                 *(buf++) = p[i];
@@ -438,15 +435,15 @@ static int buffer_gets(BIO *b, char *buf, int size)
                     break;
                 }
             }
-            num += i;
-            size -= i;
+            num           += i;
+            size          -= i;
             ctx->ibuf_len -= i;
             ctx->ibuf_off += i;
             if (flag || size == 0) {
                 *buf = '\0';
                 return num;
             }
-        } else {                /* read another chunk */
+        } else { /* read another chunk */
 
             i = BIO_read(b->next_bio, ctx->ibuf, ctx->ibuf_size);
             if (i <= 0) {

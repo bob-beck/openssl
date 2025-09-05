@@ -15,19 +15,19 @@
 
 typedef struct self_test_cb_st {
     OSSL_CALLBACK *cb;
-    void *cbarg;
+    void          *cbarg;
 } SELF_TEST_CB;
 
 struct ossl_self_test_st {
     /* local state variables */
-    const char *phase;
-    const char *type;
-    const char *desc;
+    const char    *phase;
+    const char    *type;
+    const char    *desc;
     OSSL_CALLBACK *cb;
 
     /* callback related variables used to pass the state back to the user */
-    OSSL_PARAM params[4];
-    void *cb_arg;
+    OSSL_PARAM     params[4];
+    void          *cb_arg;
 };
 
 #ifndef FIPS_MODULE
@@ -49,19 +49,17 @@ static SELF_TEST_CB *get_self_test_callback(OSSL_LIB_CTX *libctx)
     return ossl_lib_ctx_get_data(libctx, OSSL_LIB_CTX_SELF_TEST_CB_INDEX);
 }
 
-void OSSL_SELF_TEST_set_callback(OSSL_LIB_CTX *libctx, OSSL_CALLBACK *cb,
-                                 void *cbarg)
+void OSSL_SELF_TEST_set_callback(OSSL_LIB_CTX *libctx, OSSL_CALLBACK *cb, void *cbarg)
 {
     SELF_TEST_CB *stcb = get_self_test_callback(libctx);
 
     if (stcb != NULL) {
-        stcb->cb = cb;
+        stcb->cb    = cb;
         stcb->cbarg = cbarg;
     }
 }
 
-void OSSL_SELF_TEST_get_callback(OSSL_LIB_CTX *libctx, OSSL_CALLBACK **cb,
-                                 void **cbarg)
+void OSSL_SELF_TEST_get_callback(OSSL_LIB_CTX *libctx, OSSL_CALLBACK **cb, void **cbarg)
 {
     SELF_TEST_CB *stcb = get_self_test_callback(libctx);
 
@@ -77,15 +75,9 @@ static void self_test_setparams(OSSL_SELF_TEST *st)
     size_t n = 0;
 
     if (st->cb != NULL) {
-        st->params[n++] =
-            OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_PHASE,
-                                             (char *)st->phase, 0);
-        st->params[n++] =
-            OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_TYPE,
-                                             (char *)st->type, 0);
-        st->params[n++] =
-            OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_DESC,
-                                             (char *)st->desc, 0);
+        st->params[n++] = OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_PHASE, (char *)st->phase, 0);
+        st->params[n++] = OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_TYPE, (char *)st->type, 0);
+        st->params[n++] = OSSL_PARAM_construct_utf8_string(OSSL_PROV_PARAM_SELF_TEST_DESC, (char *)st->desc, 0);
     }
     st->params[n++] = OSSL_PARAM_construct_end();
 }
@@ -97,11 +89,11 @@ OSSL_SELF_TEST *OSSL_SELF_TEST_new(OSSL_CALLBACK *cb, void *cbarg)
     if (ret == NULL)
         return NULL;
 
-    ret->cb = cb;
+    ret->cb     = cb;
     ret->cb_arg = cbarg;
-    ret->phase = "";
-    ret->type = "";
-    ret->desc = "";
+    ret->phase  = "";
+    ret->type   = "";
+    ret->desc   = "";
     self_test_setparams(ret);
     return ret;
 }
@@ -112,13 +104,12 @@ void OSSL_SELF_TEST_free(OSSL_SELF_TEST *st)
 }
 
 /* Can be used during application testing to log that a test has started. */
-void OSSL_SELF_TEST_onbegin(OSSL_SELF_TEST *st, const char *type,
-                            const char *desc)
+void OSSL_SELF_TEST_onbegin(OSSL_SELF_TEST *st, const char *type, const char *desc)
 {
     if (st != NULL && st->cb != NULL) {
         st->phase = OSSL_SELF_TEST_PHASE_START;
-        st->type = type;
-        st->desc = desc;
+        st->type  = type;
+        st->desc  = desc;
         self_test_setparams(st);
         (void)st->cb(st->params, st->cb_arg);
     }
@@ -131,14 +122,13 @@ void OSSL_SELF_TEST_onbegin(OSSL_SELF_TEST *st, const char *type,
 void OSSL_SELF_TEST_onend(OSSL_SELF_TEST *st, int ret)
 {
     if (st != NULL && st->cb != NULL) {
-        st->phase =
-            (ret == 1 ? OSSL_SELF_TEST_PHASE_PASS : OSSL_SELF_TEST_PHASE_FAIL);
+        st->phase = (ret == 1 ? OSSL_SELF_TEST_PHASE_PASS : OSSL_SELF_TEST_PHASE_FAIL);
         self_test_setparams(st);
         (void)st->cb(st->params, st->cb_arg);
 
         st->phase = OSSL_SELF_TEST_PHASE_NONE;
-        st->type = OSSL_SELF_TEST_TYPE_NONE;
-        st->desc = OSSL_SELF_TEST_DESC_NONE;
+        st->type  = OSSL_SELF_TEST_TYPE_NONE;
+        st->desc  = OSSL_SELF_TEST_DESC_NONE;
     }
 }
 

@@ -41,30 +41,28 @@
 /* Dummy ALPN protocols used to pad out the size of the ClientHello */
 /* ASCII 'O' = 79 = 0x4F = EBCDIC '|'*/
 #ifdef CHARSET_EBCDIC
-static const char alpn_prots[] =
-    "|1234567890123456789012345678901234567890123456789012345678901234567890123456789"
-    "|1234567890123456789012345678901234567890123456789012345678901234567890123456789";
+static const char alpn_prots[] = "|1234567890123456789012345678901234567890123456789012345678901234567890123456789"
+                                 "|1234567890123456789012345678901234567890123456789012345678901234567890123456789";
 #else
-static const char alpn_prots[] =
-    "O1234567890123456789012345678901234567890123456789012345678901234567890123456789"
-    "O1234567890123456789012345678901234567890123456789012345678901234567890123456789";
+static const char alpn_prots[] = "O1234567890123456789012345678901234567890123456789012345678901234567890123456789"
+                                 "O1234567890123456789012345678901234567890123456789012345678901234567890123456789";
 #endif
 
 static int test_client_hello(int currtest)
 {
-    SSL_CTX *ctx;
-    SSL *con = NULL;
-    BIO *rbio;
-    BIO *wbio;
-    long len;
+    SSL_CTX       *ctx;
+    SSL           *con = NULL;
+    BIO           *rbio;
+    BIO           *wbio;
+    long           len;
     unsigned char *data;
-    PACKET pkt, pkt2, pkt3;
-    char *dummytick = "Hello World!";
-    unsigned int type = 0;
-    int testresult = 0;
-    size_t msglen;
-    BIO *sessbio = NULL;
-    SSL_SESSION *sess = NULL;
+    PACKET         pkt, pkt2, pkt3;
+    char          *dummytick  = "Hello World!";
+    unsigned int   type       = 0;
+    int            testresult = 0;
+    size_t         msglen;
+    BIO           *sessbio = NULL;
+    SSL_SESSION   *sess    = NULL;
 
     memset(&pkt, 0, sizeof(pkt));
     memset(&pkt2, 0, sizeof(pkt2));
@@ -99,8 +97,7 @@ static int test_client_hello(int currtest)
         /* Make sure we get a consistent size across TLS versions */
         SSL_CTX_clear_options(ctx, SSL_OP_ENABLE_MIDDLEBOX_COMPAT);
         /* Avoid large keyshares */
-        if (!TEST_true(SSL_CTX_set1_groups_list(ctx,
-                       "?X25519:?secp256r1:?ffdhe2048:?ffdhe3072")))
+        if (!TEST_true(SSL_CTX_set1_groups_list(ctx, "?X25519:?secp256r1:?ffdhe2048:?ffdhe3072")))
             goto end;
         /*
          * Add some dummy ALPN protocols so that the ClientHello is at least
@@ -108,18 +105,14 @@ static int test_client_hello(int currtest)
          * needed.
          */
         if (currtest == TEST_ADD_PADDING) {
-             if (!TEST_false(SSL_CTX_set_alpn_protos(ctx,
-                                    (unsigned char *)alpn_prots,
-                                    sizeof(alpn_prots) - 1)))
+            if (!TEST_false(SSL_CTX_set_alpn_protos(ctx, (unsigned char *)alpn_prots, sizeof(alpn_prots) - 1)))
                 goto end;
-        /*
-         * Otherwise we need to make sure we have a small enough message to
-         * not need padding.
-         */
-        } else if (!TEST_true(SSL_CTX_set_cipher_list(ctx,
-                              "AES128-SHA"))
-                   || !TEST_true(SSL_CTX_set_ciphersuites(ctx,
-                                 "TLS_AES_128_GCM_SHA256"))) {
+            /*
+             * Otherwise we need to make sure we have a small enough message to
+             * not need padding.
+             */
+        } else if (!TEST_true(SSL_CTX_set_cipher_list(ctx, "AES128-SHA"))
+                   || !TEST_true(SSL_CTX_set_ciphersuites(ctx, "TLS_AES_128_GCM_SHA256"))) {
             goto end;
         }
         break;
@@ -134,7 +127,7 @@ static int test_client_hello(int currtest)
 
     rbio = BIO_new(BIO_s_mem());
     wbio = BIO_new(BIO_s_mem());
-    if (!TEST_ptr(rbio)|| !TEST_ptr(wbio)) {
+    if (!TEST_ptr(rbio) || !TEST_ptr(wbio)) {
         BIO_free(rbio);
         BIO_free(wbio);
         goto end;
@@ -144,8 +137,7 @@ static int test_client_hello(int currtest)
     SSL_set_connect_state(con);
 
     if (currtest == TEST_SET_SESSION_TICK_DATA_VER_NEG) {
-        if (!TEST_true(SSL_set_session_ticket_ext(con, dummytick,
-                                                  (int)strlen(dummytick))))
+        if (!TEST_true(SSL_set_session_ticket_ext(con, dummytick, (int)strlen(dummytick))))
             goto end;
     }
 
@@ -155,39 +147,35 @@ static int test_client_hello(int currtest)
     }
 
     if (!TEST_long_ge(len = BIO_get_mem_data(wbio, (char **)&data), 0)
-            || !TEST_true(PACKET_buf_init(&pkt, data, len))
-               /* Skip the record header */
-            || !PACKET_forward(&pkt, SSL3_RT_HEADER_LENGTH))
+        || !TEST_true(PACKET_buf_init(&pkt, data, len))
+        /* Skip the record header */
+        || !PACKET_forward(&pkt, SSL3_RT_HEADER_LENGTH))
         goto end;
 
     msglen = PACKET_remaining(&pkt);
 
     /* Skip the handshake message header */
     if (!TEST_true(PACKET_forward(&pkt, SSL3_HM_HEADER_LENGTH))
-               /* Skip client version and random */
-            || !TEST_true(PACKET_forward(&pkt, CLIENT_VERSION_LEN
-                                               + SSL3_RANDOM_SIZE))
-               /* Skip session id */
-            || !TEST_true(PACKET_get_length_prefixed_1(&pkt, &pkt2))
-               /* Skip ciphers */
-            || !TEST_true(PACKET_get_length_prefixed_2(&pkt, &pkt2))
-               /* Skip compression */
-            || !TEST_true(PACKET_get_length_prefixed_1(&pkt, &pkt2))
-               /* Extensions len */
-            || !TEST_true(PACKET_as_length_prefixed_2(&pkt, &pkt2)))
+        /* Skip client version and random */
+        || !TEST_true(PACKET_forward(&pkt, CLIENT_VERSION_LEN + SSL3_RANDOM_SIZE))
+        /* Skip session id */
+        || !TEST_true(PACKET_get_length_prefixed_1(&pkt, &pkt2))
+        /* Skip ciphers */
+        || !TEST_true(PACKET_get_length_prefixed_2(&pkt, &pkt2))
+        /* Skip compression */
+        || !TEST_true(PACKET_get_length_prefixed_1(&pkt, &pkt2))
+        /* Extensions len */
+        || !TEST_true(PACKET_as_length_prefixed_2(&pkt, &pkt2)))
         goto end;
 
     /* Loop through all extensions */
     while (PACKET_remaining(&pkt2)) {
-
-        if (!TEST_true(PACKET_get_net_2(&pkt2, &type))
-                || !TEST_true(PACKET_get_length_prefixed_2(&pkt2, &pkt3)))
+        if (!TEST_true(PACKET_get_net_2(&pkt2, &type)) || !TEST_true(PACKET_get_length_prefixed_2(&pkt2, &pkt3)))
             goto end;
 
         if (type == TLSEXT_TYPE_session_ticket) {
             if (currtest == TEST_SET_SESSION_TICK_DATA_VER_NEG) {
-                if (TEST_true(PACKET_equal(&pkt3, dummytick,
-                                           strlen(dummytick)))) {
+                if (TEST_true(PACKET_equal(&pkt3, dummytick, strlen(dummytick)))) {
                     /* Ticket data is as we expected */
                     testresult = 1;
                 }

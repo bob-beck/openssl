@@ -8,40 +8,39 @@
  */
 
 #ifndef OSSL_INTERNAL_COMMON_H
-# define OSSL_INTERNAL_COMMON_H
-# pragma once
+#define OSSL_INTERNAL_COMMON_H
+#pragma once
 
-# include <stdlib.h>
-# include <string.h>
-# include "openssl/configuration.h"
+#include <stdlib.h>
+#include <string.h>
+#include "openssl/configuration.h"
 
-# include "internal/e_os.h" /* ossl_inline in many files */
-# include "internal/nelem.h"
+#include "internal/e_os.h" /* ossl_inline in many files */
+#include "internal/nelem.h"
 
-# if defined(__GNUC__) || defined(__clang__)
-#  define ossl_likely(x)     __builtin_expect(!!(x), 1)
-#  define ossl_unlikely(x)   __builtin_expect(!!(x), 0)
-# else
-#  define ossl_likely(x)     (x)
-#  define ossl_unlikely(x)   (x)
-# endif
+#if defined(__GNUC__) || defined(__clang__)
+# define ossl_likely(x)     __builtin_expect(!!(x), 1)
+# define ossl_unlikely(x)   __builtin_expect(!!(x), 0)
+#else
+# define ossl_likely(x)     (x)
+# define ossl_unlikely(x)   (x)
+#endif
 
-# if defined(__GNUC__) || defined(__clang__)
-#  define ALIGN32       __attribute((aligned(32)))
-#  define ALIGN64       __attribute((aligned(64)))
-# elif defined(_MSC_VER)
-#  define ALIGN32       __declspec(align(32))
-#  define ALIGN64       __declspec(align(64))
-# else
-#  define ALIGN32
-#  define ALIGN64
-# endif
+#if defined(__GNUC__) || defined(__clang__)
+# define ALIGN32       __attribute((aligned(32)))
+# define ALIGN64       __attribute((aligned(64)))
+#elif defined(_MSC_VER)
+# define ALIGN32       __declspec(align(32))
+# define ALIGN64       __declspec(align(64))
+#else
+# define ALIGN32
+# define ALIGN64
+#endif
 
-# ifdef NDEBUG
-#  define ossl_assert(x) ossl_likely((x) != 0)
-# else
-__owur static ossl_inline int ossl_assert_int(int expr, const char *exprstr,
-                                              const char *file, int line)
+#ifdef NDEBUG
+# define ossl_assert(x) ossl_likely((x) != 0)
+#else
+__owur static ossl_inline int ossl_assert_int(int expr, const char *exprstr, const char *file, int line)
 {
     if (!expr)
         OPENSSL_die(exprstr, file, line);
@@ -49,10 +48,10 @@ __owur static ossl_inline int ossl_assert_int(int expr, const char *exprstr,
     return expr;
 }
 
-#  define ossl_assert(x) ossl_assert_int((x) != 0, "Assertion failed: "#x, \
+# define ossl_assert(x) ossl_assert_int((x) != 0, "Assertion failed: "#x, \
                                          __FILE__, __LINE__)
 
-# endif
+#endif
 
 /* Check if |pre|, which must be a string literal, is a prefix of |str| */
 #define HAS_PREFIX(str, pre) (strncmp(str, pre "", sizeof(pre) - 1) == 0)
@@ -73,42 +72,42 @@ __owur static ossl_inline int ossl_assert_int(int expr, const char *exprstr,
  * reasonable boundary for the platform.  The most pessimistic alignment
  * of the listed types will be used by the compiler.
  */
-# define OSSL_UNION_ALIGN       \
+#define OSSL_UNION_ALIGN       \
     double align;               \
     ossl_uintmax_t align_int;   \
     void *align_ptr
 
-# define OPENSSL_CONF             "openssl.cnf"
+#define OPENSSL_CONF             "openssl.cnf"
 
-# ifndef OPENSSL_SYS_VMS
-#  define X509_CERT_AREA          OPENSSLDIR
-#  define X509_CERT_DIR           OPENSSLDIR "/certs"
-#  define X509_CERT_FILE          OPENSSLDIR "/cert.pem"
-#  define X509_PRIVATE_DIR        OPENSSLDIR "/private"
-#  define CTLOG_FILE              OPENSSLDIR "/ct_log_list.cnf"
-# else
-#  define X509_CERT_AREA          "OSSL$DATAROOT:[000000]"
-#  define X509_CERT_DIR           "OSSL$DATAROOT:[CERTS]"
-#  define X509_CERT_FILE          "OSSL$DATAROOT:[000000]cert.pem"
-#  define X509_PRIVATE_DIR        "OSSL$DATAROOT:[PRIVATE]"
-#  define CTLOG_FILE              "OSSL$DATAROOT:[000000]ct_log_list.cnf"
-# endif
+#ifndef OPENSSL_SYS_VMS
+# define X509_CERT_AREA          OPENSSLDIR
+# define X509_CERT_DIR           OPENSSLDIR "/certs"
+# define X509_CERT_FILE          OPENSSLDIR "/cert.pem"
+# define X509_PRIVATE_DIR        OPENSSLDIR "/private"
+# define CTLOG_FILE              OPENSSLDIR "/ct_log_list.cnf"
+#else
+# define X509_CERT_AREA          "OSSL$DATAROOT:[000000]"
+# define X509_CERT_DIR           "OSSL$DATAROOT:[CERTS]"
+# define X509_CERT_FILE          "OSSL$DATAROOT:[000000]cert.pem"
+# define X509_PRIVATE_DIR        "OSSL$DATAROOT:[PRIVATE]"
+# define CTLOG_FILE              "OSSL$DATAROOT:[000000]ct_log_list.cnf"
+#endif
 
-# define X509_CERT_DIR_EVP        "SSL_CERT_DIR"
-# define X509_CERT_FILE_EVP       "SSL_CERT_FILE"
-# define CTLOG_FILE_EVP           "CTLOG_FILE"
+#define X509_CERT_DIR_EVP        "SSL_CERT_DIR"
+#define X509_CERT_FILE_EVP       "SSL_CERT_FILE"
+#define CTLOG_FILE_EVP           "CTLOG_FILE"
 
 /* size of string representations */
-# define DECIMAL_SIZE(type)      ((sizeof(type)*8+2)/3+1)
-# define HEX_SIZE(type)          (sizeof(type)*2)
+#define DECIMAL_SIZE(type)      ((sizeof(type)*8+2)/3+1)
+#define HEX_SIZE(type)          (sizeof(type)*2)
 
-# define c2l(c,l)        (l = ((unsigned long)(*((c)++)))     , \
+#define c2l(c, l)        (l = ((unsigned long)(*((c)++)))     , \
                          l|=(((unsigned long)(*((c)++)))<< 8), \
                          l|=(((unsigned long)(*((c)++)))<<16), \
                          l|=(((unsigned long)(*((c)++)))<<24))
 
 /* NOTE - c is not incremented as per c2l */
-# define c2ln(c,l1,l2,n) { \
+#define c2ln(c, l1, l2, n) { \
                         c+=n; \
                         l1=l2=0; \
                         switch (n) { \
@@ -123,17 +122,17 @@ __owur static ossl_inline int ossl_assert_int(int expr, const char *exprstr,
                                 } \
                         }
 
-# define l2c(l,c)        (*((c)++)=(unsigned char)(((l)    )&0xff), \
+#define l2c(l, c)        (*((c)++)=(unsigned char)(((l)    )&0xff), \
                          *((c)++)=(unsigned char)(((l)>> 8)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>16)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>24)&0xff))
 
-# define n2l(c,l)        (l =((unsigned long)(*((c)++)))<<24, \
+#define n2l(c, l)        (l =((unsigned long)(*((c)++)))<<24, \
                          l|=((unsigned long)(*((c)++)))<<16, \
                          l|=((unsigned long)(*((c)++)))<< 8, \
                          l|=((unsigned long)(*((c)++))))
 
-# define n2l8(c,l)       (l =((uint64_t)(*((c)++)))<<56, \
+#define n2l8(c, l)       (l =((uint64_t)(*((c)++)))<<56, \
                          l|=((uint64_t)(*((c)++)))<<48, \
                          l|=((uint64_t)(*((c)++)))<<40, \
                          l|=((uint64_t)(*((c)++)))<<32, \
@@ -142,12 +141,12 @@ __owur static ossl_inline int ossl_assert_int(int expr, const char *exprstr,
                          l|=((uint64_t)(*((c)++)))<< 8, \
                          l|=((uint64_t)(*((c)++))))
 
-# define l2n(l,c)        (*((c)++)=(unsigned char)(((l)>>24)&0xff), \
+#define l2n(l, c)        (*((c)++)=(unsigned char)(((l)>>24)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>16)&0xff), \
                          *((c)++)=(unsigned char)(((l)>> 8)&0xff), \
                          *((c)++)=(unsigned char)(((l)    )&0xff))
 
-# define l2n8(l,c)       (*((c)++)=(unsigned char)(((l)>>56)&0xff), \
+#define l2n8(l, c)       (*((c)++)=(unsigned char)(((l)>>56)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>48)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>40)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>32)&0xff), \
@@ -157,7 +156,7 @@ __owur static ossl_inline int ossl_assert_int(int expr, const char *exprstr,
                          *((c)++)=(unsigned char)(((l)    )&0xff))
 
 /* NOTE - c is not incremented as per l2c */
-# define l2cn(l1,l2,c,n) { \
+#define l2cn(l1, l2, c, n) { \
                         c+=n; \
                         switch (n) { \
                         case 8: *(--(c))=(unsigned char)(((l2)>>24)&0xff); \
@@ -171,16 +170,16 @@ __owur static ossl_inline int ossl_assert_int(int expr, const char *exprstr,
                                 } \
                         }
 
-# define n2s(c,s)        ((s=(((unsigned int)((c)[0]))<< 8)| \
+#define n2s(c, s)        ((s=(((unsigned int)((c)[0]))<< 8)| \
                              (((unsigned int)((c)[1]))    )),(c)+=2)
-# define s2n(s,c)        (((c)[0]=(unsigned char)(((s)>> 8)&0xff), \
+#define s2n(s, c)        (((c)[0]=(unsigned char)(((s)>> 8)&0xff), \
                            (c)[1]=(unsigned char)(((s)    )&0xff)),(c)+=2)
 
-# define n2l3(c,l)       ((l =(((unsigned long)((c)[0]))<<16)| \
+#define n2l3(c, l)       ((l =(((unsigned long)((c)[0]))<<16)| \
                               (((unsigned long)((c)[1]))<< 8)| \
                               (((unsigned long)((c)[2]))    )),(c)+=3)
 
-# define l2n3(l,c)       (((c)[0]=(unsigned char)(((l)>>16)&0xff), \
+#define l2n3(l, c)       (((c)[0]=(unsigned char)(((l)>>16)&0xff), \
                            (c)[1]=(unsigned char)(((l)>> 8)&0xff), \
                            (c)[2]=(unsigned char)(((l)    )&0xff)),(c)+=3)
 
@@ -188,13 +187,13 @@ static ossl_inline int ossl_ends_with_dirsep(const char *path)
 {
     if (*path != '\0')
         path += strlen(path) - 1;
-# if defined __VMS
+#if defined __VMS
     if (*path == ']' || *path == '>' || *path == ':')
         return 1;
-# elif defined _WIN32
+#elif defined _WIN32
     if (*path == '\\')
         return 1;
-# endif
+#endif
     return *path == '/';
 }
 
@@ -203,28 +202,25 @@ static ossl_inline char ossl_determine_dirsep(const char *path)
     if (ossl_ends_with_dirsep(path))
         return '\0';
 
-# if defined(_WIN32)
+#if defined(_WIN32)
     return '\\';
-# elif defined(__VMS)
+#elif defined(__VMS)
     return ':';
-# else
+#else
     return '/';
-# endif
+#endif
 }
 
 static ossl_inline int ossl_is_absolute_path(const char *path)
 {
-# if defined __VMS
+#if defined __VMS
     if (strchr(path, ':') != NULL
-        || ((path[0] == '[' || path[0] == '<')
-            && path[1] != '.' && path[1] != '-'
-            && path[1] != ']' && path[1] != '>'))
+        || ((path[0] == '[' || path[0] == '<') && path[1] != '.' && path[1] != '-' && path[1] != ']' && path[1] != '>'))
         return 1;
-# elif defined _WIN32
-    if (path[0] == '\\'
-        || (path[0] != '\0' && path[1] == ':'))
+#elif defined _WIN32
+    if (path[0] == '\\' || (path[0] != '\0' && path[1] == ':'))
         return 1;
-# endif
+#endif
     return path[0] == '/';
 }
 

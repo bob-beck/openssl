@@ -32,14 +32,14 @@ static const char *propq = NULL;
  *
  * This uses the long way of generating an RSA key.
  */
-static EVP_PKEY *generate_rsa_key_long(OSSL_LIB_CTX *libctx, unsigned int bits)
+static EVP_PKEY   *generate_rsa_key_long(OSSL_LIB_CTX *libctx, unsigned int bits)
 {
     EVP_PKEY_CTX *genctx = NULL;
-    EVP_PKEY *pkey = NULL;
-    unsigned int primes = 2;
+    EVP_PKEY     *pkey   = NULL;
+    unsigned int  primes = 2;
 
     /* Create context using RSA algorithm. "RSA-PSS" could also be used here. */
-    genctx = EVP_PKEY_CTX_new_from_name(libctx, "RSA", propq);
+    genctx               = EVP_PKEY_CTX_new_from_name(libctx, "RSA", propq);
     if (genctx == NULL) {
         fprintf(stderr, "EVP_PKEY_CTX_new_from_name() failed\n");
         goto cleanup;
@@ -123,8 +123,8 @@ static EVP_PKEY *generate_rsa_key_short(OSSL_LIB_CTX *libctx, unsigned int bits)
  */
 static int dump_key(const EVP_PKEY *pkey)
 {
-    int ret = 0;
-    int bits = 0;
+    int     ret  = 0;
+    int     bits = 0;
     BIGNUM *n = NULL, *e = NULL, *d = NULL, *p = NULL, *q = NULL;
 
     /*
@@ -229,8 +229,8 @@ static int dump_key(const EVP_PKEY *pkey)
 
     ret = 1;
 cleanup:
-    BN_free(n); /* not secret */
-    BN_free(e); /* not secret */
+    BN_free(n);       /* not secret */
+    BN_free(e);       /* not secret */
     BN_clear_free(d); /* secret - scrub before freeing */
     BN_clear_free(p); /* secret - scrub before freeing */
     BN_clear_free(q); /* secret - scrub before freeing */
@@ -239,11 +239,11 @@ cleanup:
 
 int main(int argc, char **argv)
 {
-    int ret = EXIT_FAILURE;
+    int           ret    = EXIT_FAILURE;
     OSSL_LIB_CTX *libctx = NULL;
-    EVP_PKEY *pkey = NULL;
-    unsigned int bits = 4096;
-    int bits_i, use_short = 0;
+    EVP_PKEY     *pkey   = NULL;
+    unsigned int  bits   = 4096;
+    int           bits_i, use_short = 0;
 
     /* usage: [-s] [<bits>] */
     if (argc > 1 && strcmp(argv[1], "-s") == 0) {

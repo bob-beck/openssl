@@ -29,9 +29,9 @@ static int set_cloexec(int fd)
 #if defined(OPENSSL_SYS_WINDOWS)
 
 static CRYPTO_ONCE ensure_wsa_startup_once = CRYPTO_ONCE_STATIC_INIT;
-static int wsa_started;
+static int         wsa_started;
 
-static void ossl_wsa_cleanup(void)
+static void        ossl_wsa_cleanup(void)
 {
     if (wsa_started) {
         wsa_started = 0;
@@ -41,7 +41,7 @@ static void ossl_wsa_cleanup(void)
 
 DEFINE_RUN_ONCE_STATIC(do_wsa_startup)
 {
-    WORD versionreq = 0x0202; /* Version 2.2 */
+    WORD    versionreq = 0x0202; /* Version 2.2 */
     WSADATA wsadata;
 
     if (WSAStartup(versionreq, &wsadata) != 0)
@@ -77,8 +77,7 @@ static int create_socket(int domain, int socktype, int protocol)
      */
 
 #  ifdef WSA_FLAG_NO_HANDLE_INHERIT
-    fd = (int)WSASocketA(domain, socktype, protocol, NULL, 0,
-                         WSA_FLAG_NO_HANDLE_INHERIT);
+    fd = (int)WSASocketA(domain, socktype, protocol, NULL, 0, WSA_FLAG_NO_HANDLE_INHERIT);
 
     /*
      * Its also possible that someone is building a binary on a newer windows
@@ -95,15 +94,13 @@ static int create_socket(int domain, int socktype, int protocol)
     if (fd == INVALID_SOCKET) {
         int err = get_last_socket_error();
 
-        ERR_raise_data(ERR_LIB_SYS, err,
-                       "calling WSASocketA() = %d", err);
+        ERR_raise_data(ERR_LIB_SYS, err, "calling WSASocketA() = %d", err);
         return INVALID_SOCKET;
     }
 
     /* Prevent interference with the socket from other processes on Windows. */
     if (setsockopt(fd, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (void *)&on, sizeof(on)) < 0) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_socket_error(),
-                       "calling setsockopt()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_socket_error(), "calling setsockopt()");
         BIO_closesocket(fd);
         return INVALID_SOCKET;
     }
@@ -115,8 +112,7 @@ static int create_socket(int domain, int socktype, int protocol)
 
     fd = BIO_socket(domain, socktype, protocol, 0);
     if (fd == INVALID_SOCKET) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling BIO_socket()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling BIO_socket()");
         return INVALID_SOCKET;
     }
 
@@ -125,8 +121,7 @@ static int create_socket(int domain, int socktype, int protocol)
      * creation time.
      */
     if (!set_cloexec(fd)) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling set_cloexec()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling set_cloexec()");
         BIO_closesocket(fd);
         return INVALID_SOCKET;
     }
@@ -146,56 +141,50 @@ static int create_socket(int domain, int socktype, int protocol)
  */
 int ossl_rio_notifier_init(RIO_NOTIFIER *nfy)
 {
-    int rc, lfd = -1, rfd = -1, wfd = -1;
-    struct sockaddr_in sa = {0}, accept_sa;
-    socklen_t sa_len = sizeof(sa), accept_sa_len = sizeof(accept_sa);
+    int                rc, lfd = -1, rfd = -1, wfd = -1;
+    struct sockaddr_in sa     = {0}, accept_sa;
+    socklen_t          sa_len = sizeof(sa), accept_sa_len = sizeof(accept_sa);
 
 # if defined(OPENSSL_SYS_WINDOWS)
     if (!ensure_wsa_startup()) {
-        ERR_raise_data(ERR_LIB_SSL, ERR_R_INTERNAL_ERROR,
-                       "Cannot start Windows sockets");
+        ERR_raise_data(ERR_LIB_SSL, ERR_R_INTERNAL_ERROR, "Cannot start Windows sockets");
         return 0;
     }
 # endif
     /* Create a close-on-exec socket. */
     lfd = create_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (lfd == INVALID_SOCKET) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling create_socket()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling create_socket()");
         return 0;
     }
 
     /* Bind the socket to a random loopback port. */
-    sa.sin_family       = AF_INET;
-    sa.sin_addr.s_addr  = htonl(INADDR_LOOPBACK);
-    rc = bind(lfd, (const struct sockaddr *)&sa, sizeof(sa));
+    sa.sin_family      = AF_INET;
+    sa.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    rc                 = bind(lfd, (const struct sockaddr *)&sa, sizeof(sa));
     if (rc < 0) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling bind()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling bind()");
         goto err;
     }
 
     /* Determine what random port was allocated. */
     rc = getsockname(lfd, (struct sockaddr *)&sa, &sa_len);
     if (rc < 0) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling getsockname()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling getsockname()");
         goto err;
     }
 
     /* Start listening. */
     rc = listen(lfd, 1);
     if (rc < 0) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling listen()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling listen()");
         goto err;
     }
 
     /* Create another socket to connect to the listener. */
     wfd = create_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (wfd == INVALID_SOCKET) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling create_socket()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling create_socket()");
         goto err;
     }
 
@@ -204,8 +193,7 @@ int ossl_rio_notifier_init(RIO_NOTIFIER *nfy)
      * immediately.
      */
     if (!BIO_set_tcp_ndelay(wfd, 1)) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling BIO_set_tcp_ndelay()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling BIO_set_tcp_ndelay()");
         goto err;
     }
 
@@ -214,8 +202,7 @@ int ossl_rio_notifier_init(RIO_NOTIFIER *nfy)
      */
     rc = connect(wfd, (struct sockaddr *)&sa, sizeof(sa));
     if (rc < 0) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling connect()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling connect()");
         goto err;
     }
 
@@ -224,15 +211,13 @@ int ossl_rio_notifier_init(RIO_NOTIFIER *nfy)
      */
     rfd = accept(lfd, (struct sockaddr *)&accept_sa, &accept_sa_len);
     if (rfd == INVALID_SOCKET) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling accept()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling accept()");
         goto err;
     }
 
     rc = getsockname(wfd, (struct sockaddr *)&sa, &sa_len);
     if (rc < 0) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling getsockname()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling getsockname()");
         goto err;
     }
 
@@ -245,21 +230,18 @@ int ossl_rio_notifier_init(RIO_NOTIFIER *nfy)
      * the brief window of possibility above.
      */
     if (accept_sa.sin_family != AF_INET || accept_sa.sin_port != sa.sin_port) {
-        ERR_raise_data(ERR_LIB_SSL, ERR_R_INTERNAL_ERROR,
-                       "connected address differs from accepted address");
+        ERR_raise_data(ERR_LIB_SSL, ERR_R_INTERNAL_ERROR, "connected address differs from accepted address");
         goto err;
     }
 
     /* Make both sides of the connection non-blocking. */
     if (!BIO_socket_nbio(rfd, 1)) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling BIO_socket_nbio()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling BIO_socket_nbio()");
         goto err;
     }
 
     if (!BIO_socket_nbio(wfd, 1)) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling BIO_socket_nbio()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling BIO_socket_nbio()");
         goto err;
     }
 
@@ -295,28 +277,24 @@ int ossl_rio_notifier_init(RIO_NOTIFIER *nfy)
 # endif
 
     if (socketpair(domain, type, 0, fds) < 0) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling socketpair()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling socketpair()");
         return 0;
     }
 
     if (!set_cloexec(fds[0]) || !set_cloexec(fds[1])) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling set_cloexec()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling set_cloexec()");
         goto err;
     }
 
 # if !defined(SOCK_NONBLOCK)
     if (!BIO_socket_nbio(fds[0], 1) || !BIO_socket_nbio(fds[1], 1)) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling BIO_socket_nbio()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling BIO_socket_nbio()");
         goto err;
     }
 # endif
 
     if (domain == AF_INET && !BIO_set_tcp_ndelay(fds[1], 1)) {
-        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(),
-                       "calling BIO_set_tcp_ndelay()");
+        ERR_raise_data(ERR_LIB_SYS, get_last_sys_error(), "calling BIO_set_tcp_ndelay()");
         goto err;
     }
 
@@ -345,7 +323,7 @@ void ossl_rio_notifier_cleanup(RIO_NOTIFIER *nfy)
 int ossl_rio_notifier_signal(RIO_NOTIFIER *nfy)
 {
     static const unsigned char ch = 0;
-    ossl_ssize_t wr;
+    ossl_ssize_t               wr;
 
     do
         /*
@@ -361,7 +339,7 @@ int ossl_rio_notifier_signal(RIO_NOTIFIER *nfy)
 int ossl_rio_notifier_unsignal(RIO_NOTIFIER *nfy)
 {
     unsigned char buf[16];
-    ossl_ssize_t rd;
+    ossl_ssize_t  rd;
 
     /*
      * signal() might have been called multiple times. Drain the buffer until
@@ -369,8 +347,7 @@ int ossl_rio_notifier_unsignal(RIO_NOTIFIER *nfy)
      */
     do
         rd = readsocket(nfy->rfd, (void *)buf, sizeof(buf));
-    while (rd == sizeof(buf)
-           || (rd < 0 && get_last_socket_error_is_eintr()));
+    while (rd == sizeof(buf) || (rd < 0 && get_last_socket_error_is_eintr()));
 
     if (rd < 0 && !BIO_fd_non_fatal_error(get_last_socket_error()))
         return 0;

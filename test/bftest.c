@@ -28,10 +28,7 @@
 #  include <openssl/ebcdic.h>
 # endif
 
-static char bf_key[2][30] = {
-    "abcdefghijklmnopqrstuvwxyz",
-    "Who is John Galt?"
-};
+static char    bf_key[2][30]  = {"abcdefghijklmnopqrstuvwxyz", "Who is John Galt?"};
 
 /* big endian */
 static BF_LONG bf_plain[2][2] = {
@@ -159,46 +156,28 @@ static unsigned char cipher_data[NUM_TESTS][8] = {
     {0x6B, 0x5C, 0x5A, 0x9C, 0x5D, 0x9E, 0x0A, 0x5A},
 };
 
-static unsigned char cbc_key[16] = {
-    0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef,
-    0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87
-};
-static unsigned char cbc_iv[8] = {
-    0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10
-};
-static char cbc_data[40] = "7654321 Now is the time for ";
-static unsigned char cbc_ok[32] = {
-    0x6B, 0x77, 0xB4, 0xD6, 0x30, 0x06, 0xDE, 0xE6,
-    0x05, 0xB1, 0x56, 0xE2, 0x74, 0x03, 0x97, 0x93,
-    0x58, 0xDE, 0xB9, 0xE7, 0x15, 0x46, 0x16, 0xD9,
-    0x59, 0xF1, 0x65, 0x2B, 0xD5, 0xFF, 0x92, 0xCC
-};
+static unsigned char cbc_key[16] =
+    {0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87};
+static unsigned char cbc_iv[8]    = {0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10};
+static char          cbc_data[40] = "7654321 Now is the time for ";
+static unsigned char cbc_ok[32]   = {0x6B, 0x77, 0xB4, 0xD6, 0x30, 0x06, 0xDE, 0xE6, 0x05, 0xB1, 0x56,
+                                     0xE2, 0x74, 0x03, 0x97, 0x93, 0x58, 0xDE, 0xB9, 0xE7, 0x15, 0x46,
+                                     0x16, 0xD9, 0x59, 0xF1, 0x65, 0x2B, 0xD5, 0xFF, 0x92, 0xCC};
 
-static unsigned char cfb64_ok[] = {
-    0xE7, 0x32, 0x14, 0xA2, 0x82, 0x21, 0x39, 0xCA,
-    0xF2, 0x6E, 0xCF, 0x6D, 0x2E, 0xB9, 0xE7, 0x6E,
-    0x3D, 0xA3, 0xDE, 0x04, 0xD1, 0x51, 0x72, 0x00,
-    0x51, 0x9D, 0x57, 0xA6, 0xC3
-};
+static unsigned char cfb64_ok[]   = {0xE7, 0x32, 0x14, 0xA2, 0x82, 0x21, 0x39, 0xCA, 0xF2, 0x6E,
+                                     0xCF, 0x6D, 0x2E, 0xB9, 0xE7, 0x6E, 0x3D, 0xA3, 0xDE, 0x04,
+                                     0xD1, 0x51, 0x72, 0x00, 0x51, 0x9D, 0x57, 0xA6, 0xC3};
 
-static unsigned char ofb64_ok[] = {
-    0xE7, 0x32, 0x14, 0xA2, 0x82, 0x21, 0x39, 0xCA,
-    0x62, 0xB3, 0x43, 0xCC, 0x5B, 0x65, 0x58, 0x73,
-    0x10, 0xDD, 0x90, 0x8D, 0x0C, 0x24, 0x1B, 0x22,
-    0x63, 0xC2, 0xCF, 0x80, 0xDA
-};
+static unsigned char ofb64_ok[]   = {0xE7, 0x32, 0x14, 0xA2, 0x82, 0x21, 0x39, 0xCA, 0x62, 0xB3,
+                                     0x43, 0xCC, 0x5B, 0x65, 0x58, 0x73, 0x10, 0xDD, 0x90, 0x8D,
+                                     0x0C, 0x24, 0x1B, 0x22, 0x63, 0xC2, 0xCF, 0x80, 0xDA};
 
 # define KEY_TEST_NUM    25
-static unsigned char key_test[KEY_TEST_NUM] = {
-    0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87,
-    0x78, 0x69, 0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f,
-    0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
-    0x88
-};
+static unsigned char key_test[KEY_TEST_NUM]   = {0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87, 0x78,
+                                                 0x69, 0x5a, 0x4b, 0x3c, 0x2d, 0x1e, 0x0f, 0x00, 0x11,
+                                                 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88};
 
-static unsigned char key_data[8] = {
-    0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10
-};
+static unsigned char key_data[8]              = {0xFE, 0xDC, 0xBA, 0x98, 0x76, 0x54, 0x32, 0x10};
 
 static unsigned char key_out[KEY_TEST_NUM][8] = {
     {0xF9, 0xAD, 0x59, 0x7C, 0x49, 0xDB, 0x00, 0x5E},
@@ -294,8 +273,8 @@ static int print_test_data(void)
 
 static int test_bf_ecb_raw(int n)
 {
-    int ret = 1;
-    BF_KEY key;
+    int     ret = 1;
+    BF_KEY  key;
     BF_LONG data[2];
 
     BF_set_key(&key, (int)strlen(bf_key[n]), (unsigned char *)bf_key[n]);
@@ -315,8 +294,8 @@ static int test_bf_ecb_raw(int n)
 
 static int test_bf_ecb(int n)
 {
-    int ret = 1;
-    BF_KEY key;
+    int           ret = 1;
+    BF_KEY        key;
     unsigned char out[8];
 
     BF_set_key(&key, 8, ecb_data[n]);
@@ -334,11 +313,11 @@ static int test_bf_ecb(int n)
 
 static int test_bf_set_key(int n)
 {
-    int ret = 1;
-    BF_KEY key;
+    int           ret = 1;
+    BF_KEY        key;
     unsigned char out[8];
 
-    BF_set_key(&key, n+1, key_test);
+    BF_set_key(&key, n + 1, key_test);
     BF_ecb_encrypt(key_data, out, &key, BF_ENCRYPT);
     /* mips-sgi-irix6.5-gcc  vv  -mabi=64 bug workaround */
     if (!TEST_mem_eq(out, 8, &(key_out[n][0]), 8))
@@ -350,9 +329,9 @@ static int test_bf_set_key(int n)
 static int test_bf_cbc(void)
 {
     unsigned char cbc_in[40], cbc_out[40], iv[8];
-    int ret = 1;
-    BF_KEY key;
-    BF_LONG len;
+    int           ret = 1;
+    BF_KEY        key;
+    BF_LONG       len;
 
     len = (BF_LONG)(strlen(cbc_data) + 1);
 
@@ -360,8 +339,7 @@ static int test_bf_cbc(void)
     memset(cbc_in, 0, sizeof(cbc_in));
     memset(cbc_out, 0, sizeof(cbc_out));
     memcpy(iv, cbc_iv, sizeof(iv));
-    BF_cbc_encrypt((unsigned char *)cbc_data, cbc_out, len,
-                   &key, iv, BF_ENCRYPT);
+    BF_cbc_encrypt((unsigned char *)cbc_data, cbc_out, len, &key, iv, BF_ENCRYPT);
     if (!TEST_mem_eq(cbc_out, 32, cbc_ok, 32))
         ret = 0;
 
@@ -376,9 +354,9 @@ static int test_bf_cbc(void)
 static int test_bf_cfb64(void)
 {
     unsigned char cbc_in[40], cbc_out[40], iv[8];
-    int n, ret = 1;
-    BF_KEY key;
-    BF_LONG len;
+    int           n, ret = 1;
+    BF_KEY        key;
+    BF_LONG       len;
 
     len = (BF_LONG)(strlen(cbc_data) + 1);
 
@@ -387,18 +365,15 @@ static int test_bf_cfb64(void)
     memset(cbc_out, 0, 40);
     memcpy(iv, cbc_iv, 8);
     n = 0;
-    BF_cfb64_encrypt((unsigned char *)cbc_data, cbc_out, (long)13,
-                     &key, iv, &n, BF_ENCRYPT);
-    BF_cfb64_encrypt((unsigned char *)&(cbc_data[13]), &(cbc_out[13]),
-                     len - 13, &key, iv, &n, BF_ENCRYPT);
+    BF_cfb64_encrypt((unsigned char *)cbc_data, cbc_out, (long)13, &key, iv, &n, BF_ENCRYPT);
+    BF_cfb64_encrypt((unsigned char *)&(cbc_data[13]), &(cbc_out[13]), len - 13, &key, iv, &n, BF_ENCRYPT);
     if (!TEST_mem_eq(cbc_out, (int)len, cfb64_ok, (int)len))
         ret = 0;
 
     n = 0;
     memcpy(iv, cbc_iv, 8);
     BF_cfb64_encrypt(cbc_out, cbc_in, 17, &key, iv, &n, BF_DECRYPT);
-    BF_cfb64_encrypt(&(cbc_out[17]), &(cbc_in[17]), len - 17,
-                     &key, iv, &n, BF_DECRYPT);
+    BF_cfb64_encrypt(&(cbc_out[17]), &(cbc_in[17]), len - 17, &key, iv, &n, BF_DECRYPT);
     if (!TEST_mem_eq(cbc_in, (int)len, cbc_data, (int)len))
         ret = 0;
 
@@ -408,9 +383,9 @@ static int test_bf_cfb64(void)
 static int test_bf_ofb64(void)
 {
     unsigned char cbc_in[40], cbc_out[40], iv[8];
-    int n, ret = 1;
-    BF_KEY key;
-    BF_LONG len;
+    int           n, ret = 1;
+    BF_KEY        key;
+    BF_LONG       len;
 
     len = (BF_LONG)(strlen(cbc_data) + 1);
 
@@ -419,10 +394,8 @@ static int test_bf_ofb64(void)
     memset(cbc_out, 0, 40);
     memcpy(iv, cbc_iv, 8);
     n = 0;
-    BF_ofb64_encrypt((unsigned char *)cbc_data, cbc_out, (long)13, &key, iv,
-                     &n);
-    BF_ofb64_encrypt((unsigned char *)&(cbc_data[13]), &(cbc_out[13]),
-                     len - 13, &key, iv, &n);
+    BF_ofb64_encrypt((unsigned char *)cbc_data, cbc_out, (long)13, &key, iv, &n);
+    BF_ofb64_encrypt((unsigned char *)&(cbc_data[13]), &(cbc_out[13]), len - 13, &key, iv, &n);
     if (!TEST_mem_eq(cbc_out, (int)len, ofb64_ok, (int)len))
         ret = 0;
 
@@ -437,19 +410,14 @@ static int test_bf_ofb64(void)
 }
 #endif
 
-typedef enum OPTION_choice {
-    OPT_ERR = -1,
-    OPT_EOF = 0,
-    OPT_PRINT,
-    OPT_TEST_ENUM
-} OPTION_CHOICE;
+typedef enum OPTION_choice { OPT_ERR = -1, OPT_EOF = 0, OPT_PRINT, OPT_TEST_ENUM } OPTION_CHOICE;
 
 const OPTIONS *test_get_options(void)
 {
     static const OPTIONS test_options[] = {
         OPT_TEST_OPTIONS_DEFAULT_USAGE,
-        { "print", OPT_PRINT, '-', "Output test tables instead of running tests"},
-        { NULL }
+        {"print", OPT_PRINT, '-', "Output test tables instead of running tests"},
+        {NULL}
     };
     return test_options;
 }
@@ -474,13 +442,13 @@ int setup_tests(void)
         case OPT_TEST_CASES:
             break;
         default:
-           return 0;
+            return 0;
         }
     }
 
     ADD_ALL_TESTS(test_bf_ecb_raw, 2);
     ADD_ALL_TESTS(test_bf_ecb, NUM_TESTS);
-    ADD_ALL_TESTS(test_bf_set_key, KEY_TEST_NUM-1);
+    ADD_ALL_TESTS(test_bf_set_key, KEY_TEST_NUM - 1);
     ADD_TEST(test_bf_cbc);
     ADD_TEST(test_bf_cfb64);
     ADD_TEST(test_bf_ofb64);

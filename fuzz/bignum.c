@@ -18,7 +18,6 @@
 #include <openssl/err.h>
 #include "fuzzer.h"
 
-
 int FuzzerInitialize(int *argc, char ***argv)
 {
     OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
@@ -29,9 +28,9 @@ int FuzzerInitialize(int *argc, char ***argv)
 
 int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 {
-    int success = 0;
-    size_t l1 = 0, l2 = 0, l3 = 0;
-    int s1 = 0, s3 = 0;
+    int     success = 0;
+    size_t  l1 = 0, l2 = 0, l3 = 0;
+    int     s1 = 0, s3 = 0;
     BN_CTX *ctx;
     BIGNUM *b1;
     BIGNUM *b2;
@@ -39,11 +38,11 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     BIGNUM *b4;
     BIGNUM *b5;
 
-    b1 = BN_new();
-    b2 = BN_new();
-    b3 = BN_new();
-    b4 = BN_new();
-    b5 = BN_new();
+    b1  = BN_new();
+    b2  = BN_new();
+    b3  = BN_new();
+    b4  = BN_new();
+    b5  = BN_new();
     ctx = BN_CTX_new();
 
     /* Divide the input into three parts, using the values of the first two
@@ -53,7 +52,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     if (len > 2) {
         len -= 3;
         /* limit l1, l2, and l3 to be no more than 512 bytes */
-        l1 = ((buf[0] * len) / 255) % 512;
+        l1   = ((buf[0] * len) / 255) % 512;
         ++buf;
         l2 = ((buf[0] * (len - l1)) / 255) % 512;
         ++buf;
@@ -92,7 +91,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         putchar('\n');
     }
 
- done:
+done:
     OPENSSL_assert(success);
     BN_free(b1);
     BN_free(b2);

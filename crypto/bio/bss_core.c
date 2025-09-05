@@ -13,13 +13,13 @@
 #include "crypto/context.h"
 
 typedef struct {
-    OSSL_FUNC_BIO_read_ex_fn *c_bio_read_ex;
+    OSSL_FUNC_BIO_read_ex_fn  *c_bio_read_ex;
     OSSL_FUNC_BIO_write_ex_fn *c_bio_write_ex;
-    OSSL_FUNC_BIO_gets_fn *c_bio_gets;
-    OSSL_FUNC_BIO_puts_fn *c_bio_puts;
-    OSSL_FUNC_BIO_ctrl_fn *c_bio_ctrl;
-    OSSL_FUNC_BIO_up_ref_fn *c_bio_up_ref;
-    OSSL_FUNC_BIO_free_fn *c_bio_free;
+    OSSL_FUNC_BIO_gets_fn     *c_bio_gets;
+    OSSL_FUNC_BIO_puts_fn     *c_bio_puts;
+    OSSL_FUNC_BIO_ctrl_fn     *c_bio_ctrl;
+    OSSL_FUNC_BIO_up_ref_fn   *c_bio_up_ref;
+    OSSL_FUNC_BIO_free_fn     *c_bio_free;
 } BIO_CORE_GLOBALS;
 
 void ossl_bio_core_globals_free(void *vbcg)
@@ -37,8 +37,7 @@ static ossl_inline BIO_CORE_GLOBALS *get_globals(OSSL_LIB_CTX *libctx)
     return ossl_lib_ctx_get_data(libctx, OSSL_LIB_CTX_BIO_CORE_INDEX);
 }
 
-static int bio_core_read_ex(BIO *bio, char *data, size_t data_len,
-                            size_t *bytes_read)
+static int bio_core_read_ex(BIO *bio, char *data, size_t data_len, size_t *bytes_read)
 {
     BIO_CORE_GLOBALS *bcgbl = get_globals(bio->libctx);
 
@@ -47,8 +46,7 @@ static int bio_core_read_ex(BIO *bio, char *data, size_t data_len,
     return bcgbl->c_bio_read_ex(BIO_get_data(bio), data, data_len, bytes_read);
 }
 
-static int bio_core_write_ex(BIO *bio, const char *data, size_t data_len,
-                             size_t *written)
+static int bio_core_write_ex(BIO *bio, const char *data, size_t data_len, size_t *written)
 {
     BIO_CORE_GLOBALS *bcgbl = get_globals(bio->libctx);
 
@@ -126,7 +124,7 @@ const BIO_METHOD *BIO_s_core(void)
 
 BIO *BIO_new_from_core_bio(OSSL_LIB_CTX *libctx, OSSL_CORE_BIO *corebio)
 {
-    BIO *outbio;
+    BIO              *outbio;
     BIO_CORE_GLOBALS *bcgbl = get_globals(libctx);
 
     /* Check the library context has been initialised with the callbacks */
@@ -149,7 +147,7 @@ int ossl_bio_init_core(OSSL_LIB_CTX *libctx, const OSSL_DISPATCH *fns)
     BIO_CORE_GLOBALS *bcgbl = get_globals(libctx);
 
     if (bcgbl == NULL)
-	    return 0;
+        return 0;
 
     for (; fns->function_id != 0; fns++) {
         switch (fns->function_id) {

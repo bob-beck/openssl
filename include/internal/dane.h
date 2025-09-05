@@ -9,9 +9,9 @@
 
 #ifndef OSSL_INTERNAL_DANE_H
 #define OSSL_INTERNAL_DANE_H
-# pragma once
+#pragma once
 
-# include <openssl/safestack.h>
+#include <openssl/safestack.h>
 
 /*-
  * Certificate usages:
@@ -41,12 +41,12 @@
 #define DANETLS_MATCHING_LAST   DANETLS_MATCHING_2512
 
 typedef struct danetls_record_st {
-    uint8_t usage;
-    uint8_t selector;
-    uint8_t mtype;
+    uint8_t        usage;
+    uint8_t        selector;
+    uint8_t        mtype;
     unsigned char *data;
-    size_t dlen;
-    EVP_PKEY *spki;
+    size_t         dlen;
+    EVP_PKEY      *spki;
 } danetls_record;
 
 DEFINE_STACK_OF(danetls_record)
@@ -55,25 +55,25 @@ DEFINE_STACK_OF(danetls_record)
  * Shared DANE context
  */
 struct dane_ctx_st {
-    const EVP_MD  **mdevp;      /* mtype -> digest */
-    uint8_t        *mdord;      /* mtype -> preference */
-    uint8_t         mdmax;      /* highest supported mtype */
-    unsigned long   flags;      /* feature bitmask */
+    const EVP_MD **mdevp; /* mtype -> digest */
+    uint8_t       *mdord; /* mtype -> preference */
+    uint8_t        mdmax; /* highest supported mtype */
+    unsigned long  flags; /* feature bitmask */
 };
 
 /*
  * Per connection DANE state
  */
 struct ssl_dane_st {
-    struct dane_ctx_st *dctx;
+    struct dane_ctx_st       *dctx;
     STACK_OF(danetls_record) *trecs;
-    STACK_OF(X509) *certs;      /* DANE-TA(2) Cert(0) Full(0) certs */
-    danetls_record *mtlsa;      /* Matching TLSA record */
-    X509           *mcert;      /* DANE matched cert */
-    uint32_t        umask;      /* Usages present */
-    int             mdpth;      /* Depth of matched cert */
-    int             pdpth;      /* Depth of PKIX trust */
-    unsigned long   flags;      /* feature bitmask */
+    STACK_OF(X509)           *certs; /* DANE-TA(2) Cert(0) Full(0) certs */
+    danetls_record           *mtlsa; /* Matching TLSA record */
+    X509                     *mcert; /* DANE matched cert */
+    uint32_t                  umask; /* Usages present */
+    int                       mdpth; /* Depth of matched cert */
+    int                       pdpth; /* Depth of PKIX trust */
+    unsigned long             flags; /* feature bitmask */
 };
 
 #define DANETLS_ENABLED(dane)  \

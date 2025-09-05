@@ -80,10 +80,8 @@ __owur static int ct_x509_cert_fixup(X509 *cert, X509 *presigner)
     if (presigner == NULL)
         return 1;
 
-    preidx = ct_x509_get_ext(presigner, NID_authority_key_identifier,
-                             &pre_akid_ext_is_dup);
-    certidx = ct_x509_get_ext(cert, NID_authority_key_identifier,
-                              &cert_akid_ext_is_dup);
+    preidx  = ct_x509_get_ext(presigner, NID_authority_key_identifier, &pre_akid_ext_is_dup);
+    certidx = ct_x509_get_ext(cert, NID_authority_key_identifier, &cert_akid_ext_is_dup);
 
     /* An error occurred whilst searching for the extension */
     if (preidx < -1 || certidx < -1)
@@ -101,16 +99,15 @@ __owur static int ct_x509_cert_fixup(X509 *cert, X509 *presigner)
         return 0;
     if (preidx != -1) {
         /* Retrieve and copy AKID encoding */
-        X509_EXTENSION *preext = X509_get_ext(presigner, preidx);
-        X509_EXTENSION *certext = X509_get_ext(cert, certidx);
+        X509_EXTENSION    *preext  = X509_get_ext(presigner, preidx);
+        X509_EXTENSION    *certext = X509_get_ext(cert, certidx);
         ASN1_OCTET_STRING *preextdata;
 
         /* Should never happen */
         if (preext == NULL || certext == NULL)
             return 0;
         preextdata = X509_EXTENSION_get_data(preext);
-        if (preextdata == NULL ||
-            !X509_EXTENSION_set_data(certext, preextdata))
+        if (preextdata == NULL || !X509_EXTENSION_set_data(certext, preextdata))
             return 0;
     }
     return 1;
@@ -119,11 +116,11 @@ __owur static int ct_x509_cert_fixup(X509 *cert, X509 *presigner)
 int SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
 {
     unsigned char *certder = NULL, *preder = NULL;
-    X509 *pretmp = NULL;
-    int certderlen = 0, prederlen = 0;
-    int idx = -1;
-    int poison_ext_is_dup, sct_ext_is_dup;
-    int poison_idx = ct_x509_get_ext(cert, NID_ct_precert_poison, &poison_ext_is_dup);
+    X509          *pretmp     = NULL;
+    int            certderlen = 0, prederlen = 0;
+    int            idx = -1;
+    int            poison_ext_is_dup, sct_ext_is_dup;
+    int            poison_idx = ct_x509_get_ext(cert, NID_ct_precert_poison, &poison_ext_is_dup);
 
     /* Duplicate poison extensions are present - error */
     if (poison_ext_is_dup)
@@ -183,11 +180,11 @@ int SCT_CTX_set1_cert(SCT_CTX *sctx, X509 *cert, X509 *presigner)
     X509_free(pretmp);
 
     OPENSSL_free(sctx->certder);
-    sctx->certder = certder;
+    sctx->certder    = certder;
     sctx->certderlen = certderlen;
 
     OPENSSL_free(sctx->preder);
-    sctx->preder = preder;
+    sctx->preder    = preder;
     sctx->prederlen = prederlen;
 
     return 1;
@@ -198,14 +195,13 @@ err:
     return 0;
 }
 
-__owur static int ct_public_key_hash(SCT_CTX *sctx, X509_PUBKEY *pkey,
-                                     unsigned char **hash, size_t *hash_len)
+__owur static int ct_public_key_hash(SCT_CTX *sctx, X509_PUBKEY *pkey, unsigned char **hash, size_t *hash_len)
 {
-    int ret = 0;
+    int            ret = 0;
     unsigned char *md = NULL, *der = NULL;
-    int der_len;
-    unsigned int md_len;
-    EVP_MD *sha256 = EVP_MD_fetch(sctx->libctx, "SHA2-256", sctx->propq);
+    int            der_len;
+    unsigned int   md_len;
+    EVP_MD        *sha256 = EVP_MD_fetch(sctx->libctx, "SHA2-256", sctx->propq);
 
     if (sha256 == NULL)
         goto err;
@@ -229,13 +225,13 @@ __owur static int ct_public_key_hash(SCT_CTX *sctx, X509_PUBKEY *pkey,
 
     if (md != *hash) {
         OPENSSL_free(*hash);
-        *hash = md;
+        *hash     = md;
         *hash_len = SHA256_DIGEST_LENGTH;
     }
 
-    md = NULL;
+    md  = NULL;
     ret = 1;
- err:
+err:
     EVP_MD_free(sha256);
     OPENSSL_free(md);
     OPENSSL_free(der);

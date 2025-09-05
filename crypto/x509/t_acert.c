@@ -17,10 +17,10 @@
 static int print_attribute(BIO *bp, X509_ATTRIBUTE *a)
 {
     ASN1_OBJECT *aobj;
-    int i, j, count;
-    int ret = 0;
+    int          i, j, count;
+    int          ret = 0;
 
-    aobj = X509_ATTRIBUTE_get0_object(a);
+    aobj             = X509_ATTRIBUTE_get0_object(a);
     if (BIO_printf(bp, "%12s", "") <= 0)
         goto err;
 
@@ -40,11 +40,11 @@ static int print_attribute(BIO *bp, X509_ATTRIBUTE *a)
         goto err;
 
     for (i = 0; i < count; i++) {
-        ASN1_TYPE *at;
-        int type;
+        ASN1_TYPE       *at;
+        int              type;
         ASN1_BIT_STRING *bs;
 
-        at = X509_ATTRIBUTE_get0_type(a, i);
+        at   = X509_ATTRIBUTE_get0_type(a, i);
         type = at->type;
 
         switch (type) {
@@ -62,12 +62,10 @@ static int print_attribute(BIO *bp, X509_ATTRIBUTE *a)
         case V_ASN1_SEQUENCE:
             if (BIO_puts(bp, "\n") <= 0)
                 goto err;
-            ASN1_parse_dump(bp, at->value.sequence->data,
-                            at->value.sequence->length, i, 1);
+            ASN1_parse_dump(bp, at->value.sequence->data, at->value.sequence->length, i, 1);
             break;
         default:
-            if (BIO_printf(bp, "unable to print attribute of type 0x%X\n",
-                           type) < 0)
+            if (BIO_printf(bp, "unable to print attribute of type 0x%X\n", type) < 0)
                 goto err;
             break;
         }
@@ -77,10 +75,9 @@ err:
     return ret;
 }
 
-int X509_ACERT_print_ex(BIO *bp, X509_ACERT *x, unsigned long nmflags,
-                        unsigned long cflag)
+int X509_ACERT_print_ex(BIO *bp, X509_ACERT *x, unsigned long nmflags, unsigned long cflag)
 {
-    int i;
+    int  i;
     char mlch = ' ';
 
     if ((nmflags & XN_FLAG_SEP_MASK) == XN_FLAG_SEP_MULTILINE) {
@@ -99,8 +96,7 @@ int X509_ACERT_print_ex(BIO *bp, X509_ACERT *x, unsigned long nmflags,
 
         l = X509_ACERT_get_version(x);
         if (l == X509_ACERT_VERSION_2) {
-            if (BIO_printf(bp, "%8sVersion: %ld (0x%lx)\n", "", l + 1,
-                           (unsigned long)l) <= 0)
+            if (BIO_printf(bp, "%8sVersion: %ld (0x%lx)\n", "", l + 1, (unsigned long)l) <= 0)
                 goto err;
         } else {
             if (BIO_printf(bp, "%8sVersion: Unknown (%ld)\n", "", l) <= 0)
@@ -124,9 +120,9 @@ int X509_ACERT_print_ex(BIO *bp, X509_ACERT *x, unsigned long nmflags,
     }
 
     if ((cflag & X509_FLAG_NO_SUBJECT) == 0) {
-        const GENERAL_NAMES *holderEntities;
+        const GENERAL_NAMES      *holderEntities;
         const OSSL_ISSUER_SERIAL *holder_bcid;
-        const X509_NAME *holderIssuer = NULL;
+        const X509_NAME          *holderIssuer = NULL;
 
         if (BIO_printf(bp, "%8sHolder:\n", "") <= 0)
             goto err;
@@ -151,7 +147,7 @@ int X509_ACERT_print_ex(BIO *bp, X509_ACERT *x, unsigned long nmflags,
             holderIssuer = OSSL_ISSUER_SERIAL_get0_issuer(holder_bcid);
 
         if (holderIssuer != NULL) {
-            const ASN1_INTEGER *holder_serial;
+            const ASN1_INTEGER    *holder_serial;
             const ASN1_BIT_STRING *iuid;
 
             if (BIO_printf(bp, "%12sIssuer:%c", "", mlch) <= 0)
@@ -238,9 +234,9 @@ int X509_ACERT_print_ex(BIO *bp, X509_ACERT *x, unsigned long nmflags,
             if (BIO_printf(bp, "%8sExtensions:\n", "") <= 0)
                 goto err;
             for (i = 0; i < sk_X509_EXTENSION_num(exts); i++) {
-                ASN1_OBJECT *obj;
+                ASN1_OBJECT    *obj;
                 X509_EXTENSION *ex;
-                int critical;
+                int             critical;
 
                 ex = sk_X509_EXTENSION_value(exts, i);
                 if (BIO_printf(bp, "%12s", "") <= 0)
@@ -264,7 +260,7 @@ int X509_ACERT_print_ex(BIO *bp, X509_ACERT *x, unsigned long nmflags,
     }
 
     if ((cflag & X509_FLAG_NO_SIGDUMP) == 0) {
-        const X509_ALGOR *sig_alg;
+        const X509_ALGOR      *sig_alg;
         const ASN1_BIT_STRING *sig;
 
         X509_ACERT_get0_signature(x, &sig, &sig_alg);

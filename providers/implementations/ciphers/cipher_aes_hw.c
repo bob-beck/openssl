@@ -16,21 +16,19 @@
 #include <openssl/proverr.h>
 #include "cipher_aes.h"
 
-static int cipher_hw_aes_initkey(PROV_CIPHER_CTX *dat,
-                                 const unsigned char *key, size_t keylen)
+static int cipher_hw_aes_initkey(PROV_CIPHER_CTX *dat, const unsigned char *key, size_t keylen)
 {
-    int ret;
+    int           ret;
     PROV_AES_CTX *adat = (PROV_AES_CTX *)dat;
-    AES_KEY *ks = &adat->ks.ks;
+    AES_KEY      *ks   = &adat->ks.ks;
 
-    dat->ks = ks;
+    dat->ks            = ks;
 
-    if ((dat->mode == EVP_CIPH_ECB_MODE || dat->mode == EVP_CIPH_CBC_MODE)
-        && !dat->enc) {
+    if ((dat->mode == EVP_CIPH_ECB_MODE || dat->mode == EVP_CIPH_CBC_MODE) && !dat->enc) {
 #ifdef HWAES_CAPABLE
         if (HWAES_CAPABLE) {
-            ret = HWAES_set_decrypt_key(key, keylen * 8, ks);
-            dat->block = (block128_f)HWAES_decrypt;
+            ret             = HWAES_set_decrypt_key(key, keylen * 8, ks);
+            dat->block      = (block128_f)HWAES_decrypt;
             dat->stream.cbc = NULL;
 # ifdef HWAES_cbc_encrypt
             if (dat->mode == EVP_CIPH_CBC_MODE)
@@ -43,31 +41,29 @@ static int cipher_hw_aes_initkey(PROV_CIPHER_CTX *dat,
         } else
 #endif
 #ifdef BSAES_CAPABLE
-        if (BSAES_CAPABLE && dat->mode == EVP_CIPH_CBC_MODE) {
-            ret = AES_set_decrypt_key(key, (int)(keylen * 8), ks);
-            dat->block = (block128_f)AES_decrypt;
+            if (BSAES_CAPABLE && dat->mode == EVP_CIPH_CBC_MODE) {
+            ret             = AES_set_decrypt_key(key, (int)(keylen * 8), ks);
+            dat->block      = (block128_f)AES_decrypt;
             dat->stream.cbc = (cbc128_f)ossl_bsaes_cbc_encrypt;
         } else
 #endif
 #ifdef VPAES_CAPABLE
-        if (VPAES_CAPABLE) {
-            ret = vpaes_set_decrypt_key(key, (int)(keylen * 8), ks);
-            dat->block = (block128_f)vpaes_decrypt;
-            dat->stream.cbc = (dat->mode == EVP_CIPH_CBC_MODE)
-                              ?(cbc128_f)vpaes_cbc_encrypt : NULL;
+            if (VPAES_CAPABLE) {
+            ret             = vpaes_set_decrypt_key(key, (int)(keylen * 8), ks);
+            dat->block      = (block128_f)vpaes_decrypt;
+            dat->stream.cbc = (dat->mode == EVP_CIPH_CBC_MODE) ? (cbc128_f)vpaes_cbc_encrypt : NULL;
         } else
 #endif
         {
-            ret = AES_set_decrypt_key(key, (int)(keylen * 8), ks);
-            dat->block = (block128_f)AES_decrypt;
-            dat->stream.cbc = (dat->mode == EVP_CIPH_CBC_MODE)
-                              ? (cbc128_f)AES_cbc_encrypt : NULL;
+            ret             = AES_set_decrypt_key(key, (int)(keylen * 8), ks);
+            dat->block      = (block128_f)AES_decrypt;
+            dat->stream.cbc = (dat->mode == EVP_CIPH_CBC_MODE) ? (cbc128_f)AES_cbc_encrypt : NULL;
         }
     } else
 #ifdef HWAES_CAPABLE
-    if (HWAES_CAPABLE) {
-        ret = HWAES_set_encrypt_key(key, keylen * 8, ks);
-        dat->block = (block128_f)HWAES_encrypt;
+        if (HWAES_CAPABLE) {
+        ret             = HWAES_set_encrypt_key(key, keylen * 8, ks);
+        dat->block      = (block128_f)HWAES_encrypt;
         dat->stream.cbc = NULL;
 # ifdef HWAES_cbc_encrypt
         if (dat->mode == EVP_CIPH_CBC_MODE)
@@ -75,38 +71,36 @@ static int cipher_hw_aes_initkey(PROV_CIPHER_CTX *dat,
         else
 # endif
 # ifdef HWAES_ecb_encrypt
-        if (dat->mode == EVP_CIPH_ECB_MODE)
+            if (dat->mode == EVP_CIPH_ECB_MODE)
             dat->stream.ecb = (ecb128_f)HWAES_ecb_encrypt;
         else
 # endif
 # ifdef HWAES_ctr32_encrypt_blocks
-        if (dat->mode == EVP_CIPH_CTR_MODE)
+            if (dat->mode == EVP_CIPH_CTR_MODE)
             dat->stream.ctr = (ctr128_f)HWAES_ctr32_encrypt_blocks;
         else
 # endif
-            (void)0;            /* terminate potentially open 'else' */
+            (void)0; /* terminate potentially open 'else' */
     } else
 #endif
 #ifdef BSAES_CAPABLE
-    if (BSAES_CAPABLE && dat->mode == EVP_CIPH_CTR_MODE) {
-        ret = AES_set_encrypt_key(key, (int)(keylen * 8), ks);
-        dat->block = (block128_f)AES_encrypt;
+        if (BSAES_CAPABLE && dat->mode == EVP_CIPH_CTR_MODE) {
+        ret             = AES_set_encrypt_key(key, (int)(keylen * 8), ks);
+        dat->block      = (block128_f)AES_encrypt;
         dat->stream.ctr = (ctr128_f)ossl_bsaes_ctr32_encrypt_blocks;
     } else
 #endif
 #ifdef VPAES_CAPABLE
-    if (VPAES_CAPABLE) {
-        ret = vpaes_set_encrypt_key(key, (int)(keylen * 8), ks);
-        dat->block = (block128_f)vpaes_encrypt;
-        dat->stream.cbc = (dat->mode == EVP_CIPH_CBC_MODE)
-                          ? (cbc128_f)vpaes_cbc_encrypt : NULL;
+        if (VPAES_CAPABLE) {
+        ret             = vpaes_set_encrypt_key(key, (int)(keylen * 8), ks);
+        dat->block      = (block128_f)vpaes_encrypt;
+        dat->stream.cbc = (dat->mode == EVP_CIPH_CBC_MODE) ? (cbc128_f)vpaes_cbc_encrypt : NULL;
     } else
 #endif
     {
-        ret = AES_set_encrypt_key(key, (int)(keylen * 8), ks);
-        dat->block = (block128_f)AES_encrypt;
-        dat->stream.cbc = (dat->mode == EVP_CIPH_CBC_MODE)
-                          ? (cbc128_f)AES_cbc_encrypt : NULL;
+        ret             = AES_set_encrypt_key(key, (int)(keylen * 8), ks);
+        dat->block      = (block128_f)AES_encrypt;
+        dat->stream.cbc = (dat->mode == EVP_CIPH_CBC_MODE) ? (cbc128_f)AES_cbc_encrypt : NULL;
 #ifdef AES_CTR_ASM
         if (dat->mode == EVP_CIPH_CTR_MODE)
             dat->stream.ctr = (ctr128_f)AES_ctr32_encrypt;
@@ -154,7 +148,4 @@ const PROV_CIPHER_HW *ossl_prov_cipher_hw_aes_##mode(size_t keybits)           \
 # define PROV_CIPHER_HW_select(mode)
 #endif
 
-PROV_CIPHER_HW_aes_mode(cbc)
-PROV_CIPHER_HW_aes_mode(ecb)
-PROV_CIPHER_HW_aes_mode(ofb128)
-PROV_CIPHER_HW_aes_mode(ctr)
+PROV_CIPHER_HW_aes_mode(cbc) PROV_CIPHER_HW_aes_mode(ecb) PROV_CIPHER_HW_aes_mode(ofb128) PROV_CIPHER_HW_aes_mode(ctr)

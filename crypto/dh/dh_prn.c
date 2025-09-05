@@ -22,7 +22,7 @@
 int DHparams_print_fp(FILE *fp, const DH *x)
 {
     BIO *b;
-    int ret;
+    int  ret;
 
     if ((b = BIO_new(BIO_s_file())) == NULL) {
         ERR_raise(ERR_LIB_DH, ERR_R_BUF_LIB);

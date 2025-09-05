@@ -23,22 +23,22 @@
 
 int main(int argc, char *argv[])
 {
-    char *port = "*:4433";
-    BIO *in = NULL;
-    BIO *ssl_bio = NULL;
-    BIO *tmp;
-    SSL_CTX *ctx;
-    SSL_CONF_CTX *cctx = NULL;
-    CONF *conf = NULL;
+    char                 *port    = "*:4433";
+    BIO                  *in      = NULL;
+    BIO                  *ssl_bio = NULL;
+    BIO                  *tmp;
+    SSL_CTX              *ctx;
+    SSL_CONF_CTX         *cctx = NULL;
+    CONF                 *conf = NULL;
     STACK_OF(CONF_VALUE) *sect = NULL;
-    CONF_VALUE *cnf;
-    long errline = -1;
-    char buf[512];
-    int ret = EXIT_FAILURE, i;
+    CONF_VALUE           *cnf;
+    long                  errline = -1;
+    char                  buf[512];
+    int                   ret = EXIT_FAILURE, i;
 
-    ctx = SSL_CTX_new(TLS_server_method());
+    ctx                       = SSL_CTX_new(TLS_server_method());
 
-    conf = NCONF_new(NULL);
+    conf                      = NCONF_new(NULL);
 
     if (NCONF_load(conf, "accept.cnf", &errline) <= 0) {
         if (errline <= 0)
@@ -63,12 +63,11 @@ int main(int argc, char *argv[])
     for (i = 0; i < sk_CONF_VALUE_num(sect); i++) {
         int rv;
         cnf = sk_CONF_VALUE_value(sect, i);
-        rv = SSL_CONF_cmd(cctx, cnf->name, cnf->value);
+        rv  = SSL_CONF_cmd(cctx, cnf->name, cnf->value);
         if (rv > 0)
             continue;
         if (rv != -2) {
-            fprintf(stderr, "Error processing %s = %s\n",
-                    cnf->name, cnf->value);
+            fprintf(stderr, "Error processing %s = %s\n", cnf->name, cnf->value);
             ERR_print_errors_fp(stderr);
             goto err;
         }
@@ -100,7 +99,7 @@ int main(int argc, char *argv[])
     BIO_set_accept_bios(in, ssl_bio);
     ssl_bio = NULL;
 
- again:
+again:
     /*
      * The first call will setup the accept socket, and the second will get a
      * socket.  In this loop, the first actual accept will occur in the
@@ -133,7 +132,7 @@ int main(int argc, char *argv[])
     }
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS)
         ERR_print_errors_fp(stderr);
     BIO_free(in);

@@ -49,38 +49,36 @@ static int leap_year(const int year)
  */
 static void determine_days(struct tm *tm)
 {
-    static const int ydays[12] = {
-        0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334
-    };
-    int y = tm->tm_year + 1900;
-    int m = tm->tm_mon;
-    int d = tm->tm_mday;
-    int c;
+    static const int ydays[12] = {0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+    int              y         = tm->tm_year + 1900;
+    int              m         = tm->tm_mon;
+    int              d         = tm->tm_mday;
+    int              c;
 
     tm->tm_yday = ydays[m] + d - 1;
     if (m >= 2) {
         /* March and onwards can be one day further into the year */
         tm->tm_yday += leap_year(y);
-        m += 2;
+        m           += 2;
     } else {
         /* Treat January and February as part of the previous year */
         m += 14;
         y--;
     }
-    c = y / 100;
-    y %= 100;
+    c            = y / 100;
+    y           %= 100;
     /* Zeller's congruence */
-    tm->tm_wday = (d + (13 * m) / 5 + y + y / 4 + c / 4 + 5 * c + 6) % 7;
+    tm->tm_wday  = (d + (13 * m) / 5 + y + y / 4 + c / 4 + 5 * c + 6) % 7;
 }
 
 int ossl_asn1_time_to_tm(struct tm *tm, const ASN1_TIME *d)
 {
-    static const int min[9] = { 0, 0, 1, 1, 0, 0, 0, 0, 0 };
-    static const int max[9] = { 99, 99, 12, 31, 23, 59, 59, 12, 59 };
-    static const int mdays[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-    char *a;
-    int n, i, i2, l, o, min_l, strict = 0, end = 6, btz = 5, md;
-    struct tm tmp;
+    static const int min[9]    = {0, 0, 1, 1, 0, 0, 0, 0, 0};
+    static const int max[9]    = {99, 99, 12, 31, 23, 59, 59, 12, 59};
+    static const int mdays[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    char            *a;
+    int              n, i, i2, l, o, min_l, strict = 0, end = 6, btz = 5, md;
+    struct tm        tmp;
 #if defined(CHARSET_EBCDIC)
     const char upper_z = 0x5A, num_zero = 0x30, period = 0x2E, minus = 0x2D, plus = 0x2B;
 #else
@@ -100,8 +98,8 @@ int ossl_asn1_time_to_tm(struct tm *tm, const ASN1_TIME *d)
             strict = 1;
         }
     } else if (d->type == V_ASN1_GENERALIZEDTIME) {
-        end = 7;
-        btz = 6;
+        end   = 7;
+        btz   = 6;
         min_l = 15;
         if (d->flags & ASN1_STRING_FLAG_X509_TIME) {
             strict = 1;
@@ -215,7 +213,7 @@ int ossl_asn1_time_to_tm(struct tm *tm, const ASN1_TIME *d)
         o++;
     } else if (!strict && ((a[o] == plus) || (a[o] == minus))) {
         int offsign = a[o] == minus ? 1 : -1;
-        int offset = 0;
+        int offset  = 0;
 
         o++;
         /*
@@ -233,7 +231,7 @@ int ossl_asn1_time_to_tm(struct tm *tm, const ASN1_TIME *d)
             o++;
             if (!ossl_ascii_isdigit(a[o]))
                 goto err;
-            n = (n * 10) + a[o] - num_zero;
+            n  = (n * 10) + a[o] - num_zero;
             i2 = (d->type == V_ASN1_UTCTIME) ? i + 1 : i;
             if ((n < min[i2]) || (n > max[i2]))
                 goto err;
@@ -258,15 +256,15 @@ int ossl_asn1_time_to_tm(struct tm *tm, const ASN1_TIME *d)
             *tm = tmp;
         return 1;
     }
- err:
+err:
     return 0;
 }
 
 ASN1_TIME *ossl_asn1_time_from_tm(ASN1_TIME *s, struct tm *ts, int type)
 {
-    char* p;
+    char      *p;
     ASN1_TIME *tmps = NULL;
-    const int len = 20;
+    const int  len  = 20;
 
     if (type == V_ASN1_UNDEF) {
         if (is_utc(ts->tm_year))
@@ -291,7 +289,7 @@ ASN1_TIME *ossl_asn1_time_from_tm(ASN1_TIME *s, struct tm *ts, int type)
         goto err;
 
     tmps->type = type;
-    p = (char*)tmps->data;
+    p          = (char *)tmps->data;
 
     if (ts->tm_mon > INT_MAX - 1)
         goto err;
@@ -299,14 +297,24 @@ ASN1_TIME *ossl_asn1_time_from_tm(ASN1_TIME *s, struct tm *ts, int type)
     if (type == V_ASN1_GENERALIZEDTIME) {
         if (ts->tm_year > INT_MAX - 1900)
             goto err;
-        tmps->length = BIO_snprintf(p, len, "%04d%02d%02d%02d%02d%02dZ",
-                                    ts->tm_year + 1900, ts->tm_mon + 1,
-                                    ts->tm_mday, ts->tm_hour, ts->tm_min,
+        tmps->length = BIO_snprintf(p,
+                                    len,
+                                    "%04d%02d%02d%02d%02d%02dZ",
+                                    ts->tm_year + 1900,
+                                    ts->tm_mon + 1,
+                                    ts->tm_mday,
+                                    ts->tm_hour,
+                                    ts->tm_min,
                                     ts->tm_sec);
     } else {
-        tmps->length = BIO_snprintf(p, len, "%02d%02d%02d%02d%02d%02dZ",
-                                    ts->tm_year % 100, ts->tm_mon + 1,
-                                    ts->tm_mday, ts->tm_hour, ts->tm_min,
+        tmps->length = BIO_snprintf(p,
+                                    len,
+                                    "%02d%02d%02d%02d%02d%02dZ",
+                                    ts->tm_year % 100,
+                                    ts->tm_mon + 1,
+                                    ts->tm_mday,
+                                    ts->tm_hour,
+                                    ts->tm_min,
                                     ts->tm_sec);
     }
 
@@ -314,7 +322,7 @@ ASN1_TIME *ossl_asn1_time_from_tm(ASN1_TIME *s, struct tm *ts, int type)
     ebcdic2ascii(tmps->data, tmps->data, tmps->length);
 #endif
     return tmps;
- err:
+err:
     if (tmps != s)
         ASN1_STRING_free(tmps);
     return NULL;
@@ -325,11 +333,10 @@ ASN1_TIME *ASN1_TIME_set(ASN1_TIME *s, time_t t)
     return ASN1_TIME_adj(s, t, 0, 0);
 }
 
-ASN1_TIME *ASN1_TIME_adj(ASN1_TIME *s, time_t t,
-                         int offset_day, long offset_sec)
+ASN1_TIME *ASN1_TIME_adj(ASN1_TIME *s, time_t t, int offset_day, long offset_sec)
 {
     struct tm *ts;
-    struct tm data;
+    struct tm  data;
 
     ts = OPENSSL_gmtime(&t, &data);
     if (ts == NULL) {
@@ -353,11 +360,10 @@ int ASN1_TIME_check(const ASN1_TIME *t)
 }
 
 /* Convert an ASN1_TIME structure to GeneralizedTime */
-ASN1_GENERALIZEDTIME *ASN1_TIME_to_generalizedtime(const ASN1_TIME *t,
-                                                   ASN1_GENERALIZEDTIME **out)
+ASN1_GENERALIZEDTIME *ASN1_TIME_to_generalizedtime(const ASN1_TIME *t, ASN1_GENERALIZEDTIME **out)
 {
     ASN1_GENERALIZEDTIME *ret = NULL;
-    struct tm tm;
+    struct tm             tm;
 
     if (!ASN1_TIME_to_tm(t, &tm))
         return NULL;
@@ -385,16 +391,16 @@ int ASN1_TIME_set_string_X509(ASN1_TIME *s, const char *str)
 {
     ASN1_TIME t;
     struct tm tm;
-    int rv = 0;
-    size_t len;
+    int       rv = 0;
+    size_t    len;
 
     if ((len = strlen(str)) >= INT_MAX)
         goto out;
     t.length = (int)len;
-    t.data = (unsigned char *)str;
-    t.flags = ASN1_STRING_FLAG_X509_TIME;
+    t.data   = (unsigned char *)str;
+    t.flags  = ASN1_STRING_FLAG_X509_TIME;
 
-    t.type = V_ASN1_UTCTIME;
+    t.type   = V_ASN1_UTCTIME;
 
     if (!ASN1_TIME_check(&t)) {
         t.type = V_ASN1_GENERALIZEDTIME;
@@ -426,7 +432,7 @@ int ASN1_TIME_set_string_X509(ASN1_TIME *s, const char *str)
              * to a piece of memory allocated outside of this function.
              * new t.data would be freed after ASN1_STRING_copy is done.
              */
-            t.data = OPENSSL_zalloc(t.length + 1);
+            t.data    = OPENSSL_zalloc(t.length + 1);
             if (t.data == NULL)
                 goto out;
             memcpy(t.data, str + 2, t.length);
@@ -458,8 +464,7 @@ int ASN1_TIME_to_tm(const ASN1_TIME *s, struct tm *tm)
     return ossl_asn1_time_to_tm(tm, s);
 }
 
-int ASN1_TIME_diff(int *pday, int *psec,
-                   const ASN1_TIME *from, const ASN1_TIME *to)
+int ASN1_TIME_diff(int *pday, int *psec, const ASN1_TIME *from, const ASN1_TIME *to)
 {
     struct tm tm_from, tm_to;
 
@@ -470,10 +475,8 @@ int ASN1_TIME_diff(int *pday, int *psec,
     return OPENSSL_gmtime_diff(pday, psec, &tm_from, &tm_to);
 }
 
-static const char _asn1_mon[12][4] = {
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
+static const char _asn1_mon[12][4] =
+    {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 /* prints the time with the default date format (RFC 822) */
 int ASN1_TIME_print(BIO *bp, const ASN1_TIME *tm)
@@ -487,14 +490,13 @@ int ASN1_TIME_print_ex(BIO *bp, const ASN1_TIME *tm, unsigned long flags)
     return ossl_asn1_time_print_ex(bp, tm, flags) > 0;
 }
 
-
 /* prints the time with the date format of ISO 8601 */
 /* returns 0 on BIO write error, else -1 in case of parse failure, else 1 */
 int ossl_asn1_time_print_ex(BIO *bp, const ASN1_TIME *tm, unsigned long flags)
 {
-    char *v;
-    int l;
-    struct tm stm;
+    char      *v;
+    int        l;
+    struct tm  stm;
     const char period = 0x2E;
 
     /* ossl_asn1_time_to_tm will check the time type */
@@ -505,8 +507,8 @@ int ossl_asn1_time_print_ex(BIO *bp, const ASN1_TIME *tm, unsigned long flags)
     v = (char *)tm->data;
 
     if (tm->type == V_ASN1_GENERALIZEDTIME) {
-        char *f = NULL;
-        int f_len = 0;
+        char *f     = NULL;
+        int   f_len = 0;
 
         /*
          * Try to parse fractional seconds. '14' is the place of
@@ -514,7 +516,7 @@ int ossl_asn1_time_print_ex(BIO *bp, const ASN1_TIME *tm, unsigned long flags)
          */
         if (tm->length > 15 && v[14] == period) {
             /* exclude the . itself */
-            f = &v[15];
+            f     = &v[15];
             f_len = 0;
             while (15 + f_len < l && ossl_ascii_isdigit(f[f_len]))
                 ++f_len;
@@ -522,34 +524,59 @@ int ossl_asn1_time_print_ex(BIO *bp, const ASN1_TIME *tm, unsigned long flags)
 
         if (f_len > 0) {
             if ((flags & ASN1_DTFLGS_TYPE_MASK) == ASN1_DTFLGS_ISO8601) {
-                return BIO_printf(bp, "%4d-%02d-%02d %02d:%02d:%02d.%.*sZ",
-                                  stm.tm_year + 1900, stm.tm_mon + 1,
-                                  stm.tm_mday, stm.tm_hour,
-                                  stm.tm_min, stm.tm_sec, f_len, f) > 0;
+                return BIO_printf(bp,
+                                  "%4d-%02d-%02d %02d:%02d:%02d.%.*sZ",
+                                  stm.tm_year + 1900,
+                                  stm.tm_mon + 1,
+                                  stm.tm_mday,
+                                  stm.tm_hour,
+                                  stm.tm_min,
+                                  stm.tm_sec,
+                                  f_len,
+                                  f)
+                       > 0;
             } else {
-                return BIO_printf(bp, "%s %2d %02d:%02d:%02d.%.*s %d GMT",
-                                  _asn1_mon[stm.tm_mon], stm.tm_mday, stm.tm_hour,
-                                  stm.tm_min, stm.tm_sec, f_len, f,
-                                  stm.tm_year + 1900) > 0;
+                return BIO_printf(bp,
+                                  "%s %2d %02d:%02d:%02d.%.*s %d GMT",
+                                  _asn1_mon[stm.tm_mon],
+                                  stm.tm_mday,
+                                  stm.tm_hour,
+                                  stm.tm_min,
+                                  stm.tm_sec,
+                                  f_len,
+                                  f,
+                                  stm.tm_year + 1900)
+                       > 0;
             }
         }
     }
     if ((flags & ASN1_DTFLGS_TYPE_MASK) == ASN1_DTFLGS_ISO8601) {
-        return BIO_printf(bp, "%4d-%02d-%02d %02d:%02d:%02dZ",
-                          stm.tm_year + 1900, stm.tm_mon + 1,
-                          stm.tm_mday, stm.tm_hour,
-                          stm.tm_min, stm.tm_sec) > 0;
+        return BIO_printf(bp,
+                          "%4d-%02d-%02d %02d:%02d:%02dZ",
+                          stm.tm_year + 1900,
+                          stm.tm_mon + 1,
+                          stm.tm_mday,
+                          stm.tm_hour,
+                          stm.tm_min,
+                          stm.tm_sec)
+               > 0;
     } else {
-        return BIO_printf(bp, "%s %2d %02d:%02d:%02d %d GMT",
-                          _asn1_mon[stm.tm_mon], stm.tm_mday, stm.tm_hour,
-                          stm.tm_min, stm.tm_sec, stm.tm_year + 1900) > 0;
+        return BIO_printf(bp,
+                          "%s %2d %02d:%02d:%02d %d GMT",
+                          _asn1_mon[stm.tm_mon],
+                          stm.tm_mday,
+                          stm.tm_hour,
+                          stm.tm_min,
+                          stm.tm_sec,
+                          stm.tm_year + 1900)
+               > 0;
     }
 }
 
 int ASN1_TIME_cmp_time_t(const ASN1_TIME *s, time_t t)
 {
     struct tm stm, ttm;
-    int day, sec;
+    int       day, sec;
 
     if (!ASN1_TIME_to_tm(s, &stm))
         return -2;

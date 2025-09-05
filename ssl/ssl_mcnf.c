@@ -22,15 +22,15 @@ void SSL_add_ssl_module(void)
 
 static int ssl_do_config(SSL *s, SSL_CTX *ctx, const char *name, int system)
 {
-    SSL_CONF_CTX *cctx = NULL;
-    size_t i, idx, cmd_count;
-    int err = 1;
-    unsigned int flags;
-    unsigned int conf_diagnostics = 0;
-    const SSL_METHOD *meth;
+    SSL_CONF_CTX       *cctx = NULL;
+    size_t              i, idx, cmd_count;
+    int                 err = 1;
+    unsigned int        flags;
+    unsigned int        conf_diagnostics = 0;
+    const SSL_METHOD   *meth;
     const SSL_CONF_CMD *cmds;
-    OSSL_LIB_CTX *prev_libctx = NULL;
-    OSSL_LIB_CTX *libctx = NULL;
+    OSSL_LIB_CTX       *prev_libctx = NULL;
+    OSSL_LIB_CTX       *libctx      = NULL;
 
     if (s == NULL && ctx == NULL) {
         ERR_raise(ERR_LIB_SSL, ERR_R_PASSED_NULL_PARAMETER);
@@ -41,8 +41,7 @@ static int ssl_do_config(SSL *s, SSL_CTX *ctx, const char *name, int system)
         name = "system_default";
     if (!conf_ssl_name_find(name, &idx)) {
         if (!system)
-            ERR_raise_data(ERR_LIB_SSL, SSL_R_INVALID_CONFIGURATION_NAME,
-                           "name=%s", name);
+            ERR_raise_data(ERR_LIB_SSL, SSL_R_INVALID_CONFIGURATION_NAME, "name=%s", name);
         goto err;
     }
     cmds = conf_ssl_get(idx, &name, &cmd_count);
@@ -73,10 +72,10 @@ static int ssl_do_config(SSL *s, SSL_CTX *ctx, const char *name, int system)
         flags |= SSL_CONF_FLAG_CLIENT;
     SSL_CONF_CTX_set_flags(cctx, flags);
     prev_libctx = OSSL_LIB_CTX_set0_default(libctx);
-    err = 0;
+    err         = 0;
     for (i = 0; i < cmd_count; i++) {
         char *cmdstr, *arg;
-        int rv;
+        int   rv;
 
         conf_ssl_get_cmd(cmds, i, &cmdstr, &arg);
         rv = SSL_CONF_cmd(cctx, cmdstr, arg);
@@ -85,7 +84,7 @@ static int ssl_do_config(SSL *s, SSL_CTX *ctx, const char *name, int system)
     }
     if (!SSL_CONF_CTX_finish(cctx))
         ++err;
- err:
+err:
     OSSL_LIB_CTX_set0_default(prev_libctx);
     SSL_CONF_CTX_free(cctx);
     return err == 0 || (system && !conf_diagnostics);

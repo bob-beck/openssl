@@ -25,15 +25,15 @@
 char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
 {
     const X509_NAME_ENTRY *ne;
-    int i;
-    int n, lold, l, l1, l2, num, j, type;
-    int prev_set = -1;
-    const char *s;
-    char *p;
-    unsigned char *q;
-    BUF_MEM *b = NULL;
-    int gs_doit[4];
-    char tmp_buf[80];
+    int                    i;
+    int                    n, lold, l, l1, l2, num, j, type;
+    int                    prev_set = -1;
+    const char            *s;
+    char                  *p;
+    unsigned char         *q;
+    BUF_MEM               *b = NULL;
+    int                    gs_doit[4];
+    char                   tmp_buf[80];
 #ifdef CHARSET_EBCDIC
     unsigned char ebcdic_buf[1024];
 #endif
@@ -44,7 +44,7 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
         if (!BUF_MEM_grow(b, 200))
             goto buferr;
         b->data[0] = '\0';
-        len = 200;
+        len        = 200;
     } else if (len == 0) {
         return NULL;
     }
@@ -58,30 +58,27 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
         return buf;
     }
 
-    len--;                      /* space for '\0' */
+    len--; /* space for '\0' */
     l = 0;
     for (i = 0; i < sk_X509_NAME_ENTRY_num(a->entries); i++) {
         ne = sk_X509_NAME_ENTRY_value(a->entries, i);
-        n = OBJ_obj2nid(ne->object);
+        n  = OBJ_obj2nid(ne->object);
         if ((n == NID_undef) || ((s = OBJ_nid2sn(n)) == NULL)) {
             i2t_ASN1_OBJECT(tmp_buf, sizeof(tmp_buf), ne->object);
             s = tmp_buf;
         }
-        l1 = (int)strlen(s);
+        l1   = (int)strlen(s);
 
         type = ne->value->type;
-        num = ne->value->length;
+        num  = ne->value->length;
         if (num > NAME_ONELINE_MAX) {
             ERR_raise(ERR_LIB_X509, X509_R_NAME_TOO_LONG);
             goto end;
         }
         q = ne->value->data;
 #ifdef CHARSET_EBCDIC
-        if (type == V_ASN1_GENERALSTRING ||
-            type == V_ASN1_VISIBLESTRING ||
-            type == V_ASN1_PRINTABLESTRING ||
-            type == V_ASN1_TELETEXSTRING ||
-            type == V_ASN1_IA5STRING) {
+        if (type == V_ASN1_GENERALSTRING || type == V_ASN1_VISIBLESTRING || type == V_ASN1_PRINTABLESTRING
+            || type == V_ASN1_TELETEXSTRING || type == V_ASN1_IA5STRING) {
             if (num > (int)sizeof(ebcdic_buf))
                 num = sizeof(ebcdic_buf);
             ascii2ebcdic(ebcdic_buf, q, num);
@@ -99,7 +96,7 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
                 gs_doit[0] = gs_doit[1] = gs_doit[2] = gs_doit[3] = 1;
             else {
                 gs_doit[0] = gs_doit[1] = gs_doit[2] = 0;
-                gs_doit[3] = 1;
+                gs_doit[3]                           = 1;
             }
         } else
             gs_doit[0] = gs_doit[1] = gs_doit[2] = gs_doit[3] = 1;
@@ -110,13 +107,12 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
             l2++;
             if (q[j] == '/' || q[j] == '+')
                 l2++; /* char needs to be escaped */
-            else if ((ossl_toascii(q[j]) < ossl_toascii(' ')) ||
-                     (ossl_toascii(q[j]) > ossl_toascii('~')))
+            else if ((ossl_toascii(q[j]) < ossl_toascii(' ')) || (ossl_toascii(q[j]) > ossl_toascii('~')))
                 l2 += 3;
         }
 
-        lold = l;
-        l += 1 + l1 + 1 + l2;
+        lold  = l;
+        l    += 1 + l1 + 1 + l2;
         if (l > NAME_ONELINE_MAX) {
             ERR_raise(ERR_LIB_X509, X509_R_NAME_TOO_LONG);
             goto end;
@@ -131,10 +127,10 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
             p = &(buf[lold]);
         *(p++) = prev_set == ne->set ? '+' : '/';
         memcpy(p, s, (unsigned int)l1);
-        p += l1;
-        *(p++) = '=';
+        p      += l1;
+        *(p++)  = '=';
 
-#ifndef CHARSET_EBCDIC          /* q was assigned above already. */
+#ifndef CHARSET_EBCDIC /* q was assigned above already. */
         q = ne->value->data;
 #endif
 
@@ -144,9 +140,9 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
 #ifndef CHARSET_EBCDIC
             n = q[j];
             if ((n < ' ') || (n > '~')) {
-                *(p++) = '\\';
-                *(p++) = 'x';
-                p += ossl_to_hex(p, n);
+                *(p++)  = '\\';
+                *(p++)  = 'x';
+                p      += ossl_to_hex(p, n);
             } else {
                 if (n == '/' || n == '+')
                     *(p++) = '\\';
@@ -155,9 +151,9 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
 #else
             n = os_toascii[q[j]];
             if ((n < os_toascii[' ']) || (n > os_toascii['~'])) {
-                *(p++) = '\\';
-                *(p++) = 'x';
-                p += ossl_to_hex(p, n);
+                *(p++)  = '\\';
+                *(p++)  = 'x';
+                p      += ossl_to_hex(p, n);
             } else {
                 if (n == os_toascii['/'] || n == os_toascii['+'])
                     *(p++) = '\\';
@@ -165,7 +161,7 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
             }
 #endif
         }
-        *p = '\0';
+        *p       = '\0';
         prev_set = ne->set;
     }
     if (b != NULL) {
@@ -176,9 +172,9 @@ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int len)
     if (i == 0)
         *p = '\0';
     return p;
- buferr:
+buferr:
     ERR_raise(ERR_LIB_X509, ERR_R_BUF_LIB);
- end:
+end:
     BUF_MEM_free(b);
     return NULL;
 }

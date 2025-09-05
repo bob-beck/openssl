@@ -8,14 +8,14 @@
  */
 
 #ifndef OSSL_PROV_CIPHERCOMMON_AEAD_H
-# define OSSL_PROV_CIPHERCOMMON_AEAD_H
-# pragma once
+#define OSSL_PROV_CIPHERCOMMON_AEAD_H
+#pragma once
 
-# define UNINITIALISED_SIZET ((size_t)-1)
+#define UNINITIALISED_SIZET ((size_t)-1)
 
-# define AEAD_FLAGS (PROV_CIPHER_FLAG_AEAD | PROV_CIPHER_FLAG_CUSTOM_IV)
+#define AEAD_FLAGS (PROV_CIPHER_FLAG_AEAD | PROV_CIPHER_FLAG_CUSTOM_IV)
 
-# define IMPLEMENT_aead_cipher(alg, lc, UCMODE, flags, kbits, blkbits, ivbits)  \
+#define IMPLEMENT_aead_cipher(alg, lc, UCMODE, flags, kbits, blkbits, ivbits)  \
 static OSSL_FUNC_cipher_get_params_fn alg##_##kbits##_##lc##_get_params;       \
 static int alg##_##kbits##_##lc##_get_params(OSSL_PARAM params[])              \
 {                                                                              \

@@ -14,15 +14,15 @@
 
 int main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL;
-    CMS_ContentInfo *cms = NULL;
-    int ret = EXIT_FAILURE;
+    BIO             *in = NULL, *out = NULL;
+    CMS_ContentInfo *cms   = NULL;
+    int              ret   = EXIT_FAILURE;
 
     /*
      * On OpenSSL 1.0.0+ only:
      * for streaming set CMS_STREAM
      */
-    int flags = CMS_STREAM;
+    int              flags = CMS_STREAM;
 
     OpenSSL_add_all_algorithms();
     ERR_load_crypto_strings();
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 
     ret = EXIT_SUCCESS;
 
- err:
+err:
 
     if (ret != EXIT_SUCCESS) {
         fprintf(stderr, "Error Compressing Data\n");

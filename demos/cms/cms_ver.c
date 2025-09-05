@@ -19,21 +19,21 @@
 static void print_signingTime(CMS_ContentInfo *cms)
 {
     STACK_OF(CMS_SignerInfo) *sis;
-    CMS_SignerInfo *si;
-    X509_ATTRIBUTE *attr;
-    ASN1_TYPE *t;
-    ASN1_UTCTIME *utctime;
-    ASN1_GENERALIZEDTIME *gtime;
-    BIO *b;
-    int i, loc;
+    CMS_SignerInfo           *si;
+    X509_ATTRIBUTE           *attr;
+    ASN1_TYPE                *t;
+    ASN1_UTCTIME             *utctime;
+    ASN1_GENERALIZEDTIME     *gtime;
+    BIO                      *b;
+    int                       i, loc;
 
-    b = BIO_new_fp(stdout, BIO_NOCLOSE | BIO_FP_TEXT);
+    b   = BIO_new_fp(stdout, BIO_NOCLOSE | BIO_FP_TEXT);
     sis = CMS_get0_SignerInfos(cms);
     for (i = 0; i < sk_CMS_SignerInfo_num(sis); i++) {
-        si = sk_CMS_SignerInfo_value(sis, i);
-        loc = CMS_signed_get_attr_by_NID(si, NID_pkcs9_signingTime, -1);
+        si   = sk_CMS_SignerInfo_value(sis, i);
+        loc  = CMS_signed_get_attr_by_NID(si, NID_pkcs9_signingTime, -1);
         attr = CMS_signed_get_attr(si, loc);
-        t = X509_ATTRIBUTE_get0_type(attr, 0);
+        t    = X509_ATTRIBUTE_get0_type(attr, 0);
         if (t == NULL)
             continue;
         switch (t->type) {
@@ -57,11 +57,11 @@ static void print_signingTime(CMS_ContentInfo *cms)
 
 int main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL, *tbio = NULL, *cont = NULL;
-    X509_STORE *st = NULL;
-    X509 *cacert = NULL;
-    CMS_ContentInfo *cms = NULL;
-    int ret = EXIT_FAILURE;
+    BIO             *in = NULL, *out = NULL, *tbio = NULL, *cont = NULL;
+    X509_STORE      *st     = NULL;
+    X509            *cacert = NULL;
+    CMS_ContentInfo *cms    = NULL;
+    int              ret    = EXIT_FAILURE;
 
     OpenSSL_add_all_algorithms();
     ERR_load_crypto_strings();
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 
     ret = EXIT_SUCCESS;
 
- err:
+err:
     if (ret != EXIT_SUCCESS) {
         fprintf(stderr, "Error Verifying Data\n");
         ERR_print_errors_fp(stderr);

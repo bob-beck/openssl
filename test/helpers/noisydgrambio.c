@@ -16,23 +16,23 @@
 #define MAX_PKTS_PER_WINDOW 1024
 
 struct pkt_info_st {
-    size_t size;
+    size_t    size;
     OSSL_TIME timestamp;
 };
 
 struct bw_limiter_st {
     struct pkt_info_st pinfos[MAX_PKTS_PER_WINDOW]; /* ring buffer */
-    size_t start, num;    /* ring buffer start and number of items */
-    size_t size_sum;              /* sum of packet sizes in window */
-    size_t bw;                            /* bandwidth in bytes/ms */
+    size_t             start, num;                  /* ring buffer start and number of items */
+    size_t             size_sum;                    /* sum of packet sizes in window */
+    size_t             bw;                          /* bandwidth in bytes/ms */
 };
 
 struct noisy_dgram_st {
-    uint64_t this_dgram;
-    BIO_MSG msg;
-    uint64_t reinject_dgram;
-    int backoff;
-    int noise_rate;      /* 1 in noise_rate packets will get noise */
+    uint64_t             this_dgram;
+    BIO_MSG              msg;
+    uint64_t             reinject_dgram;
+    int                  backoff;
+    int                  noise_rate; /* 1 in noise_rate packets will get noise */
     struct bw_limiter_st recv_limit, send_limit;
     OSSL_TIME (*now_cb)(void *arg);
     void *now_cb_arg;
@@ -51,57 +51,57 @@ static long noisy_dgram_ctrl(BIO *bio, int cmd, long num, void *ptr)
         ret = 0L;
         break;
     case BIO_CTRL_NOISE_BACK_OFF: {
-            struct noisy_dgram_st *data;
+        struct noisy_dgram_st *data;
 
-            data = BIO_get_data(bio);
-            if (!TEST_ptr(data))
-                return 0;
-            data->backoff = (int)num;
-            ret = 1;
-            break;
-        }
+        data = BIO_get_data(bio);
+        if (!TEST_ptr(data))
+            return 0;
+        data->backoff = (int)num;
+        ret           = 1;
+        break;
+    }
     case BIO_CTRL_NOISE_RATE: {
-            struct noisy_dgram_st *data;
+        struct noisy_dgram_st *data;
 
-            data = BIO_get_data(bio);
-            if (!TEST_ptr(data))
-                return 0;
-            data->noise_rate = (int)num;
-            ret = 1;
-            break;
-        }
+        data = BIO_get_data(bio);
+        if (!TEST_ptr(data))
+            return 0;
+        data->noise_rate = (int)num;
+        ret              = 1;
+        break;
+    }
     case BIO_CTRL_NOISE_RECV_BANDWIDTH: {
-            struct noisy_dgram_st *data;
+        struct noisy_dgram_st *data;
 
-            data = BIO_get_data(bio);
-            if (!TEST_ptr(data))
-                return 0;
-            data->recv_limit.bw = (size_t)num;
-            ret = 1;
-            break;
-        }
+        data = BIO_get_data(bio);
+        if (!TEST_ptr(data))
+            return 0;
+        data->recv_limit.bw = (size_t)num;
+        ret                 = 1;
+        break;
+    }
     case BIO_CTRL_NOISE_SEND_BANDWIDTH: {
-            struct noisy_dgram_st *data;
+        struct noisy_dgram_st *data;
 
-            data = BIO_get_data(bio);
-            if (!TEST_ptr(data))
-                return 0;
-            data->send_limit.bw = (size_t)num;
-            ret = 1;
-            break;
-        }
+        data = BIO_get_data(bio);
+        if (!TEST_ptr(data))
+            return 0;
+        data->send_limit.bw = (size_t)num;
+        ret                 = 1;
+        break;
+    }
     case BIO_CTRL_NOISE_SET_NOW_CB: {
-            struct noisy_dgram_st *data;
-            struct bio_noise_now_cb_st *now_cb = ptr;
+        struct noisy_dgram_st      *data;
+        struct bio_noise_now_cb_st *now_cb = ptr;
 
-            data = BIO_get_data(bio);
-            if (!TEST_ptr(data))
-                return 0;
-            data->now_cb = now_cb->now_cb;
-            data->now_cb_arg = now_cb->now_cb_arg;
-            ret = 1;
-            break;
-        }
+        data                               = BIO_get_data(bio);
+        if (!TEST_ptr(data))
+            return 0;
+        data->now_cb     = now_cb->now_cb;
+        data->now_cb_arg = now_cb->now_cb_arg;
+        ret              = 1;
+        break;
+    }
     default:
         ret = BIO_ctrl(next, cmd, num, ptr);
         break;
@@ -109,12 +109,10 @@ static long noisy_dgram_ctrl(BIO *bio, int cmd, long num, void *ptr)
     return ret;
 }
 
-static size_t bandwidth_limit(struct bw_limiter_st *limit, OSSL_TIME now,
-                              BIO_MSG *msg, size_t num_msg)
+static size_t bandwidth_limit(struct bw_limiter_st *limit, OSSL_TIME now, BIO_MSG *msg, size_t num_msg)
 {
-    size_t i;
-    OSSL_TIME sampling_start
-        = ossl_time_subtract(now, ossl_ms2time(SAMPLING_WINDOW_PERIOD));
+    size_t    i;
+    OSSL_TIME sampling_start = ossl_time_subtract(now, ossl_ms2time(SAMPLING_WINDOW_PERIOD));
 
     if (limit->bw == 0) /* 0 -> no limit */
         return num_msg;
@@ -130,49 +128,49 @@ static size_t bandwidth_limit(struct bw_limiter_st *limit, OSSL_TIME now,
             break;
         limit->size_sum -= limit->pinfos[idx].size;
     }
-    limit->start = (limit->start + i) % MAX_PKTS_PER_WINDOW;
-    limit->num -= i;
+    limit->start  = (limit->start + i) % MAX_PKTS_PER_WINDOW;
+    limit->num   -= i;
 
     for (i = 0; i < num_msg; ++i) {
-         size_t end;
-         size_t pktsize = msg[i].data_len;
+        size_t end;
+        size_t pktsize = msg[i].data_len;
 
-         if ((limit->size_sum + pktsize) / SAMPLING_WINDOW_PERIOD > limit->bw) {
-             /*
-              * Throw out all the packets once reaching the limit,
-              * although some following packets could still fit.
-              * This is accurate enough.
-              */
+        if ((limit->size_sum + pktsize) / SAMPLING_WINDOW_PERIOD > limit->bw) {
+            /*
+             * Throw out all the packets once reaching the limit,
+             * although some following packets could still fit.
+             * This is accurate enough.
+             */
 #ifdef OSSL_NOISY_DGRAM_DEBUG
-             printf("**BW limit applied: now: %llu orig packets %u new packets %u\n",
-                    (unsigned long long)ossl_time2ms(now),
-                    (unsigned int)num_msg, (unsigned int) i);
+            printf("**BW limit applied: now: %llu orig packets %u new packets %u\n",
+                   (unsigned long long)ossl_time2ms(now),
+                   (unsigned int)num_msg,
+                   (unsigned int)i);
 #endif
-             num_msg = i;
-             break;
-         }
+            num_msg = i;
+            break;
+        }
 
-         if (limit->num >= MAX_PKTS_PER_WINDOW) {
-             limit->size_sum -= limit->pinfos[limit->start].size;
-             limit->start = (limit->start + 1) % MAX_PKTS_PER_WINDOW;
-         } else {
-           ++limit->num;
-         }
-         end = (limit->start + limit->num) % MAX_PKTS_PER_WINDOW;
-         limit->pinfos[end].size = pktsize;
-         limit->pinfos[end].timestamp = now;
-         limit->size_sum += pktsize;
+        if (limit->num >= MAX_PKTS_PER_WINDOW) {
+            limit->size_sum -= limit->pinfos[limit->start].size;
+            limit->start     = (limit->start + 1) % MAX_PKTS_PER_WINDOW;
+        } else {
+            ++limit->num;
+        }
+        end                           = (limit->start + limit->num) % MAX_PKTS_PER_WINDOW;
+        limit->pinfos[end].size       = pktsize;
+        limit->pinfos[end].timestamp  = now;
+        limit->size_sum              += pktsize;
     }
     return num_msg;
 }
 
-static int noisy_dgram_sendmmsg(BIO *bio, BIO_MSG *msg, size_t stride,
-                                size_t num_msg, uint64_t flags,
-                                size_t *msgs_processed)
+static int
+noisy_dgram_sendmmsg(BIO *bio, BIO_MSG *msg, size_t stride, size_t num_msg, uint64_t flags, size_t *msgs_processed)
 {
-    BIO *next = BIO_next(bio);
+    BIO                   *next = BIO_next(bio);
     struct noisy_dgram_st *data;
-    OSSL_TIME now;
+    OSSL_TIME              now;
 
     if (next == NULL)
         return 0;
@@ -181,8 +179,7 @@ static int noisy_dgram_sendmmsg(BIO *bio, BIO_MSG *msg, size_t stride,
     if (!TEST_ptr(data))
         return 0;
 
-    now = data->now_cb != NULL ? data->now_cb(data->now_cb_arg)
-                               : ossl_time_now();
+    now     = data->now_cb != NULL ? data->now_cb(data->now_cb_arg) : ossl_time_now();
 
     /* bandwidth limit can be applied on both sides */
     num_msg = bandwidth_limit(&data->send_limit, now, msg, num_msg);
@@ -224,20 +221,20 @@ static int noisy_dgram_sendmmsg(BIO *bio, BIO_MSG *msg, size_t stride,
  */
 #define MAX_DGRAM_REINJECT 4
 
-static void get_noise(int noise_rate, int long_header, uint64_t *reinject,
-                      int *should_drop, uint16_t *flip, size_t *flip_offset)
+static void
+get_noise(int noise_rate, int long_header, uint64_t *reinject, int *should_drop, uint16_t *flip, size_t *flip_offset)
 {
     uint32_t type;
 
     *flip = 0;
 
     if (test_random() % noise_rate != 0) {
-        *reinject = 0;
+        *reinject    = 0;
         *should_drop = 0;
         return;
     }
 
-    type = test_random() % NUM_NOISE_TYPES;
+    type          = test_random() % NUM_NOISE_TYPES;
 
     /*
      * Of noisy datagrams, 25% drop, 25% duplicate, 25% delay, 25% flip bits
@@ -247,27 +244,27 @@ static void get_noise(int noise_rate, int long_header, uint64_t *reinject,
      * identical datagram is reinjected after the given number of datagrams have
      * been sent and the current datagram is dropped.
      */
-    *should_drop = (type == NOISE_TYPE_DROP || type == NOISE_TYPE_DELAY);
+    *should_drop  = (type == NOISE_TYPE_DROP || type == NOISE_TYPE_DELAY);
 
     /*
      * Where a duplicate occurs we reinject the copy of the datagram up to
      * MAX_DGRAM_DELAY datagrams later
      */
-    *reinject = (type == NOISE_TYPE_DUPLICATE || type == NOISE_TYPE_DELAY)
-                ? (uint64_t)((test_random() % MAX_DGRAM_REINJECT) + 1)
-                : 0;
+    *reinject     = (type == NOISE_TYPE_DUPLICATE || type == NOISE_TYPE_DELAY)
+                        ? (uint64_t)((test_random() % MAX_DGRAM_REINJECT) + 1)
+                        : 0;
 
     /*
      * No point in reinjecting after 1 datagram if the current datagram is also
      * dropped (i.e. this is a delay not a duplicate), so we reinject after an
      * extra datagram in that case
      */
-    *reinject += type == NOISE_TYPE_DELAY;
+    *reinject    += type == NOISE_TYPE_DELAY;
 
     /* flip some bits in the header */
     if (type == NOISE_TYPE_BITFLIPS) {
         /* we flip at most 8 bits of the 16 bit value at once */
-        *flip = (test_random() % 255 + 1) << (test_random() % 8);
+        *flip        = (test_random() % 255 + 1) << (test_random() % 8);
         /*
          * 25/50 bytes of guesstimated header size (it depends on CID length)
          * It does not matter much if it is overestimated.
@@ -276,8 +273,7 @@ static void get_noise(int noise_rate, int long_header, uint64_t *reinject,
     }
 }
 
-static void flip_bits(unsigned char *msg, size_t msg_len, uint16_t flip,
-                      size_t flip_offset)
+static void flip_bits(unsigned char *msg, size_t msg_len, uint16_t flip, size_t flip_offset)
 {
     if (flip == 0)
         return;
@@ -289,25 +285,23 @@ static void flip_bits(unsigned char *msg, size_t msg_len, uint16_t flip,
         flip_offset = msg_len - 2;
 
 #ifdef OSSL_NOISY_DGRAM_DEBUG
-    printf("**Flipping bits in a datagram at offset %u\n",
-            (unsigned int)flip_offset);
+    printf("**Flipping bits in a datagram at offset %u\n", (unsigned int)flip_offset);
     BIO_dump_fp(stdout, msg, msg_len);
     printf("\n");
 #endif
 
-    msg[flip_offset] ^= flip >> 8;
+    msg[flip_offset]     ^= flip >> 8;
     msg[flip_offset + 1] ^= flip & 0xff;
 }
 
-static int noisy_dgram_recvmmsg(BIO *bio, BIO_MSG *msg, size_t stride,
-                                size_t num_msg, uint64_t flags,
-                                size_t *msgs_processed)
+static int
+noisy_dgram_recvmmsg(BIO *bio, BIO_MSG *msg, size_t stride, size_t num_msg, uint64_t flags, size_t *msgs_processed)
 {
-    BIO *next = BIO_next(bio);
-    size_t i, j, data_len = 0, msg_cnt = 0;
-    BIO_MSG *thismsg;
+    BIO                   *next = BIO_next(bio);
+    size_t                 i, j, data_len = 0, msg_cnt = 0;
+    BIO_MSG               *thismsg;
     struct noisy_dgram_st *data;
-    OSSL_TIME now;
+    OSSL_TIME              now;
 
     if (!TEST_ptr(next))
         return 0;
@@ -346,8 +340,7 @@ static int noisy_dgram_recvmmsg(BIO *bio, BIO_MSG *msg, size_t stride,
     printf("End of pre-filter datagram list\nApplying noise filters:\n");
 #endif
 
-    now = data->now_cb != NULL ? data->now_cb(data->now_cb_arg)
-                               : ossl_time_now();
+    now     = data->now_cb != NULL ? data->now_cb(data->now_cb_arg) : ossl_time_now();
 
     msg_cnt = *msgs_processed;
     msg_cnt = bandwidth_limit(&data->recv_limit, now, msg, msg_cnt);
@@ -358,17 +351,14 @@ static int noisy_dgram_recvmmsg(BIO *bio, BIO_MSG *msg, size_t stride,
         goto end;
 
     /* Introduce noise */
-    for (i = 0, thismsg = msg;
-         i < msg_cnt;
-         i++, thismsg++, data->this_dgram++) {
+    for (i = 0, thismsg = msg; i < msg_cnt; i++, thismsg++, data->this_dgram++) {
         uint64_t reinject;
-        int should_drop;
-        uint16_t flip = 0;
-        size_t flip_offset = 0;
+        int      should_drop;
+        uint16_t flip        = 0;
+        size_t   flip_offset = 0;
 
         /* If we have a message to reinject then insert it now */
-        if (data->reinject_dgram > 0
-                && data->reinject_dgram == data->this_dgram) {
+        if (data->reinject_dgram > 0 && data->reinject_dgram == data->this_dgram) {
             if (msg_cnt < num_msg) {
                 /* Make space for the injected message */
                 for (j = msg_cnt; j > i; j--) {
@@ -391,7 +381,10 @@ static int noisy_dgram_recvmmsg(BIO *bio, BIO_MSG *msg, size_t stride,
 
         get_noise(data->noise_rate,
                   /* long header */ (((uint8_t *)thismsg->data)[0] & 0x80) != 0,
-                  &reinject, &should_drop, &flip, &flip_offset);
+                  &reinject,
+                  &should_drop,
+                  &flip,
+                  &flip_offset);
         if (data->backoff) {
             /*
              * We might be asked to back off on introducing too much noise if
@@ -406,7 +399,7 @@ static int noisy_dgram_recvmmsg(BIO *bio, BIO_MSG *msg, size_t stride,
             printf("**Back off applied\n");
 #endif
             should_drop = 0;
-            flip = 0;
+            flip        = 0;
             data->backoff--;
         }
 
@@ -430,7 +423,8 @@ static int noisy_dgram_recvmmsg(BIO *bio, BIO_MSG *msg, size_t stride,
 
 #ifdef OSSL_NOISY_DGRAM_DEBUG
             printf("**Scheduling a reinject after %u messages%s\n",
-                   (unsigned int)reinject, should_drop ? "" : "(duplicating)");
+                   (unsigned int)reinject,
+                   should_drop ? "" : "(duplicating)");
             BIO_dump_fp(stdout, thismsg->data, thismsg->data_len);
             printf("\n");
 #endif
@@ -460,7 +454,7 @@ static int noisy_dgram_recvmmsg(BIO *bio, BIO_MSG *msg, size_t stride,
     printf("End of post-filter datagram list\n");
 #endif
 
- end:
+end:
     *msgs_processed = msg_cnt;
 
     if (msg_cnt == 0) {
@@ -490,12 +484,10 @@ static int noisy_dgram_new(BIO *bio)
         return 0;
 
     data->noise_rate = NOISE_RATE;
-    data->msg.data = OPENSSL_malloc(MSG_DATA_LEN_MAX);
-    data->msg.peer = BIO_ADDR_new();
-    data->msg.local = BIO_ADDR_new();
-    if (data->msg.data == NULL
-            || data->msg.peer == NULL
-            || data->msg.local == NULL) {
+    data->msg.data   = OPENSSL_malloc(MSG_DATA_LEN_MAX);
+    data->msg.peer   = BIO_ADDR_new();
+    data->msg.local  = BIO_ADDR_new();
+    if (data->msg.data == NULL || data->msg.peer == NULL || data->msg.local == NULL) {
         data_free(data);
         return 0;
     }
@@ -521,13 +513,11 @@ static int noisy_dgram_free(BIO *bio)
 static BIO_METHOD *method_noisy_dgram = NULL;
 
 /* Note: Not thread safe! */
-const BIO_METHOD *bio_f_noisy_dgram_filter(void)
+const BIO_METHOD  *bio_f_noisy_dgram_filter(void)
 {
     if (method_noisy_dgram == NULL) {
-        method_noisy_dgram = BIO_meth_new(BIO_TYPE_NOISY_DGRAM_FILTER,
-                                          "Noisy datagram filter");
-        if (method_noisy_dgram == NULL
-            || !BIO_meth_set_ctrl(method_noisy_dgram, noisy_dgram_ctrl)
+        method_noisy_dgram = BIO_meth_new(BIO_TYPE_NOISY_DGRAM_FILTER, "Noisy datagram filter");
+        if (method_noisy_dgram == NULL || !BIO_meth_set_ctrl(method_noisy_dgram, noisy_dgram_ctrl)
             || !BIO_meth_set_sendmmsg(method_noisy_dgram, noisy_dgram_sendmmsg)
             || !BIO_meth_set_recvmmsg(method_noisy_dgram, noisy_dgram_recvmmsg)
             || !BIO_meth_set_create(method_noisy_dgram, noisy_dgram_new)

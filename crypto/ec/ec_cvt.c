@@ -18,11 +18,10 @@
 #include "crypto/bn.h"
 #include "ec_local.h"
 
-EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
-                                 const BIGNUM *b, BN_CTX *ctx)
+EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
 {
     const EC_METHOD *meth;
-    EC_GROUP *ret;
+    EC_GROUP        *ret;
 
 #if defined(OPENSSL_BN_ASM_MONT)
     /*
@@ -67,15 +66,14 @@ EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
 }
 
 #ifndef OPENSSL_NO_EC2M
-EC_GROUP *EC_GROUP_new_curve_GF2m(const BIGNUM *p, const BIGNUM *a,
-                                  const BIGNUM *b, BN_CTX *ctx)
+EC_GROUP *EC_GROUP_new_curve_GF2m(const BIGNUM *p, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
 {
     const EC_METHOD *meth;
-    EC_GROUP *ret;
+    EC_GROUP        *ret;
 
     meth = EC_GF2m_simple_method();
 
-    ret = ossl_ec_group_new_ex(ossl_bn_get_libctx(ctx), NULL, meth);
+    ret  = ossl_ec_group_new_ex(ossl_bn_get_libctx(ctx), NULL, meth);
     if (ret == NULL)
         return NULL;
 

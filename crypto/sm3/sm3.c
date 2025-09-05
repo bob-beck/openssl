@@ -28,14 +28,12 @@ int ossl_sm3_init(SM3_CTX *c)
 
 void ossl_sm3_block_data_order(SM3_CTX *ctx, const void *p, size_t num)
 {
-    const unsigned char *data = p;
+    const unsigned char         *data = p;
     register unsigned MD32_REG_T A, B, C, D, E, F, G, H;
 
-    unsigned MD32_REG_T W00, W01, W02, W03, W04, W05, W06, W07,
-        W08, W09, W10, W11, W12, W13, W14, W15;
+    unsigned MD32_REG_T          W00, W01, W02, W03, W04, W05, W06, W07, W08, W09, W10, W11, W12, W13, W14, W15;
 
     for (; num--;) {
-
         A = ctx->A;
         B = ctx->B;
         C = ctx->C;
@@ -46,9 +44,9 @@ void ossl_sm3_block_data_order(SM3_CTX *ctx, const void *p, size_t num)
         H = ctx->H;
 
         /*
-        * We have to load all message bytes immediately since SM3 reads
-        * them slightly out of order.
-        */
+         * We have to load all message bytes immediately since SM3 reads
+         * them slightly out of order.
+         */
         (void)HOST_c2l(data, W00);
         (void)HOST_c2l(data, W01);
         (void)HOST_c2l(data, W02);

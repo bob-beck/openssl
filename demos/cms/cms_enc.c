@@ -14,17 +14,17 @@
 
 int main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL, *tbio = NULL;
-    X509 *rcert = NULL;
-    STACK_OF(X509) *recips = NULL;
-    CMS_ContentInfo *cms = NULL;
-    int ret = EXIT_FAILURE;
+    BIO             *in = NULL, *out = NULL, *tbio = NULL;
+    X509            *rcert  = NULL;
+    STACK_OF(X509)  *recips = NULL;
+    CMS_ContentInfo *cms    = NULL;
+    int              ret    = EXIT_FAILURE;
 
     /*
      * On OpenSSL 1.0.0 and later only:
      * for streaming set CMS_STREAM
      */
-    int flags = CMS_STREAM;
+    int              flags  = CMS_STREAM;
 
     OpenSSL_add_all_algorithms();
     ERR_load_crypto_strings();
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 
     /* Open content being encrypted */
 
-    in = BIO_new_file("encr.txt", "r");
+    in    = BIO_new_file("encr.txt", "r");
 
     if (!in)
         goto err;
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     printf("Encryption Successful\n");
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS) {
         fprintf(stderr, "Error Encrypting Data\n");
         ERR_print_errors_fp(stderr);

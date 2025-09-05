@@ -17,7 +17,7 @@
 static void dump_section(const char *name, const CONF *cnf)
 {
     STACK_OF(CONF_VALUE) *sect = NCONF_get_section(cnf, name);
-    int i;
+    int                   i;
 
     printf("[ %s ]\n", name);
     for (i = 0; i < sk_CONF_VALUE_num(sect); i++) {
@@ -29,9 +29,9 @@ static void dump_section(const char *name, const CONF *cnf)
 
 int main(int argc, char **argv)
 {
-    long eline;
-    CONF *conf = NCONF_new(NCONF_default());
-    int ret = 1;
+    long                       eline;
+    CONF                      *conf          = NCONF_new(NCONF_default());
+    int                        ret           = 1;
     STACK_OF(OPENSSL_CSTRING) *section_names = NULL;
 
     if (conf != NULL && NCONF_load(conf, argv[1], &eline)) {

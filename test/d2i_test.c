@@ -23,34 +23,27 @@
 #include "internal/nelem.h"
 
 static const ASN1_ITEM *item_type;
-static const char *test_file;
+static const char      *test_file;
 
-typedef enum {
-    ASN1_UNKNOWN,
-    ASN1_OK,
-    ASN1_BIO,
-    ASN1_DECODE,
-    ASN1_ENCODE,
-    ASN1_COMPARE
-} expected_error_t;
+typedef enum { ASN1_UNKNOWN, ASN1_OK, ASN1_BIO, ASN1_DECODE, ASN1_ENCODE, ASN1_COMPARE } expected_error_t;
 
 typedef struct {
-    const char *str;
+    const char      *str;
     expected_error_t code;
 } error_enum;
 
 static expected_error_t expected_error = ASN1_UNKNOWN;
 
-static int test_bad_asn1(void)
+static int              test_bad_asn1(void)
 {
-    BIO *bio = NULL;
-    ASN1_VALUE *value = NULL;
-    int ret = 0;
-    unsigned char buf[2048];
+    BIO                 *bio   = NULL;
+    ASN1_VALUE          *value = NULL;
+    int                  ret   = 0;
+    unsigned char        buf[2048];
     const unsigned char *buf_ptr = buf;
-    unsigned char *der = NULL;
-    int derlen;
-    int len;
+    unsigned char       *der     = NULL;
+    int                  derlen;
+    int                  len;
 
     bio = BIO_new_file(test_file, "r");
     if (!TEST_ptr(bio))
@@ -95,10 +88,9 @@ static int test_bad_asn1(void)
     if (TEST_int_eq(expected_error, ASN1_OK))
         ret = 1;
 
- err:
+err:
     /* Don't indicate success for memory allocation errors */
-    if (ret == 1
-        && !TEST_false(ERR_GET_REASON(ERR_peek_error()) == ERR_R_MALLOC_FAILURE))
+    if (ret == 1 && !TEST_false(ERR_GET_REASON(ERR_peek_error()) == ERR_R_MALLOC_FAILURE))
         ret = 0;
     BIO_free(bio);
     OPENSSL_free(der);
@@ -114,16 +106,16 @@ OPT_TEST_DECLARE_USAGE("item_name expected_error test_file.der\n")
  */
 int setup_tests(void)
 {
-    const char *test_type_name;
-    const char *expected_error_string;
+    const char       *test_type_name;
+    const char       *expected_error_string;
 
-    size_t i;
+    size_t            i;
 
     static error_enum expected_errors[] = {
-        {"OK", ASN1_OK},
-        {"BIO", ASN1_BIO},
-        {"decode", ASN1_DECODE},
-        {"encode", ASN1_ENCODE},
+        {"OK",      ASN1_OK     },
+        {"BIO",     ASN1_BIO    },
+        {"decode",  ASN1_DECODE },
+        {"encode",  ASN1_ENCODE },
         {"compare", ASN1_COMPARE}
     };
 
@@ -132,9 +124,8 @@ int setup_tests(void)
         return 0;
     }
 
-    if (!TEST_ptr(test_type_name = test_get_argument(0))
-            || !TEST_ptr(expected_error_string = test_get_argument(1))
-            || !TEST_ptr(test_file = test_get_argument(2)))
+    if (!TEST_ptr(test_type_name = test_get_argument(0)) || !TEST_ptr(expected_error_string = test_get_argument(1))
+        || !TEST_ptr(test_file = test_get_argument(2)))
         return 0;
 
     item_type = ASN1_ITEM_lookup(test_type_name);

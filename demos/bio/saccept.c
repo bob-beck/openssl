@@ -27,7 +27,7 @@
 
 static volatile int done = 0;
 
-static void interrupt(int sig)
+static void         interrupt(int sig)
 {
     done = 1;
 }
@@ -42,7 +42,7 @@ static void sigsetup(void)
     /*
      * Catch at most once, and don't restart the accept system call.
      */
-    sa.sa_flags = SA_RESETHAND;
+    sa.sa_flags   = SA_RESETHAND;
     sa.sa_handler = interrupt;
     sigemptyset(&sa.sa_mask);
     sigaction(SIGINT, &sa, NULL);
@@ -51,13 +51,13 @@ static void sigsetup(void)
 
 int main(int argc, char *argv[])
 {
-    char *port = NULL;
-    BIO *in = NULL;
-    BIO *ssl_bio = NULL;
-    BIO *tmp;
+    char    *port    = NULL;
+    BIO     *in      = NULL;
+    BIO     *ssl_bio = NULL;
+    BIO     *tmp;
     SSL_CTX *ctx;
-    char buf[512];
-    int ret = EXIT_FAILURE, i;
+    char     buf[512];
+    int      ret = EXIT_FAILURE, i;
 
     if (argc <= 1)
         port = "*:4433";
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     /* Arrange to leave server loop on interrupt */
     sigsetup();
 
- again:
+again:
     /*
      * The first call will setup the accept socket, and the second will get a
      * socket.  In this loop, the first actual accept will occur in the
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     }
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS)
         ERR_print_errors_fp(stderr);
     BIO_free(in);

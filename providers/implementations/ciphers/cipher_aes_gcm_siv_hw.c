@@ -19,20 +19,25 @@
 #include <prov/implementations.h>
 #include "cipher_aes_gcm_siv.h"
 
-static int aes_gcm_siv_ctr32(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *init_counter,
-                             unsigned char *out, const unsigned char *in, size_t len);
+static int aes_gcm_siv_ctr32(PROV_AES_GCM_SIV_CTX *ctx,
+                             const unsigned char  *init_counter,
+                             unsigned char        *out,
+                             const unsigned char  *in,
+                             size_t                len);
 
 static int aes_gcm_siv_initkey(void *vctx)
 {
     PROV_AES_GCM_SIV_CTX *ctx = (PROV_AES_GCM_SIV_CTX *)vctx;
-    uint8_t output[BLOCK_SIZE];
-    uint32_t counter = 0x0;
-    size_t i;
+    uint8_t               output[BLOCK_SIZE];
+    uint32_t              counter = 0x0;
+    size_t                i;
+
     union {
         uint32_t counter;
-        uint8_t block[BLOCK_SIZE];
+        uint8_t  block[BLOCK_SIZE];
     } data;
-    int out_len;
+
+    int         out_len;
     EVP_CIPHER *ecb = NULL;
     DECLARE_IS_ENDIAN;
 
@@ -97,30 +102,29 @@ static int aes_gcm_siv_initkey(void *vctx)
     ctx->used_dec = 0;
     EVP_CIPHER_free(ecb);
     return 1;
- err:
+err:
     EVP_CIPHER_CTX_free(ctx->ecb_ctx);
     EVP_CIPHER_free(ecb);
     ctx->ecb_ctx = NULL;
     return 0;
 }
 
-static int aes_gcm_siv_aad(PROV_AES_GCM_SIV_CTX *ctx,
-                           const unsigned char *aad, size_t len)
+static int aes_gcm_siv_aad(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *aad, size_t len)
 {
-    size_t to_alloc;
+    size_t   to_alloc;
     uint8_t *ptr;
     uint64_t len64;
 
     /* length of 0 resets the AAD */
     if (len == 0) {
         OPENSSL_free(ctx->aad);
-        ctx->aad = NULL;
+        ctx->aad     = NULL;
         ctx->aad_len = 0;
         return 1;
     }
     to_alloc = UP16(ctx->aad_len + len);
     /* need to check the size of the AAD per RFC8452 */
-    len64 = to_alloc;
+    len64    = to_alloc;
     if (len64 > ((uint64_t)1 << 36))
         return 0;
     ptr = OPENSSL_realloc(ctx->aad, to_alloc);
@@ -140,22 +144,21 @@ static int aes_gcm_siv_finish(PROV_AES_GCM_SIV_CTX *ctx)
 
     if (ctx->enc)
         return ctx->generated_tag;
-    ret = !CRYPTO_memcmp(ctx->tag, ctx->user_tag, sizeof(ctx->tag));
+    ret  = !CRYPTO_memcmp(ctx->tag, ctx->user_tag, sizeof(ctx->tag));
     ret &= ctx->have_user_tag;
     return ret;
 }
 
-static int aes_gcm_siv_encrypt(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *in,
-                               unsigned char *out, size_t len)
+static int aes_gcm_siv_encrypt(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *in, unsigned char *out, size_t len)
 {
     uint64_t len_blk[2];
-    uint8_t S_s[TAG_SIZE];
-    uint8_t counter_block[TAG_SIZE];
-    uint8_t padding[BLOCK_SIZE];
-    size_t i;
-    int64_t len64 = len;
-    int out_len;
-    int error = 0;
+    uint8_t  S_s[TAG_SIZE];
+    uint8_t  counter_block[TAG_SIZE];
+    uint8_t  padding[BLOCK_SIZE];
+    size_t   i;
+    int64_t  len64 = len;
+    int      out_len;
+    int      error = 0;
     DECLARE_IS_ENDIAN;
 
     ctx->generated_tag = 0;
@@ -173,50 +176,49 @@ static int aes_gcm_siv_encrypt(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *i
         len_blk[1] = GSWAP8((uint64_t)len * 8);
     }
     memset(S_s, 0, TAG_SIZE);
-    ossl_polyval_ghash_init(ctx->Htable, (const uint64_t*)ctx->msg_auth_key);
+    ossl_polyval_ghash_init(ctx->Htable, (const uint64_t *)ctx->msg_auth_key);
 
     if (ctx->aad != NULL) {
         /* AAD is allocated with padding, but need to adjust length */
         ossl_polyval_ghash_hash(ctx->Htable, S_s, ctx->aad, UP16(ctx->aad_len));
     }
     if (DOWN16(len) > 0)
-        ossl_polyval_ghash_hash(ctx->Htable, S_s, (uint8_t *) in, DOWN16(len));
+        ossl_polyval_ghash_hash(ctx->Htable, S_s, (uint8_t *)in, DOWN16(len));
     if (!IS16(len)) {
         /* deal with padding - probably easier to memset the padding first rather than calculate */
         memset(padding, 0, sizeof(padding));
         memcpy(padding, &in[DOWN16(len)], REMAINDER16(len));
         ossl_polyval_ghash_hash(ctx->Htable, S_s, padding, sizeof(padding));
     }
-    ossl_polyval_ghash_hash(ctx->Htable, S_s, (uint8_t *) len_blk, sizeof(len_blk));
+    ossl_polyval_ghash_hash(ctx->Htable, S_s, (uint8_t *)len_blk, sizeof(len_blk));
 
     for (i = 0; i < NONCE_SIZE; i++)
         S_s[i] ^= ctx->nonce[i];
 
     S_s[TAG_SIZE - 1] &= 0x7f;
-    out_len = sizeof(ctx->tag);
-    error |= !EVP_EncryptUpdate(ctx->ecb_ctx, ctx->tag, &out_len, S_s, sizeof(S_s));
+    out_len            = sizeof(ctx->tag);
+    error             |= !EVP_EncryptUpdate(ctx->ecb_ctx, ctx->tag, &out_len, S_s, sizeof(S_s));
     memcpy(counter_block, ctx->tag, TAG_SIZE);
     counter_block[TAG_SIZE - 1] |= 0x80;
 
-    error |= !aes_gcm_siv_ctr32(ctx, counter_block, out, in, len);
+    error                       |= !aes_gcm_siv_ctr32(ctx, counter_block, out, in, len);
 
-    ctx->generated_tag = !error;
+    ctx->generated_tag           = !error;
     /* Regardless of error */
-    ctx->used_enc = 1;
+    ctx->used_enc                = 1;
     return !error;
 }
 
-static int aes_gcm_siv_decrypt(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *in,
-                               unsigned char *out, size_t len)
+static int aes_gcm_siv_decrypt(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *in, unsigned char *out, size_t len)
 {
-    uint8_t counter_block[TAG_SIZE];
+    uint8_t  counter_block[TAG_SIZE];
     uint64_t len_blk[2];
-    uint8_t S_s[TAG_SIZE];
-    size_t i;
+    uint8_t  S_s[TAG_SIZE];
+    size_t   i;
     uint64_t padding[2];
-    int64_t len64 = len;
-    int out_len;
-    int error = 0;
+    int64_t  len64 = len;
+    int      out_len;
+    int      error = 0;
     DECLARE_IS_ENDIAN;
 
     ctx->generated_tag = 0;
@@ -229,7 +231,7 @@ static int aes_gcm_siv_decrypt(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *i
     memcpy(counter_block, ctx->user_tag, sizeof(counter_block));
     counter_block[TAG_SIZE - 1] |= 0x80;
 
-    error |= !aes_gcm_siv_ctr32(ctx, counter_block, out, in, len);
+    error                       |= !aes_gcm_siv_ctr32(ctx, counter_block, out, in, len);
 
     if (IS_LITTLE_ENDIAN) {
         len_blk[0] = (uint64_t)ctx->aad_len * 8;
@@ -239,7 +241,7 @@ static int aes_gcm_siv_decrypt(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *i
         len_blk[1] = GSWAP8((uint64_t)len * 8);
     }
     memset(S_s, 0, TAG_SIZE);
-    ossl_polyval_ghash_init(ctx->Htable, (const uint64_t*)ctx->msg_auth_key);
+    ossl_polyval_ghash_init(ctx->Htable, (const uint64_t *)ctx->msg_auth_key);
     if (ctx->aad != NULL) {
         /* AAD allocated with padding, but need to adjust length */
         ossl_polyval_ghash_hash(ctx->Htable, S_s, ctx->aad, UP16(ctx->aad_len));
@@ -257,22 +259,21 @@ static int aes_gcm_siv_decrypt(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *i
     for (i = 0; i < NONCE_SIZE; i++)
         S_s[i] ^= ctx->nonce[i];
 
-    S_s[TAG_SIZE - 1] &= 0x7f;
+    S_s[TAG_SIZE - 1]  &= 0x7f;
 
     /*
      * In the ctx, user_tag is the one received/set by the user,
      * and tag is generated from the input
      */
-    out_len = sizeof(ctx->tag);
-    error |= !EVP_EncryptUpdate(ctx->ecb_ctx, ctx->tag, &out_len, S_s, sizeof(S_s));
-    ctx->generated_tag = !error;
+    out_len             = sizeof(ctx->tag);
+    error              |= !EVP_EncryptUpdate(ctx->ecb_ctx, ctx->tag, &out_len, S_s, sizeof(S_s));
+    ctx->generated_tag  = !error;
     /* Regardless of error */
-    ctx->used_dec = 1;
+    ctx->used_dec       = 1;
     return !error;
 }
 
-static int aes_gcm_siv_cipher(void *vctx, unsigned char *out,
-                              const unsigned char *in, size_t len)
+static int aes_gcm_siv_cipher(void *vctx, unsigned char *out, const unsigned char *in, size_t len)
 {
     PROV_AES_GCM_SIV_CTX *ctx = (PROV_AES_GCM_SIV_CTX *)vctx;
 
@@ -303,7 +304,7 @@ static int aes_gcm_siv_dup_ctx(void *vdst, void *vsrc)
     PROV_AES_GCM_SIV_CTX *dst = (PROV_AES_GCM_SIV_CTX *)vdst;
     PROV_AES_GCM_SIV_CTX *src = (PROV_AES_GCM_SIV_CTX *)vsrc;
 
-    dst->ecb_ctx = NULL;
+    dst->ecb_ctx              = NULL;
     if (src->ecb_ctx != NULL) {
         if ((dst->ecb_ctx = EVP_CIPHER_CTX_new()) == NULL)
             goto err;
@@ -312,7 +313,7 @@ static int aes_gcm_siv_dup_ctx(void *vdst, void *vsrc)
     }
     return 1;
 
- err:
+err:
     EVP_CIPHER_CTX_free(dst->ecb_ctx);
     dst->ecb_ctx = NULL;
     return 0;
@@ -331,20 +332,25 @@ const PROV_CIPHER_HW_AES_GCM_SIV *ossl_prov_cipher_hw_aes_gcm_siv(size_t keybits
 }
 
 /* AES-GCM-SIV needs AES-CTR32, which is different than the AES-CTR implementation */
-static int aes_gcm_siv_ctr32(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *init_counter,
-                             unsigned char *out, const unsigned char *in, size_t len)
+static int aes_gcm_siv_ctr32(PROV_AES_GCM_SIV_CTX *ctx,
+                             const unsigned char  *init_counter,
+                             unsigned char        *out,
+                             const unsigned char  *in,
+                             size_t                len)
 {
-    uint8_t keystream[BLOCK_SIZE];
-    int out_len;
-    size_t i;
-    size_t j;
-    size_t todo;
+    uint8_t  keystream[BLOCK_SIZE];
+    int      out_len;
+    size_t   i;
+    size_t   j;
+    size_t   todo;
     uint32_t counter;
-    int error = 0;
+    int      error = 0;
+
     union {
         uint32_t x32[BLOCK_SIZE / sizeof(uint32_t)];
-        uint8_t x8[BLOCK_SIZE];
+        uint8_t  x8[BLOCK_SIZE];
     } block;
+
     DECLARE_IS_ENDIAN;
 
     memcpy(&block, init_counter, sizeof(block));
@@ -353,8 +359,8 @@ static int aes_gcm_siv_ctr32(PROV_AES_GCM_SIV_CTX *ctx, const unsigned char *ini
     }
 
     for (i = 0; i < len; i += sizeof(block)) {
-        out_len = BLOCK_SIZE;
-        error |= !EVP_EncryptUpdate(ctx->ecb_ctx, keystream, &out_len, (uint8_t*)&block, sizeof(block));
+        out_len  = BLOCK_SIZE;
+        error   |= !EVP_EncryptUpdate(ctx->ecb_ctx, keystream, &out_len, (uint8_t *)&block, sizeof(block));
         if (IS_LITTLE_ENDIAN) {
             block.x32[0]++;
         } else {

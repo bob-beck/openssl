@@ -35,11 +35,10 @@ void ossl_policy_data_free(X509_POLICY_DATA *data)
  * source.
  */
 
-X509_POLICY_DATA *ossl_policy_data_new(POLICYINFO *policy,
-                                       const ASN1_OBJECT *cid, int crit)
+X509_POLICY_DATA *ossl_policy_data_new(POLICYINFO *policy, const ASN1_OBJECT *cid, int crit)
 {
     X509_POLICY_DATA *ret;
-    ASN1_OBJECT *id;
+    ASN1_OBJECT      *id;
 
     if (policy == NULL && cid == NULL)
         return NULL;
@@ -69,7 +68,7 @@ X509_POLICY_DATA *ossl_policy_data_new(POLICYINFO *policy,
         ret->valid_policy = id;
     else {
         ret->valid_policy = policy->policyid;
-        policy->policyid = NULL;
+        policy->policyid  = NULL;
     }
 
     if (policy) {

@@ -13,9 +13,11 @@
 #include <openssl/core_names.h>
 #include <string.h>
 
-int test_get_libctx(OSSL_LIB_CTX **libctx, OSSL_PROVIDER **default_null_prov,
-                    const char *config_file,
-                    OSSL_PROVIDER **provider, const char *module_name)
+int test_get_libctx(OSSL_LIB_CTX  **libctx,
+                    OSSL_PROVIDER **default_null_prov,
+                    const char     *config_file,
+                    OSSL_PROVIDER **provider,
+                    const char     *module_name)
 {
     OSSL_LIB_CTX *new_libctx = NULL;
 
@@ -26,32 +28,32 @@ int test_get_libctx(OSSL_LIB_CTX **libctx, OSSL_PROVIDER **default_null_prov,
         }
     }
 
-    if (default_null_prov != NULL
-        && (*default_null_prov = OSSL_PROVIDER_load(NULL, "null")) == NULL) {
+    if (default_null_prov != NULL && (*default_null_prov = OSSL_PROVIDER_load(NULL, "null")) == NULL) {
         opt_printf_stderr("Failed to load null provider into default libctx\n");
         goto err;
     }
 
-    if (config_file != NULL
-            && !OSSL_LIB_CTX_load_config(new_libctx, config_file)) {
+    if (config_file != NULL && !OSSL_LIB_CTX_load_config(new_libctx, config_file)) {
         opt_printf_stderr("Error loading config from file %s\n", config_file);
         goto err;
     }
 
-    if (provider != NULL && module_name != NULL
-            && (*provider = OSSL_PROVIDER_load(new_libctx, module_name)) == NULL) {
+    if (provider != NULL && module_name != NULL && (*provider = OSSL_PROVIDER_load(new_libctx, module_name)) == NULL) {
         opt_printf_stderr("Failed to load provider %s\n", module_name);
         goto err;
     }
     return 1;
 
- err:
+err:
     ERR_print_errors_fp(stderr);
     return 0;
 }
 
-int test_arg_libctx(OSSL_LIB_CTX **libctx, OSSL_PROVIDER **default_null_prov,
-                    OSSL_PROVIDER **provider, int argn, const char *usage)
+int test_arg_libctx(OSSL_LIB_CTX  **libctx,
+                    OSSL_PROVIDER **default_null_prov,
+                    OSSL_PROVIDER **provider,
+                    int             argn,
+                    const char     *usage)
 {
     const char *module_name;
 
@@ -61,8 +63,7 @@ int test_arg_libctx(OSSL_LIB_CTX **libctx, OSSL_PROVIDER **default_null_prov,
     }
     if (strcmp(module_name, "none") == 0)
         return 1;
-    return test_get_libctx(libctx, default_null_prov,
-                           test_get_argument(argn + 1), provider, module_name);
+    return test_get_libctx(libctx, default_null_prov, test_get_argument(argn + 1), provider, module_name);
 }
 
 typedef struct {
@@ -76,9 +77,9 @@ typedef struct {
  */
 static int fips_provider_version(OSSL_LIB_CTX *libctx, FIPS_VERSION *vers)
 {
-    OSSL_PARAM params[2] = { OSSL_PARAM_END, OSSL_PARAM_END };
+    OSSL_PARAM     params[2] = {OSSL_PARAM_END, OSSL_PARAM_END};
     OSSL_PROVIDER *fips_prov;
-    char *vs;
+    char          *vs;
 
     if (!OSSL_PROVIDER_available(libctx, "fips"))
         return 0;
@@ -86,12 +87,12 @@ static int fips_provider_version(OSSL_LIB_CTX *libctx, FIPS_VERSION *vers)
     if ((fips_prov = OSSL_PROVIDER_load(libctx, "fips")) == NULL)
         return -1;
     if (!OSSL_PROVIDER_get_params(fips_prov, params)
-            || sscanf(vs, "%d.%d.%d", &vers->major, &vers->minor, &vers->patch) != 3)
+        || sscanf(vs, "%d.%d.%d", &vers->major, &vers->minor, &vers->patch) != 3)
         goto err;
     if (!OSSL_PROVIDER_unload(fips_prov))
         return -1;
     return 1;
- err:
+err:
     OSSL_PROVIDER_unload(fips_prov);
     return -1;
 }
@@ -99,7 +100,7 @@ static int fips_provider_version(OSSL_LIB_CTX *libctx, FIPS_VERSION *vers)
 int fips_provider_version_eq(OSSL_LIB_CTX *libctx, int major, int minor, int patch)
 {
     FIPS_VERSION prov;
-    int res;
+    int          res;
 
     if ((res = fips_provider_version(libctx, &prov)) <= 0)
         return res == 0;
@@ -109,7 +110,7 @@ int fips_provider_version_eq(OSSL_LIB_CTX *libctx, int major, int minor, int pat
 int fips_provider_version_ne(OSSL_LIB_CTX *libctx, int major, int minor, int patch)
 {
     FIPS_VERSION prov;
-    int res;
+    int          res;
 
     if ((res = fips_provider_version(libctx, &prov)) <= 0)
         return res == 0;
@@ -119,62 +120,53 @@ int fips_provider_version_ne(OSSL_LIB_CTX *libctx, int major, int minor, int pat
 int fips_provider_version_le(OSSL_LIB_CTX *libctx, int major, int minor, int patch)
 {
     FIPS_VERSION prov;
-    int res;
+    int          res;
 
     if ((res = fips_provider_version(libctx, &prov)) <= 0)
         return res == 0;
     return prov.major < major
-           || (prov.major == major
-               && (prov.minor < minor
-                   || (prov.minor == minor && prov.patch <= patch)));
+           || (prov.major == major && (prov.minor < minor || (prov.minor == minor && prov.patch <= patch)));
 }
 
 int fips_provider_version_lt(OSSL_LIB_CTX *libctx, int major, int minor, int patch)
 {
     FIPS_VERSION prov;
-    int res;
+    int          res;
 
     if ((res = fips_provider_version(libctx, &prov)) <= 0)
         return res == 0;
     return prov.major < major
-           || (prov.major == major
-               && (prov.minor < minor
-                   || (prov.minor == minor && prov.patch < patch)));
+           || (prov.major == major && (prov.minor < minor || (prov.minor == minor && prov.patch < patch)));
 }
 
 int fips_provider_version_gt(OSSL_LIB_CTX *libctx, int major, int minor, int patch)
 {
     FIPS_VERSION prov;
-    int res;
+    int          res;
 
     if ((res = fips_provider_version(libctx, &prov)) <= 0)
         return res == 0;
     return prov.major > major
-           || (prov.major == major
-               && (prov.minor > minor
-                   || (prov.minor == minor && prov.patch > patch)));
+           || (prov.major == major && (prov.minor > minor || (prov.minor == minor && prov.patch > patch)));
 }
 
 int fips_provider_version_ge(OSSL_LIB_CTX *libctx, int major, int minor, int patch)
 {
     FIPS_VERSION prov;
-    int res;
+    int          res;
 
     if ((res = fips_provider_version(libctx, &prov)) <= 0)
         return res == 0;
     return prov.major > major
-           || (prov.major == major
-               && (prov.minor > minor
-                   || (prov.minor == minor && prov.patch >= patch)));
+           || (prov.major == major && (prov.minor > minor || (prov.minor == minor && prov.patch >= patch)));
 }
 
 int fips_provider_version_match(OSSL_LIB_CTX *libctx, const char *versions)
 {
     const char *p;
-    int major, minor, patch, r;
-    enum {
-        MODE_EQ, MODE_NE, MODE_LE, MODE_LT, MODE_GT, MODE_GE
-    } mode;
+    int         major, minor, patch, r;
+
+    enum { MODE_EQ, MODE_NE, MODE_LE, MODE_LT, MODE_GT, MODE_GE } mode;
 
     while (*versions != '\0') {
         for (; isspace((unsigned char)(*versions)); versions++)
@@ -190,11 +182,11 @@ int fips_provider_version_match(OSSL_LIB_CTX *libctx, const char *versions)
             mode = MODE_EQ;
             p++;
         } else if (*p == '<' && p[1] == '=') {
-            mode = MODE_LE;
-            p += 2;
+            mode  = MODE_LE;
+            p    += 2;
         } else if (*p == '>' && p[1] == '=') {
-            mode = MODE_GE;
-            p += 2;
+            mode  = MODE_GE;
+            p    += 2;
         } else if (*p == '<') {
             mode = MODE_LT;
             p++;

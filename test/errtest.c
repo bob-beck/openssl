@@ -26,21 +26,21 @@
 static int test_print_error_format(void)
 {
     /* Variables used to construct an error line */
-    char *lib;
+    char       *lib;
     const char *func = OPENSSL_FUNC;
-    char *reason;
+    char       *reason;
 # ifdef OPENSSL_NO_ERR
     char reasonbuf[255];
 # endif
 # ifndef OPENSSL_NO_FILENAMES
     const char *file = OPENSSL_FILE;
-    const int line = OPENSSL_LINE;
+    const int   line = OPENSSL_LINE;
 # else
     const char *file = "";
-    const int line = 0;
+    const int   line = 0;
 # endif
     /* The format for OpenSSL error lines */
-    const char *expected_format = ":error:%08lX:%s:%s:%s:%s:%d";
+    const char   *expected_format = ":error:%08lX:%s:%s:%s:%s:%d";
     /*-
      *                                          ^^ ^^ ^^ ^^ ^^
      * "library" name --------------------------++ || || || ||
@@ -49,12 +49,12 @@ static int test_print_error_format(void)
      * file name ----------------------------------------++ ||
      * line number -----------------------------------------++
      */
-    char expected[512];
+    char          expected[512];
 
-    char *out = NULL, *p = NULL;
-    int ret = 0, len;
-    BIO *bio = NULL;
-    const int syserr = EPERM;
+    char         *out = NULL, *p = NULL;
+    int           ret    = 0, len;
+    BIO          *bio    = NULL;
+    const int     syserr = EPERM;
     unsigned long errorcode;
     unsigned long reasoncode;
 
@@ -66,7 +66,7 @@ static int test_print_error_format(void)
     ERR_set_mark();
 
     ERR_PUT_error(ERR_LIB_SYS, 0, syserr, file, line);
-    errorcode = ERR_peek_error();
+    errorcode  = ERR_peek_error();
     reasoncode = ERR_GET_REASON(errorcode);
 
     if (!TEST_int_eq(reasoncode, syserr)) {
@@ -87,8 +87,7 @@ static int test_print_error_format(void)
     reason = reasonbuf;
 # endif
 
-    BIO_snprintf(expected, sizeof(expected), expected_format,
-                 errorcode, lib, func, reason, file, line);
+    BIO_snprintf(expected, sizeof(expected), expected_format, errorcode, lib, func, reason, file, line);
 
     if (!TEST_ptr(bio = BIO_new(BIO_s_mem())))
         goto err;
@@ -102,8 +101,7 @@ static int test_print_error_format(void)
         if (!TEST_true(IS_HEX(*p)))
             goto err;
     }
-    if (!TEST_true(*p != 0)
-        || !TEST_strn_eq(expected, p, strlen(expected)))
+    if (!TEST_true(*p != 0) || !TEST_strn_eq(expected, p, strlen(expected)))
         goto err;
 
     ret = 1;
@@ -141,21 +139,19 @@ static int vdata_appends(void)
 
 static int raised_error(void)
 {
-    int l, start_line = -1, end_line = -1;
-    const char *f, *data, *file = NULL;
+    int           l, start_line = -1, end_line = -1;
+    const char   *f, *data, *file              = NULL;
     unsigned long e;
 
-    file = __FILE__;
+    file       = __FILE__;
 
     start_line = __LINE__ + 1;
-    ERR_raise_data(ERR_LIB_NONE, ERR_R_INTERNAL_ERROR,
-                   "calling exit()");
+    ERR_raise_data(ERR_LIB_NONE, ERR_R_INTERNAL_ERROR, "calling exit()");
     end_line = __LINE__ - 1;
     if (!TEST_ulong_ne(e = ERR_get_error_all(&f, &l, NULL, &data, NULL), 0)
         || !TEST_int_eq(ERR_GET_REASON(e), ERR_R_INTERNAL_ERROR)
         || (l > 0 && !(TEST_int_eq(l, start_line) || TEST_int_eq(l, end_line)))
-        || (strlen(f) != 0 && !TEST_str_eq(f, file))
-        || !TEST_str_eq(data, "calling exit()"))
+        || (strlen(f) != 0 && !TEST_str_eq(f, file)) || !TEST_str_eq(data, "calling exit()"))
         return 0;
     return 1;
 }
@@ -171,71 +167,58 @@ static int test_marks(void)
         return 0;
 
     /* Setting and clearing a mark should not affect the error */
-    if (!TEST_true(ERR_set_mark())
-            || !TEST_true(ERR_pop_to_mark())
-            || !TEST_ulong_eq(mallocfail, ERR_peek_last_error())
-            || !TEST_true(ERR_set_mark())
-            || !TEST_true(ERR_clear_last_mark())
-            || !TEST_ulong_eq(mallocfail, ERR_peek_last_error()))
+    if (!TEST_true(ERR_set_mark()) || !TEST_true(ERR_pop_to_mark()) || !TEST_ulong_eq(mallocfail, ERR_peek_last_error())
+        || !TEST_true(ERR_set_mark()) || !TEST_true(ERR_clear_last_mark())
+        || !TEST_ulong_eq(mallocfail, ERR_peek_last_error()))
         return 0;
 
     /* Test popping errors */
     if (!TEST_true(ERR_set_mark()))
         return 0;
     ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
-    if (!TEST_ulong_ne(mallocfail, ERR_peek_last_error())
-            || !TEST_true(ERR_pop_to_mark())
-            || !TEST_ulong_eq(mallocfail, ERR_peek_last_error()))
+    if (!TEST_ulong_ne(mallocfail, ERR_peek_last_error()) || !TEST_true(ERR_pop_to_mark())
+        || !TEST_ulong_eq(mallocfail, ERR_peek_last_error()))
         return 0;
 
     /* Nested marks should also work */
-    if (!TEST_true(ERR_set_mark())
-            || !TEST_true(ERR_set_mark()))
+    if (!TEST_true(ERR_set_mark()) || !TEST_true(ERR_set_mark()))
         return 0;
     ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
-    if (!TEST_ulong_ne(mallocfail, ERR_peek_last_error())
-            || !TEST_true(ERR_pop_to_mark())
-            || !TEST_true(ERR_pop_to_mark())
-            || !TEST_ulong_eq(mallocfail, ERR_peek_last_error()))
+    if (!TEST_ulong_ne(mallocfail, ERR_peek_last_error()) || !TEST_true(ERR_pop_to_mark())
+        || !TEST_true(ERR_pop_to_mark()) || !TEST_ulong_eq(mallocfail, ERR_peek_last_error()))
         return 0;
 
     if (!TEST_true(ERR_set_mark()))
         return 0;
     ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
     shouldnot = ERR_peek_last_error();
-    if (!TEST_ulong_ne(mallocfail, shouldnot)
-            || !TEST_true(ERR_set_mark()))
+    if (!TEST_ulong_ne(mallocfail, shouldnot) || !TEST_true(ERR_set_mark()))
         return 0;
     ERR_raise(ERR_LIB_CRYPTO, ERR_R_INTERNAL_ERROR);
-    if (!TEST_ulong_ne(shouldnot, ERR_peek_last_error())
-            || !TEST_true(ERR_pop_to_mark())
-            || !TEST_ulong_eq(shouldnot, ERR_peek_last_error())
-            || !TEST_true(ERR_pop_to_mark())
-            || !TEST_ulong_eq(mallocfail, ERR_peek_last_error()))
+    if (!TEST_ulong_ne(shouldnot, ERR_peek_last_error()) || !TEST_true(ERR_pop_to_mark())
+        || !TEST_ulong_eq(shouldnot, ERR_peek_last_error()) || !TEST_true(ERR_pop_to_mark())
+        || !TEST_ulong_eq(mallocfail, ERR_peek_last_error()))
         return 0;
 
     /* Setting and clearing a mark should not affect the errors on the stack */
     if (!TEST_true(ERR_set_mark()))
         return 0;
     ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
-    if (!TEST_true(ERR_clear_last_mark())
-            || !TEST_ulong_eq(shouldnot, ERR_peek_last_error()))
+    if (!TEST_true(ERR_clear_last_mark()) || !TEST_ulong_eq(shouldnot, ERR_peek_last_error()))
         return 0;
 
     /*
      * Popping where no mark has been set should pop everything - but return
      * a failure result
      */
-    if (!TEST_false(ERR_pop_to_mark())
-            || !TEST_ulong_eq(0, ERR_peek_last_error()))
+    if (!TEST_false(ERR_pop_to_mark()) || !TEST_ulong_eq(0, ERR_peek_last_error()))
         return 0;
 
     /* Clearing where there is no mark should fail */
     ERR_raise(ERR_LIB_CRYPTO, ERR_R_MALLOC_FAILURE);
     if (!TEST_false(ERR_clear_last_mark())
-                /* "get" the last error to remove it */
-            || !TEST_ulong_eq(mallocfail, ERR_get_error())
-            || !TEST_ulong_eq(0, ERR_peek_last_error()))
+        /* "get" the last error to remove it */
+        || !TEST_ulong_eq(mallocfail, ERR_get_error()) || !TEST_ulong_eq(0, ERR_peek_last_error()))
         return 0;
 
     /*
@@ -258,8 +241,7 @@ static int test_marks(void)
     ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
 
     /* Should be able to "pop" past 2 errors */
-    if (!TEST_true(ERR_pop_to_mark())
-            || !TEST_ulong_eq(mallocfail, ERR_peek_last_error()))
+    if (!TEST_true(ERR_pop_to_mark()) || !TEST_ulong_eq(mallocfail, ERR_peek_last_error()))
         return 0;
 
     if (!TEST_true(ERR_set_mark()))
@@ -268,8 +250,7 @@ static int test_marks(void)
     ERR_raise(ERR_LIB_CRYPTO, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
 
     /* Should be able to "clear" past 2 errors */
-    if (!TEST_true(ERR_clear_last_mark())
-            || !TEST_ulong_eq(shouldnot, ERR_peek_last_error()))
+    if (!TEST_true(ERR_clear_last_mark()) || !TEST_ulong_eq(shouldnot, ERR_peek_last_error()))
         return 0;
 
     /* Clear remaining errors from last test */
@@ -280,31 +261,28 @@ static int test_marks(void)
 
 static int test_clear_error(void)
 {
-    int flags = -1;
-    const char *data = NULL;
-    int res = 0;
+    int         flags = -1;
+    const char *data  = NULL;
+    int         res   = 0;
 
     /* Raise an error with data and clear it */
     ERR_raise_data(0, 0, "hello %s", "world");
     ERR_peek_error_data(&data, &flags);
-    if (!TEST_str_eq(data, "hello world")
-            || !TEST_int_eq(flags, ERR_TXT_STRING | ERR_TXT_MALLOCED))
+    if (!TEST_str_eq(data, "hello world") || !TEST_int_eq(flags, ERR_TXT_STRING | ERR_TXT_MALLOCED))
         goto err;
     ERR_clear_error();
 
     /* Raise a new error without data */
     ERR_raise(0, 0);
     ERR_peek_error_data(&data, &flags);
-    if (!TEST_str_eq(data, "")
-            || !TEST_int_eq(flags, ERR_TXT_MALLOCED))
+    if (!TEST_str_eq(data, "") || !TEST_int_eq(flags, ERR_TXT_MALLOCED))
         goto err;
     ERR_clear_error();
 
     /* Raise a new error with data */
     ERR_raise_data(0, 0, "goodbye %s world", "cruel");
     ERR_peek_error_data(&data, &flags);
-    if (!TEST_str_eq(data, "goodbye cruel world")
-            || !TEST_int_eq(flags, ERR_TXT_STRING | ERR_TXT_MALLOCED))
+    if (!TEST_str_eq(data, "goodbye cruel world") || !TEST_int_eq(flags, ERR_TXT_STRING | ERR_TXT_MALLOCED))
         goto err;
     ERR_clear_error();
 
@@ -314,14 +292,13 @@ static int test_clear_error(void)
      */
     ERR_raise(0, 0);
     ERR_peek_error_data(&data, &flags);
-    if (!TEST_str_eq(data, "")
-            || !TEST_int_eq(flags, ERR_TXT_MALLOCED))
+    if (!TEST_str_eq(data, "") || !TEST_int_eq(flags, ERR_TXT_MALLOCED))
         goto err;
     ERR_clear_error();
 
     res = 1;
- err:
-     ERR_clear_error();
+err:
+    ERR_clear_error();
     return res;
 }
 
@@ -332,11 +309,11 @@ static int test_clear_error(void)
  */
 static int test_save_restore(int idx)
 {
-    ERR_STATE *es;
-    int res = 0, i, flags = -1;
-    unsigned long mallocfail, interr;
+    ERR_STATE        *es;
+    int               res = 0, i, flags = -1;
+    unsigned long     mallocfail, interr;
     static const char testdata[] = "test data";
-    const char *data = NULL;
+    const char       *data       = NULL;
 
     if (!TEST_ptr(es = OSSL_ERR_STATE_new()))
         goto err;
@@ -372,8 +349,7 @@ static int test_save_restore(int idx)
         if (!TEST_ulong_eq(ERR_peek_last_error(), interr))
             goto err;
         ERR_peek_last_error_data(&data, &flags);
-        if (!TEST_str_eq(data, testdata)
-                || !TEST_int_eq(flags, ERR_TXT_STRING | ERR_TXT_MALLOCED))
+        if (!TEST_str_eq(data, testdata) || !TEST_int_eq(flags, ERR_TXT_STRING | ERR_TXT_MALLOCED))
             goto err;
 
         /* restore again to duplicate the entries */
@@ -381,28 +357,22 @@ static int test_save_restore(int idx)
 
         /* verify them all */
         if (idx == 0 || i == 0) {
-            if (!TEST_ulong_eq(ERR_get_error_all(NULL, NULL, NULL,
-                                                 &data, &flags), mallocfail)
+            if (!TEST_ulong_eq(ERR_get_error_all(NULL, NULL, NULL, &data, &flags), mallocfail)
                 || !TEST_int_ne(flags, ERR_TXT_STRING | ERR_TXT_MALLOCED))
                 goto err;
         }
 
-        if (!TEST_ulong_eq(ERR_get_error_all(NULL, NULL, NULL,
-                                             &data, &flags), interr)
-            || !TEST_str_eq(data, testdata)
+        if (!TEST_ulong_eq(ERR_get_error_all(NULL, NULL, NULL, &data, &flags), interr) || !TEST_str_eq(data, testdata)
             || !TEST_int_eq(flags, ERR_TXT_STRING | ERR_TXT_MALLOCED))
             goto err;
 
         if (idx == 0) {
-            if (!TEST_ulong_eq(ERR_get_error_all(NULL, NULL, NULL,
-                                                 &data, &flags), mallocfail)
+            if (!TEST_ulong_eq(ERR_get_error_all(NULL, NULL, NULL, &data, &flags), mallocfail)
                 || !TEST_int_ne(flags, ERR_TXT_STRING | ERR_TXT_MALLOCED))
                 goto err;
         }
 
-        if (!TEST_ulong_eq(ERR_get_error_all(NULL, NULL, NULL,
-                                             &data, &flags), interr)
-            || !TEST_str_eq(data, testdata)
+        if (!TEST_ulong_eq(ERR_get_error_all(NULL, NULL, NULL, &data, &flags), interr) || !TEST_str_eq(data, testdata)
             || !TEST_int_eq(flags, ERR_TXT_STRING | ERR_TXT_MALLOCED))
             goto err;
 
@@ -411,7 +381,7 @@ static int test_save_restore(int idx)
     }
 
     res = 1;
- err:
+err:
     OSSL_ERR_STATE_free(es);
     return res;
 }

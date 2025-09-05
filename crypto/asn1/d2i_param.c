@@ -15,8 +15,7 @@
 #include "crypto/asn1.h"
 #include "crypto/evp.h"
 
-EVP_PKEY *d2i_KeyParams(int type, EVP_PKEY **a, const unsigned char **pp,
-                        long length)
+EVP_PKEY *d2i_KeyParams(int type, EVP_PKEY **a, const unsigned char **pp, long length)
 {
     EVP_PKEY *ret = NULL;
 
@@ -48,16 +47,16 @@ err:
 
 EVP_PKEY *d2i_KeyParams_bio(int type, EVP_PKEY **a, BIO *in)
 {
-    BUF_MEM *b = NULL;
+    BUF_MEM             *b = NULL;
     const unsigned char *p;
-    void *ret = NULL;
-    int len;
+    void                *ret = NULL;
+    int                  len;
 
     len = asn1_d2i_read_bio(in, &b);
     if (len < 0)
         goto err;
 
-    p = (unsigned char *)b->data;
+    p   = (unsigned char *)b->data;
     ret = d2i_KeyParams(type, a, &p, len);
 err:
     BUF_MEM_free(b);

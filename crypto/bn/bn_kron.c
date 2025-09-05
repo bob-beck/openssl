@@ -16,10 +16,10 @@
 /* Returns -2 for errors because both -1 and 0 are valid results. */
 int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
 {
-    int i;
-    int ret = -2;               /* avoid 'uninitialized' warning */
-    int err = 0;
-    BIGNUM *A, *B, *tmp;
+    int              i;
+    int              ret = -2; /* avoid 'uninitialized' warning */
+    int              err = 0;
+    BIGNUM          *A, *B, *tmp;
     /*-
      * In 'tab', only odd-indexed entries are relevant:
      * For any odd BIGNUM n,
@@ -27,7 +27,7 @@ int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
      * is $(-1)^{(n^2-1)/8}$ (using TeX notation).
      * Note that the sign of n does not matter.
      */
-    static const int tab[8] = { 0, 1, 0, -1, 0, -1, 0, 1 };
+    static const int tab[8] = {0, 1, 0, -1, 0, -1, 0, 1};
 
     bn_check_top(a);
     bn_check_top(b);
@@ -126,12 +126,12 @@ int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
         err = !BN_nnmod(B, B, A, ctx);
         if (err)
             goto end;
-        tmp = A;
-        A = B;
-        B = tmp;
+        tmp      = A;
+        A        = B;
+        B        = tmp;
         tmp->neg = 0;
     }
- end:
+end:
     BN_CTX_end(ctx);
     if (err)
         return -2;

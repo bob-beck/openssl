@@ -28,11 +28,9 @@
 #include "crypto/rsa.h"
 #include "rsa_local.h"
 
-
-int RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
-                                 const unsigned char *from, int flen)
+int RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen, const unsigned char *from, int flen)
 {
-    int j;
+    int            j;
     unsigned char *p;
 
     if (flen > (tlen - RSA_PKCS1_PADDING_SIZE)) {
@@ -40,25 +38,23 @@ int RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
         return 0;
     }
 
-    p = (unsigned char *)to;
+    p      = (unsigned char *)to;
 
     *(p++) = 0;
-    *(p++) = 1;                 /* Private Key BT (Block Type) */
+    *(p++) = 1; /* Private Key BT (Block Type) */
 
     /* pad out with 0xff data */
-    j = tlen - 3 - flen;
+    j      = tlen - 3 - flen;
     memset(p, 0xff, j);
-    p += j;
-    *(p++) = '\0';
+    p      += j;
+    *(p++)  = '\0';
     memcpy(p, from, (unsigned int)flen);
     return 1;
 }
 
-int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
-                                   const unsigned char *from, int flen,
-                                   int num)
+int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen, const unsigned char *from, int flen, int num)
 {
-    int i, j;
+    int                  i, j;
     const unsigned char *p;
 
     p = from;
@@ -88,9 +84,9 @@ int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
     }
 
     /* scan over padding data */
-    j = flen - 1;               /* one for type. */
+    j = flen - 1; /* one for type. */
     for (i = 0; i < j; i++) {
-        if (*p != 0xff) {       /* should decrypt to 0xff */
+        if (*p != 0xff) { /* should decrypt to 0xff */
             if (*p == 0) {
                 p++;
                 break;
@@ -111,7 +107,7 @@ int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
         ERR_raise(ERR_LIB_RSA, RSA_R_BAD_PAD_BYTE_COUNT);
         return -1;
     }
-    i++;                        /* Skip over the '\0' */
+    i++; /* Skip over the '\0' */
     j -= i;
     if (j > tlen) {
         ERR_raise(ERR_LIB_RSA, RSA_R_DATA_TOO_LARGE);
@@ -122,11 +118,13 @@ int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
     return j;
 }
 
-int ossl_rsa_padding_add_PKCS1_type_2_ex(OSSL_LIB_CTX *libctx, unsigned char *to,
-                                         int tlen, const unsigned char *from,
-                                         int flen)
+int ossl_rsa_padding_add_PKCS1_type_2_ex(OSSL_LIB_CTX        *libctx,
+                                         unsigned char       *to,
+                                         int                  tlen,
+                                         const unsigned char *from,
+                                         int                  flen)
 {
-    int i, j;
+    int            i, j;
     unsigned char *p;
 
     if (flen > (tlen - RSA_PKCS1_PADDING_SIZE)) {
@@ -137,13 +135,13 @@ int ossl_rsa_padding_add_PKCS1_type_2_ex(OSSL_LIB_CTX *libctx, unsigned char *to
         return 0;
     }
 
-    p = (unsigned char *)to;
+    p      = (unsigned char *)to;
 
     *(p++) = 0;
-    *(p++) = 2;                 /* Public Key BT (Block Type) */
+    *(p++) = 2; /* Public Key BT (Block Type) */
 
     /* pad out with non-zero random data */
-    j = tlen - 3 - flen;
+    j      = tlen - 3 - flen;
 
     if (RAND_bytes_ex(libctx, p, j, 0) <= 0)
         return 0;
@@ -162,21 +160,18 @@ int ossl_rsa_padding_add_PKCS1_type_2_ex(OSSL_LIB_CTX *libctx, unsigned char *to
     return 1;
 }
 
-int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
-                                 const unsigned char *from, int flen)
+int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen, const unsigned char *from, int flen)
 {
     return ossl_rsa_padding_add_PKCS1_type_2_ex(NULL, to, tlen, from, flen);
 }
 
-int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
-                                   const unsigned char *from, int flen,
-                                   int num)
+int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen, const unsigned char *from, int flen, int num)
 {
-    int i;
+    int            i;
     /* |em| is the encoded message, zero-padded to exactly |num| bytes */
     unsigned char *em = NULL;
-    unsigned int good, found_zero_byte, mask;
-    int zero_index = 0, msg_index, mlen = -1;
+    unsigned int   good, found_zero_byte, mask;
+    int            zero_index = 0, msg_index, mlen = -1;
 
     if (tlen <= 0 || flen <= 0)
         return -1;
@@ -201,23 +196,22 @@ int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
      * in case |from| was not zero-padded in advance.
      */
     for (from += flen, em += num, i = 0; i < num; i++) {
-        mask = ~constant_time_is_zero(flen);
-        flen -= 1 & mask;
-        from -= 1 & mask;
-        *--em = *from & mask;
+        mask   = ~constant_time_is_zero(flen);
+        flen  -= 1 & mask;
+        from  -= 1 & mask;
+        *--em  = *from & mask;
     }
 
-    good = constant_time_is_zero(em[0]);
-    good &= constant_time_eq(em[1], 2);
+    good             = constant_time_is_zero(em[0]);
+    good            &= constant_time_eq(em[1], 2);
 
     /* scan over padding data */
-    found_zero_byte = 0;
+    found_zero_byte  = 0;
     for (i = 2; i < num; i++) {
-        unsigned int equals0 = constant_time_is_zero(em[i]);
+        unsigned int equals0  = constant_time_is_zero(em[i]);
 
-        zero_index = constant_time_select_int(~found_zero_byte & equals0,
-                                              i, zero_index);
-        found_zero_byte |= equals0;
+        zero_index            = constant_time_select_int(~found_zero_byte & equals0, i, zero_index);
+        found_zero_byte      |= equals0;
     }
 
     /*
@@ -225,19 +219,19 @@ int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
      * If we never found a 0-byte, then |zero_index| is 0 and the check
      * also fails.
      */
-    good &= constant_time_ge(zero_index, 2 + 8);
+    good      &= constant_time_ge(zero_index, 2 + 8);
 
     /*
      * Skip the zero byte. This is incorrect if we never found a zero-byte
      * but in this case we also do not copy the message out.
      */
-    msg_index = zero_index + 1;
-    mlen = num - msg_index;
+    msg_index  = zero_index + 1;
+    mlen       = num - msg_index;
 
     /*
      * For good measure, do this check in constant time as well.
      */
-    good &= constant_time_ge(tlen, mlen);
+    good      &= constant_time_ge(tlen, mlen);
 
     /*
      * Move the result in-place by |num|-RSA_PKCS1_PADDING_SIZE-|mlen| bytes to the left.
@@ -249,15 +243,16 @@ int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
      * length. Clear bits do a non-copy with identical access pattern.
      * The loop below has overall complexity of O(N*log(N)).
      */
-    tlen = constant_time_select_int(constant_time_lt(num - RSA_PKCS1_PADDING_SIZE, tlen),
-                                    num - RSA_PKCS1_PADDING_SIZE, tlen);
+    tlen       = constant_time_select_int(constant_time_lt(num - RSA_PKCS1_PADDING_SIZE, tlen),
+                                    num - RSA_PKCS1_PADDING_SIZE,
+                                    tlen);
     for (msg_index = 1; msg_index < num - RSA_PKCS1_PADDING_SIZE; msg_index <<= 1) {
         mask = ~constant_time_eq(msg_index & (num - RSA_PKCS1_PADDING_SIZE - mlen), 0);
         for (i = RSA_PKCS1_PADDING_SIZE; i < num - msg_index; i++)
             em[i] = constant_time_select_8(mask, em[i + msg_index], em[i]);
     }
     for (i = 0; i < tlen; i++) {
-        mask = good & constant_time_lt(i, mlen);
+        mask  = good & constant_time_lt(i, mlen);
         to[i] = constant_time_select_8(mask, em[i + RSA_PKCS1_PADDING_SIZE], to[i]);
     }
 
@@ -275,22 +270,23 @@ int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
     return constant_time_select_int(good, mlen, -1);
 }
 
-
-static int ossl_rsa_prf(OSSL_LIB_CTX *ctx,
-                        unsigned char *to, int tlen,
-                        const char *label, int llen,
+static int ossl_rsa_prf(OSSL_LIB_CTX        *ctx,
+                        unsigned char       *to,
+                        int                  tlen,
+                        const char          *label,
+                        int                  llen,
                         const unsigned char *kdk,
-                        uint16_t bitlen)
+                        uint16_t             bitlen)
 {
-    int pos;
-    int ret = -1;
-    uint16_t iter = 0;
+    int           pos;
+    int           ret  = -1;
+    uint16_t      iter = 0;
     unsigned char be_iter[sizeof(iter)];
     unsigned char be_bitlen[sizeof(bitlen)];
-    HMAC_CTX *hmac = NULL;
-    EVP_MD *md = NULL;
+    HMAC_CTX     *hmac = NULL;
+    EVP_MD       *md   = NULL;
     unsigned char hmac_out[SHA256_DIGEST_LENGTH];
-    unsigned int md_len;
+    unsigned int  md_len;
 
     if (tlen * 8 != bitlen) {
         ERR_raise(ERR_LIB_RSA, ERR_R_INTERNAL_ERROR);
@@ -300,7 +296,7 @@ static int ossl_rsa_prf(OSSL_LIB_CTX *ctx,
     be_bitlen[0] = (bitlen >> 8) & 0xff;
     be_bitlen[1] = bitlen & 0xff;
 
-    hmac = HMAC_CTX_new();
+    hmac         = HMAC_CTX_new();
     if (hmac == NULL) {
         ERR_raise(ERR_LIB_RSA, ERR_R_INTERNAL_ERROR);
         goto err;
@@ -386,10 +382,13 @@ err:
  * without access to the full decrypted value and a brute-force search of
  * remaining padding bytes
  */
-int ossl_rsa_padding_check_PKCS1_type_2(OSSL_LIB_CTX *ctx,
-                                        unsigned char *to, int tlen,
-                                        const unsigned char *from, int flen,
-                                        int num, unsigned char *kdk)
+int ossl_rsa_padding_check_PKCS1_type_2(OSSL_LIB_CTX        *ctx,
+                                        unsigned char       *to,
+                                        int                  tlen,
+                                        const unsigned char *from,
+                                        int                  flen,
+                                        int                  num,
+                                        unsigned char       *kdk)
 {
 /*
  * We need to generate a random length for the synthetic message, to avoid
@@ -400,16 +399,16 @@ int ossl_rsa_padding_check_PKCS1_type_2(OSSL_LIB_CTX *ctx,
  */
 #define MAX_LEN_GEN_TRIES 128
     unsigned char *synthetic = NULL;
-    int synthetic_length;
-    uint16_t len_candidate;
-    unsigned char candidate_lengths[MAX_LEN_GEN_TRIES * sizeof(len_candidate)];
-    uint16_t len_mask;
-    uint16_t max_sep_offset;
-    int synth_msg_index = 0;
-    int ret = -1;
-    int i, j;
-    unsigned int good, found_zero_byte;
-    int zero_index = 0, msg_index;
+    int            synthetic_length;
+    uint16_t       len_candidate;
+    unsigned char  candidate_lengths[MAX_LEN_GEN_TRIES * sizeof(len_candidate)];
+    uint16_t       len_mask;
+    uint16_t       max_sep_offset;
+    int            synth_msg_index = 0;
+    int            ret             = -1;
+    int            i, j;
+    unsigned int   good, found_zero_byte;
+    int            zero_index = 0, msg_index;
 
     /*
      * If these checks fail then either the message in publicly invalid, or
@@ -433,49 +432,51 @@ int ossl_rsa_padding_check_PKCS1_type_2(OSSL_LIB_CTX *ctx,
         goto err;
 
     /* decide how long the random message should be */
-    if (ossl_rsa_prf(ctx, candidate_lengths, sizeof(candidate_lengths),
-                     "length", 6, kdk,
-                     MAX_LEN_GEN_TRIES * sizeof(len_candidate) * 8) < 0)
+    if (ossl_rsa_prf(ctx,
+                     candidate_lengths,
+                     sizeof(candidate_lengths),
+                     "length",
+                     6,
+                     kdk,
+                     MAX_LEN_GEN_TRIES * sizeof(len_candidate) * 8)
+        < 0)
         goto err;
 
     /*
      * max message size is the size of the modulus size less 2 bytes for
      * version and padding type and a minimum of 8 bytes padding
      */
-    len_mask = max_sep_offset = flen - 2 - 8;
+    len_mask = max_sep_offset  = flen - 2 - 8;
     /*
      * we want a mask so lets propagate the high bit to all positions less
      * significant than it
      */
-    len_mask |= len_mask >> 1;
-    len_mask |= len_mask >> 2;
-    len_mask |= len_mask >> 4;
-    len_mask |= len_mask >> 8;
+    len_mask                  |= len_mask >> 1;
+    len_mask                  |= len_mask >> 2;
+    len_mask                  |= len_mask >> 4;
+    len_mask                  |= len_mask >> 8;
 
-    synthetic_length = 0;
-    for (i = 0; i < MAX_LEN_GEN_TRIES * (int)sizeof(len_candidate);
-            i += sizeof(len_candidate)) {
-        len_candidate = (candidate_lengths[i] << 8) | candidate_lengths[i + 1];
+    synthetic_length           = 0;
+    for (i = 0; i < MAX_LEN_GEN_TRIES * (int)sizeof(len_candidate); i += sizeof(len_candidate)) {
+        len_candidate  = (candidate_lengths[i] << 8) | candidate_lengths[i + 1];
         len_candidate &= len_mask;
 
-        synthetic_length = constant_time_select_int(
-            constant_time_lt(len_candidate, max_sep_offset),
-            len_candidate, synthetic_length);
+        synthetic_length =
+            constant_time_select_int(constant_time_lt(len_candidate, max_sep_offset), len_candidate, synthetic_length);
     }
 
-    synth_msg_index = flen - synthetic_length;
+    synth_msg_index  = flen - synthetic_length;
 
     /* we have alternative message ready, check the real one */
-    good = constant_time_is_zero(from[0]);
-    good &= constant_time_eq(from[1], 2);
+    good             = constant_time_is_zero(from[0]);
+    good            &= constant_time_eq(from[1], 2);
 
     /* then look for the padding|message separator (the first zero byte) */
-    found_zero_byte = 0;
+    found_zero_byte  = 0;
     for (i = 2; i < flen; i++) {
-        unsigned int equals0 = constant_time_is_zero(from[i]);
-        zero_index = constant_time_select_int(~found_zero_byte & equals0,
-                                              i, zero_index);
-        found_zero_byte |= equals0;
+        unsigned int equals0  = constant_time_is_zero(from[i]);
+        zero_index            = constant_time_select_int(~found_zero_byte & equals0, i, zero_index);
+        found_zero_byte      |= equals0;
     }
 
     /*
@@ -483,22 +484,22 @@ int ossl_rsa_padding_check_PKCS1_type_2(OSSL_LIB_CTX *ctx,
      * |from|. If we never found a 0-byte, then |zero_index| is 0 and the check
      * also fails.
      */
-    good &= constant_time_ge(zero_index, 2 + 8);
+    good      &= constant_time_ge(zero_index, 2 + 8);
 
     /*
      * Skip the zero byte. This is incorrect if we never found a zero-byte
      * but in this case we also do not copy the message out.
      */
-    msg_index = zero_index + 1;
+    msg_index  = zero_index + 1;
 
     /*
      * old code returned an error in case the decrypted message wouldn't fit
      * into the |to|, since that would leak information, return the synthetic
      * message instead
      */
-    good &= constant_time_ge(tlen, num - msg_index);
+    good      &= constant_time_ge(tlen, num - msg_index);
 
-    msg_index = constant_time_select_int(good, msg_index, synth_msg_index);
+    msg_index  = constant_time_select_int(good, msg_index, synth_msg_index);
 
     /*
      * since at this point the |msg_index| does not provide the signal
@@ -544,21 +545,22 @@ err:
  * decrypted data will be randomly generated (as per
  * https://tools.ietf.org/html/rfc5246#section-7.4.7.1).
  */
-int ossl_rsa_padding_check_PKCS1_type_2_TLS(OSSL_LIB_CTX *libctx,
-                                            unsigned char *to, size_t tlen,
+int ossl_rsa_padding_check_PKCS1_type_2_TLS(OSSL_LIB_CTX        *libctx,
+                                            unsigned char       *to,
+                                            size_t               tlen,
                                             const unsigned char *from,
-                                            size_t flen, int client_version,
-                                            int alt_version)
+                                            size_t               flen,
+                                            int                  client_version,
+                                            int                  alt_version)
 {
-    unsigned int i, good, version_good;
+    unsigned int  i, good, version_good;
     unsigned char rand_premaster_secret[SSL_MAX_MASTER_KEY_LENGTH];
 
     /*
      * If these checks fail then either the message in publicly invalid, or
      * we've been called incorrectly. We can fail immediately.
      */
-    if (flen < RSA_PKCS1_PADDING_SIZE + SSL_MAX_MASTER_KEY_LENGTH
-            || tlen < SSL_MAX_MASTER_KEY_LENGTH) {
+    if (flen < RSA_PKCS1_PADDING_SIZE + SSL_MAX_MASTER_KEY_LENGTH || tlen < SSL_MAX_MASTER_KEY_LENGTH) {
         ERR_raise(ERR_LIB_RSA, RSA_R_PKCS_DECODING_ERROR);
         return -1;
     }
@@ -567,20 +569,18 @@ int ossl_rsa_padding_check_PKCS1_type_2_TLS(OSSL_LIB_CTX *libctx,
      * Generate a random premaster secret to use in the event that we fail
      * to decrypt.
      */
-    if (RAND_priv_bytes_ex(libctx, rand_premaster_secret,
-                           sizeof(rand_premaster_secret), 0) <= 0) {
+    if (RAND_priv_bytes_ex(libctx, rand_premaster_secret, sizeof(rand_premaster_secret), 0) <= 0) {
         ERR_raise(ERR_LIB_RSA, ERR_R_INTERNAL_ERROR);
         return -1;
     }
 
-    good = constant_time_is_zero(from[0]);
+    good  = constant_time_is_zero(from[0]);
     good &= constant_time_eq(from[1], 2);
 
     /* Check we have the expected padding data */
     for (i = 2; i < flen - SSL_MAX_MASTER_KEY_LENGTH - 1; i++)
         good &= ~constant_time_is_zero_8(from[i]);
-    good &= constant_time_is_zero_8(from[flen - SSL_MAX_MASTER_KEY_LENGTH - 1]);
-
+    good         &= constant_time_is_zero_8(from[flen - SSL_MAX_MASTER_KEY_LENGTH - 1]);
 
     /*
      * If the version in the decrypted pre-master secret is correct then
@@ -590,12 +590,8 @@ int ossl_rsa_padding_check_PKCS1_type_2_TLS(OSSL_LIB_CTX *libctx,
      * check as a "bad version oracle". Thus version checks are done in
      * constant time and are treated like any other decryption error.
      */
-    version_good =
-        constant_time_eq(from[flen - SSL_MAX_MASTER_KEY_LENGTH],
-                         (client_version >> 8) & 0xff);
-    version_good &=
-        constant_time_eq(from[flen - SSL_MAX_MASTER_KEY_LENGTH + 1],
-                         client_version & 0xff);
+    version_good  = constant_time_eq(from[flen - SSL_MAX_MASTER_KEY_LENGTH], (client_version >> 8) & 0xff);
+    version_good &= constant_time_eq(from[flen - SSL_MAX_MASTER_KEY_LENGTH + 1], client_version & 0xff);
 
     /*
      * The premaster secret must contain the same version number as the
@@ -610,27 +606,19 @@ int ossl_rsa_padding_check_PKCS1_type_2_TLS(OSSL_LIB_CTX *libctx,
     if (alt_version > 0) {
         unsigned int workaround_good;
 
-        workaround_good =
-            constant_time_eq(from[flen - SSL_MAX_MASTER_KEY_LENGTH],
-                             (alt_version >> 8) & 0xff);
-        workaround_good &=
-            constant_time_eq(from[flen - SSL_MAX_MASTER_KEY_LENGTH + 1],
-                             alt_version & 0xff);
-        version_good |= workaround_good;
+        workaround_good  = constant_time_eq(from[flen - SSL_MAX_MASTER_KEY_LENGTH], (alt_version >> 8) & 0xff);
+        workaround_good &= constant_time_eq(from[flen - SSL_MAX_MASTER_KEY_LENGTH + 1], alt_version & 0xff);
+        version_good    |= workaround_good;
     }
 
     good &= version_good;
-
 
     /*
      * Now copy the result over to the to buffer if good, or random data if
      * not good.
      */
     for (i = 0; i < SSL_MAX_MASTER_KEY_LENGTH; i++) {
-        to[i] =
-            constant_time_select_8(good,
-                                   from[flen - SSL_MAX_MASTER_KEY_LENGTH + i],
-                                   rand_premaster_secret[i]);
+        to[i] = constant_time_select_8(good, from[flen - SSL_MAX_MASTER_KEY_LENGTH + i], rand_premaster_secret[i]);
     }
 
     /*

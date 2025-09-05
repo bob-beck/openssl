@@ -14,12 +14,12 @@
 
 typedef struct {
     unsigned int id;
-    const char *mode;
+    const char  *mode;
 } KEM_MODE;
 
 static const KEM_MODE eckem_modename_id_map[] = {
-    { KEM_MODE_DHKEM, OSSL_KEM_PARAM_OPERATION_DHKEM },
-    { 0, NULL }
+    {KEM_MODE_DHKEM, OSSL_KEM_PARAM_OPERATION_DHKEM},
+    {0,              NULL                          }
 };
 
 int ossl_eckem_modename2id(const char *name)

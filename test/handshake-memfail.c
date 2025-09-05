@@ -30,9 +30,9 @@
  * - fcount:   Number of frees counted
  * - scount:   Number of mallocs counted prior to workload
  */
-static char *cert = NULL;
+static char *cert    = NULL;
 static char *privkey = NULL;
-static int mcount, rcount, fcount, scount;
+static int   mcount, rcount, fcount, scount;
 
 /**
  * @brief Performs an SSL/TLS handshake between a test client and server.
@@ -47,23 +47,26 @@ static int mcount, rcount, fcount, scount;
  * @note The function uses @c TEST_true() macros to validate intermediate
  *       steps. All SSL objects and contexts are freed before returning.
  */
-static int do_handshake(OSSL_LIB_CTX *libctx)
+static int   do_handshake(OSSL_LIB_CTX *libctx)
 {
     SSL_CTX *cctx = NULL, *sctx = NULL;
-    SSL *clientssl = NULL, *serverssl = NULL;
-    int testresult = 0;
+    SSL     *clientssl = NULL, *serverssl = NULL;
+    int      testresult = 0;
 
-    if (!TEST_true(create_ssl_ctx_pair(libctx, TLS_server_method(),
+    if (!TEST_true(create_ssl_ctx_pair(libctx,
+                                       TLS_server_method(),
                                        TLS_client_method(),
-                                       TLS1_VERSION, 0,
-                                       &sctx, &cctx, cert, privkey)))
+                                       TLS1_VERSION,
+                                       0,
+                                       &sctx,
+                                       &cctx,
+                                       cert,
+                                       privkey)))
         return 0;
 
     /* Now do a handshake */
-    if (!TEST_true(create_ssl_objects(sctx, cctx, &serverssl,
-                                      &clientssl, NULL, NULL))
-            || !TEST_true(create_ssl_connection(serverssl, clientssl,
-                                                SSL_ERROR_NONE)))
+    if (!TEST_true(create_ssl_objects(sctx, cctx, &serverssl, &clientssl, NULL, NULL))
+        || !TEST_true(create_ssl_connection(serverssl, clientssl, SSL_ERROR_NONE)))
         goto end;
 
     testresult = 1;
@@ -88,7 +91,7 @@ end:
  */
 static int test_record_alloc_counts(void)
 {
-    int ret;
+    int           ret;
     OSSL_LIB_CTX *libctx;
 
     libctx = OSSL_LIB_CTX_new();
@@ -149,7 +152,7 @@ static int test_report_alloc_counts(void)
 
 int setup_tests(void)
 {
-    char *opmode = NULL;
+    char *opmode   = NULL;
     char *certsdir = NULL;
 
     if (!TEST_ptr(opmode = test_get_argument(0)))
@@ -175,7 +178,7 @@ int setup_tests(void)
     }
     return 1;
 
- err:
+err:
     OPENSSL_free(cert);
     OPENSSL_free(privkey);
     return 0;

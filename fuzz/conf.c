@@ -26,14 +26,14 @@ int FuzzerInitialize(int *argc, char ***argv)
 int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 {
     CONF *conf;
-    BIO *in;
-    long eline;
+    BIO  *in;
+    long  eline;
 
     if (len == 0 || len > INT_MAX)
         return 0;
 
     conf = NCONF_new(NULL);
-    in = BIO_new(BIO_s_mem());
+    in   = BIO_new(BIO_s_mem());
     OPENSSL_assert((size_t)BIO_write(in, buf, (int)len) == len);
     NCONF_load_bio(conf, in, &eline);
     NCONF_free(conf);

@@ -50,12 +50,12 @@
 #define MAC_NAME    "HMAC"
 #define DIGEST_NAME "SHA256"
 
-static int FIPS_conditional_error_check = 1;
-static CRYPTO_RWLOCK *self_test_lock = NULL;
+static int            FIPS_conditional_error_check = 1;
+static CRYPTO_RWLOCK *self_test_lock               = NULL;
 
-static CRYPTO_ONCE fips_self_test_init = CRYPTO_ONCE_STATIC_INIT;
+static CRYPTO_ONCE    fips_self_test_init          = CRYPTO_ONCE_STATIC_INIT;
 #if !defined(OPENSSL_NO_FIPS_POST)
-static unsigned char fixed_key[32] = { FIPS_KEY_ELEMENTS };
+static unsigned char fixed_key[32] = {FIPS_KEY_ELEMENTS};
 #endif
 
 DEFINE_RUN_ONCE_STATIC(do_fips_self_test_init)
@@ -95,6 +95,7 @@ static void cleanup(void);
 # endif
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved);
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     switch (fdwReason) {
@@ -125,10 +126,12 @@ void _init(void);
 void _cleanup(void);
 # pragma init(_init)
 # pragma fini(_cleanup)
+
 void _init(void)
 {
     init();
 }
+
 void _cleanup(void)
 {
     cleanup();
@@ -140,12 +143,14 @@ void _cleanup(void)
 
 #elif defined(__TANDEM)
 /* Method automatically called by the NonStop OS when the DLL loads */
-void __INIT__init(void) {
+void __INIT__init(void)
+{
     init();
 }
 
 /* Method automatically called by the NonStop OS prior to unloading the DLL */
-void __TERM__cleanup(void) {
+void __TERM__cleanup(void)
+{
     cleanup();
 }
 
@@ -183,51 +188,38 @@ DEP_FINI_ATTRIBUTE void cleanup(void)
  * We need an explicit HMAC-SHA-256 KAT even though it is also
  * checked as part of the KDF KATs.  Refer IG 10.3.
  */
-static const unsigned char hmac_kat_pt[] = {
-    0xdd, 0x0c, 0x30, 0x33, 0x35, 0xf9, 0xe4, 0x2e,
-    0xc2, 0xef, 0xcc, 0xbf, 0x07, 0x95, 0xee, 0xa2
-};
-static const unsigned char hmac_kat_key[] = {
-    0xf4, 0x55, 0x66, 0x50, 0xac, 0x31, 0xd3, 0x54,
-    0x61, 0x61, 0x0b, 0xac, 0x4e, 0xd8, 0x1b, 0x1a,
-    0x18, 0x1b, 0x2d, 0x8a, 0x43, 0xea, 0x28, 0x54,
-    0xcb, 0xae, 0x22, 0xca, 0x74, 0x56, 0x08, 0x13
-};
-static const unsigned char hmac_kat_digest[] = {
-    0xf5, 0xf5, 0xe5, 0xf2, 0x66, 0x49, 0xe2, 0x40,
-    0xfc, 0x9e, 0x85, 0x7f, 0x2b, 0x9a, 0xbe, 0x28,
-    0x20, 0x12, 0x00, 0x92, 0x82, 0x21, 0x3e, 0x51,
-    0x44, 0x5d, 0xe3, 0x31, 0x04, 0x01, 0x72, 0x6b
-};
+static const unsigned char hmac_kat_pt[] =
+    {0xdd, 0x0c, 0x30, 0x33, 0x35, 0xf9, 0xe4, 0x2e, 0xc2, 0xef, 0xcc, 0xbf, 0x07, 0x95, 0xee, 0xa2};
+static const unsigned char hmac_kat_key[]    = {0xf4, 0x55, 0x66, 0x50, 0xac, 0x31, 0xd3, 0x54, 0x61, 0x61, 0x0b,
+                                                0xac, 0x4e, 0xd8, 0x1b, 0x1a, 0x18, 0x1b, 0x2d, 0x8a, 0x43, 0xea,
+                                                0x28, 0x54, 0xcb, 0xae, 0x22, 0xca, 0x74, 0x56, 0x08, 0x13};
+static const unsigned char hmac_kat_digest[] = {0xf5, 0xf5, 0xe5, 0xf2, 0x66, 0x49, 0xe2, 0x40, 0xfc, 0x9e, 0x85,
+                                                0x7f, 0x2b, 0x9a, 0xbe, 0x28, 0x20, 0x12, 0x00, 0x92, 0x82, 0x21,
+                                                0x3e, 0x51, 0x44, 0x5d, 0xe3, 0x31, 0x04, 0x01, 0x72, 0x6b};
 
-static int integrity_self_test(OSSL_SELF_TEST *ev, OSSL_LIB_CTX *libctx)
+static int                 integrity_self_test(OSSL_SELF_TEST *ev, OSSL_LIB_CTX *libctx)
 {
-    int ok = 0;
+    int           ok = 0;
     unsigned char out[EVP_MAX_MD_SIZE];
-    size_t out_len = 0;
+    size_t        out_len = 0;
 
-    OSSL_PARAM   params[2];
-    EVP_MAC     *mac = EVP_MAC_fetch(libctx, MAC_NAME, NULL);
-    EVP_MAC_CTX *ctx = EVP_MAC_CTX_new(mac);
+    OSSL_PARAM    params[2];
+    EVP_MAC      *mac = EVP_MAC_fetch(libctx, MAC_NAME, NULL);
+    EVP_MAC_CTX  *ctx = EVP_MAC_CTX_new(mac);
 
-    OSSL_SELF_TEST_onbegin(ev, OSSL_SELF_TEST_TYPE_KAT_INTEGRITY,
-                               OSSL_SELF_TEST_DESC_INTEGRITY_HMAC);
+    OSSL_SELF_TEST_onbegin(ev, OSSL_SELF_TEST_TYPE_KAT_INTEGRITY, OSSL_SELF_TEST_DESC_INTEGRITY_HMAC);
 
     params[0] = OSSL_PARAM_construct_utf8_string("digest", DIGEST_NAME, 0);
     params[1] = OSSL_PARAM_construct_end();
 
-    if (ctx == NULL
-            || mac == NULL
-            || !EVP_MAC_init(ctx, hmac_kat_key, sizeof(hmac_kat_key), params)
-            || !EVP_MAC_update(ctx, hmac_kat_pt, sizeof(hmac_kat_pt))
-            || !EVP_MAC_final(ctx, out, &out_len, MAX_MD_SIZE))
+    if (ctx == NULL || mac == NULL || !EVP_MAC_init(ctx, hmac_kat_key, sizeof(hmac_kat_key), params)
+        || !EVP_MAC_update(ctx, hmac_kat_pt, sizeof(hmac_kat_pt)) || !EVP_MAC_final(ctx, out, &out_len, MAX_MD_SIZE))
         goto err;
 
     /* Optional corruption */
     OSSL_SELF_TEST_oncorrupt_byte(ev, out);
 
-    if (out_len != sizeof(hmac_kat_digest)
-            || memcmp(out, hmac_kat_digest, out_len) != 0)
+    if (out_len != sizeof(hmac_kat_digest) || memcmp(out, hmac_kat_digest, out_len) != 0)
         goto err;
     ok = 1;
 err:
@@ -242,18 +234,21 @@ err:
  * the result matches the expected value.
  * Return 1 if verified, or 0 if it fails.
  */
-static int verify_integrity(OSSL_CORE_BIO *bio, OSSL_FUNC_BIO_read_ex_fn read_ex_cb,
-                            unsigned char *expected, size_t expected_len,
-                            OSSL_LIB_CTX *libctx, OSSL_SELF_TEST *ev,
-                            const char *event_type)
+static int verify_integrity(OSSL_CORE_BIO           *bio,
+                            OSSL_FUNC_BIO_read_ex_fn read_ex_cb,
+                            unsigned char           *expected,
+                            size_t                   expected_len,
+                            OSSL_LIB_CTX            *libctx,
+                            OSSL_SELF_TEST          *ev,
+                            const char              *event_type)
 {
-    int ret = 0, status;
+    int           ret = 0, status;
     unsigned char out[MAX_MD_SIZE];
     unsigned char buf[INTEGRITY_BUF_SIZE];
-    size_t bytes_read = 0, out_len = 0;
-    EVP_MAC *mac = NULL;
-    EVP_MAC_CTX *ctx = NULL;
-    OSSL_PARAM params[2], *p = params;
+    size_t        bytes_read = 0, out_len = 0;
+    EVP_MAC      *mac = NULL;
+    EVP_MAC_CTX  *ctx = NULL;
+    OSSL_PARAM    params[2], *p = params;
 
     if (!integrity_self_test(ev, libctx))
         goto err;
@@ -268,7 +263,7 @@ static int verify_integrity(OSSL_CORE_BIO *bio, OSSL_FUNC_BIO_read_ex_fn read_ex
         goto err;
 
     *p++ = OSSL_PARAM_construct_utf8_string("digest", DIGEST_NAME, 0);
-    *p = OSSL_PARAM_construct_end();
+    *p   = OSSL_PARAM_construct_end();
 
     if (!EVP_MAC_init(ctx, fixed_key, sizeof(fixed_key), params))
         goto err;
@@ -284,8 +279,7 @@ static int verify_integrity(OSSL_CORE_BIO *bio, OSSL_FUNC_BIO_read_ex_fn read_ex
         goto err;
 
     OSSL_SELF_TEST_oncorrupt_byte(ev, out);
-    if (expected_len != out_len
-            || memcmp(expected, out, out_len) != 0)
+    if (expected_len != out_len || memcmp(expected, out, out_len) != 0)
         goto err;
     ret = 1;
 err:
@@ -315,13 +309,13 @@ int SELF_TEST_post(SELF_TEST_POST_PARAMS *st, int on_demand_test)
 {
     int loclstate;
 #if !defined(OPENSSL_NO_FIPS_POST)
-    int ok = 0;
-    long checksum_len;
-    OSSL_CORE_BIO *bio_module = NULL;
-    unsigned char *module_checksum = NULL;
-    OSSL_SELF_TEST *ev = NULL;
-    EVP_RAND *testrand = NULL;
-    EVP_RAND_CTX *rng;
+    int             ok = 0;
+    long            checksum_len;
+    OSSL_CORE_BIO  *bio_module      = NULL;
+    unsigned char  *module_checksum = NULL;
+    OSSL_SELF_TEST *ev              = NULL;
+    EVP_RAND       *testrand        = NULL;
+    EVP_RAND_CTX   *rng;
 #endif
 
     if (!RUN_ONCE(&fips_self_test_init, do_fips_self_test_init))
@@ -354,8 +348,7 @@ int SELF_TEST_post(SELF_TEST_POST_PARAMS *st, int on_demand_test)
         return 0;
     }
 
-    if (st == NULL
-            || st->module_checksum_data == NULL) {
+    if (st == NULL || st->module_checksum_data == NULL) {
         ERR_raise(ERR_LIB_PROV, PROV_R_MISSING_CONFIG_DATA);
         goto end;
     }
@@ -364,8 +357,7 @@ int SELF_TEST_post(SELF_TEST_POST_PARAMS *st, int on_demand_test)
     if (ev == NULL)
         goto end;
 
-    module_checksum = OPENSSL_hexstr2buf(st->module_checksum_data,
-                                         &checksum_len);
+    module_checksum = OPENSSL_hexstr2buf(st->module_checksum_data, &checksum_len);
     if (module_checksum == NULL) {
         ERR_raise(ERR_LIB_PROV, PROV_R_INVALID_CONFIG_DATA);
         goto end;
@@ -374,9 +366,13 @@ int SELF_TEST_post(SELF_TEST_POST_PARAMS *st, int on_demand_test)
 
     /* Always check the integrity of the fips module */
     if (bio_module == NULL
-            || !verify_integrity(bio_module, st->bio_read_ex_cb,
-                                 module_checksum, checksum_len, st->libctx,
-                                 ev, OSSL_SELF_TEST_TYPE_MODULE_INTEGRITY)) {
+        || !verify_integrity(bio_module,
+                             st->bio_read_ex_cb,
+                             module_checksum,
+                             checksum_len,
+                             st->libctx,
+                             ev,
+                             OSSL_SELF_TEST_TYPE_MODULE_INTEGRITY)) {
         ERR_raise(ERR_LIB_PROV, PROV_R_MODULE_INTEGRITY_FAILURE);
         goto end;
     }
@@ -390,8 +386,7 @@ int SELF_TEST_post(SELF_TEST_POST_PARAMS *st, int on_demand_test)
     rng = ossl_rand_get0_private_noncreating(st->libctx);
     if (rng != NULL)
         if ((testrand = EVP_RAND_fetch(st->libctx, "TEST-RAND", NULL)) == NULL
-                || strcmp(EVP_RAND_get0_name(EVP_RAND_CTX_get0_rand(rng)),
-                          EVP_RAND_get0_name(testrand)) == 0) {
+            || strcmp(EVP_RAND_get0_name(EVP_RAND_CTX_get0_rand(rng)), EVP_RAND_get0_name(testrand)) == 0) {
             ERR_raise(ERR_LIB_PROV, PROV_R_SELF_TEST_KAT_FAILURE);
             goto end;
         }
@@ -438,11 +433,11 @@ void ossl_set_error_state(const char *type)
 
 int ossl_prov_is_running(void)
 {
-    int res, loclstate;
+    int                                res, loclstate;
     static TSAN_QUALIFIER unsigned int rate_limit = 0;
 
-    loclstate = tsan_load(&FIPS_state);
-    res = loclstate == FIPS_STATE_RUNNING || loclstate == FIPS_STATE_SELFTEST;
+    loclstate                                     = tsan_load(&FIPS_state);
+    res                                           = loclstate == FIPS_STATE_RUNNING || loclstate == FIPS_STATE_SELFTEST;
     if (loclstate == FIPS_STATE_ERROR)
         if (tsan_counter(&rate_limit) < FIPS_ERROR_REPORTING_RATE_LIMIT)
             ERR_raise(ERR_LIB_PROV, PROV_R_FIPS_MODULE_IN_ERROR_STATE);

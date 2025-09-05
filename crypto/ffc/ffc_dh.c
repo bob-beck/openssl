@@ -47,10 +47,10 @@
 
 struct dh_named_group_st {
     const char *name;
-    int uid;
+    int         uid;
 #ifndef OPENSSL_NO_DH
-    int32_t nbits;
-    int keylength;
+    int32_t       nbits;
+    int           keylength;
     const BIGNUM *p;
     const BIGNUM *q;
     const BIGNUM *g;
@@ -76,10 +76,10 @@ static const DH_NAMED_GROUP dh_named_groups[] = {
     MODP(4096, 325),
     MODP(6144, 375),
     MODP(8192, 400),
-    /*
-     * Additional dh named groups from RFC 5114 that have a different g.
-     * The uid can be any unique identifier.
-     */
+/*
+ * Additional dh named groups from RFC 5114 that have a different g.
+ * The uid can be any unique identifier.
+ */
 #ifndef FIPS_MODULE
     RFC5114("dh_1024_160", 1, 1024, 1024_160),
     RFC5114("dh_2048_224", 2, 2048, 2048_224),
@@ -110,9 +110,7 @@ const DH_NAMED_GROUP *ossl_ffc_uid_to_dh_named_group(int uid)
 }
 
 #ifndef OPENSSL_NO_DH
-const DH_NAMED_GROUP *ossl_ffc_numbers_to_dh_named_group(const BIGNUM *p,
-                                                         const BIGNUM *q,
-                                                         const BIGNUM *g)
+const DH_NAMED_GROUP *ossl_ffc_numbers_to_dh_named_group(const BIGNUM *p, const BIGNUM *q, const BIGNUM *g)
 {
     size_t i;
 
@@ -162,12 +160,11 @@ int ossl_ffc_named_group_set(FFC_PARAMS *ffc, const DH_NAMED_GROUP *group)
     if (ffc == NULL || group == NULL)
         return 0;
 
-    ossl_ffc_params_set0_pqg(ffc, (BIGNUM *)group->p, (BIGNUM *)group->q,
-                             (BIGNUM *)group->g);
+    ossl_ffc_params_set0_pqg(ffc, (BIGNUM *)group->p, (BIGNUM *)group->q, (BIGNUM *)group->g);
     ffc->keylength = group->keylength;
 
     /* flush the cached nid, The DH layer is responsible for caching */
-    ffc->nid = NID_undef;
+    ffc->nid       = NID_undef;
     return 1;
 }
 #endif

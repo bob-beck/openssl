@@ -19,7 +19,7 @@
 typedef struct app_conn_st {
     SSL *ssl;
     BIO *ssl_bio;
-    int rx_need_tx, tx_need_rx;
+    int  rx_need_tx, tx_need_rx;
 } APP_CONN;
 
 /*
@@ -60,9 +60,9 @@ SSL_CTX *create_ssl_ctx(void)
  */
 APP_CONN *new_conn(SSL_CTX *ctx, const char *hostname)
 {
-    APP_CONN *conn;
-    BIO *out, *buf;
-    SSL *ssl = NULL;
+    APP_CONN   *conn;
+    BIO        *out, *buf;
+    SSL        *ssl = NULL;
     const char *bare_hostname;
 #ifdef USE_QUIC
     static const unsigned char alpn[] = {5, 'd', 'u', 'm', 'm', 'y'};
@@ -143,7 +143,7 @@ int tx(APP_CONN *conn, const void *buf, int buf_len)
 
     conn->tx_need_rx = 0;
 
-    l = BIO_write(conn->ssl_bio, buf, buf_len);
+    l                = BIO_write(conn->ssl_bio, buf, buf_len);
     if (l <= 0) {
         if (BIO_should_retry(conn->ssl_bio)) {
             conn->tx_need_rx = BIO_should_read(conn->ssl_bio);
@@ -168,7 +168,7 @@ int rx(APP_CONN *conn, void *buf, int buf_len)
 
     conn->rx_need_tx = 0;
 
-    l = BIO_read(conn->ssl_bio, buf, buf_len);
+    l                = BIO_read(conn->ssl_bio, buf, buf_len);
     if (l <= 0) {
         if (BIO_should_retry(conn->ssl_bio)) {
             conn->rx_need_tx = BIO_should_write(conn->ssl_bio);
@@ -215,9 +215,7 @@ int get_conn_fd(APP_CONN *conn)
 int get_conn_pending_tx(APP_CONN *conn)
 {
 #ifdef USE_QUIC
-    return (SSL_net_read_desired(conn->ssl) ? POLLIN : 0)
-           | (SSL_net_write_desired(conn->ssl) ? POLLOUT : 0)
-           | POLLERR;
+    return (SSL_net_read_desired(conn->ssl) ? POLLIN : 0) | (SSL_net_write_desired(conn->ssl) ? POLLOUT : 0) | POLLERR;
 #else
     return (conn->tx_need_rx ? POLLIN : 0) | POLLOUT | POLLERR;
 #endif
@@ -260,11 +258,11 @@ int main(int argc, char **argv)
 {
     static char tx_msg[384], host_port[300];
     const char *tx_p = tx_msg;
-    char rx_buf[2048];
-    int res = 1, l, tx_len;
-    int timeout = 2000 /* ms */;
-    APP_CONN *conn = NULL;
-    SSL_CTX *ctx = NULL;
+    char        rx_buf[2048];
+    int         res     = 1, l, tx_len;
+    int         timeout = 2000 /* ms */;
+    APP_CONN   *conn    = NULL;
+    SSL_CTX    *ctx     = NULL;
 
     if (argc < 3) {
         fprintf(stderr, "usage: %s host port\n", argv[0]);
@@ -272,10 +270,9 @@ int main(int argc, char **argv)
     }
 
     snprintf(host_port, sizeof(host_port), "%s:%s", argv[1], argv[2]);
-    tx_len = snprintf(tx_msg, sizeof(tx_msg),
-                      "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
+    tx_len = snprintf(tx_msg, sizeof(tx_msg), "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
 
-    ctx = create_ssl_ctx();
+    ctx    = create_ssl_ctx();
     if (ctx == NULL) {
         fprintf(stderr, "cannot create SSL context\n");
         goto fail;
@@ -291,14 +288,14 @@ int main(int argc, char **argv)
     while (tx_len != 0) {
         l = tx(conn, tx_p, tx_len);
         if (l > 0) {
-            tx_p += l;
+            tx_p   += l;
             tx_len -= l;
         } else if (l == -1) {
             fprintf(stderr, "tx error\n");
         } else if (l == -2) {
             struct pollfd pfd = {0};
-            pfd.fd = get_conn_fd(conn);
-            pfd.events = get_conn_pending_tx(conn);
+            pfd.fd            = get_conn_fd(conn);
+            pfd.events        = get_conn_pending_tx(conn);
             if (poll(&pfd, 1, timeout) == 0) {
                 fprintf(stderr, "tx timeout\n");
                 goto fail;
@@ -315,8 +312,8 @@ int main(int argc, char **argv)
             break;
         } else if (l == -2) {
             struct pollfd pfd = {0};
-            pfd.fd = get_conn_fd(conn);
-            pfd.events = get_conn_pending_rx(conn);
+            pfd.fd            = get_conn_fd(conn);
+            pfd.events        = get_conn_pending_rx(conn);
             if (poll(&pfd, 1, timeout) == 0) {
                 fprintf(stderr, "rx timeout\n");
                 goto fail;

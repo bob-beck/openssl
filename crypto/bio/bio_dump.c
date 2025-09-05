@@ -19,21 +19,19 @@
 
 #define SPACE(buf, pos, n)   (sizeof(buf) - (pos) > (n))
 
-int BIO_dump_cb(int (*cb) (const void *data, size_t len, void *u),
-                void *u, const void *s, int len)
+int BIO_dump_cb(int (*cb)(const void *data, size_t len, void *u), void *u, const void *s, int len)
 {
     return BIO_dump_indent_cb(cb, u, s, len, 0);
 }
 
-int BIO_dump_indent_cb(int (*cb) (const void *data, size_t len, void *u),
-                       void *u, const void *v, int len, int indent)
+int BIO_dump_indent_cb(int (*cb)(const void *data, size_t len, void *u), void *u, const void *v, int len, int indent)
 {
     const unsigned char *s = v;
-    int res, ret = 0;
-    char buf[288 + 1];
-    int i, j, rows, n;
-    unsigned char ch;
-    int dump_width;
+    int                  res, ret = 0;
+    char                 buf[288 + 1];
+    int                  i, j, rows, n;
+    unsigned char        ch;
+    int                  dump_width;
 
     if (indent < 0)
         indent = 0;
@@ -41,12 +39,11 @@ int BIO_dump_indent_cb(int (*cb) (const void *data, size_t len, void *u),
         indent = 64;
 
     dump_width = DUMP_WIDTH_LESS_INDENT(indent);
-    rows = len / dump_width;
+    rows       = len / dump_width;
     if ((rows * dump_width) < len)
         rows++;
     for (i = 0; i < rows; i++) {
-        n = BIO_snprintf(buf, sizeof(buf), "%*s%04x - ", indent, "",
-                         i * dump_width);
+        n = BIO_snprintf(buf, sizeof(buf), "%*s%04x - ", indent, "", i * dump_width);
         if (n < 0)
             return -1;
         for (j = 0; j < dump_width; j++) {
@@ -55,8 +52,7 @@ int BIO_dump_indent_cb(int (*cb) (const void *data, size_t len, void *u),
                     strcpy(buf + n, "   ");
                 } else {
                     ch = *(s + i * dump_width + j) & 0xff;
-                    BIO_snprintf(buf + n, 4, "%02x%c", ch,
-                                 j == 7 ? '-' : ' ');
+                    BIO_snprintf(buf + n, 4, "%02x%c", ch, j == 7 ? '-' : ' ');
                 }
                 n += 3;
             }
@@ -73,16 +69,14 @@ int BIO_dump_indent_cb(int (*cb) (const void *data, size_t len, void *u),
 #ifndef CHARSET_EBCDIC
                 buf[n++] = ((ch >= ' ') && (ch <= '~')) ? ch : '.';
 #else
-                buf[n++] = ((ch >= os_toascii[' ']) && (ch <= os_toascii['~']))
-                           ? os_toebcdic[ch]
-                           : '.';
+                buf[n++] = ((ch >= os_toascii[' ']) && (ch <= os_toascii['~'])) ? os_toebcdic[ch] : '.';
 #endif
                 buf[n] = '\0';
             }
         }
         if (SPACE(buf, n, 1)) {
             buf[n++] = '\n';
-            buf[n] = '\0';
+            buf[n]   = '\0';
         }
         /*
          * if this is the last call then update the ddt_dump thing so that we
@@ -130,11 +124,10 @@ int BIO_dump_indent(BIO *bp, const void *s, int len, int indent)
     return BIO_dump_indent_cb(write_bio, bp, s, len, indent);
 }
 
-int BIO_hex_string(BIO *out, int indent, int width, const void *data,
-                   int datalen)
+int BIO_hex_string(BIO *out, int indent, int width, const void *data, int datalen)
 {
     const unsigned char *d = data;
-    int i, j = 0;
+    int                  i, j = 0;
 
     if (datalen < 1)
         return 1;

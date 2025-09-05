@@ -21,7 +21,7 @@ void ossl_sha3_reset(KECCAK1600_CTX *ctx)
     if (!(OPENSSL_s390xcap_P.stfle[1] & S390X_CAPBIT(S390X_MSA12)))
 #endif
         memset(ctx->A, 0, sizeof(ctx->A));
-    ctx->bufsz = 0;
+    ctx->bufsz     = 0;
     ctx->xof_state = XOF_STATE_INIT;
 }
 
@@ -32,8 +32,8 @@ int ossl_sha3_init(KECCAK1600_CTX *ctx, unsigned char pad, size_t bitlen)
     if (bsz <= sizeof(ctx->buf)) {
         ossl_sha3_reset(ctx);
         ctx->block_size = bsz;
-        ctx->md_size = bitlen / 8;
-        ctx->pad = pad;
+        ctx->md_size    = bitlen / 8;
+        ctx->pad        = pad;
         return 1;
     }
 
@@ -52,17 +52,16 @@ int ossl_keccak_init(KECCAK1600_CTX *ctx, unsigned char pad, size_t bitlen, size
 int ossl_sha3_update(KECCAK1600_CTX *ctx, const void *_inp, size_t len)
 {
     const unsigned char *inp = _inp;
-    size_t bsz = ctx->block_size;
-    size_t num, rem;
+    size_t               bsz = ctx->block_size;
+    size_t               num, rem;
 
     if (len == 0)
         return 1;
 
-    if (ctx->xof_state == XOF_STATE_SQUEEZE
-        || ctx->xof_state == XOF_STATE_FINAL)
+    if (ctx->xof_state == XOF_STATE_SQUEEZE || ctx->xof_state == XOF_STATE_FINAL)
         return 0;
 
-    if ((num = ctx->bufsz) != 0) {      /* process intermediate buffer? */
+    if ((num = ctx->bufsz) != 0) { /* process intermediate buffer? */
         rem = bsz - num;
 
         if (len < rem) {
@@ -107,8 +106,7 @@ int ossl_sha3_final(KECCAK1600_CTX *ctx, unsigned char *out, size_t outlen)
 
     if (outlen == 0)
         return 1;
-    if (ctx->xof_state == XOF_STATE_SQUEEZE
-        || ctx->xof_state == XOF_STATE_FINAL)
+    if (ctx->xof_state == XOF_STATE_SQUEEZE || ctx->xof_state == XOF_STATE_FINAL)
         return 0;
 
     /*
@@ -117,7 +115,7 @@ int ossl_sha3_final(KECCAK1600_CTX *ctx, unsigned char *out, size_t outlen)
      * same byte...
      */
     memset(ctx->buf + num, 0, bsz - num);
-    ctx->buf[num] = ctx->pad;
+    ctx->buf[num]      = ctx->pad;
     ctx->buf[bsz - 1] |= 0x80;
 
     (void)SHA3_absorb(ctx->A, ctx->buf, bsz, bsz);
@@ -142,7 +140,7 @@ int ossl_sha3_squeeze(KECCAK1600_CTX *ctx, unsigned char *out, size_t outlen)
     size_t bsz = ctx->block_size;
     size_t num = ctx->bufsz;
     size_t len;
-    int next = 1;
+    int    next = 1;
 
     if (outlen == 0)
         return 1;
@@ -162,12 +160,12 @@ int ossl_sha3_squeeze(KECCAK1600_CTX *ctx, unsigned char *out, size_t outlen)
          * same byte...
          */
         memset(ctx->buf + num, 0, bsz - num);
-        ctx->buf[num] = ctx->pad;
+        ctx->buf[num]      = ctx->pad;
         ctx->buf[bsz - 1] |= 0x80;
         (void)SHA3_absorb(ctx->A, ctx->buf, bsz, bsz);
         ctx->xof_state = XOF_STATE_SQUEEZE;
         num = ctx->bufsz = 0;
-        next = 0;
+        next             = 0;
     }
 
     /*
@@ -180,8 +178,8 @@ int ossl_sha3_squeeze(KECCAK1600_CTX *ctx, unsigned char *out, size_t outlen)
         else
             len = outlen;
         memcpy(out, ctx->buf + bsz - ctx->bufsz, len);
-        out += len;
-        outlen -= len;
+        out        += len;
+        outlen     -= len;
         ctx->bufsz -= len;
     }
     if (outlen == 0)
@@ -191,8 +189,8 @@ int ossl_sha3_squeeze(KECCAK1600_CTX *ctx, unsigned char *out, size_t outlen)
     if (outlen >= bsz) {
         len = bsz * (outlen / bsz);
         SHA3_squeeze(ctx->A, out, len, bsz, next);
-        next = 1;
-        out += len;
+        next    = 1;
+        out    += len;
         outlen -= len;
     }
     if (outlen > 0) {

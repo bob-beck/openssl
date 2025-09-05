@@ -17,7 +17,7 @@
 int SSL_use_RSAPrivateKey(SSL *ssl, RSA *rsa)
 {
     EVP_PKEY *pkey;
-    int ret;
+    int       ret;
 
     if (rsa == NULL) {
         ERR_raise(ERR_LIB_SSL, ERR_R_PASSED_NULL_PARAMETER);
@@ -46,8 +46,8 @@ int SSL_use_RSAPrivateKey(SSL *ssl, RSA *rsa)
 
 int SSL_use_RSAPrivateKey_file(SSL *ssl, const char *file, int type)
 {
-    int j, ret = 0;
-    BIO *in = NULL;
+    int  j, ret = 0;
+    BIO *in  = NULL;
     RSA *rsa = NULL;
 
     if (file == NULL) {
@@ -66,11 +66,12 @@ int SSL_use_RSAPrivateKey_file(SSL *ssl, const char *file, int type)
         goto end;
     }
     if (type == SSL_FILETYPE_ASN1) {
-        j = ERR_R_ASN1_LIB;
+        j   = ERR_R_ASN1_LIB;
         rsa = d2i_RSAPrivateKey_bio(in, NULL);
     } else if (type == SSL_FILETYPE_PEM) {
-        j = ERR_R_PEM_LIB;
-        rsa = PEM_read_bio_RSAPrivateKey(in, NULL,
+        j   = ERR_R_PEM_LIB;
+        rsa = PEM_read_bio_RSAPrivateKey(in,
+                                         NULL,
                                          SSL_get_default_passwd_cb(ssl),
                                          SSL_get_default_passwd_cb_userdata(ssl));
     } else {
@@ -83,16 +84,16 @@ int SSL_use_RSAPrivateKey_file(SSL *ssl, const char *file, int type)
     }
     ret = SSL_use_RSAPrivateKey(ssl, rsa);
     RSA_free(rsa);
- end:
+end:
     BIO_free(in);
     return ret;
 }
 
 int SSL_use_RSAPrivateKey_ASN1(SSL *ssl, const unsigned char *d, long len)
 {
-    int ret;
+    int                  ret;
     const unsigned char *p;
-    RSA *rsa;
+    RSA                 *rsa;
 
     p = d;
     if ((rsa = d2i_RSAPrivateKey(NULL, &p, (long)len)) == NULL) {
@@ -107,7 +108,7 @@ int SSL_use_RSAPrivateKey_ASN1(SSL *ssl, const unsigned char *d, long len)
 
 int SSL_CTX_use_RSAPrivateKey(SSL_CTX *ctx, RSA *rsa)
 {
-    int ret;
+    int       ret;
     EVP_PKEY *pkey;
 
     if (rsa == NULL) {
@@ -137,8 +138,8 @@ int SSL_CTX_use_RSAPrivateKey(SSL_CTX *ctx, RSA *rsa)
 
 int SSL_CTX_use_RSAPrivateKey_file(SSL_CTX *ctx, const char *file, int type)
 {
-    int j, ret = 0;
-    BIO *in = NULL;
+    int  j, ret = 0;
+    BIO *in  = NULL;
     RSA *rsa = NULL;
 
     if (file == NULL) {
@@ -157,11 +158,12 @@ int SSL_CTX_use_RSAPrivateKey_file(SSL_CTX *ctx, const char *file, int type)
         goto end;
     }
     if (type == SSL_FILETYPE_ASN1) {
-        j = ERR_R_ASN1_LIB;
+        j   = ERR_R_ASN1_LIB;
         rsa = d2i_RSAPrivateKey_bio(in, NULL);
     } else if (type == SSL_FILETYPE_PEM) {
-        j = ERR_R_PEM_LIB;
-        rsa = PEM_read_bio_RSAPrivateKey(in, NULL,
+        j   = ERR_R_PEM_LIB;
+        rsa = PEM_read_bio_RSAPrivateKey(in,
+                                         NULL,
                                          SSL_CTX_get_default_passwd_cb(ctx),
                                          SSL_CTX_get_default_passwd_cb_userdata(ctx));
     } else {
@@ -174,17 +176,16 @@ int SSL_CTX_use_RSAPrivateKey_file(SSL_CTX *ctx, const char *file, int type)
     }
     ret = SSL_CTX_use_RSAPrivateKey(ctx, rsa);
     RSA_free(rsa);
- end:
+end:
     BIO_free(in);
     return ret;
 }
 
-int SSL_CTX_use_RSAPrivateKey_ASN1(SSL_CTX *ctx, const unsigned char *d,
-                                   long len)
+int SSL_CTX_use_RSAPrivateKey_ASN1(SSL_CTX *ctx, const unsigned char *d, long len)
 {
-    int ret;
+    int                  ret;
     const unsigned char *p;
-    RSA *rsa;
+    RSA                 *rsa;
 
     p = d;
     if ((rsa = d2i_RSAPrivateKey(NULL, &p, (long)len)) == NULL) {

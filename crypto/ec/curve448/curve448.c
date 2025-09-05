@@ -25,14 +25,10 @@
 
 #define EDWARDS_D       (-39081)
 
-static const curve448_scalar_t precomputed_scalarmul_adjustment = {
-    {
-        {
-            SC_LIMB(0xc873d6d54a7bb0cfULL), SC_LIMB(0xe933d8d723a70aadULL),
-            SC_LIMB(0xbb124b65129c96fdULL), SC_LIMB(0x00000008335dc163ULL)
-        }
-    }
-};
+static const curve448_scalar_t precomputed_scalarmul_adjustment = {{{SC_LIMB(0xc873d6d54a7bb0cfULL),
+                                                                     SC_LIMB(0xe933d8d723a70aadULL),
+                                                                     SC_LIMB(0xbb124b65129c96fdULL),
+                                                                     SC_LIMB(0x00000008335dc163ULL)}}};
 
 #define TWISTED_D (EDWARDS_D - 1)
 
@@ -42,15 +38,15 @@ static const curve448_scalar_t precomputed_scalarmul_adjustment = {
 static void gf_invert(gf y, const gf x, int assert_nonzero)
 {
     mask_t ret;
-    gf t1, t2;
+    gf     t1, t2;
 
-    ossl_gf_sqr(t1, x);              /* o^2 */
-    ret = gf_isr(t2, t1);       /* +-1/sqrt(o^2) = +-1/o */
+    ossl_gf_sqr(t1, x);   /* o^2 */
+    ret = gf_isr(t2, t1); /* +-1/sqrt(o^2) = +-1/o */
     (void)ret;
     if (assert_nonzero)
         assert(ret);
     ossl_gf_sqr(t1, t2);
-    ossl_gf_mul(t2, t1, x);          /* not direct to y in case of alias. */
+    ossl_gf_mul(t2, t1, x); /* not direct to y in case of alias. */
     gf_copy(y, t2);
 }
 
@@ -59,23 +55,22 @@ const curve448_point_t ossl_curve448_point_identity = {
     {{{{0}}}, {{{1}}}, {{{1}}}, {{{0}}}}
 };
 
-static void point_double_internal(curve448_point_t p, const curve448_point_t q,
-                                  int before_double)
+static void point_double_internal(curve448_point_t p, const curve448_point_t q, int before_double)
 {
     gf a, b, c, d;
 
     ossl_gf_sqr(c, q->x);
     ossl_gf_sqr(a, q->y);
-    gf_add_nr(d, c, a);         /* 2+e */
+    gf_add_nr(d, c, a);          /* 2+e */
     gf_add_nr(p->t, q->y, q->x); /* 2+e */
     ossl_gf_sqr(b, p->t);
-    gf_subx_nr(b, b, d, 3);     /* 4+e */
-    gf_sub_nr(p->t, a, c);      /* 3+e */
+    gf_subx_nr(b, b, d, 3); /* 4+e */
+    gf_sub_nr(p->t, a, c);  /* 3+e */
     ossl_gf_sqr(p->x, q->z);
-    gf_add_nr(p->z, p->x, p->x); /* 2+e */
+    gf_add_nr(p->z, p->x, p->x);  /* 2+e */
     gf_subx_nr(a, p->z, p->t, 4); /* 6+e */
     if (GF_HEADROOM == 5)
-        gf_weak_reduce(a);      /* or 1+e */
+        gf_weak_reduce(a); /* or 1+e */
     ossl_gf_mul(p->x, a, b);
     ossl_gf_mul(p->z, p->t, a);
     ossl_gf_mul(p->y, p->t, d);
@@ -123,20 +118,19 @@ static void niels_to_pt(curve448_point_t e, const niels_t n)
     gf_copy(e->z, ONE);
 }
 
-static void add_niels_to_pt(curve448_point_t d, const niels_t e,
-                            int before_double)
+static void add_niels_to_pt(curve448_point_t d, const niels_t e, int before_double)
 {
     gf a, b, c;
 
-    gf_sub_nr(b, d->y, d->x);   /* 3+e */
+    gf_sub_nr(b, d->y, d->x); /* 3+e */
     ossl_gf_mul(a, e->a, b);
-    gf_add_nr(b, d->x, d->y);   /* 2+e */
+    gf_add_nr(b, d->x, d->y); /* 2+e */
     ossl_gf_mul(d->y, e->b, b);
     ossl_gf_mul(d->x, e->c, d->t);
-    gf_add_nr(c, a, d->y);      /* 2+e */
-    gf_sub_nr(b, d->y, a);      /* 3+e */
+    gf_add_nr(c, a, d->y);       /* 2+e */
+    gf_sub_nr(b, d->y, a);       /* 3+e */
     gf_sub_nr(d->y, d->z, d->x); /* 3+e */
-    gf_add_nr(a, d->x, d->z);   /* 2+e */
+    gf_add_nr(a, d->x, d->z);    /* 2+e */
     ossl_gf_mul(d->z, a, d->y);
     ossl_gf_mul(d->x, d->y, b);
     ossl_gf_mul(d->y, a, c);
@@ -144,20 +138,19 @@ static void add_niels_to_pt(curve448_point_t d, const niels_t e,
         ossl_gf_mul(d->t, b, c);
 }
 
-static void sub_niels_from_pt(curve448_point_t d, const niels_t e,
-                              int before_double)
+static void sub_niels_from_pt(curve448_point_t d, const niels_t e, int before_double)
 {
     gf a, b, c;
 
-    gf_sub_nr(b, d->y, d->x);   /* 3+e */
+    gf_sub_nr(b, d->y, d->x); /* 3+e */
     ossl_gf_mul(a, e->b, b);
-    gf_add_nr(b, d->x, d->y);   /* 2+e */
+    gf_add_nr(b, d->x, d->y); /* 2+e */
     ossl_gf_mul(d->y, e->a, b);
     ossl_gf_mul(d->x, e->c, d->t);
-    gf_add_nr(c, a, d->y);      /* 2+e */
-    gf_sub_nr(b, d->y, a);      /* 3+e */
+    gf_add_nr(c, a, d->y);       /* 2+e */
+    gf_sub_nr(b, d->y, a);       /* 3+e */
     gf_add_nr(d->y, d->z, d->x); /* 2+e */
-    gf_sub_nr(a, d->z, d->x);   /* 3+e */
+    gf_sub_nr(a, d->z, d->x);    /* 3+e */
     ossl_gf_mul(d->z, a, d->y);
     ossl_gf_mul(d->x, d->y, b);
     ossl_gf_mul(d->y, a, c);
@@ -165,8 +158,7 @@ static void sub_niels_from_pt(curve448_point_t d, const niels_t e,
         ossl_gf_mul(d->t, b, c);
 }
 
-static void add_pniels_to_pt(curve448_point_t p, const pniels_t pn,
-                             int before_double)
+static void add_pniels_to_pt(curve448_point_t p, const pniels_t pn, int before_double)
 {
     gf L0;
 
@@ -175,8 +167,7 @@ static void add_pniels_to_pt(curve448_point_t p, const pniels_t pn,
     add_niels_to_pt(p, pn->n, before_double);
 }
 
-static void sub_pniels_from_pt(curve448_point_t p, const pniels_t pn,
-                               int before_double)
+static void sub_pniels_from_pt(curve448_point_t p, const pniels_t pn, int before_double)
 {
     gf L0;
 
@@ -185,12 +176,10 @@ static void sub_pniels_from_pt(curve448_point_t p, const pniels_t pn,
     sub_niels_from_pt(p, pn->n, before_double);
 }
 
-c448_bool_t
-ossl_curve448_point_eq(const curve448_point_t p,
-                       const curve448_point_t q)
+c448_bool_t ossl_curve448_point_eq(const curve448_point_t p, const curve448_point_t q)
 {
     mask_t succ;
-    gf a, b;
+    gf     a, b;
 
     /* equality mod 2-torsion compares x/y */
     ossl_gf_mul(a, p->y, q->x);
@@ -200,11 +189,10 @@ ossl_curve448_point_eq(const curve448_point_t p,
     return mask_to_bool(succ);
 }
 
-c448_bool_t
-ossl_curve448_point_valid(const curve448_point_t p)
+c448_bool_t ossl_curve448_point_valid(const curve448_point_t p)
 {
     mask_t out;
-    gf a, b, c;
+    gf     a, b, c;
 
     ossl_gf_mul(a, p->x, p->y);
     ossl_gf_mul(b, p->z, p->t);
@@ -221,22 +209,19 @@ ossl_curve448_point_valid(const curve448_point_t p)
     return mask_to_bool(out);
 }
 
-static ossl_inline void constant_time_lookup_niels(niels_s * RESTRICT ni,
-                                                   const niels_t *table,
-                                                   int nelts, int idx)
+static ossl_inline void constant_time_lookup_niels(niels_s *RESTRICT ni, const niels_t *table, int nelts, int idx)
 {
     constant_time_lookup(ni, table, sizeof(niels_s), nelts, idx);
 }
 
-void
-ossl_curve448_precomputed_scalarmul(curve448_point_t out,
-                                    const curve448_precomputed_s *table,
-                                    const curve448_scalar_t scalar)
+void ossl_curve448_precomputed_scalarmul(curve448_point_t              out,
+                                         const curve448_precomputed_s *table,
+                                         const curve448_scalar_t       scalar)
 {
-    unsigned int i, j, k;
+    unsigned int       i, j, k;
     const unsigned int n = COMBS_N, t = COMBS_T, s = COMBS_S;
-    niels_t ni;
-    curve448_scalar_t scalar1x;
+    niels_t            ni;
+    curve448_scalar_t  scalar1x;
 
     ossl_curve448_scalar_add(scalar1x, scalar, precomputed_scalarmul_adjustment);
     ossl_curve448_scalar_halve(scalar1x, scalar1x);
@@ -246,23 +231,21 @@ ossl_curve448_precomputed_scalarmul(curve448_point_t out,
             point_double_internal(out, out, 0);
 
         for (j = 0; j < n; j++) {
-            int tab = 0;
+            int    tab = 0;
             mask_t invert;
 
             for (k = 0; k < t; k++) {
                 unsigned int bit = (i - 1) + s * (k + j * t);
 
                 if (bit < C448_SCALAR_BITS)
-                    tab |=
-                        (scalar1x->limb[bit / WBITS] >> (bit % WBITS) & 1) << k;
+                    tab |= (scalar1x->limb[bit / WBITS] >> (bit % WBITS) & 1) << k;
             }
 
-            invert = (tab >> (t - 1)) - 1;
-            tab ^= invert;
-            tab &= (1 << (t - 1)) - 1;
+            invert  = (tab >> (t - 1)) - 1;
+            tab    ^= invert;
+            tab    &= (1 << (t - 1)) - 1;
 
-            constant_time_lookup_niels(ni, &table->table[j << (t - 1)],
-                                       1 << (t - 1), tab);
+            constant_time_lookup_niels(ni, &table->table[j << (t - 1)], 1 << (t - 1), tab);
 
             cond_neg_niels(ni, invert);
             if ((i != s) || j != 0)
@@ -276,12 +259,10 @@ ossl_curve448_precomputed_scalarmul(curve448_point_t out,
     OPENSSL_cleanse(scalar1x, sizeof(scalar1x));
 }
 
-void
-ossl_curve448_point_mul_by_ratio_and_encode_like_eddsa(
-                                    uint8_t enc[EDDSA_448_PUBLIC_BYTES],
-                                    const curve448_point_t p)
+void ossl_curve448_point_mul_by_ratio_and_encode_like_eddsa(uint8_t                enc[EDDSA_448_PUBLIC_BYTES],
+                                                            const curve448_point_t p)
 {
-    gf x, y, z, t;
+    gf               x, y, z, t;
     curve448_point_t q;
 
     /* The point is now on the twisted curve.  Move it to untwisted. */
@@ -324,32 +305,30 @@ ossl_curve448_point_mul_by_ratio_and_encode_like_eddsa(
     ossl_curve448_point_destroy(q);
 }
 
-c448_error_t
-ossl_curve448_point_decode_like_eddsa_and_mul_by_ratio(
-                                curve448_point_t p,
-                                const uint8_t enc[EDDSA_448_PUBLIC_BYTES])
+c448_error_t ossl_curve448_point_decode_like_eddsa_and_mul_by_ratio(curve448_point_t p,
+                                                                    const uint8_t    enc[EDDSA_448_PUBLIC_BYTES])
 {
     uint8_t enc2[EDDSA_448_PUBLIC_BYTES];
-    mask_t low;
-    mask_t succ;
+    mask_t  low;
+    mask_t  succ;
 
     memcpy(enc2, enc, sizeof(enc2));
 
-    low = ~word_is_zero(enc2[EDDSA_448_PRIVATE_BYTES - 1] & 0x80);
+    low                                = ~word_is_zero(enc2[EDDSA_448_PRIVATE_BYTES - 1] & 0x80);
     enc2[EDDSA_448_PRIVATE_BYTES - 1] &= ~0x80;
 
-    succ = gf_deserialize(p->y, enc2, 1, 0);
-    succ &= word_is_zero(enc2[EDDSA_448_PRIVATE_BYTES - 1]);
+    succ                               = gf_deserialize(p->y, enc2, 1, 0);
+    succ                              &= word_is_zero(enc2[EDDSA_448_PRIVATE_BYTES - 1]);
 
     ossl_gf_sqr(p->x, p->y);
-    gf_sub(p->z, ONE, p->x);    /* num = 1-y^2 */
+    gf_sub(p->z, ONE, p->x);        /* num = 1-y^2 */
     gf_mulw(p->t, p->x, EDWARDS_D); /* dy^2 */
-    gf_sub(p->t, ONE, p->t);    /* denom = 1-dy^2 or 1-d + dy^2 */
+    gf_sub(p->t, ONE, p->t);        /* denom = 1-dy^2 or 1-d + dy^2 */
 
     ossl_gf_mul(p->x, p->z, p->t);
     succ &= gf_isr(p->t, p->x); /* 1/sqrt(num * denom) */
 
-    ossl_gf_mul(p->x, p->t, p->z);   /* sqrt(num / denom) */
+    ossl_gf_mul(p->x, p->t, p->z); /* sqrt(num / denom) */
     gf_cond_neg(p->x, gf_lobit(p->x) ^ low);
     gf_copy(p->z, ONE);
 
@@ -384,12 +363,10 @@ ossl_curve448_point_decode_like_eddsa_and_mul_by_ratio(
 }
 
 c448_error_t
-ossl_x448_int(uint8_t out[X_PUBLIC_BYTES],
-              const uint8_t base[X_PUBLIC_BYTES],
-              const uint8_t scalar[X_PRIVATE_BYTES])
+ossl_x448_int(uint8_t out[X_PUBLIC_BYTES], const uint8_t base[X_PUBLIC_BYTES], const uint8_t scalar[X_PRIVATE_BYTES])
 {
-    gf x1, x2, z2, x3, z3, t1, t2;
-    int t;
+    gf     x1, x2, z2, x3, z3, t1, t2;
+    int    t;
     mask_t swap = 0;
     mask_t nz;
 
@@ -401,7 +378,7 @@ ossl_x448_int(uint8_t out[X_PUBLIC_BYTES],
 
     for (t = X_PRIVATE_BITS - 1; t >= 0; t--) {
         uint8_t sb = scalar[t / 8];
-        mask_t k_t;
+        mask_t  k_t;
 
         /* Scalar conditioning */
         if (t / 8 == 0)
@@ -409,8 +386,8 @@ ossl_x448_int(uint8_t out[X_PUBLIC_BYTES],
         else if (t == X_PRIVATE_BITS - 1)
             sb = -1;
 
-        k_t = (sb >> (t % 8)) & 1;
-        k_t = 0 - k_t;             /* set to all 0s or all 1s */
+        k_t   = (sb >> (t % 8)) & 1;
+        k_t   = 0 - k_t; /* set to all 0s or all 1s */
 
         swap ^= k_t;
         gf_cond_swap(x2, x3, swap);
@@ -422,26 +399,26 @@ ossl_x448_int(uint8_t out[X_PUBLIC_BYTES],
          * comments, "2+e" is saying that the coefficients are at most 2+epsilon
          * times the reduction limit.
          */
-        gf_add_nr(t1, x2, z2);  /* A = x2 + z2 */ /* 2+e */
-        gf_sub_nr(t2, x2, z2);  /* B = x2 - z2 */ /* 3+e */
-        gf_sub_nr(z2, x3, z3);  /* D = x3 - z3 */ /* 3+e */
-        ossl_gf_mul(x2, t1, z2);     /* DA */
-        gf_add_nr(z2, z3, x3);  /* C = x3 + z3 */ /* 2+e */
-        ossl_gf_mul(x3, t2, z2);     /* CB */
-        gf_sub_nr(z3, x2, x3);  /* DA-CB */ /* 3+e */
-        ossl_gf_sqr(z2, z3);         /* (DA-CB)^2 */
-        ossl_gf_mul(z3, x1, z2);     /* z3 = x1(DA-CB)^2 */
-        gf_add_nr(z2, x2, x3);  /* (DA+CB) */ /* 2+e */
-        ossl_gf_sqr(x3, z2);         /* x3 = (DA+CB)^2 */
+        gf_add_nr(t1, x2, z2); /* A = x2 + z2 */ /* 2+e */
+        gf_sub_nr(t2, x2, z2); /* B = x2 - z2 */ /* 3+e */
+        gf_sub_nr(z2, x3, z3); /* D = x3 - z3 */ /* 3+e */
+        ossl_gf_mul(x2, t1, z2);                 /* DA */
+        gf_add_nr(z2, z3, x3); /* C = x3 + z3 */ /* 2+e */
+        ossl_gf_mul(x3, t2, z2);                 /* CB */
+        gf_sub_nr(z3, x2, x3); /* DA-CB */       /* 3+e */
+        ossl_gf_sqr(z2, z3);                     /* (DA-CB)^2 */
+        ossl_gf_mul(z3, x1, z2);                 /* z3 = x1(DA-CB)^2 */
+        gf_add_nr(z2, x2, x3); /* (DA+CB) */     /* 2+e */
+        ossl_gf_sqr(x3, z2);                     /* x3 = (DA+CB)^2 */
 
-        ossl_gf_sqr(z2, t1);         /* AA = A^2 */
-        ossl_gf_sqr(t1, t2);         /* BB = B^2 */
-        ossl_gf_mul(x2, z2, t1);     /* x2 = AA*BB */
-        gf_sub_nr(t2, z2, t1);  /* E = AA-BB */ /* 3+e */
+        ossl_gf_sqr(z2, t1);                   /* AA = A^2 */
+        ossl_gf_sqr(t1, t2);                   /* BB = B^2 */
+        ossl_gf_mul(x2, z2, t1);               /* x2 = AA*BB */
+        gf_sub_nr(t2, z2, t1); /* E = AA-BB */ /* 3+e */
 
-        gf_mulw(t1, t2, -EDWARDS_D); /* E*-d = a24*E */
-        gf_add_nr(t1, t1, z2);  /* AA + a24*E */ /* 2+e */
-        ossl_gf_mul(z2, t2, t1);     /* z2 = E(AA+a24*E) */
+        gf_mulw(t1, t2, -EDWARDS_D);            /* E*-d = a24*E */
+        gf_add_nr(t1, t1, z2); /* AA + a24*E */ /* 2+e */
+        ossl_gf_mul(z2, t2, t1);                /* z2 = E(AA+a24*E) */
     }
 
     /* Finish */
@@ -463,32 +440,28 @@ ossl_x448_int(uint8_t out[X_PUBLIC_BYTES],
     return c448_succeed_if(mask_to_bool(nz));
 }
 
-void
-ossl_curve448_point_mul_by_ratio_and_encode_like_x448(uint8_t
-                                                      out[X_PUBLIC_BYTES],
-                                                      const curve448_point_t p)
+void ossl_curve448_point_mul_by_ratio_and_encode_like_x448(uint8_t out[X_PUBLIC_BYTES], const curve448_point_t p)
 {
     curve448_point_t q;
 
     curve448_point_copy(q, p);
-    gf_invert(q->t, q->x, 0);   /* 1/x */
-    ossl_gf_mul(q->z, q->t, q->y);   /* y/x */
-    ossl_gf_sqr(q->y, q->z);         /* (y/x)^2 */
+    gf_invert(q->t, q->x, 0);      /* 1/x */
+    ossl_gf_mul(q->z, q->t, q->y); /* y/x */
+    ossl_gf_sqr(q->y, q->z);       /* (y/x)^2 */
     gf_serialize(out, q->y, 1);
     ossl_curve448_point_destroy(q);
 }
 
-void ossl_x448_derive_public_key(uint8_t out[X_PUBLIC_BYTES],
-                                 const uint8_t scalar[X_PRIVATE_BYTES])
+void ossl_x448_derive_public_key(uint8_t out[X_PUBLIC_BYTES], const uint8_t scalar[X_PRIVATE_BYTES])
 {
     /* Scalar conditioning */
-    uint8_t scalar2[X_PRIVATE_BYTES];
+    uint8_t           scalar2[X_PRIVATE_BYTES];
     curve448_scalar_t the_scalar;
-    curve448_point_t p;
-    unsigned int i;
+    curve448_point_t  p;
+    unsigned int      i;
 
     memcpy(scalar2, scalar, sizeof(scalar2));
-    scalar2[0] &= -(uint8_t)COFACTOR;
+    scalar2[0]                   &= -(uint8_t)COFACTOR;
 
     scalar2[X_PRIVATE_BYTES - 1] &= ~((0u - 1u) << ((X_PRIVATE_BITS + 7) % 8));
     scalar2[X_PRIVATE_BYTES - 1] |= 1 << ((X_PRIVATE_BITS + 7) % 8);
@@ -499,8 +472,7 @@ void ossl_x448_derive_public_key(uint8_t out[X_PUBLIC_BYTES],
     for (i = 1; i < X448_ENCODE_RATIO; i <<= 1)
         ossl_curve448_scalar_halve(the_scalar, the_scalar);
 
-    ossl_curve448_precomputed_scalarmul(p, ossl_curve448_precomputed_base,
-                                        the_scalar);
+    ossl_curve448_precomputed_scalarmul(p, ossl_curve448_precomputed_base, the_scalar);
     ossl_curve448_point_mul_by_ratio_and_encode_like_x448(out, p);
     ossl_curve448_point_destroy(p);
 }
@@ -514,6 +486,7 @@ struct smvt_control {
 # define NUMTRAILINGZEROS       __builtin_ctz
 #else
 # define NUMTRAILINGZEROS       numtrailingzeros
+
 static uint32_t numtrailingzeros(uint32_t i)
 {
     uint32_t tmp;
@@ -524,22 +497,22 @@ static uint32_t numtrailingzeros(uint32_t i)
 
     tmp = i << 16;
     if (tmp != 0) {
-        i = tmp;
+        i    = tmp;
         num -= 16;
     }
     tmp = i << 8;
     if (tmp != 0) {
-        i = tmp;
+        i    = tmp;
         num -= 8;
     }
     tmp = i << 4;
     if (tmp != 0) {
-        i = tmp;
+        i    = tmp;
         num -= 4;
     }
     tmp = i << 2;
     if (tmp != 0) {
-        i = tmp;
+        i    = tmp;
         num -= 2;
     }
     tmp = i << 1;
@@ -550,21 +523,21 @@ static uint32_t numtrailingzeros(uint32_t i)
 }
 #endif
 
-static int recode_wnaf(struct smvt_control *control,
+static int recode_wnaf(struct smvt_control    *control,
                        /* [nbits/(table_bits + 1) + 3] */
                        const curve448_scalar_t scalar,
-                       unsigned int table_bits)
+                       unsigned int            table_bits)
 {
-    unsigned int table_size = C448_SCALAR_BITS / (table_bits + 1) + 3;
-    int position = table_size - 1; /* at the end */
-    uint64_t current = scalar->limb[0] & 0xFFFF;
-    uint32_t mask = (1 << (table_bits + 1)) - 1;
-    unsigned int w;
+    unsigned int       table_size = C448_SCALAR_BITS / (table_bits + 1) + 3;
+    int                position   = table_size - 1; /* at the end */
+    uint64_t           current    = scalar->limb[0] & 0xFFFF;
+    uint32_t           mask       = (1 << (table_bits + 1)) - 1;
+    unsigned int       w;
     const unsigned int B_OVER_16 = sizeof(scalar->limb[0]) / 2;
-    unsigned int n, i;
+    unsigned int       n, i;
 
     /* place the end marker */
-    control[position].power = -1;
+    control[position].power  = -1;
     control[position].addend = 0;
     position--;
 
@@ -577,14 +550,13 @@ static int recode_wnaf(struct smvt_control *control,
     for (w = 1; w < (C448_SCALAR_BITS - 1) / 16 + 3; w++) {
         if (w < (C448_SCALAR_BITS - 1) / 16 + 1) {
             /* Refill the 16 high bits of current */
-            current += (uint32_t)((scalar->limb[w / B_OVER_16]
-                       >> (16 * (w % B_OVER_16))) << 16);
+            current += (uint32_t)((scalar->limb[w / B_OVER_16] >> (16 * (w % B_OVER_16))) << 16);
         }
 
         while (current & 0xFFFF) {
-            uint32_t pos = NUMTRAILINGZEROS((uint32_t)current);
-            uint32_t odd = (uint32_t)current >> pos;
-            int32_t delta = odd & mask;
+            uint32_t pos   = NUMTRAILINGZEROS((uint32_t)current);
+            uint32_t odd   = (uint32_t)current >> pos;
+            int32_t  delta = odd & mask;
 
             assert(position >= 0);
             if (odd & (1 << (table_bits + 1)))
@@ -596,9 +568,9 @@ static int recode_wnaf(struct smvt_control *control,
              * isn't desirable.
              */
             /* coverity[overflow_before_widen] */
-            current -= delta * (1 << pos);
-            control[position].power = pos + 16 * (w - 1);
-            control[position].addend = delta;
+            current                  -= delta * (1 << pos);
+            control[position].power   = pos + 16 * (w - 1);
+            control[position].addend  = delta;
             position--;
         }
         current >>= 16;
@@ -613,13 +585,11 @@ static int recode_wnaf(struct smvt_control *control,
     return n - 1;
 }
 
-static void prepare_wnaf_table(pniels_t *output,
-                               const curve448_point_t working,
-                               unsigned int tbits)
+static void prepare_wnaf_table(pniels_t *output, const curve448_point_t working, unsigned int tbits)
 {
     curve448_point_t tmp;
-    int i;
-    pniels_t twop;
+    int              i;
+    pniels_t         twop;
 
     pt_to_pniels(output[0], working);
 
@@ -641,22 +611,19 @@ static void prepare_wnaf_table(pniels_t *output,
     OPENSSL_cleanse(twop, sizeof(twop));
 }
 
-void
-ossl_curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
-                                               const curve448_scalar_t scalar1,
-                                               const curve448_point_t base2,
-                                               const curve448_scalar_t scalar2)
+void ossl_curve448_base_double_scalarmul_non_secret(curve448_point_t        combo,
+                                                    const curve448_scalar_t scalar1,
+                                                    const curve448_point_t  base2,
+                                                    const curve448_scalar_t scalar2)
 {
-    const int table_bits_var = C448_WNAF_VAR_TABLE_BITS;
-    const int table_bits_pre = C448_WNAF_FIXED_TABLE_BITS;
-    struct smvt_control control_var[C448_SCALAR_BITS /
-                                    (C448_WNAF_VAR_TABLE_BITS + 1) + 3];
-    struct smvt_control control_pre[C448_SCALAR_BITS /
-                                    (C448_WNAF_FIXED_TABLE_BITS + 1) + 3];
-    int ncb_pre = recode_wnaf(control_pre, scalar1, table_bits_pre);
-    int ncb_var = recode_wnaf(control_var, scalar2, table_bits_var);
-    pniels_t precmp_var[1 << C448_WNAF_VAR_TABLE_BITS];
-    int contp = 0, contv = 0, i;
+    const int           table_bits_var = C448_WNAF_VAR_TABLE_BITS;
+    const int           table_bits_pre = C448_WNAF_FIXED_TABLE_BITS;
+    struct smvt_control control_var[C448_SCALAR_BITS / (C448_WNAF_VAR_TABLE_BITS + 1) + 3];
+    struct smvt_control control_pre[C448_SCALAR_BITS / (C448_WNAF_FIXED_TABLE_BITS + 1) + 3];
+    int                 ncb_pre = recode_wnaf(control_pre, scalar1, table_bits_pre);
+    int                 ncb_var = recode_wnaf(control_var, scalar2, table_bits_var);
+    pniels_t            precmp_var[1 << C448_WNAF_VAR_TABLE_BITS];
+    int                 contp = 0, contv = 0, i;
 
     prepare_wnaf_table(precmp_var, base2, table_bits_var);
     i = control_var[0].power;
@@ -670,9 +637,7 @@ ossl_curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
         contv++;
     } else if (i == control_pre[0].power && i >= 0) {
         pniels_to_pt(combo, precmp_var[control_var[0].addend >> 1]);
-        add_niels_to_pt(combo,
-                        ossl_curve448_wnaf_base[control_pre[0].addend >> 1],
-                        i);
+        add_niels_to_pt(combo, ossl_curve448_wnaf_base[control_pre[0].addend >> 1], i);
         contv++;
         contp++;
     } else {
@@ -691,13 +656,9 @@ ossl_curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
             assert(control_var[contv].addend);
 
             if (control_var[contv].addend > 0)
-                add_pniels_to_pt(combo,
-                                 precmp_var[control_var[contv].addend >> 1],
-                                 i && !cp);
+                add_pniels_to_pt(combo, precmp_var[control_var[contv].addend >> 1], i && !cp);
             else
-                sub_pniels_from_pt(combo,
-                                   precmp_var[(-control_var[contv].addend)
-                                              >> 1], i && !cp);
+                sub_pniels_from_pt(combo, precmp_var[(-control_var[contv].addend) >> 1], i && !cp);
             contv++;
         }
 
@@ -705,13 +666,9 @@ ossl_curve448_base_double_scalarmul_non_secret(curve448_point_t combo,
             assert(control_pre[contp].addend);
 
             if (control_pre[contp].addend > 0)
-                add_niels_to_pt(combo,
-                                ossl_curve448_wnaf_base[control_pre[contp].addend
-                                                   >> 1], i);
+                add_niels_to_pt(combo, ossl_curve448_wnaf_base[control_pre[contp].addend >> 1], i);
             else
-                sub_niels_from_pt(combo,
-                                  ossl_curve448_wnaf_base[(-control_pre
-                                                      [contp].addend) >> 1], i);
+                sub_niels_from_pt(combo, ossl_curve448_wnaf_base[(-control_pre[contp].addend) >> 1], i);
             contp++;
         }
     }
@@ -732,15 +689,12 @@ void ossl_curve448_point_destroy(curve448_point_t point)
     OPENSSL_cleanse(point, sizeof(curve448_point_t));
 }
 
-int ossl_x448(uint8_t out_shared_key[56], const uint8_t private_key[56],
-              const uint8_t peer_public_value[56])
+int ossl_x448(uint8_t out_shared_key[56], const uint8_t private_key[56], const uint8_t peer_public_value[56])
 {
-    return ossl_x448_int(out_shared_key, peer_public_value, private_key)
-           == C448_SUCCESS;
+    return ossl_x448_int(out_shared_key, peer_public_value, private_key) == C448_SUCCESS;
 }
 
-void ossl_x448_public_from_private(uint8_t out_public_value[56],
-                                   const uint8_t private_key[56])
+void ossl_x448_public_from_private(uint8_t out_public_value[56], const uint8_t private_key[56])
 {
     ossl_x448_derive_public_key(out_public_value, private_key);
 }

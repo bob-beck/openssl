@@ -19,16 +19,16 @@
 #include "prov/implementations.h"
 #include "crypto/lms_sig.h"
 
-static OSSL_FUNC_signature_newctx_fn lms_newctx;
-static OSSL_FUNC_signature_freectx_fn lms_freectx;
+static OSSL_FUNC_signature_newctx_fn              lms_newctx;
+static OSSL_FUNC_signature_freectx_fn             lms_freectx;
 static OSSL_FUNC_signature_verify_message_init_fn lms_verify_msg_init;
-static OSSL_FUNC_signature_verify_fn lms_verify;
+static OSSL_FUNC_signature_verify_fn              lms_verify;
 
 typedef struct {
     OSSL_LIB_CTX *libctx;
-    char *propq;
-    LMS_KEY *key;
-    EVP_MD *md;
+    char         *propq;
+    LMS_KEY      *key;
+    EVP_MD       *md;
 } PROV_LMS_CTX;
 
 static void *lms_newctx(void *provctx, const char *propq)
@@ -70,7 +70,7 @@ static int setdigest(PROV_LMS_CTX *ctx, const char *digestname)
      * If the optional digestname passed in by the user is different
      * then return an error.
      */
-    LMS_KEY *key = ctx->key;
+    LMS_KEY    *key            = ctx->key;
     const char *pub_digestname = key->ots_params->digestname;
 
     if (ctx->md != NULL) {
@@ -88,7 +88,7 @@ end:
 static int lms_verify_msg_init(void *vctx, void *vkey, const OSSL_PARAM params[])
 {
     PROV_LMS_CTX *ctx = (PROV_LMS_CTX *)vctx;
-    LMS_KEY *key = (LMS_KEY *)vkey;
+    LMS_KEY      *key = (LMS_KEY *)vkey;
 
     if (!ossl_prov_is_running() || ctx == NULL)
         return 0;
@@ -102,13 +102,13 @@ static int lms_verify_msg_init(void *vctx, void *vkey, const OSSL_PARAM params[]
     return setdigest(ctx, NULL);
 }
 
-static int lms_verify(void *vctx, const unsigned char *sigbuf, size_t sigbuf_len,
-                      const unsigned char *msg, size_t msglen)
+static int
+lms_verify(void *vctx, const unsigned char *sigbuf, size_t sigbuf_len, const unsigned char *msg, size_t msglen)
 {
-    int ret = 0;
+    int           ret = 0;
     PROV_LMS_CTX *ctx = (PROV_LMS_CTX *)vctx;
-    LMS_KEY *pub = ctx->key;
-    LMS_SIG *sig = NULL;
+    LMS_KEY      *pub = ctx->key;
+    LMS_SIG      *sig = NULL;
 
     /* A root public key is required to perform a verify operation */
     if (pub == NULL)
@@ -124,10 +124,9 @@ static int lms_verify(void *vctx, const unsigned char *sigbuf, size_t sigbuf_len
 }
 
 const OSSL_DISPATCH ossl_lms_signature_functions[] = {
-    { OSSL_FUNC_SIGNATURE_NEWCTX, (void (*)(void))lms_newctx },
-    { OSSL_FUNC_SIGNATURE_FREECTX, (void (*)(void))lms_freectx },
-    { OSSL_FUNC_SIGNATURE_VERIFY_MESSAGE_INIT,
-      (void (*)(void))lms_verify_msg_init },
-    { OSSL_FUNC_SIGNATURE_VERIFY, (void (*)(void))lms_verify },
+    {OSSL_FUNC_SIGNATURE_NEWCTX,              (void (*)(void))lms_newctx         },
+    {OSSL_FUNC_SIGNATURE_FREECTX,             (void (*)(void))lms_freectx        },
+    {OSSL_FUNC_SIGNATURE_VERIFY_MESSAGE_INIT, (void (*)(void))lms_verify_msg_init},
+    {OSSL_FUNC_SIGNATURE_VERIFY,              (void (*)(void))lms_verify         },
     OSSL_DISPATCH_END
 };

@@ -15,10 +15,10 @@
 
 static int describe_param_type(char *buf, size_t bufsz, const OSSL_PARAM *param)
 {
-    const char *type_mod = "";
-    const char *type = NULL;
-    int show_type_number = 0;
-    int printed_len;
+    const char *type_mod         = "";
+    const char *type             = NULL;
+    int         show_type_number = 0;
+    int         printed_len;
 
     switch (param->data_type) {
     case OSSL_PARAM_UNSIGNED_INTEGER:
@@ -40,35 +40,34 @@ static int describe_param_type(char *buf, size_t bufsz, const OSSL_PARAM *param)
         type = "octet string";
         break;
     default:
-        type = "unknown type";
+        type             = "unknown type";
         show_type_number = 1;
         break;
     }
 
     printed_len = BIO_snprintf(buf, bufsz, "%s: ", param->key);
     if (printed_len > 0) {
-        buf += printed_len;
+        buf   += printed_len;
         bufsz -= printed_len;
     }
     printed_len = BIO_snprintf(buf, bufsz, "%s%s", type_mod, type);
     if (printed_len > 0) {
-        buf += printed_len;
+        buf   += printed_len;
         bufsz -= printed_len;
     }
     if (show_type_number) {
         printed_len = BIO_snprintf(buf, bufsz, " [%d]", param->data_type);
         if (printed_len > 0) {
-            buf += printed_len;
+            buf   += printed_len;
             bufsz -= printed_len;
         }
     }
     if (param->data_size == 0)
         printed_len = BIO_snprintf(buf, bufsz, " (arbitrary size)");
     else
-        printed_len = BIO_snprintf(buf, bufsz, " (max %zu bytes large)",
-                                   param->data_size);
+        printed_len = BIO_snprintf(buf, bufsz, " (max %zu bytes large)", param->data_size);
     if (printed_len > 0) {
-        buf += printed_len;
+        buf   += printed_len;
         bufsz -= printed_len;
     }
     *buf = '\0';
@@ -88,7 +87,7 @@ int print_param_types(const char *thing, const OSSL_PARAM *pdefs, int indent)
     } else {
         BIO_printf(bio_out, "%*s%s:\n", indent, "", thing);
         for (; pdefs->key != NULL; pdefs++) {
-            char buf[200];       /* This should be ample space */
+            char buf[200]; /* This should be ample space */
 
             describe_param_type(buf, sizeof(buf), pdefs);
             BIO_printf(bio_out, "%*s  %s\n", indent, "", buf);
@@ -119,8 +118,8 @@ static void print_param_utf8(const char **s_ptr, size_t len)
 /* Output the body of an OCTET string */
 static void print_param_octet(const unsigned char **bytes_ptr, size_t len)
 {
-    size_t i;
-    const char *tail = "\n";
+    size_t               i;
+    const char          *tail = "\n";
     const unsigned char *bytes;
 
     BIO_printf(bio_out, "<%zu bytes>", len);
@@ -138,7 +137,7 @@ static void print_param_octet(const unsigned char **bytes_ptr, size_t len)
     }
 
     if (len > MAX_OCTET_STRING_OUTPUT_BYTES) {
-        len = MAX_OCTET_STRING_OUTPUT_BYTES;
+        len  = MAX_OCTET_STRING_OUTPUT_BYTES;
         tail = "...\n";
     }
     BIO_puts(bio_out, " ");
@@ -149,7 +148,7 @@ static void print_param_octet(const unsigned char **bytes_ptr, size_t len)
 
 void print_param_value(const OSSL_PARAM *p, int indent)
 {
-    int64_t i;
+    int64_t  i;
     uint64_t u;
 
     printf("%*s%s: ", indent, "", p->key);
@@ -179,9 +178,7 @@ void print_param_value(const OSSL_PARAM *p, int indent)
         print_param_octet((const unsigned char **)&p->data, p->return_size);
         break;
     default:
-        BIO_printf(bio_out, "unknown type (%u) of %zu bytes\n",
-                   p->data_type, p->return_size);
+        BIO_printf(bio_out, "unknown type (%u) of %zu bytes\n", p->data_type, p->return_size);
         break;
     }
 }
-

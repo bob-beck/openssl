@@ -9,7 +9,7 @@
 
 #ifndef OSSL_CRYPTO_CHACHA_H
 #define OSSL_CRYPTO_CHACHA_H
-# pragma once
+#pragma once
 
 #include <stddef.h>
 
@@ -24,13 +24,18 @@
  * elements as opposite to passing verbatim byte vectors, is chosen for
  * efficiency in multi-call scenarios.
  */
-void ChaCha20_ctr32(unsigned char *out, const unsigned char *inp,
-                    size_t len, const unsigned int key[8],
-                    const unsigned int counter[4]);
+void ChaCha20_ctr32(unsigned char       *out,
+                    const unsigned char *inp,
+                    size_t               len,
+                    const unsigned int   key[8],
+                    const unsigned int   counter[4]);
 #ifdef INCLUDE_C_CHACHA20
 /* The fallback implementation for `ChaCha20_ctr32`. */
-void ChaCha20_ctr32_c(unsigned char *out, const unsigned char *inp, size_t len,
-                      const unsigned int key[8], const unsigned int counter[4]);
+void ChaCha20_ctr32_c(unsigned char       *out,
+                      const unsigned char *inp,
+                      size_t               len,
+                      const unsigned int   key[8],
+                      const unsigned int   counter[4]);
 #endif
 
 /*

@@ -22,7 +22,7 @@
 int DSA_print_fp(FILE *fp, const DSA *x, int off)
 {
     BIO *b;
-    int ret;
+    int  ret;
 
     if ((b = BIO_new(BIO_s_file())) == NULL) {
         ERR_raise(ERR_LIB_DSA, ERR_R_BUF_LIB);
@@ -37,7 +37,7 @@ int DSA_print_fp(FILE *fp, const DSA *x, int off)
 int DSAparams_print_fp(FILE *fp, const DSA *x)
 {
     BIO *b;
-    int ret;
+    int  ret;
 
     if ((b = BIO_new(BIO_s_file())) == NULL) {
         ERR_raise(ERR_LIB_DSA, ERR_R_BUF_LIB);
@@ -53,7 +53,7 @@ int DSAparams_print_fp(FILE *fp, const DSA *x)
 int DSA_print(BIO *bp, const DSA *x, int off)
 {
     EVP_PKEY *pk;
-    int ret;
+    int       ret;
     pk = EVP_PKEY_new();
     if (pk == NULL)
         return 0;
@@ -67,7 +67,7 @@ int DSA_print(BIO *bp, const DSA *x, int off)
 int DSAparams_print(BIO *bp, const DSA *x)
 {
     EVP_PKEY *pk;
-    int ret;
+    int       ret;
     pk = EVP_PKEY_new();
     if (pk == NULL)
         return 0;

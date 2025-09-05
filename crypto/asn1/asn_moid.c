@@ -22,10 +22,10 @@ static int do_create(const char *value, const char *name);
 
 static int oid_module_init(CONF_IMODULE *md, const CONF *cnf)
 {
-    int i;
-    const char *oid_section;
+    int                   i;
+    const char           *oid_section;
     STACK_OF(CONF_VALUE) *sktmp;
-    CONF_VALUE *oval;
+    CONF_VALUE           *oval;
 
     oid_section = CONF_imodule_get_value(md);
     if ((sktmp = NCONF_get_section(cnf, oid_section)) == NULL) {
@@ -59,20 +59,20 @@ void ASN1_add_oid_module(void)
 
 static int do_create(const char *value, const char *name)
 {
-    int nid;
+    int         nid;
     const char *ln, *ostr, *p;
-    char *lntmp = NULL;
+    char       *lntmp = NULL;
 
-    p = strrchr(value, ',');
+    p                 = strrchr(value, ',');
     if (p == NULL) {
-        ln = name;
+        ln   = name;
         ostr = value;
     } else if (p == value) {
         /* we started with a leading comma */
-        ln = name;
+        ln   = name;
         ostr = p + 1;
     } else {
-        ln = value;
+        ln   = value;
         ostr = p + 1;
         if (*ostr == '\0')
             return 0;
@@ -91,7 +91,7 @@ static int do_create(const char *value, const char *name)
             return 0;
         memcpy(lntmp, ln, p - ln);
         lntmp[p - ln] = '\0';
-        ln = lntmp;
+        ln            = lntmp;
     }
 
     nid = OBJ_create(ostr, name, ln);

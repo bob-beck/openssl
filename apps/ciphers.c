@@ -28,7 +28,10 @@ typedef enum OPTION_choice {
     OPT_PSK,
     OPT_SRP,
     OPT_CIPHERSUITES,
-    OPT_V, OPT_UPPER_V, OPT_S, OPT_PROV_ENUM
+    OPT_V,
+    OPT_UPPER_V,
+    OPT_S,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS ciphers_options[] = {
@@ -66,8 +69,7 @@ const OPTIONS ciphers_options[] = {
 #ifndef OPENSSL_NO_SRP
     {"srp", OPT_SRP, '-', "(deprecated) Include ciphersuites requiring SRP"},
 #endif
-    {"ciphersuites", OPT_CIPHERSUITES, 's',
-     "Configure the TLSv1.3 ciphersuites to use"},
+    {"ciphersuites", OPT_CIPHERSUITES, 's', "Configure the TLSv1.3 ciphersuites to use"},
     OPT_PROV_OPTIONS,
 
     OPT_PARAMETERS(),
@@ -76,10 +78,12 @@ const OPTIONS ciphers_options[] = {
 };
 
 #ifndef OPENSSL_NO_PSK
-static unsigned int dummy_psk(SSL *ssl, const char *hint, char *identity,
-                              unsigned int max_identity_len,
+static unsigned int dummy_psk(SSL           *ssl,
+                              const char    *hint,
+                              char          *identity,
+                              unsigned int   max_identity_len,
                               unsigned char *psk,
-                              unsigned int max_psk_len)
+                              unsigned int   max_psk_len)
 {
     return 0;
 }
@@ -87,30 +91,30 @@ static unsigned int dummy_psk(SSL *ssl, const char *hint, char *identity,
 
 int ciphers_main(int argc, char **argv)
 {
-    SSL_CTX *ctx = NULL;
-    SSL *ssl = NULL;
-    STACK_OF(SSL_CIPHER) *sk = NULL;
-    const SSL_METHOD *meth = TLS_server_method();
-    int ret = 1, i, verbose = 0, Verbose = 0, use_supported = 0;
-    int stdname = 0;
+    SSL_CTX              *ctx  = NULL;
+    SSL                  *ssl  = NULL;
+    STACK_OF(SSL_CIPHER) *sk   = NULL;
+    const SSL_METHOD     *meth = TLS_server_method();
+    int                   ret = 1, i, verbose = 0, Verbose = 0, use_supported = 0;
+    int                   stdname = 0;
 #ifndef OPENSSL_NO_PSK
     int psk = 0;
 #endif
 #ifndef OPENSSL_NO_SRP
     int srp = 0;
 #endif
-    const char *p;
-    char *ciphers = NULL, *prog, *convert = NULL, *ciphersuites = NULL;
-    char buf[512];
+    const char   *p;
+    char         *ciphers = NULL, *prog, *convert = NULL, *ciphersuites = NULL;
+    char          buf[512];
     OPTION_CHOICE o;
-    int min_version = 0, max_version = 0;
+    int           min_version = 0, max_version = 0;
 
     prog = opt_init(argc, argv, ciphers_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -180,8 +184,7 @@ int ciphers_main(int argc, char **argv)
         goto opthelp;
 
     if (convert != NULL) {
-        BIO_printf(bio_out, "OpenSSL cipher name: %s\n",
-                   OPENSSL_cipher_name(convert));
+        BIO_printf(bio_out, "OpenSSL cipher name: %s\n", OPENSSL_cipher_name(convert));
         ret = 0;
         goto end;
     }
@@ -239,7 +242,6 @@ int ciphers_main(int argc, char **argv)
         }
         BIO_printf(bio_out, "\n");
     } else {
-
         for (i = 0; i < sk_SSL_CIPHER_num(sk); i++) {
             const SSL_CIPHER *c;
 
@@ -249,11 +251,11 @@ int ciphers_main(int argc, char **argv)
                 continue;
 
             if (Verbose) {
-                unsigned long id = SSL_CIPHER_get_id(c);
-                int id0 = (int)(id >> 24);
-                int id1 = (int)((id >> 16) & 0xffL);
-                int id2 = (int)((id >> 8) & 0xffL);
-                int id3 = (int)(id & 0xffL);
+                unsigned long id  = SSL_CIPHER_get_id(c);
+                int           id0 = (int)(id >> 24);
+                int           id1 = (int)((id >> 16) & 0xffL);
+                int           id2 = (int)((id >> 8) & 0xffL);
+                int           id3 = (int)(id & 0xffL);
 
                 if ((id & 0xff000000L) == 0x03000000L)
                     BIO_printf(bio_out, "          0x%02X,0x%02X - ", id2, id3); /* SSL3
@@ -273,9 +275,9 @@ int ciphers_main(int argc, char **argv)
 
     ret = 0;
     goto end;
- err:
+err:
     ERR_print_errors(bio_err);
- end:
+end:
     if (use_supported)
         sk_SSL_CIPHER_free(sk);
     SSL_CTX_free(ctx);

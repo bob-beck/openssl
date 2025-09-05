@@ -23,10 +23,24 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_INFORM, OPT_OUTFORM, OPT_ENGINE, OPT_IN, OPT_OUT,
-    OPT_NOOUT, OPT_TEXT, OPT_PARAM_OUT, OPT_PUBIN, OPT_PUBOUT,
-    OPT_PASSIN, OPT_PASSOUT, OPT_PARAM_ENC, OPT_CONV_FORM, OPT_CIPHER,
-    OPT_NO_PUBLIC, OPT_CHECK, OPT_PROV_ENUM
+    OPT_INFORM,
+    OPT_OUTFORM,
+    OPT_ENGINE,
+    OPT_IN,
+    OPT_OUT,
+    OPT_NOOUT,
+    OPT_TEXT,
+    OPT_PARAM_OUT,
+    OPT_PUBIN,
+    OPT_PUBOUT,
+    OPT_PASSIN,
+    OPT_PASSOUT,
+    OPT_PARAM_ENC,
+    OPT_CONV_FORM,
+    OPT_CIPHER,
+    OPT_NO_PUBLIC,
+    OPT_CHECK,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS ec_options[] = {
@@ -43,8 +57,7 @@ const OPTIONS ec_options[] = {
     {"passin", OPT_PASSIN, 's', "Input file pass phrase source"},
     {"check", OPT_CHECK, '-', "check key consistency"},
     {"", OPT_CIPHER, '-', "Any supported cipher"},
-    {"param_enc", OPT_PARAM_ENC, 's',
-     "Specifies the way the ec parameters are encoded"},
+    {"param_enc", OPT_PARAM_ENC, 's', "Specifies the way the ec parameters are encoded"},
     {"conv_form", OPT_CONV_FORM, 's', "Specifies the point conversion form "},
 
     OPT_SECTION("Output"),
@@ -63,22 +76,22 @@ const OPTIONS ec_options[] = {
 
 int ec_main(int argc, char **argv)
 {
-    OSSL_ENCODER_CTX *ectx = NULL;
-    OSSL_DECODER_CTX *dctx = NULL;
-    EVP_PKEY_CTX *pctx = NULL;
-    EVP_PKEY *eckey = NULL;
-    BIO *out = NULL;
-    ENGINE *e = NULL;
-    EVP_CIPHER *enc = NULL;
-    char *infile = NULL, *outfile = NULL, *ciphername = NULL, *prog;
-    char *passin = NULL, *passout = NULL, *passinarg = NULL, *passoutarg = NULL;
-    OPTION_CHOICE o;
-    int informat = FORMAT_UNDEF, outformat = FORMAT_PEM, text = 0, noout = 0;
-    int pubin = 0, pubout = 0, param_out = 0, ret = 1, private = 0;
-    int check = 0;
-    char *asn1_encoding = NULL;
-    char *point_format = NULL;
-    int no_public = 0;
+    OSSL_ENCODER_CTX *ectx   = NULL;
+    OSSL_DECODER_CTX *dctx   = NULL;
+    EVP_PKEY_CTX     *pctx   = NULL;
+    EVP_PKEY         *eckey  = NULL;
+    BIO              *out    = NULL;
+    ENGINE           *e      = NULL;
+    EVP_CIPHER       *enc    = NULL;
+    char             *infile = NULL, *outfile = NULL, *ciphername = NULL, *prog;
+    char             *passin = NULL, *passout = NULL, *passinarg = NULL, *passoutarg = NULL;
+    OPTION_CHOICE     o;
+    int               informat = FORMAT_UNDEF, outformat = FORMAT_PEM, text = 0, noout = 0;
+    int               pubin = 0, pubout = 0, param_out = 0, ret = 1, private = 0;
+    int               check         = 0;
+    char             *asn1_encoding = NULL;
+    char             *point_format  = NULL;
+    int               no_public     = 0;
 
     opt_set_unknown_name("cipher");
     prog = opt_init(argc, argv, ec_options);
@@ -86,7 +99,7 @@ int ec_main(int argc, char **argv)
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -163,7 +176,8 @@ int ec_main(int argc, char **argv)
 
     if (!opt_cipher(ciphername, &enc))
         goto opthelp;
-    private = !pubin && (text || (!param_out && !pubout));
+  private
+    = !pubin && (text || (!param_out && !pubout));
 
     if (!app_passwd(passinarg, passoutarg, &passin, &passout)) {
         BIO_printf(bio_err, "Error getting passwords\n");
@@ -185,16 +199,12 @@ int ec_main(int argc, char **argv)
         goto end;
 
     if (point_format
-        && !EVP_PKEY_set_utf8_string_param(
-                eckey, OSSL_PKEY_PARAM_EC_POINT_CONVERSION_FORMAT,
-                point_format)) {
+        && !EVP_PKEY_set_utf8_string_param(eckey, OSSL_PKEY_PARAM_EC_POINT_CONVERSION_FORMAT, point_format)) {
         BIO_printf(bio_err, "unable to set point conversion format\n");
         goto end;
     }
 
-    if (asn1_encoding != NULL
-        && !EVP_PKEY_set_utf8_string_param(
-                eckey, OSSL_PKEY_PARAM_EC_ENCODING, asn1_encoding)) {
+    if (asn1_encoding != NULL && !EVP_PKEY_set_utf8_string_param(eckey, OSSL_PKEY_PARAM_EC_ENCODING, asn1_encoding)) {
         BIO_printf(bio_err, "unable to set asn1 encoding format\n");
         goto end;
     }
@@ -234,33 +244,28 @@ int ec_main(int argc, char **argv)
     }
 
     if (!noout) {
-        int selection;
-        const char *output_type = outformat == FORMAT_ASN1 ? "DER" : "PEM";
+        int         selection;
+        const char *output_type      = outformat == FORMAT_ASN1 ? "DER" : "PEM";
         const char *output_structure = "type-specific";
 
         if (param_out) {
             selection = OSSL_KEYMGMT_SELECT_DOMAIN_PARAMETERS;
         } else if (pubin || pubout) {
-            selection = OSSL_KEYMGMT_SELECT_DOMAIN_PARAMETERS
-                | OSSL_KEYMGMT_SELECT_PUBLIC_KEY;
+            selection        = OSSL_KEYMGMT_SELECT_DOMAIN_PARAMETERS | OSSL_KEYMGMT_SELECT_PUBLIC_KEY;
             output_structure = "SubjectPublicKeyInfo";
         } else {
             selection = OSSL_KEYMGMT_SELECT_ALL;
             assert(private);
         }
 
-        ectx = OSSL_ENCODER_CTX_new_for_pkey(eckey, selection,
-                                             output_type, output_structure,
-                                             NULL);
+        ectx = OSSL_ENCODER_CTX_new_for_pkey(eckey, selection, output_type, output_structure, NULL);
         if (enc != NULL) {
             OSSL_ENCODER_CTX_set_cipher(ectx, EVP_CIPHER_get0_name(enc), NULL);
             /* Default passphrase prompter */
             OSSL_ENCODER_CTX_set_passphrase_ui(ectx, get_ui_method(), NULL);
             if (passout != NULL)
                 /* When passout given, override the passphrase prompter */
-                OSSL_ENCODER_CTX_set_passphrase(ectx,
-                                                (const unsigned char *)passout,
-                                                strlen(passout));
+                OSSL_ENCODER_CTX_set_passphrase(ectx, (const unsigned char *)passout, strlen(passout));
         }
         if (!OSSL_ENCODER_to_bio(ectx, out)) {
             BIO_printf(bio_err, "unable to write EC key\n");

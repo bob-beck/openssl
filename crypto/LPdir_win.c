@@ -67,8 +67,8 @@
 
 struct LP_dir_context_st {
     WIN32_FIND_DATA ctx;
-    HANDLE handle;
-    char entry_name[NAME_MAX + 1];
+    HANDLE          handle;
+    char            entry_name[NAME_MAX + 1];
 };
 
 const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
@@ -95,24 +95,20 @@ const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
         memset(*ctx, 0, sizeof(**ctx));
 
         if (sizeof(TCHAR) != sizeof(char)) {
-            TCHAR *wdir = NULL;
+            TCHAR *wdir  = NULL;
             /* len_0 denotes string length *with* trailing 0 */
             size_t index = 0, len_0 = dirlen + 1;
 #ifdef LP_MULTIBYTE_AVAILABLE
-            int sz = 0;
+            int  sz = 0;
             UINT cp;
 
             do {
 # ifdef CP_UTF8
-                if ((sz = MultiByteToWideChar((cp = CP_UTF8), 0,
-                                              directory, (int)len_0,
-                                              NULL, 0)) > 0 ||
-                    GetLastError() != ERROR_NO_UNICODE_TRANSLATION)
+                if ((sz = MultiByteToWideChar((cp = CP_UTF8), 0, directory, (int)len_0, NULL, 0)) > 0
+                    || GetLastError() != ERROR_NO_UNICODE_TRANSLATION)
                     break;
 # endif
-                sz = MultiByteToWideChar((cp = CP_ACP), 0,
-                                         directory, (int)len_0,
-                                         NULL, 0);
+                sz = MultiByteToWideChar((cp = CP_ACP), 0, directory, (int)len_0, NULL, 0);
             } while (0);
 
             if (sz > 0) {
@@ -121,17 +117,16 @@ const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
                  * concatenate asterisk, |sz| covers trailing '\0'!
                  */
                 wdir = _alloca((sz + 2) * sizeof(TCHAR));
-                if (!MultiByteToWideChar(cp, 0, directory, (int)len_0,
-                                         (WCHAR *)wdir, sz)) {
+                if (!MultiByteToWideChar(cp, 0, directory, (int)len_0, (WCHAR *)wdir, sz)) {
                     free(*ctx);
-                    *ctx = NULL;
+                    *ctx  = NULL;
                     errno = EINVAL;
                     return 0;
                 }
             } else
 #endif
             {
-                sz = (int)len_0;
+                sz   = (int)len_0;
                 /*
                  * allocate two additional characters in case we need to
                  * concatenate asterisk, |sz| covers trailing '\0'!
@@ -168,7 +163,7 @@ const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
 
         if ((*ctx)->handle == INVALID_HANDLE_VALUE) {
             free(*ctx);
-            *ctx = NULL;
+            *ctx  = NULL;
             errno = EINVAL;
             return 0;
         }
@@ -186,15 +181,19 @@ const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
         len_0++;
 
 #ifdef LP_MULTIBYTE_AVAILABLE
-        if (!WideCharToMultiByte(CP_DEFAULT, 0, (WCHAR *)wdir, (int)len_0,
+        if (!WideCharToMultiByte(CP_DEFAULT,
+                                 0,
+                                 (WCHAR *)wdir,
+                                 (int)len_0,
                                  (*ctx)->entry_name,
-                                 sizeof((*ctx)->entry_name), NULL, 0))
+                                 sizeof((*ctx)->entry_name),
+                                 NULL,
+                                 0))
 #endif
             for (index = 0; index < len_0; index++)
                 (*ctx)->entry_name[index] = (char)wdir[index];
     } else
-        strncpy((*ctx)->entry_name, (const char *)(*ctx)->ctx.cFileName,
-                sizeof((*ctx)->entry_name) - 1);
+        strncpy((*ctx)->entry_name, (const char *)(*ctx)->ctx.cFileName, sizeof((*ctx)->entry_name) - 1);
 
     (*ctx)->entry_name[sizeof((*ctx)->entry_name) - 1] = '\0';
 

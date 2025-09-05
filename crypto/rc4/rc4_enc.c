@@ -24,18 +24,17 @@
  * Date: Wed, 14 Sep 1994 06:35:31 GMT
  */
 
-void RC4(RC4_KEY *key, size_t len, const unsigned char *indata,
-         unsigned char *outdata)
+void RC4(RC4_KEY *key, size_t len, const unsigned char *indata, unsigned char *outdata)
 {
     register RC4_INT *d;
-    register RC4_INT x, y, tx, ty;
-    size_t i;
+    register RC4_INT  x, y, tx, ty;
+    size_t            i;
 
     x = key->x;
     y = key->y;
     d = key->data;
 
-#define LOOP(in,out) \
+#define LOOP(in, out) \
                 x=((x+1)&0xff); \
                 tx=d[x]; \
                 y=(tx+y)&0xff; \
@@ -54,7 +53,7 @@ void RC4(RC4_KEY *key, size_t len, const unsigned char *indata,
             LOOP(indata[5], outdata[5]);
             LOOP(indata[6], outdata[6]);
             LOOP(indata[7], outdata[7]);
-            indata += 8;
+            indata  += 8;
             outdata += 8;
             if (--i == 0)
                 break;

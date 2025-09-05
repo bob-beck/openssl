@@ -14,7 +14,7 @@
 #include "testutil.h"
 #include "threadstest.h"
 
-static int success;
+static int  success;
 
 static void thread_fips_rand_fetch(void)
 {

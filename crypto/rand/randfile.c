@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#if defined (__TANDEM) && defined (_SPT_MODEL_)
+#if defined(__TANDEM) && defined(_SPT_MODEL_)
 /*
  * These definitions have to come first in SPT due to scoping of the
  * declarations in c99 associated with SPT use of stat.
@@ -54,9 +54,9 @@
  * would look like ((m) & MASK == TYPE), but since MASK availability
  * is as questionable, we settle for this poor-man fallback...
  */
-# if !defined(S_ISREG)
-#   define S_ISREG(m) ((m) & S_IFREG)
-# endif
+#if !defined(S_ISREG)
+# define S_ISREG(m) ((m) & S_IFREG)
+#endif
 
 #define RAND_BUF_SIZE 1024
 #define RFILE ".rnd"
@@ -70,8 +70,9 @@
  * This declaration is a nasty hack to get around vms' extension to fopen for
  * passing in sharing options being disabled by /STANDARD=ANSI89
  */
-static __FILE_ptr32 (*const vms_fopen)(const char *, const char *, ...) =
-        (__FILE_ptr32 (*)(const char *, const char *, ...))fopen;
+static __FILE_ptr32 (*const vms_fopen)(const char *,
+                                       const char *,
+                                       ...) = (__FILE_ptr32 (*)(const char *, const char *, ...))fopen;
 # define VMS_OPEN_ATTRS \
         "shr=get,put,upd,del","ctx=bin,stm","rfm=stm","rat=none","mrs=0"
 # define openssl_fopen(fname, mode) vms_fopen((fname), (mode), VMS_OPEN_ATTRS)
@@ -97,22 +98,20 @@ int RAND_load_file(const char *file, long bytes)
 #ifndef OPENSSL_NO_POSIX_IO
     struct stat sb;
 #endif
-    int i, n, ret = 0;
+    int   i, n, ret = 0;
     FILE *in;
 
     if (bytes == 0)
         return 0;
 
     if ((in = openssl_fopen(file, "rb")) == NULL) {
-        ERR_raise_data(ERR_LIB_RAND, RAND_R_CANNOT_OPEN_FILE,
-                       "Filename=%s", file);
+        ERR_raise_data(ERR_LIB_RAND, RAND_R_CANNOT_OPEN_FILE, "Filename=%s", file);
         return -1;
     }
 
 #ifndef OPENSSL_NO_POSIX_IO
     if (fstat(fileno(in), &sb) < 0) {
-        ERR_raise_data(ERR_LIB_RAND, RAND_R_INTERNAL_ERROR,
-                       "Filename=%s", file);
+        ERR_raise_data(ERR_LIB_RAND, RAND_R_INTERNAL_ERROR, "Filename=%s", file);
         fclose(in);
         return -1;
     }
@@ -182,24 +181,22 @@ int RAND_load_file(const char *file, long bytes)
 int RAND_write_file(const char *file)
 {
     unsigned char buf[RAND_BUF_SIZE];
-    int ret = -1;
-    FILE *out = NULL;
+    int           ret = -1;
+    FILE         *out = NULL;
 #ifndef OPENSSL_NO_POSIX_IO
     struct stat sb;
 
     if (stat(file, &sb) >= 0 && !S_ISREG(sb.st_mode)) {
-        ERR_raise_data(ERR_LIB_RAND, RAND_R_NOT_A_REGULAR_FILE,
-                       "Filename=%s", file);
+        ERR_raise_data(ERR_LIB_RAND, RAND_R_NOT_A_REGULAR_FILE, "Filename=%s", file);
         return -1;
     }
 #endif
 
     /* Collect enough random data. */
     if (RAND_priv_bytes(buf, (int)sizeof(buf)) != 1)
-        return  -1;
+        return -1;
 
-#if defined(O_CREAT) && !defined(OPENSSL_NO_POSIX_IO) && \
-    !defined(OPENSSL_SYS_VMS) && !defined(OPENSSL_SYS_WINDOWS)
+#if defined(O_CREAT) && !defined(OPENSSL_NO_POSIX_IO) && !defined(OPENSSL_SYS_VMS) && !defined(OPENSSL_SYS_WINDOWS)
     {
 # ifndef O_BINARY
 #  define O_BINARY 0
@@ -214,8 +211,7 @@ int RAND_write_file(const char *file)
             out = fdopen(fd, "wb");
             if (out == NULL) {
                 close(fd);
-                ERR_raise_data(ERR_LIB_RAND, RAND_R_CANNOT_OPEN_FILE,
-                               "Filename=%s", file);
+                ERR_raise_data(ERR_LIB_RAND, RAND_R_CANNOT_OPEN_FILE, "Filename=%s", file);
                 return -1;
             }
         }
@@ -246,8 +242,7 @@ int RAND_write_file(const char *file)
     if (out == NULL)
         out = openssl_fopen(file, "wb");
     if (out == NULL) {
-        ERR_raise_data(ERR_LIB_RAND, RAND_R_CANNOT_OPEN_FILE,
-                       "Filename=%s", file);
+        ERR_raise_data(ERR_LIB_RAND, RAND_R_CANNOT_OPEN_FILE, "Filename=%s", file);
         return -1;
     }
 
@@ -266,41 +261,38 @@ int RAND_write_file(const char *file)
 
 const char *RAND_file_name(char *buf, size_t size)
 {
-    char *s = NULL;
+    char  *s = NULL;
     size_t len;
-    int use_randfile = 1;
+    int    use_randfile = 1;
 
 #if defined(_WIN32) && defined(CP_UTF8) && !defined(_WIN32_WCE)
-    DWORD envlen;
+    DWORD  envlen;
     WCHAR *var;
 
     /* Look up various environment variables. */
     if ((envlen = GetEnvironmentVariableW(var = L"RANDFILE", NULL, 0)) == 0) {
         use_randfile = 0;
         if ((envlen = GetEnvironmentVariableW(var = L"HOME", NULL, 0)) == 0
-                && (envlen = GetEnvironmentVariableW(var = L"USERPROFILE",
-                                                  NULL, 0)) == 0)
+            && (envlen = GetEnvironmentVariableW(var = L"USERPROFILE", NULL, 0)) == 0)
             envlen = GetEnvironmentVariableW(var = L"SYSTEMROOT", NULL, 0);
     }
 
     /* If we got a value, allocate space to hold it and then get it. */
     if (envlen != 0) {
-        int sz;
+        int    sz;
         WCHAR *val = _alloca(envlen * sizeof(WCHAR));
 
         if (GetEnvironmentVariableW(var, val, envlen) < envlen
-                && (sz = WideCharToMultiByte(CP_UTF8, 0, val, -1, NULL, 0,
-                                             NULL, NULL)) != 0) {
+            && (sz = WideCharToMultiByte(CP_UTF8, 0, val, -1, NULL, 0, NULL, NULL)) != 0) {
             s = _alloca(sz);
-            if (WideCharToMultiByte(CP_UTF8, 0, val, -1, s, sz,
-                                    NULL, NULL) == 0)
+            if (WideCharToMultiByte(CP_UTF8, 0, val, -1, s, sz, NULL, NULL) == 0)
                 s = NULL;
         }
     }
 #else
     if ((s = ossl_safe_getenv("RANDFILE")) == NULL || *s == '\0') {
         use_randfile = 0;
-        s = ossl_safe_getenv("HOME");
+        s            = ossl_safe_getenv("HOME");
     }
 #endif
 

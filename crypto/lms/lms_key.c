@@ -56,16 +56,13 @@ int ossl_lms_key_equal(const LMS_KEY *key1, const LMS_KEY *key2, int selection)
 {
     int ok = 1;
 
-    if (key1->lms_params != key2->lms_params
-            || key1->ots_params != key2->ots_params)
+    if (key1->lms_params != key2->lms_params || key1->ots_params != key2->ots_params)
         return 0;
 
     if ((selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0) {
         if (key1->pub.encodedlen != key2->pub.encodedlen)
             return 0;
-        ok = (key1->pub.encodedlen == 0)
-            || (memcmp(key1->pub.encoded, key2->pub.encoded,
-                       key1->pub.encodedlen) == 0);
+        ok = (key1->pub.encodedlen == 0) || (memcmp(key1->pub.encoded, key2->pub.encoded, key1->pub.encodedlen) == 0);
     }
     return ok;
 }

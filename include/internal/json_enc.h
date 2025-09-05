@@ -8,10 +8,10 @@
  */
 
 #ifndef OSSL_JSON_ENC_H
-# define OSSL_JSON_ENC_H
+#define OSSL_JSON_ENC_H
 
-# include <stdbool.h>
-# include <openssl/bio.h>
+#include <stdbool.h>
+#include <openssl/bio.h>
 
 /*
  * JSON Encoder
@@ -22,22 +22,22 @@
  */
 
 struct json_write_buf {
-    BIO     *bio;
-    char    *buf;
-    size_t  alloc, cur;
+    BIO   *bio;
+    char  *buf;
+    size_t alloc, cur;
 };
 
 typedef struct ossl_json_enc_st {
-    uint32_t                flags;
+    uint32_t              flags;
     /* error: 1 if an error has occurred. */
     /* state: current state. */
     /* stack stores a bitmap. 0=object, 1=array. */
     /* stack cur   size: stack_end_byte bytes, stack_end_bit bits. */
     /* stack alloc size: stack_bytes bytes. */
-    unsigned char           error, stack_end_bit, state, *stack, defer_indent;
-    unsigned char           stack_small[16];
-    struct json_write_buf   wbuf;
-    size_t                  stack_end_byte, stack_bytes;
+    unsigned char         error, stack_end_bit, state, *stack, defer_indent;
+    unsigned char         stack_small[16];
+    struct json_write_buf wbuf;
+    size_t                stack_end_byte, stack_bytes;
 } OSSL_JSON_ENC;
 
 /*
@@ -68,7 +68,7 @@ typedef struct ossl_json_enc_st {
 #define OSSL_JSON_FLAG_PRETTY  (1U << 1)
 #define OSSL_JSON_FLAG_IJSON   (1U << 2)
 
-int ossl_json_init(OSSL_JSON_ENC *json, BIO *bio, uint32_t flags);
+int  ossl_json_init(OSSL_JSON_ENC *json, BIO *bio, uint32_t flags);
 
 /*
  * ossl_json_cleanup
@@ -94,7 +94,7 @@ void ossl_json_cleanup(OSSL_JSON_ENC *json);
  *
  * Automatically calls ossl_json_flush().
  */
-int ossl_json_reset(OSSL_JSON_ENC *json);
+int  ossl_json_reset(OSSL_JSON_ENC *json);
 
 /*
  * ossl_json_flush
@@ -105,7 +105,7 @@ int ossl_json_reset(OSSL_JSON_ENC *json);
  * autonomously as buffers are filled, but the caller must use this function
  * to guarantee all data has been flushed.
  */
-int ossl_json_flush(OSSL_JSON_ENC *json);
+int  ossl_json_flush(OSSL_JSON_ENC *json);
 
 /*
  * ossl_json_flush_cleanup
@@ -115,7 +115,7 @@ int ossl_json_flush(OSSL_JSON_ENC *json);
  * ossl_json_cleanup regardless of the result. The result of the flush call is
  * returned.
  */
-int ossl_json_flush_cleanup(OSSL_JSON_ENC *json);
+int  ossl_json_flush_cleanup(OSSL_JSON_ENC *json);
 
 /*
  * ossl_json_set0_sink
@@ -123,7 +123,7 @@ int ossl_json_flush_cleanup(OSSL_JSON_ENC *json);
  *
  * Changes the sink used by the JSON encoder.
  */
-int ossl_json_set0_sink(OSSL_JSON_ENC *json, BIO *bio);
+int  ossl_json_set0_sink(OSSL_JSON_ENC *json, BIO *bio);
 
 /*
  * ossl_json_in_error
@@ -145,7 +145,7 @@ int ossl_json_set0_sink(OSSL_JSON_ENC *json, BIO *bio);
  * flushing. It is expected that errors will ordinarily be either caller errors
  * (programming errors) or BIO errors.
  */
-int ossl_json_in_error(OSSL_JSON_ENC *json);
+int  ossl_json_in_error(OSSL_JSON_ENC *json);
 
 /*
  * JSON Builder Calls

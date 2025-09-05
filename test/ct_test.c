@@ -26,35 +26,35 @@
 # define CT_TEST_MAX_FILE_SIZE 8096
 
 static char *certs_dir = NULL;
-static char *ct_dir = NULL;
+static char *ct_dir    = NULL;
 
 typedef struct ct_test_fixture {
-    const char *test_case_name;
+    const char          *test_case_name;
     /* The current time in milliseconds */
-    uint64_t epoch_time_in_ms;
+    uint64_t             epoch_time_in_ms;
     /* The CT log store to use during tests */
-    CTLOG_STORE* ctlog_store;
+    CTLOG_STORE         *ctlog_store;
     /* Set the following to test handling of SCTs in X509 certificates */
-    const char *certs_dir;
-    char *certificate_file;
-    char *issuer_file;
+    const char          *certs_dir;
+    char                *certificate_file;
+    char                *issuer_file;
     /* Expected number of SCTs */
-    int expected_sct_count;
+    int                  expected_sct_count;
     /* Expected number of valid SCTS */
-    int expected_valid_sct_count;
+    int                  expected_valid_sct_count;
     /* Set the following to test handling of SCTs in TLS format */
     const unsigned char *tls_sct_list;
-    size_t tls_sct_list_len;
-    STACK_OF(SCT) *sct_list;
+    size_t               tls_sct_list_len;
+    STACK_OF(SCT)       *sct_list;
     /*
      * A file to load the expected SCT text from.
      * This text will be compared to the actual text output during the test.
      * A maximum of |CT_TEST_MAX_FILE_SIZE| bytes will be read of this file.
      */
-    const char *sct_dir;
-    const char *sct_text_file;
+    const char          *sct_dir;
+    const char          *sct_text_file;
     /* Whether to test the validity of the SCT(s) */
-    int test_validity;
+    int                  test_validity;
 } CT_TEST_FIXTURE;
 
 static CT_TEST_FIXTURE *set_up(const char *const test_case_name)
@@ -63,11 +63,10 @@ static CT_TEST_FIXTURE *set_up(const char *const test_case_name)
 
     if (!TEST_ptr(fixture = OPENSSL_zalloc(sizeof(*fixture))))
         goto end;
-    fixture->test_case_name = test_case_name;
+    fixture->test_case_name   = test_case_name;
     fixture->epoch_time_in_ms = 1580335307000ULL; /* Wed 29 Jan 2020 10:01:47 PM UTC */
     if (!TEST_ptr(fixture->ctlog_store = CTLOG_STORE_new())
-            || !TEST_int_eq(
-                    CTLOG_STORE_load_default_file(fixture->ctlog_store), 1))
+        || !TEST_int_eq(CTLOG_STORE_load_default_file(fixture->ctlog_store), 1))
         goto end;
     return fixture;
 
@@ -90,7 +89,7 @@ static void tear_down(CT_TEST_FIXTURE *fixture)
 
 static X509 *load_pem_cert(const char *dir, const char *file)
 {
-    X509 *cert = NULL;
+    X509 *cert      = NULL;
     char *file_path = test_mk_file_path(dir, file);
 
     if (file_path != NULL) {
@@ -105,10 +104,9 @@ static X509 *load_pem_cert(const char *dir, const char *file)
     return cert;
 }
 
-static int read_text_file(const char *dir, const char *file,
-                          char *buffer, int buffer_length)
+static int read_text_file(const char *dir, const char *file, char *buffer, int buffer_length)
 {
-    int len = -1;
+    int   len       = -1;
     char *file_path = test_mk_file_path(dir, file);
 
     if (file_path != NULL) {
@@ -123,12 +121,11 @@ static int read_text_file(const char *dir, const char *file,
     return len;
 }
 
-static int compare_sct_list_printout(STACK_OF(SCT) *sct,
-                                     const char *expected_output)
+static int compare_sct_list_printout(STACK_OF(SCT) *sct, const char *expected_output)
 {
-    BIO *text_buffer = NULL;
+    BIO  *text_buffer   = NULL;
     char *actual_output = NULL;
-    int result = 0;
+    int   result        = 0;
 
     if (!TEST_ptr(text_buffer = BIO_new(BIO_s_mem())))
         goto end;
@@ -149,16 +146,14 @@ end:
     return result;
 }
 
-static int compare_extension_printout(X509_EXTENSION *extension,
-                                      const char *expected_output)
+static int compare_extension_printout(X509_EXTENSION *extension, const char *expected_output)
 {
-    BIO *text_buffer = NULL;
+    BIO  *text_buffer   = NULL;
     char *actual_output = NULL;
-    int result = 0;
+    int   result        = 0;
 
     if (!TEST_ptr(text_buffer = BIO_new(BIO_s_mem()))
-            || !TEST_true(X509V3_EXT_print(text_buffer, extension,
-                                           X509V3_EXT_DEFAULT, 0)))
+        || !TEST_true(X509V3_EXT_print(text_buffer, extension, X509V3_EXT_DEFAULT, 0)))
         goto end;
 
     /* Append \n because it's easier to create files that end with one. */
@@ -180,11 +175,10 @@ end:
     return result;
 }
 
-static int assert_validity(CT_TEST_FIXTURE *fixture, STACK_OF(SCT) *scts,
-                           CT_POLICY_EVAL_CTX *policy_ctx)
+static int assert_validity(CT_TEST_FIXTURE *fixture, STACK_OF(SCT) *scts, CT_POLICY_EVAL_CTX *policy_ctx)
 {
     int invalid_sct_count = 0;
-    int valid_sct_count = 0;
+    int valid_sct_count   = 0;
     int i;
 
     if (!TEST_int_ge(SCT_LIST_validate(scts, policy_ctx), 0))
@@ -210,11 +204,9 @@ static int assert_validity(CT_TEST_FIXTURE *fixture, STACK_OF(SCT) *scts,
     }
 
     if (!TEST_int_eq(valid_sct_count, fixture->expected_valid_sct_count)) {
-        int unverified_sct_count = sk_SCT_num(scts) -
-                                        invalid_sct_count - valid_sct_count;
+        int unverified_sct_count = sk_SCT_num(scts) - invalid_sct_count - valid_sct_count;
 
-        TEST_info("%d SCTs failed, %d SCTs unverified",
-                  invalid_sct_count, unverified_sct_count);
+        TEST_info("%d SCTs failed, %d SCTs unverified", invalid_sct_count, unverified_sct_count);
         return 0;
     }
 
@@ -223,67 +215,59 @@ static int assert_validity(CT_TEST_FIXTURE *fixture, STACK_OF(SCT) *scts,
 
 static int execute_cert_test(CT_TEST_FIXTURE *fixture)
 {
-    int success = 0;
-    X509 *cert = NULL, *issuer = NULL;
-    STACK_OF(SCT) *scts = NULL;
-    SCT *sct = NULL;
-    char expected_sct_text[CT_TEST_MAX_FILE_SIZE];
-    int sct_text_len = 0;
-    unsigned char *tls_sct_list = NULL;
-    size_t tls_sct_list_len = 0;
-    CT_POLICY_EVAL_CTX *ct_policy_ctx = CT_POLICY_EVAL_CTX_new();
+    int                 success = 0;
+    X509               *cert = NULL, *issuer = NULL;
+    STACK_OF(SCT)      *scts = NULL;
+    SCT                *sct  = NULL;
+    char                expected_sct_text[CT_TEST_MAX_FILE_SIZE];
+    int                 sct_text_len     = 0;
+    unsigned char      *tls_sct_list     = NULL;
+    size_t              tls_sct_list_len = 0;
+    CT_POLICY_EVAL_CTX *ct_policy_ctx    = CT_POLICY_EVAL_CTX_new();
 
     if (fixture->sct_text_file != NULL) {
-        sct_text_len = read_text_file(fixture->sct_dir, fixture->sct_text_file,
-                                      expected_sct_text,
-                                      CT_TEST_MAX_FILE_SIZE - 1);
+        sct_text_len =
+            read_text_file(fixture->sct_dir, fixture->sct_text_file, expected_sct_text, CT_TEST_MAX_FILE_SIZE - 1);
 
         if (!TEST_int_ge(sct_text_len, 0))
             goto end;
         expected_sct_text[sct_text_len] = '\0';
     }
 
-    CT_POLICY_EVAL_CTX_set_shared_CTLOG_STORE(
-            ct_policy_ctx, fixture->ctlog_store);
+    CT_POLICY_EVAL_CTX_set_shared_CTLOG_STORE(ct_policy_ctx, fixture->ctlog_store);
 
     CT_POLICY_EVAL_CTX_set_time(ct_policy_ctx, fixture->epoch_time_in_ms);
 
     if (fixture->certificate_file != NULL) {
-        int sct_extension_index;
-        int i;
+        int             sct_extension_index;
+        int             i;
         X509_EXTENSION *sct_extension = NULL;
 
-        if (!TEST_ptr(cert = load_pem_cert(fixture->certs_dir,
-                                           fixture->certificate_file)))
+        if (!TEST_ptr(cert = load_pem_cert(fixture->certs_dir, fixture->certificate_file)))
             goto end;
 
         CT_POLICY_EVAL_CTX_set1_cert(ct_policy_ctx, cert);
 
         if (fixture->issuer_file != NULL) {
-            if (!TEST_ptr(issuer = load_pem_cert(fixture->certs_dir,
-                                                 fixture->issuer_file)))
+            if (!TEST_ptr(issuer = load_pem_cert(fixture->certs_dir, fixture->issuer_file)))
                 goto end;
             CT_POLICY_EVAL_CTX_set1_issuer(ct_policy_ctx, issuer);
         }
 
-        sct_extension_index =
-                X509_get_ext_by_NID(cert, NID_ct_precert_scts, -1);
-        sct_extension = X509_get_ext(cert, sct_extension_index);
+        sct_extension_index = X509_get_ext_by_NID(cert, NID_ct_precert_scts, -1);
+        sct_extension       = X509_get_ext(cert, sct_extension_index);
         if (fixture->expected_sct_count > 0) {
             if (!TEST_ptr(sct_extension))
                 goto end;
 
-            if (fixture->sct_text_file
-                && !compare_extension_printout(sct_extension,
-                                               expected_sct_text))
-                    goto end;
+            if (fixture->sct_text_file && !compare_extension_printout(sct_extension, expected_sct_text))
+                goto end;
 
             scts = X509V3_EXT_d2i(sct_extension);
             for (i = 0; i < sk_SCT_num(scts); ++i) {
                 SCT *sct_i = sk_SCT_value(scts, i);
 
-                if (!TEST_int_eq(SCT_get_source(sct_i),
-                                 SCT_SOURCE_X509V3_EXTENSION)) {
+                if (!TEST_int_eq(SCT_get_source(sct_i), SCT_SOURCE_X509V3_EXTENSION)) {
                     goto end;
                 }
             }
@@ -308,14 +292,12 @@ static int execute_cert_test(CT_TEST_FIXTURE *fixture)
                 goto end;
         }
 
-        if (fixture->sct_text_file
-            && !compare_sct_list_printout(scts, expected_sct_text)) {
-                goto end;
+        if (fixture->sct_text_file && !compare_sct_list_printout(scts, expected_sct_text)) {
+            goto end;
         }
 
         tls_sct_list_len = i2o_SCT_LIST(scts, &tls_sct_list);
-        if (!TEST_mem_eq(fixture->tls_sct_list, fixture->tls_sct_list_len,
-                         tls_sct_list, tls_sct_list_len))
+        if (!TEST_mem_eq(fixture->tls_sct_list, fixture->tls_sct_list_len, tls_sct_list, tls_sct_list_len))
             goto end;
     }
     success = 1;
@@ -336,9 +318,9 @@ end:
 static int test_no_scts_in_certificate(void)
 {
     SETUP_CT_TEST_FIXTURE();
-    fixture->certs_dir = certs_dir;
-    fixture->certificate_file = "leaf.pem";
-    fixture->issuer_file = "subinterCA.pem";
+    fixture->certs_dir          = certs_dir;
+    fixture->certificate_file   = "leaf.pem";
+    fixture->issuer_file        = "subinterCA.pem";
     fixture->expected_sct_count = 0;
     EXECUTE_CT_TEST();
     return result;
@@ -347,12 +329,12 @@ static int test_no_scts_in_certificate(void)
 static int test_one_sct_in_certificate(void)
 {
     SETUP_CT_TEST_FIXTURE();
-    fixture->certs_dir = certs_dir;
-    fixture->certificate_file = "embeddedSCTs1.pem";
-    fixture->issuer_file = "embeddedSCTs1_issuer.pem";
+    fixture->certs_dir          = certs_dir;
+    fixture->certificate_file   = "embeddedSCTs1.pem";
+    fixture->issuer_file        = "embeddedSCTs1_issuer.pem";
     fixture->expected_sct_count = 1;
-    fixture->sct_dir = certs_dir;
-    fixture->sct_text_file = "embeddedSCTs1.sct";
+    fixture->sct_dir            = certs_dir;
+    fixture->sct_text_file      = "embeddedSCTs1.sct";
     EXECUTE_CT_TEST();
     return result;
 }
@@ -360,12 +342,12 @@ static int test_one_sct_in_certificate(void)
 static int test_multiple_scts_in_certificate(void)
 {
     SETUP_CT_TEST_FIXTURE();
-    fixture->certs_dir = certs_dir;
-    fixture->certificate_file = "embeddedSCTs3.pem";
-    fixture->issuer_file = "embeddedSCTs3_issuer.pem";
+    fixture->certs_dir          = certs_dir;
+    fixture->certificate_file   = "embeddedSCTs3.pem";
+    fixture->issuer_file        = "embeddedSCTs3_issuer.pem";
     fixture->expected_sct_count = 3;
-    fixture->sct_dir = certs_dir;
-    fixture->sct_text_file = "embeddedSCTs3.sct";
+    fixture->sct_dir            = certs_dir;
+    fixture->sct_text_file      = "embeddedSCTs3.sct";
     EXECUTE_CT_TEST();
     return result;
 }
@@ -373,11 +355,11 @@ static int test_multiple_scts_in_certificate(void)
 static int test_verify_one_sct(void)
 {
     SETUP_CT_TEST_FIXTURE();
-    fixture->certs_dir = certs_dir;
-    fixture->certificate_file = "embeddedSCTs1.pem";
-    fixture->issuer_file = "embeddedSCTs1_issuer.pem";
+    fixture->certs_dir          = certs_dir;
+    fixture->certificate_file   = "embeddedSCTs1.pem";
+    fixture->issuer_file        = "embeddedSCTs1_issuer.pem";
     fixture->expected_sct_count = fixture->expected_valid_sct_count = 1;
-    fixture->test_validity = 1;
+    fixture->test_validity                                          = 1;
     EXECUTE_CT_TEST();
     return result;
 }
@@ -385,11 +367,11 @@ static int test_verify_one_sct(void)
 static int test_verify_multiple_scts(void)
 {
     SETUP_CT_TEST_FIXTURE();
-    fixture->certs_dir = certs_dir;
-    fixture->certificate_file = "embeddedSCTs3.pem";
-    fixture->issuer_file = "embeddedSCTs3_issuer.pem";
+    fixture->certs_dir          = certs_dir;
+    fixture->certificate_file   = "embeddedSCTs3.pem";
+    fixture->issuer_file        = "embeddedSCTs3_issuer.pem";
     fixture->expected_sct_count = fixture->expected_valid_sct_count = 3;
-    fixture->test_validity = 1;
+    fixture->test_validity                                          = 1;
     EXECUTE_CT_TEST();
     return result;
 }
@@ -397,13 +379,13 @@ static int test_verify_multiple_scts(void)
 static int test_verify_fails_for_future_sct(void)
 {
     SETUP_CT_TEST_FIXTURE();
-    fixture->epoch_time_in_ms = 1365094800000ULL; /* Apr 4 17:00:00 2013 GMT */
-    fixture->certs_dir = certs_dir;
-    fixture->certificate_file = "embeddedSCTs1.pem";
-    fixture->issuer_file = "embeddedSCTs1_issuer.pem";
-    fixture->expected_sct_count = 1;
+    fixture->epoch_time_in_ms         = 1365094800000ULL; /* Apr 4 17:00:00 2013 GMT */
+    fixture->certs_dir                = certs_dir;
+    fixture->certificate_file         = "embeddedSCTs1.pem";
+    fixture->issuer_file              = "embeddedSCTs1_issuer.pem";
+    fixture->expected_sct_count       = 1;
     fixture->expected_valid_sct_count = 0;
-    fixture->test_validity = 1;
+    fixture->test_validity            = 1;
     EXECUTE_CT_TEST();
     return result;
 }
@@ -411,54 +393,55 @@ static int test_verify_fails_for_future_sct(void)
 static int test_decode_tls_sct(void)
 {
     const unsigned char tls_sct_list[] = "\x00\x78" /* length of list */
-        "\x00\x76"
-        "\x00" /* version */
-        /* log ID */
-        "\xDF\x1C\x2E\xC1\x15\x00\x94\x52\x47\xA9\x61\x68\x32\x5D\xDC\x5C\x79"
-        "\x59\xE8\xF7\xC6\xD3\x88\xFC\x00\x2E\x0B\xBD\x3F\x74\xD7\x64"
-        "\x00\x00\x01\x3D\xDB\x27\xDF\x93" /* timestamp */
-        "\x00\x00" /* extensions length */
-        "" /* extensions */
-        "\x04\x03" /* hash and signature algorithms */
-        "\x00\x47" /* signature length */
-        /* signature */
-        "\x30\x45\x02\x20\x48\x2F\x67\x51\xAF\x35\xDB\xA6\x54\x36\xBE\x1F\xD6"
-        "\x64\x0F\x3D\xBF\x9A\x41\x42\x94\x95\x92\x45\x30\x28\x8F\xA3\xE5\xE2"
-        "\x3E\x06\x02\x21\x00\xE4\xED\xC0\xDB\x3A\xC5\x72\xB1\xE2\xF5\xE8\xAB"
-        "\x6A\x68\x06\x53\x98\x7D\xCF\x41\x02\x7D\xFE\xFF\xA1\x05\x51\x9D\x89"
-        "\xED\xBF\x08";
+                                         "\x00\x76"
+                                         "\x00" /* version */
+                                         /* log ID */
+                                         "\xDF\x1C\x2E\xC1\x15\x00\x94\x52\x47\xA9\x61\x68\x32\x5D\xDC\x5C\x79"
+                                         "\x59\xE8\xF7\xC6\xD3\x88\xFC\x00\x2E\x0B\xBD\x3F\x74\xD7\x64"
+                                         "\x00\x00\x01\x3D\xDB\x27\xDF\x93" /* timestamp */
+                                         "\x00\x00"                         /* extensions length */
+                                         ""                                 /* extensions */
+                                         "\x04\x03"                         /* hash and signature algorithms */
+                                         "\x00\x47"                         /* signature length */
+                                         /* signature */
+                                         "\x30\x45\x02\x20\x48\x2F\x67\x51\xAF\x35\xDB\xA6\x54\x36\xBE\x1F\xD6"
+                                         "\x64\x0F\x3D\xBF\x9A\x41\x42\x94\x95\x92\x45\x30\x28\x8F\xA3\xE5\xE2"
+                                         "\x3E\x06\x02\x21\x00\xE4\xED\xC0\xDB\x3A\xC5\x72\xB1\xE2\xF5\xE8\xAB"
+                                         "\x6A\x68\x06\x53\x98\x7D\xCF\x41\x02\x7D\xFE\xFF\xA1\x05\x51\x9D\x89"
+                                         "\xED\xBF\x08";
 
     SETUP_CT_TEST_FIXTURE();
-    fixture->tls_sct_list = tls_sct_list;
+    fixture->tls_sct_list     = tls_sct_list;
     fixture->tls_sct_list_len = 0x7a;
-    fixture->sct_dir = ct_dir;
-    fixture->sct_text_file = "tls1.sct";
+    fixture->sct_dir          = ct_dir;
+    fixture->sct_text_file    = "tls1.sct";
     EXECUTE_CT_TEST();
     return result;
 }
 
 static int test_encode_tls_sct(void)
 {
-    const char log_id[] = "3xwuwRUAlFJHqWFoMl3cXHlZ6PfG04j8AC4LvT9012Q=";
-    const uint64_t timestamp = 1;
-    const char extensions[] = "";
-    const char signature[] = "BAMARzBAMiBIL2dRrzXbplQ2vh/WZA89v5pBQpSVkkUwKI+j5"
-            "eI+BgIhAOTtwNs6xXKx4vXoq2poBlOYfc9BAn3+/6EFUZ2J7b8I";
-    SCT *sct = NULL;
+    const char     log_id[]     = "3xwuwRUAlFJHqWFoMl3cXHlZ6PfG04j8AC4LvT9012Q=";
+    const uint64_t timestamp    = 1;
+    const char     extensions[] = "";
+    const char     signature[]  = "BAMARzBAMiBIL2dRrzXbplQ2vh/WZA89v5pBQpSVkkUwKI+j5"
+                                  "eI+BgIhAOTtwNs6xXKx4vXoq2poBlOYfc9BAn3+/6EFUZ2J7b8I";
+    SCT           *sct          = NULL;
 
     SETUP_CT_TEST_FIXTURE();
 
     fixture->sct_list = sk_SCT_new_null();
-    if (fixture->sct_list == NULL)
-    {
+    if (fixture->sct_list == NULL) {
         tear_down(fixture);
         return 0;
     }
 
-    if (!TEST_ptr(sct = SCT_new_from_base64(SCT_VERSION_V1, log_id,
-                                            CT_LOG_ENTRY_TYPE_X509, timestamp,
-                                            extensions, signature)))
-    {
+    if (!TEST_ptr(sct = SCT_new_from_base64(SCT_VERSION_V1,
+                                            log_id,
+                                            CT_LOG_ENTRY_TYPE_X509,
+                                            timestamp,
+                                            extensions,
+                                            signature))) {
         tear_down(fixture);
         return 0;
     }
@@ -468,7 +451,7 @@ static int test_encode_tls_sct(void)
         return 0;
     }
 
-    fixture->sct_dir = ct_dir;
+    fixture->sct_dir       = ct_dir;
     fixture->sct_text_file = "tls1.sct";
     EXECUTE_CT_TEST();
     return result;
@@ -480,14 +463,12 @@ static int test_encode_tls_sct(void)
  */
 static int test_default_ct_policy_eval_ctx_time_is_now(void)
 {
-    int success = 0;
-    CT_POLICY_EVAL_CTX *ct_policy_ctx = CT_POLICY_EVAL_CTX_new();
-    const time_t default_time =
-        (time_t)(CT_POLICY_EVAL_CTX_get_time(ct_policy_ctx) / 1000);
-    const time_t time_tolerance = 600;  /* 10 minutes */
+    int                 success        = 0;
+    CT_POLICY_EVAL_CTX *ct_policy_ctx  = CT_POLICY_EVAL_CTX_new();
+    const time_t        default_time   = (time_t)(CT_POLICY_EVAL_CTX_get_time(ct_policy_ctx) / 1000);
+    const time_t        time_tolerance = 600; /* 10 minutes */
 
-    if (!TEST_time_t_le(abs((int)difftime(time(NULL), default_time)),
-                        time_tolerance))
+    if (!TEST_time_t_le(abs((int)difftime(time(NULL), default_time)), time_tolerance))
         goto end;
 
     success = 1;
@@ -498,10 +479,10 @@ end:
 
 static int test_ctlog_from_base64(void)
 {
-    CTLOG *ctlogp = NULL;
+    CTLOG     *ctlogp   = NULL;
     const char notb64[] = "\01\02\03\04";
-    const char pad[] = "====";
-    const char name[] = "name";
+    const char pad[]    = "====";
+    const char name[]   = "name";
 
     /* We expect these to both fail! */
     if (!TEST_true(!CTLOG_new_from_base64(&ctlogp, notb64, name))

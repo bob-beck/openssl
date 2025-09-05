@@ -45,7 +45,7 @@ DH *DSA_dup_DH(const DSA *r)
      * DH has p, optional length, g, optional pub_key,
      * optional priv_key, optional q.
      */
-    DH *ret = NULL;
+    DH     *ret     = NULL;
     BIGNUM *pub_key = NULL, *priv_key = NULL;
 
     if (r == NULL)
@@ -75,7 +75,7 @@ DH *DSA_dup_DH(const DSA *r)
 
     return ret;
 
- err:
+err:
     BN_free(pub_key);
     BN_free(priv_key);
     DH_free(ret);
@@ -113,17 +113,16 @@ int DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
     mtmp = dsa->meth;
     if (mtmp->finish)
         mtmp->finish(dsa);
-#ifndef OPENSSL_NO_ENGINE
+# ifndef OPENSSL_NO_ENGINE
     ENGINE_finish(dsa->engine);
     dsa->engine = NULL;
-#endif
+# endif
     dsa->meth = meth;
     if (meth->init)
         meth->init(dsa);
     return 1;
 }
 #endif /* FIPS_MODULE */
-
 
 const DSA_METHOD *DSA_get_method(DSA *d)
 {
@@ -151,7 +150,7 @@ static DSA *dsa_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
     }
 
     ret->libctx = libctx;
-    ret->meth = DSA_get_default_method();
+    ret->meth   = DSA_get_default_method();
 #if !defined(FIPS_MODULE) && !defined(OPENSSL_NO_ENGINE)
     ret->flags = ret->meth->flags & ~DSA_FLAG_NON_FIPS_ALLOW; /* early default init */
     if (engine) {
@@ -174,8 +173,7 @@ static DSA *dsa_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
     ret->flags = ret->meth->flags & ~DSA_FLAG_NON_FIPS_ALLOW;
 
 #ifndef FIPS_MODULE
-    if (!ossl_crypto_new_ex_data_ex(libctx, CRYPTO_EX_INDEX_DSA, ret,
-                                    &ret->ex_data))
+    if (!ossl_crypto_new_ex_data_ex(libctx, CRYPTO_EX_INDEX_DSA, ret, &ret->ex_data))
         goto err;
 #endif
 
@@ -188,7 +186,7 @@ static DSA *dsa_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
 
     return ret;
 
- err:
+err:
     DSA_free(ret);
     return NULL;
 }
@@ -259,8 +257,7 @@ void ossl_dsa_set0_libctx(DSA *d, OSSL_LIB_CTX *libctx)
     d->libctx = libctx;
 }
 
-void DSA_get0_pqg(const DSA *d,
-                  const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
+void DSA_get0_pqg(const DSA *d, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
 {
     ossl_ffc_params_get0_pqg(&d->params, p, q, g);
 }
@@ -270,9 +267,7 @@ int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
     /* If the fields p, q and g in d are NULL, the corresponding input
      * parameters MUST be non-NULL.
      */
-    if ((d->params.p == NULL && p == NULL)
-        || (d->params.q == NULL && q == NULL)
-        || (d->params.g == NULL && g == NULL))
+    if ((d->params.p == NULL && p == NULL) || (d->params.q == NULL && q == NULL) || (d->params.g == NULL && g == NULL))
         return 0;
 
     ossl_ffc_params_set0_pqg(&d->params, p, q, g);
@@ -306,8 +301,7 @@ const BIGNUM *DSA_get0_priv_key(const DSA *d)
     return d->priv_key;
 }
 
-void DSA_get0_key(const DSA *d,
-                  const BIGNUM **pub_key, const BIGNUM **priv_key)
+void DSA_get0_key(const DSA *d, const BIGNUM **pub_key, const BIGNUM **priv_key)
 {
     if (pub_key != NULL)
         *pub_key = d->pub_key;
@@ -333,8 +327,7 @@ int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
 int DSA_security_bits(const DSA *d)
 {
     if (d->params.p != NULL && d->params.q != NULL)
-        return BN_security_bits(BN_num_bits(d->params.p),
-                                BN_num_bits(d->params.q));
+        return BN_security_bits(BN_num_bits(d->params.p), BN_num_bits(d->params.q));
     return -1;
 }
 
@@ -352,10 +345,10 @@ FFC_PARAMS *ossl_dsa_get0_params(DSA *dsa)
 
 int ossl_dsa_ffc_params_fromdata(DSA *dsa, const OSSL_PARAM params[])
 {
-    int ret;
+    int         ret;
     FFC_PARAMS *ffc = ossl_dsa_get0_params(dsa);
 
-    ret = ossl_ffc_params_fromdata(ffc, params);
+    ret             = ossl_ffc_params_fromdata(ffc, params);
     if (ret)
         dsa->dirty_cnt++;
     return ret;

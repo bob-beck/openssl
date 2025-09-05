@@ -13,22 +13,22 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #if !defined(OPENSSL_SYS_WINDOWS)
-#include <unistd.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
+# include <unistd.h>
+# include <sys/socket.h>
+# include <arpa/inet.h>
+# include <netinet/in.h>
 
-#define SOCKET int
-#define closesocket(s) close(s)
+# define SOCKET int
+# define closesocket(s) close(s)
 
 #else
-#include <winsock.h>
-#include <ws2tcpip.h>
+# include <winsock.h>
+# include <ws2tcpip.h>
 #endif
 
-static const int server_port = 4433;
+static const int      server_port = 4433;
 
-typedef unsigned char   flag;
+typedef unsigned char flag;
 #define true            1
 #define false           0
 
@@ -38,10 +38,10 @@ typedef unsigned char   flag;
  */
 static volatile flag server_running = true;
 
-static SOCKET create_socket(flag isServer)
+static SOCKET        create_socket(flag isServer)
 {
-    SOCKET s;
-    int optval = 1;
+    SOCKET             s;
+    int                optval = 1;
     struct sockaddr_in addr;
 
     s = socket(AF_INET, SOCK_STREAM, 0);
@@ -51,18 +51,17 @@ static SOCKET create_socket(flag isServer)
     }
 
     if (isServer) {
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(server_port);
+        addr.sin_family      = AF_INET;
+        addr.sin_port        = htons(server_port);
         addr.sin_addr.s_addr = INADDR_ANY;
 
         /* Reuse the address; good for quick restarts */
-        if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (void *)&optval, sizeof(optval))
-                < 0) {
+        if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (void *)&optval, sizeof(optval)) < 0) {
             perror("setsockopt(SO_REUSEADDR) failed");
             exit(EXIT_FAILURE);
         }
 
-        if (bind(s, (struct sockaddr*) &addr, sizeof(addr)) < 0) {
+        if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
             perror("Unable to bind");
             exit(EXIT_FAILURE);
         }
@@ -79,7 +78,7 @@ static SOCKET create_socket(flag isServer)
 static SSL_CTX *create_context(flag isServer)
 {
     const SSL_METHOD *method;
-    SSL_CTX *ctx;
+    SSL_CTX          *ctx;
 
     if (isServer)
         method = TLS_server_method();
@@ -138,26 +137,27 @@ static void usage(void)
 }
 
 #define BUFFERSIZE 1024
+
 int main(int argc, char **argv)
 {
-    flag isServer;
-    int result;
+    flag               isServer;
+    int                result;
 
-    SSL_CTX *ssl_ctx = NULL;
-    SSL *ssl = NULL;
+    SSL_CTX           *ssl_ctx    = NULL;
+    SSL               *ssl        = NULL;
 
-    SOCKET server_skt = -1;
-    SOCKET client_skt = -1;
+    SOCKET             server_skt = -1;
+    SOCKET             client_skt = -1;
 
     /* used by fgets */
-    char buffer[BUFFERSIZE];
-    char *txbuf;
+    char               buffer[BUFFERSIZE];
+    char              *txbuf;
 
-    char rxbuf[128];
-    size_t rxcap = sizeof(rxbuf);
-    int rxlen;
+    char               rxbuf[128];
+    size_t             rxcap = sizeof(rxbuf);
+    int                rxlen;
 
-    char *rem_server_ip = NULL;
+    char              *rem_server_ip = NULL;
 
     struct sockaddr_in addr;
 #if defined(OPENSSL_SYS_CYGWIN) || defined(OPENSSL_SYS_WINDOWS)
@@ -166,14 +166,13 @@ int main(int argc, char **argv)
     unsigned int addr_len = sizeof(addr);
 #endif
 
-#if !defined (OPENSSL_SYS_WINDOWS)
+#if !defined(OPENSSL_SYS_WINDOWS)
     /* ignore SIGPIPE so that server can continue running when client pipe closes abruptly */
     signal(SIGPIPE, SIG_IGN);
 #endif
 
     /* Splash */
-    printf("\nsslecho : Simple Echo Client/Server : %s : %s\n\n", __DATE__,
-    __TIME__);
+    printf("\nsslecho : Simple Echo Client/Server : %s : %s\n\n", __DATE__, __TIME__);
 
     /* Need to know if client or server */
     if (argc < 2) {
@@ -195,7 +194,6 @@ int main(int argc, char **argv)
 
     /* If server */
     if (isServer) {
-
         printf("We are the server on port: %d\n\n", server_port);
 
         /* Configure server context with appropriate key files */
@@ -211,8 +209,7 @@ int main(int argc, char **argv)
          */
         while (server_running) {
             /* Wait for TCP connection from client */
-            client_skt = accept(server_skt, (struct sockaddr*) &addr,
-                                &addr_len);
+            client_skt = accept(server_skt, (struct sockaddr *)&addr, &addr_len);
             if (client_skt < 0) {
                 perror("Unable to accept");
                 exit(EXIT_FAILURE);
@@ -232,7 +229,6 @@ int main(int argc, char **argv)
                 ERR_print_errors_fp(stderr);
                 server_running = false;
             } else {
-
                 printf("Client SSL connection accepted\n\n");
 
                 /* Echo loop */
@@ -280,20 +276,19 @@ int main(int argc, char **argv)
     }
     /* Else client */
     else {
-
         printf("We are the client\n\n");
 
         /* Configure client context so we verify the server correctly */
         configure_client_context(ssl_ctx);
 
         /* Create "bare" socket */
-        client_skt = create_socket(false);
+        client_skt      = create_socket(false);
         /* Set up connect address */
         addr.sin_family = AF_INET;
         inet_pton(AF_INET, rem_server_ip, &addr.sin_addr.s_addr);
         addr.sin_port = htons(server_port);
         /* Do TCP connect with server */
-        if (connect(client_skt, (struct sockaddr*) &addr, sizeof(addr)) != 0) {
+        if (connect(client_skt, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
             perror("Unable to TCP connect to server");
             goto exit;
         } else {
@@ -316,7 +311,6 @@ int main(int argc, char **argv)
 
         /* Now do SSL connect with server */
         if (SSL_connect(ssl) == 1) {
-
             printf("SSL connection to server successful\n\n");
 
             /* Loop to send input from keyboard */
@@ -354,7 +348,6 @@ int main(int argc, char **argv)
             }
             printf("Client exiting...\n");
         } else {
-
             printf("SSL connection to server failed\n\n");
 
             ERR_print_errors_fp(stderr);

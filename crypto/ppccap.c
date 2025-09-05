@@ -16,7 +16,7 @@
 #if defined(__linux) || defined(_AIX)
 # include <sys/utsname.h>
 #endif
-#if defined(_AIX53)     /* defined even on post-5.3 */
+#if defined(_AIX53) /* defined even on post-5.3 */
 # include <sys/systemcfg.h>
 # if !defined(__power_set)
 #  define __power_set(a) (_system_configuration.implementation & (a))
@@ -30,25 +30,26 @@
 #include "internal/cryptlib.h"
 #include "crypto/ppc_arch.h"
 
-unsigned int OPENSSL_ppccap_P = 0;
+unsigned int      OPENSSL_ppccap_P = 0;
 
-static sigset_t all_masked;
+static sigset_t   all_masked;
 
 static sigjmp_buf ill_jmp;
-static void ill_handler(int sig)
+
+static void       ill_handler(int sig)
 {
     siglongjmp(ill_jmp, sig);
 }
 
-void OPENSSL_fpu_probe(void);
-void OPENSSL_ppc64_probe(void);
-void OPENSSL_altivec_probe(void);
-void OPENSSL_crypto207_probe(void);
-void OPENSSL_madd300_probe(void);
-void OPENSSL_brd31_probe(void);
+void     OPENSSL_fpu_probe(void);
+void     OPENSSL_ppc64_probe(void);
+void     OPENSSL_altivec_probe(void);
+void     OPENSSL_crypto207_probe(void);
+void     OPENSSL_madd300_probe(void);
+void     OPENSSL_brd31_probe(void);
 
-long OPENSSL_rdtsc_mftb(void);
-long OPENSSL_rdtsc_mfspr268(void);
+long     OPENSSL_rdtsc_mftb(void);
+long     OPENSSL_rdtsc_mfspr268(void);
 
 uint32_t OPENSSL_rdtsc(void)
 {
@@ -101,19 +102,18 @@ size_t OPENSSL_instrument_bus2(unsigned int *out, size_t cnt, size_t max)
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
 # include <sys/param.h>
-# if (defined(__FreeBSD__) && __FreeBSD_version >= 1200000) || \
-    (defined(__OpenBSD__) && OpenBSD >= 202409)
+# if (defined(__FreeBSD__) && __FreeBSD_version >= 1200000) || (defined(__OpenBSD__) && OpenBSD >= 202409)
 #  include <sys/auxv.h>
 #  define OSSL_IMPLEMENT_GETAUXVAL
 
 static unsigned long getauxval(unsigned long key)
 {
-  unsigned long val = 0ul;
+    unsigned long val = 0ul;
 
-  if (elf_aux_info((int)key, &val, sizeof(val)) != 0)
-    return 0ul;
+    if (elf_aux_info((int)key, &val, sizeof(val)) != 0)
+        return 0ul;
 
-  return val;
+    return val;
 }
 # endif
 #endif
@@ -137,10 +137,10 @@ static unsigned long getauxval(unsigned long key)
 
 void OPENSSL_cpuid_setup(void)
 {
-    char *e;
+    char            *e;
     struct sigaction ill_oact, ill_act;
-    sigset_t oset;
-    static int trigger = 0;
+    sigset_t         oset;
+    static int       trigger = 0;
 
     if (trigger)
         return;
@@ -174,24 +174,24 @@ void OPENSSL_cpuid_setup(void)
      */
     if (sizeof(size_t) == 4) {
         /* In 32-bit case PPC_FPU64 is always fastest [if option] */
-        if (__power_set(0xffffffffU<<13))       /* POWER5 and later */
+        if (__power_set(0xffffffffU << 13)) /* POWER5 and later */
             OPENSSL_ppccap_P |= PPC_FPU64;
     } else {
         /* In 64-bit case PPC_FPU64 is fastest only on POWER6 */
-        if (__power_set(0x1U<<14))              /* POWER6 */
+        if (__power_set(0x1U << 14)) /* POWER6 */
             OPENSSL_ppccap_P |= PPC_FPU64;
     }
 
-    if (__power_set(0xffffffffU<<14))           /* POWER6 and later */
+    if (__power_set(0xffffffffU << 14)) /* POWER6 and later */
         OPENSSL_ppccap_P |= PPC_ALTIVEC;
 
-    if (__power_set(0xffffffffU<<16))           /* POWER8 and later */
+    if (__power_set(0xffffffffU << 16)) /* POWER8 and later */
         OPENSSL_ppccap_P |= PPC_CRYPTO207;
 
-    if (__power_set(0xffffffffU<<17))           /* POWER9 and later */
+    if (__power_set(0xffffffffU << 17)) /* POWER9 and later */
         OPENSSL_ppccap_P |= PPC_MADD300;
 
-    if (__power_set(0xffffffffU<<18))           /* POWER10 and later */
+    if (__power_set(0xffffffffU << 18)) /* POWER10 and later */
         OPENSSL_ppccap_P |= PPC_BRD31;
 
     return;
@@ -202,7 +202,7 @@ void OPENSSL_cpuid_setup(void)
     OPENSSL_ppccap_P |= PPC_FPU;
 
     {
-        int val;
+        int    val;
         size_t len = sizeof(val);
 
         if (sysctlbyname("hw.optional.64bitops", &val, &len, NULL, 0) == 0) {
@@ -222,7 +222,7 @@ void OPENSSL_cpuid_setup(void)
 
 #ifdef OSSL_IMPLEMENT_GETAUXVAL
     {
-        unsigned long hwcap = getauxval(AT_HWCAP);
+        unsigned long hwcap  = getauxval(AT_HWCAP);
         unsigned long hwcap2 = getauxval(AT_HWCAP2);
 
         if (hwcap & HWCAP_FPU) {
@@ -268,7 +268,7 @@ void OPENSSL_cpuid_setup(void)
 
     memset(&ill_act, 0, sizeof(ill_act));
     ill_act.sa_handler = ill_handler;
-    ill_act.sa_mask = all_masked;
+    ill_act.sa_mask    = all_masked;
 
     sigprocmask(SIG_SETMASK, &ill_act.sa_mask, &oset);
     sigaction(SIGILL, &ill_act, &ill_oact);

@@ -24,11 +24,10 @@
         precompiled_sz = sizeof(ossl_der_oid_id_ecdsa_with_##name);     \
         break;
 
-int ossl_DER_w_algorithmIdentifier_ECDSA_with_MD(WPACKET *pkt, int cont,
-                                                 EC_KEY *ec, int mdnid)
+int ossl_DER_w_algorithmIdentifier_ECDSA_with_MD(WPACKET *pkt, int cont, EC_KEY *ec, int mdnid)
 {
-    const unsigned char *precompiled = NULL;
-    size_t precompiled_sz = 0;
+    const unsigned char *precompiled    = NULL;
+    size_t               precompiled_sz = 0;
 
     switch (mdnid) {
         MD_CASE(sha1);
@@ -45,7 +44,6 @@ int ossl_DER_w_algorithmIdentifier_ECDSA_with_MD(WPACKET *pkt, int cont,
     }
 
     return ossl_DER_w_begin_sequence(pkt, cont)
-        /* No parameters (yet?) */
-        && ossl_DER_w_precompiled(pkt, -1, precompiled, precompiled_sz)
-        && ossl_DER_w_end_sequence(pkt, cont);
+           /* No parameters (yet?) */
+           && ossl_DER_w_precompiled(pkt, -1, precompiled, precompiled_sz) && ossl_DER_w_end_sequence(pkt, cont);
 }

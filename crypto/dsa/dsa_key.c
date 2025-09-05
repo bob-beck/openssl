@@ -30,7 +30,7 @@
 
 static int dsa_keygen(DSA *dsa);
 
-int DSA_generate_key(DSA *dsa)
+int        DSA_generate_key(DSA *dsa)
 {
 #ifndef FIPS_MODULE
     if (dsa->meth->dsa_keygen != NULL)
@@ -39,10 +39,9 @@ int DSA_generate_key(DSA *dsa)
     return dsa_keygen(dsa);
 }
 
-int ossl_dsa_generate_public_key(BN_CTX *ctx, const DSA *dsa,
-                                 const BIGNUM *priv_key, BIGNUM *pub_key)
+int ossl_dsa_generate_public_key(BN_CTX *ctx, const DSA *dsa, const BIGNUM *priv_key, BIGNUM *pub_key)
 {
-    int ret = 0;
+    int     ret = 0;
     BIGNUM *prk = BN_new();
 
     if (prk == NULL)
@@ -72,13 +71,12 @@ err:
  * agreement, the only PCT defined in SP 800-56A is that of Section 5.6.2.4:
  * the comparison of the original public key to a newly calculated public key.
  */
-static int dsa_keygen_knownanswer_test(DSA *dsa, BN_CTX *ctx,
-                                       OSSL_CALLBACK *cb, void *cbarg)
+static int dsa_keygen_knownanswer_test(DSA *dsa, BN_CTX *ctx, OSSL_CALLBACK *cb, void *cbarg)
 {
-    int len, ret = 0;
-    OSSL_SELF_TEST *st = NULL;
-    unsigned char bytes[512] = {0};
-    BIGNUM *pub_key2 = BN_new();
+    int             len, ret = 0;
+    OSSL_SELF_TEST *st         = NULL;
+    unsigned char   bytes[512] = {0};
+    BIGNUM         *pub_key2   = BN_new();
 
     if (pub_key2 == NULL)
         return 0;
@@ -87,8 +85,7 @@ static int dsa_keygen_knownanswer_test(DSA *dsa, BN_CTX *ctx,
     if (st == NULL)
         goto err;
 
-    OSSL_SELF_TEST_onbegin(st, OSSL_SELF_TEST_TYPE_PCT_KAT,
-                               OSSL_SELF_TEST_DESC_PCT_DSA);
+    OSSL_SELF_TEST_onbegin(st, OSSL_SELF_TEST_TYPE_PCT_KAT, OSSL_SELF_TEST_DESC_PCT_DSA);
 
     if (!ossl_dsa_generate_public_key(ctx, dsa, dsa->priv_key, pub_key2))
         goto err;
@@ -113,18 +110,17 @@ err:
  */
 static int dsa_keygen_pairwise_test(DSA *dsa, OSSL_CALLBACK *cb, void *cbarg)
 {
-    int ret = 0;
-    unsigned char dgst[16] = {0};
-    unsigned int dgst_len = (unsigned int)sizeof(dgst);
-    DSA_SIG *sig = NULL;
-    OSSL_SELF_TEST *st = NULL;
+    int             ret      = 0;
+    unsigned char   dgst[16] = {0};
+    unsigned int    dgst_len = (unsigned int)sizeof(dgst);
+    DSA_SIG        *sig      = NULL;
+    OSSL_SELF_TEST *st       = NULL;
 
-    st = OSSL_SELF_TEST_new(cb, cbarg);
+    st                       = OSSL_SELF_TEST_new(cb, cbarg);
     if (st == NULL)
         goto err;
 
-    OSSL_SELF_TEST_onbegin(st, OSSL_SELF_TEST_TYPE_PCT,
-                           OSSL_SELF_TEST_DESC_PCT_DSA);
+    OSSL_SELF_TEST_onbegin(st, OSSL_SELF_TEST_TYPE_PCT, OSSL_SELF_TEST_DESC_PCT_DSA);
 
     sig = DSA_do_sign(dgst, (int)dgst_len, dsa);
     if (sig == NULL)
@@ -146,8 +142,8 @@ err:
 
 static int dsa_keygen(DSA *dsa)
 {
-    int ok = 0;
-    BN_CTX *ctx = NULL;
+    int     ok      = 0;
+    BN_CTX *ctx     = NULL;
     BIGNUM *pub_key = NULL, *priv_key = NULL;
 
     if ((ctx = BN_CTX_new_ex(dsa->libctx)) == NULL)
@@ -161,8 +157,7 @@ static int dsa_keygen(DSA *dsa)
     }
 
     /* Do a partial check for invalid p, q, g */
-    if (!ossl_ffc_params_simple_validate(dsa->libctx, &dsa->params,
-                                         FFC_PARAM_TYPE_DSA, NULL))
+    if (!ossl_ffc_params_simple_validate(dsa->libctx, &dsa->params, FFC_PARAM_TYPE_DSA, NULL))
         goto err;
 
     /*
@@ -170,9 +165,7 @@ static int dsa_keygen(DSA *dsa)
      * security strength s = 112,
      * Max Private key size N = len(q)
      */
-    if (!ossl_ffc_generate_private_key(ctx, &dsa->params,
-                                       BN_num_bits(dsa->params.q),
-                                       MIN_STRENGTH, priv_key))
+    if (!ossl_ffc_generate_private_key(ctx, &dsa->params, BN_num_bits(dsa->params.q), MIN_STRENGTH, priv_key))
         goto err;
 
     if (dsa->pub_key == NULL) {
@@ -186,22 +179,21 @@ static int dsa_keygen(DSA *dsa)
         goto err;
 
     dsa->priv_key = priv_key;
-    dsa->pub_key = pub_key;
+    dsa->pub_key  = pub_key;
 
-    ok = 1;
+    ok            = 1;
 #ifdef FIPS_MODULE
     {
-        OSSL_CALLBACK *cb = NULL;
-        void *cbarg = NULL;
+        OSSL_CALLBACK *cb    = NULL;
+        void          *cbarg = NULL;
 
         OSSL_SELF_TEST_get_callback(dsa->libctx, &cb, &cbarg);
-        ok = dsa_keygen_pairwise_test(dsa, cb, cbarg)
-             && dsa_keygen_knownanswer_test(dsa, ctx, cb, cbarg);
+        ok = dsa_keygen_pairwise_test(dsa, cb, cbarg) && dsa_keygen_knownanswer_test(dsa, ctx, cb, cbarg);
         if (!ok) {
             ossl_set_error_state(OSSL_SELF_TEST_TYPE_PCT);
             BN_free(dsa->pub_key);
             BN_clear_free(dsa->priv_key);
-            dsa->pub_key = NULL;
+            dsa->pub_key  = NULL;
             dsa->priv_key = NULL;
             BN_CTX_free(ctx);
             return ok;
@@ -210,7 +202,7 @@ static int dsa_keygen(DSA *dsa)
 #endif
     dsa->dirty_cnt++;
 
- err:
+err:
     if (pub_key != dsa->pub_key)
         BN_free(pub_key);
     if (priv_key != dsa->priv_key)

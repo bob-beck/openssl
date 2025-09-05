@@ -15,52 +15,39 @@
 #include "testutil.h"
 #include "internal/numbers.h"
 
-static const unsigned int CONSTTIME_TRUE = (unsigned)(~0);
-static const unsigned int CONSTTIME_FALSE = 0;
-static const unsigned char CONSTTIME_TRUE_8 = 0xff;
-static const unsigned char CONSTTIME_FALSE_8 = 0;
-static const size_t CONSTTIME_TRUE_S = ~((size_t)0);
-static const size_t CONSTTIME_FALSE_S = 0;
-static uint32_t CONSTTIME_TRUE_32 = (uint32_t)(~(uint32_t)0);
-static uint32_t CONSTTIME_FALSE_32 = 0;
-static uint64_t CONSTTIME_TRUE_64 = (uint64_t)(~(uint64_t)0);
-static uint64_t CONSTTIME_FALSE_64 = 0;
+static const unsigned int  CONSTTIME_TRUE     = (unsigned)(~0);
+static const unsigned int  CONSTTIME_FALSE    = 0;
+static const unsigned char CONSTTIME_TRUE_8   = 0xff;
+static const unsigned char CONSTTIME_FALSE_8  = 0;
+static const size_t        CONSTTIME_TRUE_S   = ~((size_t)0);
+static const size_t        CONSTTIME_FALSE_S  = 0;
+static uint32_t            CONSTTIME_TRUE_32  = (uint32_t)(~(uint32_t)0);
+static uint32_t            CONSTTIME_FALSE_32 = 0;
+static uint64_t            CONSTTIME_TRUE_64  = (uint64_t)(~(uint64_t)0);
+static uint64_t            CONSTTIME_FALSE_64 = 0;
 
-static unsigned int test_values[] = {
-    0, 1, 1024, 12345, 32000, UINT_MAX / 2 - 1,
-    UINT_MAX / 2, UINT_MAX / 2 + 1, UINT_MAX - 1,
-    UINT_MAX
-};
+static unsigned int        test_values[] =
+    {0, 1, 1024, 12345, 32000, UINT_MAX / 2 - 1, UINT_MAX / 2, UINT_MAX / 2 + 1, UINT_MAX - 1, UINT_MAX};
 
-static unsigned char test_values_8[] = {
-    0, 1, 2, 20, 32, 127, 128, 129, 255
-};
+static unsigned char test_values_8[] = {0, 1, 2, 20, 32, 127, 128, 129, 255};
 
-static int signed_test_values[] = {
-    0, 1, -1, 1024, -1024, 12345, -12345,
-    32000, -32000, INT_MAX, INT_MIN, INT_MAX - 1,
-    INT_MIN + 1
-};
+static int           signed_test_values[] =
+    {0, 1, -1, 1024, -1024, 12345, -12345, 32000, -32000, INT_MAX, INT_MIN, INT_MAX - 1, INT_MIN + 1};
 
-static size_t test_values_s[] = {
-    0, 1, 1024, 12345, 32000, SIZE_MAX / 2 - 1,
-    SIZE_MAX / 2, SIZE_MAX / 2 + 1, SIZE_MAX - 1,
-    SIZE_MAX
-};
+static size_t test_values_s[] =
+    {0, 1, 1024, 12345, 32000, SIZE_MAX / 2 - 1, SIZE_MAX / 2, SIZE_MAX / 2 + 1, SIZE_MAX - 1, SIZE_MAX};
 
-static uint32_t test_values_32[] = {
-    0, 1, 1024, 12345, 32000, UINT32_MAX / 2, UINT32_MAX / 2 + 1,
-    UINT32_MAX - 1, UINT32_MAX
-};
+static uint32_t test_values_32[] =
+    {0, 1, 1024, 12345, 32000, UINT32_MAX / 2, UINT32_MAX / 2 + 1, UINT32_MAX - 1, UINT32_MAX};
 
-static uint64_t test_values_64[] = {
-    0, 1, 1024, 12345, 32000, 32000000, 32000000001, UINT64_MAX / 2,
-    UINT64_MAX / 2 + 1, UINT64_MAX - 1, UINT64_MAX
-};
+static uint64_t test_values_64[] =
+    {0, 1, 1024, 12345, 32000, 32000000, 32000000001, UINT64_MAX / 2, UINT64_MAX / 2 + 1, UINT64_MAX - 1, UINT64_MAX};
 
-static int test_binary_op(unsigned int (*op) (unsigned int a, unsigned int b),
-                          const char *op_name, unsigned int a, unsigned int b,
-                          int is_true)
+static int test_binary_op(unsigned int (*op)(unsigned int a, unsigned int b),
+                          const char  *op_name,
+                          unsigned int a,
+                          unsigned int b,
+                          int          is_true)
 {
     if (is_true && !TEST_uint_eq(op(a, b), CONSTTIME_TRUE))
         return 0;
@@ -69,10 +56,11 @@ static int test_binary_op(unsigned int (*op) (unsigned int a, unsigned int b),
     return 1;
 }
 
-static int test_binary_op_8(unsigned
-                            char (*op) (unsigned int a, unsigned int b),
-                            const char *op_name, unsigned int a,
-                            unsigned int b, int is_true)
+static int test_binary_op_8(unsigned char (*op)(unsigned int a, unsigned int b),
+                            const char  *op_name,
+                            unsigned int a,
+                            unsigned int b,
+                            int          is_true)
 {
     if (is_true && !TEST_uint_eq(op(a, b), CONSTTIME_TRUE_8))
         return 0;
@@ -81,9 +69,7 @@ static int test_binary_op_8(unsigned
     return 1;
 }
 
-static int test_binary_op_s(size_t (*op) (size_t a, size_t b),
-                            const char *op_name, size_t a, size_t b,
-                            int is_true)
+static int test_binary_op_s(size_t (*op)(size_t a, size_t b), const char *op_name, size_t a, size_t b, int is_true)
 {
     if (is_true && !TEST_size_t_eq(op(a, b), CONSTTIME_TRUE_S))
         return 0;
@@ -92,9 +78,8 @@ static int test_binary_op_s(size_t (*op) (size_t a, size_t b),
     return 1;
 }
 
-static int test_binary_op_64(uint64_t (*op)(uint64_t a, uint64_t b),
-                             const char *op_name, uint64_t a, uint64_t b,
-                             int is_true)
+static int
+test_binary_op_64(uint64_t (*op)(uint64_t a, uint64_t b), const char *op_name, uint64_t a, uint64_t b, int is_true)
 {
     uint64_t c = op(a, b);
 
@@ -253,25 +238,18 @@ static int test_sizeofs(void)
 static int test_binops(int i)
 {
     unsigned int a = test_values[i];
-    int j;
-    int ret = 1;
+    int          j;
+    int          ret = 1;
 
     for (j = 0; j < (int)OSSL_NELEM(test_values); ++j) {
         unsigned int b = test_values[j];
 
-        if (!test_select(a, b)
-                || !test_binary_op(&constant_time_lt, "ct_lt",
-                                   a, b, a < b)
-                || !test_binary_op(&constant_time_lt, "constant_time_lt",
-                                   b, a, b < a)
-                || !test_binary_op(&constant_time_ge, "constant_time_ge",
-                                   a, b, a >= b)
-                || !test_binary_op(&constant_time_ge, "constant_time_ge",
-                                   b, a, b >= a)
-                || !test_binary_op(&constant_time_eq, "constant_time_eq",
-                                   a, b, a == b)
-                || !test_binary_op(&constant_time_eq, "constant_time_eq",
-                                   b, a, b == a))
+        if (!test_select(a, b) || !test_binary_op(&constant_time_lt, "ct_lt", a, b, a < b)
+            || !test_binary_op(&constant_time_lt, "constant_time_lt", b, a, b < a)
+            || !test_binary_op(&constant_time_ge, "constant_time_ge", a, b, a >= b)
+            || !test_binary_op(&constant_time_ge, "constant_time_ge", b, a, b >= a)
+            || !test_binary_op(&constant_time_eq, "constant_time_eq", a, b, a == b)
+            || !test_binary_op(&constant_time_eq, "constant_time_eq", b, a, b == a))
             ret = 0;
     }
     return ret;
@@ -280,24 +258,18 @@ static int test_binops(int i)
 static int test_binops_8(int i)
 {
     unsigned int a = test_values_8[i];
-    int j;
-    int ret = 1;
+    int          j;
+    int          ret = 1;
 
     for (j = 0; j < (int)OSSL_NELEM(test_values_8); ++j) {
         unsigned int b = test_values_8[j];
 
-        if (!test_binary_op_8(&constant_time_lt_8, "constant_time_lt_8",
-                                     a, b, a < b)
-                || !test_binary_op_8(&constant_time_lt_8, "constant_time_lt_8",
-                                     b, a, b < a)
-                || !test_binary_op_8(&constant_time_ge_8, "constant_time_ge_8",
-                                     a, b, a >= b)
-                || !test_binary_op_8(&constant_time_ge_8, "constant_time_ge_8",
-                                     b, a, b >= a)
-                || !test_binary_op_8(&constant_time_eq_8, "constant_time_eq_8",
-                                     a, b, a == b)
-                || !test_binary_op_8(&constant_time_eq_8, "constant_time_eq_8",
-                                     b, a, b == a))
+        if (!test_binary_op_8(&constant_time_lt_8, "constant_time_lt_8", a, b, a < b)
+            || !test_binary_op_8(&constant_time_lt_8, "constant_time_lt_8", b, a, b < a)
+            || !test_binary_op_8(&constant_time_ge_8, "constant_time_ge_8", a, b, a >= b)
+            || !test_binary_op_8(&constant_time_ge_8, "constant_time_ge_8", b, a, b >= a)
+            || !test_binary_op_8(&constant_time_eq_8, "constant_time_eq_8", a, b, a == b)
+            || !test_binary_op_8(&constant_time_eq_8, "constant_time_eq_8", b, a, b == a))
             ret = 0;
     }
     return ret;
@@ -306,26 +278,19 @@ static int test_binops_8(int i)
 static int test_binops_s(int i)
 {
     size_t a = test_values_s[i];
-    int j;
-    int ret = 1;
+    int    j;
+    int    ret = 1;
 
     for (j = 0; j < (int)OSSL_NELEM(test_values_s); ++j) {
         size_t b = test_values_s[j];
 
-        if (!test_select_s(a, b)
-                || !test_eq_s(a, b)
-                || !test_binary_op_s(&constant_time_lt_s, "constant_time_lt_s",
-                                     a, b, a < b)
-                || !test_binary_op_s(&constant_time_lt_s, "constant_time_lt_s",
-                                     b, a, b < a)
-                || !test_binary_op_s(&constant_time_ge_s, "constant_time_ge_s",
-                                     a, b, a >= b)
-                || !test_binary_op_s(&constant_time_ge_s, "constant_time_ge_s",
-                                     b, a, b >= a)
-                || !test_binary_op_s(&constant_time_eq_s, "constant_time_eq_s",
-                                     a, b, a == b)
-                || !test_binary_op_s(&constant_time_eq_s, "constant_time_eq_s",
-                                     b, a, b == a))
+        if (!test_select_s(a, b) || !test_eq_s(a, b)
+            || !test_binary_op_s(&constant_time_lt_s, "constant_time_lt_s", a, b, a < b)
+            || !test_binary_op_s(&constant_time_lt_s, "constant_time_lt_s", b, a, b < a)
+            || !test_binary_op_s(&constant_time_ge_s, "constant_time_ge_s", a, b, a >= b)
+            || !test_binary_op_s(&constant_time_ge_s, "constant_time_ge_s", b, a, b >= a)
+            || !test_binary_op_s(&constant_time_eq_s, "constant_time_eq_s", a, b, a == b)
+            || !test_binary_op_s(&constant_time_eq_s, "constant_time_eq_s", b, a, b == a))
             ret = 0;
     }
     return ret;
@@ -333,16 +298,14 @@ static int test_binops_s(int i)
 
 static int test_signed(int i)
 {
-    int c = signed_test_values[i];
+    int          c = signed_test_values[i];
     unsigned int j;
-    int ret = 1;
+    int          ret = 1;
 
     for (j = 0; j < OSSL_NELEM(signed_test_values); ++j) {
         int d = signed_test_values[j];
 
-        if (!test_select_int(c, d)
-                || !test_eq_int(c, d)
-                || !test_eq_int_8(c, d))
+        if (!test_select_int(c, d) || !test_eq_int(c, d) || !test_eq_int_8(c, d))
             ret = 0;
     }
     return ret;
@@ -351,8 +314,8 @@ static int test_signed(int i)
 static int test_8values(int i)
 {
     unsigned char e = test_values_8[i];
-    unsigned int j;
-    int ret = 1;
+    unsigned int  j;
+    int           ret = 1;
 
     for (j = 0; j < sizeof(test_values_8); ++j) {
         unsigned char f = test_values_8[j];
@@ -366,8 +329,8 @@ static int test_8values(int i)
 static int test_32values(int i)
 {
     uint32_t e = test_values_32[i];
-    size_t j;
-    int ret = 1;
+    size_t   j;
+    int      ret = 1;
 
     for (j = 0; j < OSSL_NELEM(test_values_32); j++) {
         uint32_t f = test_values_32[j];
@@ -381,14 +344,12 @@ static int test_32values(int i)
 static int test_64values(int i)
 {
     uint64_t g = test_values_64[i];
-    int j, ret = 1;
+    int      j, ret = 1;
 
     for (j = i + 1; j < (int)OSSL_NELEM(test_values_64); j++) {
         uint64_t h = test_values_64[j];
 
-        if (!test_binary_op_64(&constant_time_lt_64, "constant_time_lt_64",
-                               g, h, g < h)
-                || !test_select_64(g, h)) {
+        if (!test_binary_op_64(&constant_time_lt_64, "constant_time_lt_64", g, h, g < h) || !test_select_64(g, h)) {
             TEST_info("test_64values failed i=%d j=%d", i, j);
             ret = 0;
         }

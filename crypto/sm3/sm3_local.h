@@ -64,8 +64,7 @@ void ossl_sm3_transform(SM3_CTX *c, const unsigned char *data);
 #include "crypto/md32_common.h"
 
 #ifndef PEDANTIC
-# if defined(__GNUC__) && __GNUC__>=2 && \
-     !defined(OPENSSL_NO_ASM) && !defined(OPENSSL_NO_INLINE_ASM)
+# if defined(__GNUC__) && __GNUC__ >= 2 && !defined(OPENSSL_NO_ASM) && !defined(OPENSSL_NO_INLINE_ASM)
 #  if defined(__riscv_zksh)
 #   define P0(x) ({ MD32_REG_T ret;        \
                        asm ("sm3p0 %0, %1" \
@@ -86,13 +85,13 @@ void ossl_sm3_transform(SM3_CTX *c, const unsigned char *data);
 # define P1(X) (X ^ ROTATE(X, 15) ^ ROTATE(X, 23))
 #endif
 
-#define FF0(X,Y,Z) (X ^ Y ^ Z)
-#define GG0(X,Y,Z) (X ^ Y ^ Z)
+#define FF0(X, Y, Z) (X ^ Y ^ Z)
+#define GG0(X, Y, Z) (X ^ Y ^ Z)
 
-#define FF1(X,Y,Z) ((X & Y) | ((X | Y) & Z))
-#define GG1(X,Y,Z) ((Z ^ (X & (Y ^ Z))))
+#define FF1(X, Y, Z) ((X & Y) | ((X | Y) & Z))
+#define GG1(X, Y, Z) ((Z ^ (X & (Y ^ Z))))
 
-#define EXPAND(W0,W7,W13,W3,W10) \
+#define EXPAND(W0, W7, W13, W3, W10) \
    (P1(W0 ^ W7 ^ ROTATE(W13, 15)) ^ ROTATE(W3, 7) ^ W10)
 
 #define RND(A, B, C, D, E, F, G, H, TJ, Wi, Wj, FF, GG)           \
@@ -108,10 +107,10 @@ void ossl_sm3_transform(SM3_CTX *c, const unsigned char *data);
        H = P0(TT2);                                               \
      } while(0)
 
-#define R1(A,B,C,D,E,F,G,H,TJ,Wi,Wj) \
+#define R1(A, B, C, D, E, F, G, H, TJ, Wi, Wj) \
    RND(A,B,C,D,E,F,G,H,TJ,Wi,Wj,FF0,GG0)
 
-#define R2(A,B,C,D,E,F,G,H,TJ,Wi,Wj) \
+#define R2(A, B, C, D, E, F, G, H, TJ, Wi, Wj) \
    RND(A,B,C,D,E,F,G,H,TJ,Wi,Wj,FF1,GG1)
 
 #define SM3_A 0x7380166fUL

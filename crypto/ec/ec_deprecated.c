@@ -18,12 +18,10 @@
 #include <openssl/ec.h>
 
 #ifndef OPENSSL_NO_DEPRECATED_3_0
-BIGNUM *EC_POINT_point2bn(const EC_GROUP *group,
-                          const EC_POINT *point,
-                          point_conversion_form_t form,
-                          BIGNUM *ret, BN_CTX *ctx)
+BIGNUM *
+EC_POINT_point2bn(const EC_GROUP *group, const EC_POINT *point, point_conversion_form_t form, BIGNUM *ret, BN_CTX *ctx)
 {
-    size_t buf_len = 0;
+    size_t         buf_len = 0;
     unsigned char *buf;
 
     buf_len = EC_POINT_point2buf(group, point, form, &buf, ctx);
@@ -38,12 +36,11 @@ BIGNUM *EC_POINT_point2bn(const EC_GROUP *group,
     return ret;
 }
 
-EC_POINT *EC_POINT_bn2point(const EC_GROUP *group,
-                            const BIGNUM *bn, EC_POINT *point, BN_CTX *ctx)
+EC_POINT *EC_POINT_bn2point(const EC_GROUP *group, const BIGNUM *bn, EC_POINT *point, BN_CTX *ctx)
 {
-    int buf_len = 0;
+    int            buf_len = 0;
     unsigned char *buf;
-    EC_POINT *ret;
+    EC_POINT      *ret;
 
     if ((buf_len = BN_num_bytes(bn)) == 0)
         buf_len = 1;

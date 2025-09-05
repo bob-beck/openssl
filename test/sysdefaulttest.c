@@ -20,7 +20,7 @@ static int expect_failure = 0;
 
 static int test_func(void)
 {
-    int ret = 0;
+    int      ret = 0;
     SSL_CTX *ctx;
 
     ctx = SSL_CTX_new(TLS_method());
@@ -37,32 +37,26 @@ static int test_func(void)
         }
     }
     ret = 1;
- err:
+err:
     SSL_CTX_free(ctx);
     return ret;
 }
 
 int global_init(void)
 {
-    if (!OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN
-                          | OPENSSL_INIT_LOAD_CONFIG, NULL))
+    if (!OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN | OPENSSL_INIT_LOAD_CONFIG, NULL))
         return 0;
     return 1;
 }
 
-typedef enum OPTION_choice {
-    OPT_ERR = -1,
-    OPT_EOF = 0,
-    OPT_FAIL,
-    OPT_TEST_ENUM
-} OPTION_CHOICE;
+typedef enum OPTION_choice { OPT_ERR = -1, OPT_EOF = 0, OPT_FAIL, OPT_TEST_ENUM } OPTION_CHOICE;
 
 const OPTIONS *test_get_options(void)
 {
     static const OPTIONS test_options[] = {
         OPT_TEST_OPTIONS_DEFAULT_USAGE,
-        { "f", OPT_FAIL, '-', "A failure is expected" },
-        { NULL }
+        {"f", OPT_FAIL, '-', "A failure is expected"},
+        {NULL}
     };
     return test_options;
 }

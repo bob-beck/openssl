@@ -22,20 +22,20 @@
 
 int main(int argc, char *argv[])
 {
-    char *port = "*:4433";
-    BIO *ssl_bio = NULL;
-    BIO *tmp;
-    SSL_CTX *ctx;
+    char         *port    = "*:4433";
+    BIO          *ssl_bio = NULL;
+    BIO          *tmp;
+    SSL_CTX      *ctx;
     SSL_CONF_CTX *cctx;
-    char buf[512];
-    BIO *in = NULL;
-    int ret = EXIT_FAILURE, i;
-    char **args = argv + 1;
-    int nargs = argc - 1;
+    char          buf[512];
+    BIO          *in    = NULL;
+    int           ret   = EXIT_FAILURE, i;
+    char        **args  = argv + 1;
+    int           nargs = argc - 1;
 
-    ctx = SSL_CTX_new(TLS_server_method());
+    ctx                 = SSL_CTX_new(TLS_server_method());
 
-    cctx = SSL_CONF_CTX_new();
+    cctx                = SSL_CONF_CTX_new();
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_SERVER);
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CERTIFICATE);
     SSL_CONF_CTX_set_ssl_ctx(cctx, ctx);
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Missing -port argument\n");
                 goto err;
             }
-            args += 2;
+            args  += 2;
             nargs -= 2;
             continue;
         } else {
@@ -82,12 +82,11 @@ int main(int argc, char *argv[])
      */
     {
         X509 *x;
-        int rv;
+        int   rv;
         rv = SSL_CTX_set_current_cert(ctx, SSL_CERT_SET_FIRST);
         while (rv) {
             X509 *x = SSL_CTX_get0_certificate(ctx);
-            X509_NAME_print_ex_fp(stdout, X509_get_subject_name(x), 0,
-                                  XN_FLAG_ONELINE);
+            X509_NAME_print_ex_fp(stdout, X509_get_subject_name(x), 0, XN_FLAG_ONELINE);
             printf("\n");
             rv = SSL_CTX_set_current_cert(ctx, SSL_CERT_SET_NEXT);
         }
@@ -108,7 +107,7 @@ int main(int argc, char *argv[])
     BIO_set_accept_bios(in, ssl_bio);
     ssl_bio = NULL;
 
- again:
+again:
     /*
      * The first call will setup the accept socket, and the second will get a
      * socket.  In this loop, the first actual accept will occur in the
@@ -138,7 +137,7 @@ int main(int argc, char *argv[])
     }
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS)
         ERR_print_errors_fp(stderr);
     BIO_free(in);

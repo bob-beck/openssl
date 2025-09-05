@@ -18,7 +18,7 @@
 typedef struct app_conn_st {
     SSL *ssl;
     BIO *ssl_bio, *net_bio;
-    int rx_need_tx, tx_need_rx;
+    int  rx_need_tx, tx_need_rx;
 } APP_CONN;
 
 /*
@@ -59,9 +59,9 @@ SSL_CTX *create_ssl_ctx(void)
  */
 APP_CONN *new_conn(SSL_CTX *ctx, const char *bare_hostname)
 {
-    BIO *ssl_bio, *internal_bio, *net_bio;
+    BIO      *ssl_bio, *internal_bio, *net_bio;
     APP_CONN *conn;
-    SSL *ssl;
+    SSL      *ssl;
 #ifdef USE_QUIC
     static const unsigned char alpn[] = {5, 'd', 'u', 'm', 'm', 'y'};
 #endif
@@ -125,8 +125,8 @@ APP_CONN *new_conn(SSL_CTX *ctx, const char *bare_hostname)
     }
 #endif
 
-    conn->ssl_bio   = ssl_bio;
-    conn->net_bio   = net_bio;
+    conn->ssl_bio = ssl_bio;
+    conn->net_bio = net_bio;
     return conn;
 }
 
@@ -144,13 +144,13 @@ int tx(APP_CONN *conn, const void *buf, int buf_len)
     if (l <= 0) {
         rc = SSL_get_error(conn->ssl, l);
         switch (rc) {
-            case SSL_ERROR_WANT_READ:
-                conn->tx_need_rx = 1;
-            case SSL_ERROR_WANT_CONNECT:
-            case SSL_ERROR_WANT_WRITE:
-                return -2;
-            default:
-                return -1;
+        case SSL_ERROR_WANT_READ:
+            conn->tx_need_rx = 1;
+        case SSL_ERROR_WANT_CONNECT:
+        case SSL_ERROR_WANT_WRITE:
+            return -2;
+        default:
+            return -1;
         }
     } else {
         conn->tx_need_rx = 0;
@@ -173,12 +173,12 @@ int rx(APP_CONN *conn, void *buf, int buf_len)
     if (l <= 0) {
         rc = SSL_get_error(conn->ssl, l);
         switch (rc) {
-            case SSL_ERROR_WANT_WRITE:
-                conn->rx_need_tx = 1;
-            case SSL_ERROR_WANT_READ:
-                return -2;
-            default:
-                return -1;
+        case SSL_ERROR_WANT_WRITE:
+            conn->rx_need_tx = 1;
+        case SSL_ERROR_WANT_READ:
+            return -2;
+        default:
+            return -1;
         }
     } else {
         conn->rx_need_tx = 0;
@@ -244,9 +244,7 @@ size_t net_tx_avail(APP_CONN *conn)
 int get_conn_pending_tx(APP_CONN *conn)
 {
 #ifdef USE_QUIC
-    return (SSL_net_read_desired(conn->ssl) ? POLLIN : 0)
-           | (SSL_net_write_desired(conn->ssl) ? POLLOUT : 0)
-           | POLLERR;
+    return (SSL_net_read_desired(conn->ssl) ? POLLIN : 0) | (SSL_net_write_desired(conn->ssl) ? POLLOUT : 0) | POLLERR;
 #else
     return (conn->tx_need_rx ? POLLIN : 0) | POLLOUT | POLLERR;
 #endif
@@ -296,19 +294,19 @@ void teardown_ctx(SSL_CTX *ctx)
 
 static int pump(APP_CONN *conn, int fd, int events, int timeout)
 {
-    int l, l2;
-    char buf[2048]; /* QUIC: would need to be changed if < 1472 */
-    size_t wspace;
+    int           l, l2;
+    char          buf[2048]; /* QUIC: would need to be changed if < 1472 */
+    size_t        wspace;
     struct pollfd pfd = {0};
 
-    pfd.fd = fd;
-    pfd.events = (events & (POLLIN | POLLERR));
+    pfd.fd            = fd;
+    pfd.events        = (events & (POLLIN | POLLERR));
     if (net_rx_space(conn) == 0)
         pfd.events &= ~POLLIN;
     if (net_tx_avail(conn) > 0)
         pfd.events |= POLLOUT;
 
-    if ((pfd.events & (POLLIN|POLLOUT)) == 0)
+    if ((pfd.events & (POLLIN | POLLOUT)) == 0)
         return 1;
 
     if (poll(&pfd, 1, timeout) == 0)
@@ -319,21 +317,22 @@ static int pump(APP_CONN *conn, int fd, int events, int timeout)
             l = read(fd, buf, wspace > sizeof(buf) ? sizeof(buf) : wspace);
             if (l <= 0) {
                 switch (errno) {
-                    case EAGAIN:
+                case EAGAIN:
+                    goto stop;
+                default:
+                    if (l == 0) /* EOF */
                         goto stop;
-                    default:
-                        if (l == 0) /* EOF */
-                            goto stop;
 
-                        fprintf(stderr, "error on read: %d\n", errno);
-                        return -1;
+                    fprintf(stderr, "error on read: %d\n", errno);
+                    return -1;
                 }
                 break;
             }
             l2 = write_net_rx(conn, buf, l);
             if (l2 < l)
                 fprintf(stderr, "short write %d %d\n", l2, l);
-        } stop:;
+        }
+stop:;
     }
 
     if (pfd.revents & POLLOUT) {
@@ -352,35 +351,33 @@ static int pump(APP_CONN *conn, int fd, int events, int timeout)
 
 int main(int argc, char **argv)
 {
-    int rc, fd = -1, res = 1;
-    static char tx_msg[300];
-    const char *tx_p = tx_msg;
-    char rx_buf[2048];
-    int l, tx_len;
-    int timeout = 2000 /* ms */;
-    APP_CONN *conn = NULL;
+    int             rc, fd = -1, res = 1;
+    static char     tx_msg[300];
+    const char     *tx_p = tx_msg;
+    char            rx_buf[2048];
+    int             l, tx_len;
+    int             timeout = 2000 /* ms */;
+    APP_CONN       *conn    = NULL;
     struct addrinfo hints = {0}, *result = NULL;
-    SSL_CTX *ctx = NULL;
+    SSL_CTX        *ctx = NULL;
 
     if (argc < 3) {
         fprintf(stderr, "usage: %s host port\n", argv[0]);
         goto fail;
     }
 
-    tx_len = snprintf(tx_msg, sizeof(tx_msg),
-                      "GET / HTTP/1.0\r\nHost: %s\r\n\r\n",
-                      argv[1]);
+    tx_len = snprintf(tx_msg, sizeof(tx_msg), "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
 
-    ctx = create_ssl_ctx();
+    ctx    = create_ssl_ctx();
     if (ctx == NULL) {
         fprintf(stderr, "cannot create SSL context\n");
         goto fail;
     }
 
-    hints.ai_family     = AF_INET;
-    hints.ai_socktype   = SOCK_STREAM;
-    hints.ai_flags      = AI_PASSIVE;
-    rc = getaddrinfo(argv[1], argv[2], &hints, &result);
+    hints.ai_family   = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags    = AI_PASSIVE;
+    rc                = getaddrinfo(argv[1], argv[2], &hints, &result);
     if (rc < 0) {
         fprintf(stderr, "cannot resolve\n");
         goto fail;
@@ -420,7 +417,7 @@ int main(int argc, char **argv)
     while (tx_len != 0) {
         l = tx(conn, tx_p, tx_len);
         if (l > 0) {
-            tx_p += l;
+            tx_p   += l;
             tx_len -= l;
         } else if (l == -1) {
             fprintf(stderr, "tx error\n");

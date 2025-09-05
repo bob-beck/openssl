@@ -14,11 +14,7 @@
 #include <openssl/pem.h>
 #include <openssl/err.h>
 
-typedef enum OPTION_choice {
-    OPT_COMMON,
-    OPT_TOSEQ, OPT_IN, OPT_OUT,
-    OPT_PROV_ENUM
-} OPTION_CHOICE;
+typedef enum OPTION_choice { OPT_COMMON, OPT_TOSEQ, OPT_IN, OPT_OUT, OPT_PROV_ENUM } OPTION_CHOICE;
 
 const OPTIONS nseq_options[] = {
     OPT_SECTION("General"),
@@ -37,19 +33,19 @@ const OPTIONS nseq_options[] = {
 
 int nseq_main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL;
-    X509 *x509 = NULL;
-    NETSCAPE_CERT_SEQUENCE *seq = NULL;
-    OPTION_CHOICE o;
-    int toseq = 0, ret = 1, i;
-    char *infile = NULL, *outfile = NULL, *prog;
+    BIO                    *in = NULL, *out = NULL;
+    X509                   *x509 = NULL;
+    NETSCAPE_CERT_SEQUENCE *seq  = NULL;
+    OPTION_CHOICE           o;
+    int                     toseq = 0, ret = 1, i;
+    char                   *infile = NULL, *outfile = NULL, *prog;
 
     prog = opt_init(argc, argv, nseq_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -96,8 +92,7 @@ int nseq_main(int argc, char **argv)
         }
 
         if (!sk_X509_num(seq->certs)) {
-            BIO_printf(bio_err, "%s: Error reading certs file %s\n",
-                       prog, infile);
+            BIO_printf(bio_err, "%s: Error reading certs file %s\n", prog, infile);
             ERR_print_errors(bio_err);
             goto end;
         }
@@ -108,8 +103,7 @@ int nseq_main(int argc, char **argv)
 
     seq = PEM_read_bio_NETSCAPE_CERT_SEQUENCE(in, NULL, NULL, NULL);
     if (seq == NULL) {
-        BIO_printf(bio_err, "%s: Error reading sequence file %s\n",
-                   prog, infile);
+        BIO_printf(bio_err, "%s: Error reading sequence file %s\n", prog, infile);
         ERR_print_errors(bio_err);
         goto end;
     }
@@ -120,7 +114,7 @@ int nseq_main(int argc, char **argv)
         PEM_write_bio_X509(out, x509);
     }
     ret = 0;
- end:
+end:
     BIO_free(in);
     BIO_free_all(out);
     NETSCAPE_CERT_SEQUENCE_free(seq);

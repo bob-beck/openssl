@@ -16,30 +16,27 @@
 #include "crypto/x509.h"
 
 ASN1_SEQUENCE_enc(X509_CINF, enc, 0) = {
-        ASN1_EXP_OPT(X509_CINF, version, ASN1_INTEGER, 0),
-        ASN1_EMBED(X509_CINF, serialNumber, ASN1_INTEGER),
-        ASN1_EMBED(X509_CINF, signature, X509_ALGOR),
-        ASN1_SIMPLE(X509_CINF, issuer, X509_NAME),
-        ASN1_EMBED(X509_CINF, validity, X509_VAL),
-        ASN1_SIMPLE(X509_CINF, subject, X509_NAME),
-        ASN1_SIMPLE(X509_CINF, key, X509_PUBKEY),
-        ASN1_IMP_OPT(X509_CINF, issuerUID, ASN1_BIT_STRING, 1),
-        ASN1_IMP_OPT(X509_CINF, subjectUID, ASN1_BIT_STRING, 2),
-        ASN1_EXP_SEQUENCE_OF_OPT(X509_CINF, extensions, X509_EXTENSION, 3)
-} ASN1_SEQUENCE_END_enc(X509_CINF, X509_CINF)
+    ASN1_EXP_OPT(X509_CINF, version, ASN1_INTEGER, 0),
+    ASN1_EMBED(X509_CINF, serialNumber, ASN1_INTEGER),
+    ASN1_EMBED(X509_CINF, signature, X509_ALGOR),
+    ASN1_SIMPLE(X509_CINF, issuer, X509_NAME),
+    ASN1_EMBED(X509_CINF, validity, X509_VAL),
+    ASN1_SIMPLE(X509_CINF, subject, X509_NAME),
+    ASN1_SIMPLE(X509_CINF, key, X509_PUBKEY),
+    ASN1_IMP_OPT(X509_CINF, issuerUID, ASN1_BIT_STRING, 1),
+    ASN1_IMP_OPT(X509_CINF, subjectUID, ASN1_BIT_STRING, 2),
+    ASN1_EXP_SEQUENCE_OF_OPT(X509_CINF, extensions, X509_EXTENSION, 3)} ASN1_SEQUENCE_END_enc(X509_CINF, X509_CINF)
 
 IMPLEMENT_ASN1_FUNCTIONS(X509_CINF)
 /* X509 top level structure needs a bit of customisation */
 
 extern void ossl_policy_cache_free(X509_POLICY_CACHE *cache);
 
-static int x509_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
-                   void *exarg)
+static int  x509_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it, void *exarg)
 {
     X509 *ret = (X509 *)*pval;
 
     switch (operation) {
-
     case ASN1_OP_D2I_PRE:
         CRYPTO_free_ex_data(CRYPTO_EX_INDEX_X509, ret, &ret->ex_data);
         X509_CERT_AUX_free(ret->aux);
@@ -58,25 +55,25 @@ static int x509_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
         /* fall through */
 
     case ASN1_OP_NEW_POST:
-        ret->ex_cached = 0;
-        ret->ex_kusage = 0;
-        ret->ex_xkusage = 0;
-        ret->ex_nscert = 0;
-        ret->ex_flags = 0;
-        ret->ex_pathlen = -1;
+        ret->ex_cached    = 0;
+        ret->ex_kusage    = 0;
+        ret->ex_xkusage   = 0;
+        ret->ex_nscert    = 0;
+        ret->ex_flags     = 0;
+        ret->ex_pathlen   = -1;
         ret->ex_pcpathlen = -1;
-        ret->skid = NULL;
-        ret->akid = NULL;
+        ret->skid         = NULL;
+        ret->akid         = NULL;
         ret->policy_cache = NULL;
-        ret->altname = NULL;
-        ret->nc = NULL;
+        ret->altname      = NULL;
+        ret->nc           = NULL;
 #ifndef OPENSSL_NO_RFC3779
         ret->rfc3779_addr = NULL;
         ret->rfc3779_asid = NULL;
 #endif
         ret->distinguishing_id = NULL;
-        ret->aux = NULL;
-        ret->crldp = NULL;
+        ret->aux               = NULL;
+        ret->crldp             = NULL;
         if (!CRYPTO_new_ex_data(CRYPTO_EX_INDEX_X509, ret, &ret->ex_data))
             return 0;
         break;
@@ -98,29 +95,23 @@ static int x509_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
         OPENSSL_free(ret->propq);
         break;
 
-    case ASN1_OP_DUP_POST:
-        {
-            X509 *old = exarg;
+    case ASN1_OP_DUP_POST: {
+        X509 *old = exarg;
 
-            if (!ossl_x509_set0_libctx(ret, old->libctx, old->propq))
-                return 0;
-        }
-        break;
-    case ASN1_OP_GET0_LIBCTX:
-        {
-            OSSL_LIB_CTX **libctx = exarg;
+        if (!ossl_x509_set0_libctx(ret, old->libctx, old->propq))
+            return 0;
+    } break;
+    case ASN1_OP_GET0_LIBCTX: {
+        OSSL_LIB_CTX **libctx = exarg;
 
-            *libctx = ret->libctx;
-        }
-        break;
+        *libctx               = ret->libctx;
+    } break;
 
-    case ASN1_OP_GET0_PROPQ:
-        {
-            const char **propq = exarg;
+    case ASN1_OP_GET0_PROPQ: {
+        const char **propq = exarg;
 
-            *propq = ret->propq;
-        }
-        break;
+        *propq             = ret->propq;
+    } break;
 
     default:
         break;
@@ -129,11 +120,9 @@ static int x509_cb(int operation, ASN1_VALUE **pval, const ASN1_ITEM *it,
     return 1;
 }
 
-ASN1_SEQUENCE_ref(X509, x509_cb) = {
-        ASN1_EMBED(X509, cert_info, X509_CINF),
-        ASN1_EMBED(X509, sig_alg, X509_ALGOR),
-        ASN1_EMBED(X509, signature, ASN1_BIT_STRING)
-} ASN1_SEQUENCE_END_ref(X509, X509)
+ASN1_SEQUENCE_ref(X509, x509_cb) = {ASN1_EMBED(X509, cert_info, X509_CINF),
+                                    ASN1_EMBED(X509, sig_alg, X509_ALGOR),
+                                    ASN1_EMBED(X509, signature, ASN1_BIT_STRING)} ASN1_SEQUENCE_END_ref(X509, X509)
 
 IMPLEMENT_ASN1_FUNCTIONS(X509)
 IMPLEMENT_ASN1_DUP_FUNCTION(X509)
@@ -162,7 +151,7 @@ X509 *X509_new_ex(OSSL_LIB_CTX *libctx, const char *propq)
 {
     X509 *cert = NULL;
 
-    cert = (X509 *)ASN1_item_new_ex(X509_it(), libctx, propq);
+    cert       = (X509 *)ASN1_item_new_ex(X509_it(), libctx, propq);
     if (!ossl_x509_set0_libctx(cert, libctx, propq)) {
         X509_free(cert);
         cert = NULL;
@@ -190,11 +179,11 @@ void *X509_get_ex_data(const X509 *r, int idx)
 X509 *d2i_X509_AUX(X509 **a, const unsigned char **pp, long length)
 {
     const unsigned char *q;
-    X509 *ret;
-    int freeret = 0;
+    X509                *ret;
+    int                  freeret = 0;
 
     /* Save start position */
-    q = *pp;
+    q                            = *pp;
 
     if (a == NULL || *a == NULL)
         freeret = 1;
@@ -208,7 +197,7 @@ X509 *d2i_X509_AUX(X509 **a, const unsigned char **pp, long length)
         goto err;
     *pp = q;
     return ret;
- err:
+err:
     if (freeret) {
         X509_free(ret);
         if (a)
@@ -225,7 +214,7 @@ X509 *d2i_X509_AUX(X509 **a, const unsigned char **pp, long length)
  */
 static int i2d_x509_aux_internal(const X509 *a, unsigned char **pp)
 {
-    int length, tmplen;
+    int            length, tmplen;
     unsigned char *start = pp != NULL ? *pp : NULL;
 
     /*
@@ -233,7 +222,7 @@ static int i2d_x509_aux_internal(const X509 *a, unsigned char **pp)
      * not here.  It should be that if a == NULL length is zero, but we check
      * both just in case.
      */
-    length = i2d_X509(a, pp);
+    length               = i2d_X509(a, pp);
     if (length <= 0 || a == NULL)
         return length;
 
@@ -259,7 +248,7 @@ static int i2d_x509_aux_internal(const X509 *a, unsigned char **pp)
  */
 int i2d_X509_AUX(const X509 *a, unsigned char **pp)
 {
-    int length;
+    int            length;
     unsigned char *tmp;
 
     /* Buffer provided by caller */
@@ -290,8 +279,7 @@ int i2d_re_X509_tbs(X509 *x, unsigned char **pp)
     return i2d_X509_CINF(&x->cert_info, pp);
 }
 
-void X509_get0_signature(const ASN1_BIT_STRING **psig,
-                         const X509_ALGOR **palg, const X509 *x)
+void X509_get0_signature(const ASN1_BIT_STRING **psig, const X509_ALGOR **palg, const X509 *x)
 {
     if (psig)
         *psig = &x->signature;

@@ -40,23 +40,22 @@
 #define UP_LOAD         (2*LH_LOAD_MULT) /* load times 256 (default 2) */
 #define DOWN_LOAD       (LH_LOAD_MULT) /* load times 256 (default 1) */
 
-static int expand(OPENSSL_LHASH *lh);
-static void contract(OPENSSL_LHASH *lh);
+static int               expand(OPENSSL_LHASH *lh);
+static void              contract(OPENSSL_LHASH *lh);
 static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh, const void *data, unsigned long *rhash);
 
-OPENSSL_LHASH *OPENSSL_LH_set_thunks(OPENSSL_LHASH *lh,
-                                     OPENSSL_LH_HASHFUNCTHUNK hw,
-                                     OPENSSL_LH_COMPFUNCTHUNK cw,
-                                     OPENSSL_LH_DOALL_FUNC_THUNK daw,
-                                     OPENSSL_LH_DOALL_FUNCARG_THUNK daaw)
+OPENSSL_LHASH           *OPENSSL_LH_set_thunks(OPENSSL_LHASH                 *lh,
+                                               OPENSSL_LH_HASHFUNCTHUNK       hw,
+                                               OPENSSL_LH_COMPFUNCTHUNK       cw,
+                                               OPENSSL_LH_DOALL_FUNC_THUNK    daw,
+                                               OPENSSL_LH_DOALL_FUNCARG_THUNK daaw)
 {
-
     if (lh == NULL)
         return NULL;
     lh->compw = cw;
     lh->hashw = hw;
-    lh->daw = daw;
-    lh->daaw = daaw;
+    lh->daw   = daw;
+    lh->daaw  = daaw;
     return lh;
 }
 
@@ -68,13 +67,13 @@ OPENSSL_LHASH *OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
         return NULL;
     if ((ret->b = OPENSSL_calloc(MIN_NODES, sizeof(*ret->b))) == NULL)
         goto err;
-    ret->comp = ((c == NULL) ? (OPENSSL_LH_COMPFUNC)strcmp : c);
-    ret->hash = ((h == NULL) ? (OPENSSL_LH_HASHFUNC)OPENSSL_LH_strhash : h);
-    ret->num_nodes = MIN_NODES / 2;
+    ret->comp            = ((c == NULL) ? (OPENSSL_LH_COMPFUNC)strcmp : c);
+    ret->hash            = ((h == NULL) ? (OPENSSL_LH_HASHFUNC)OPENSSL_LH_strhash : h);
+    ret->num_nodes       = MIN_NODES / 2;
     ret->num_alloc_nodes = MIN_NODES;
-    ret->pmax = MIN_NODES / 2;
-    ret->up_load = UP_LOAD;
-    ret->down_load = DOWN_LOAD;
+    ret->pmax            = MIN_NODES / 2;
+    ret->up_load         = UP_LOAD;
+    ret->down_load       = DOWN_LOAD;
     return ret;
 
 err:
@@ -95,7 +94,7 @@ void OPENSSL_LH_free(OPENSSL_LHASH *lh)
 
 void OPENSSL_LH_flush(OPENSSL_LHASH *lh)
 {
-    unsigned int i;
+    unsigned int     i;
     OPENSSL_LH_NODE *n, *nn;
 
     if (lh == NULL)
@@ -116,13 +115,13 @@ void OPENSSL_LH_flush(OPENSSL_LHASH *lh)
 
 void *OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data)
 {
-    unsigned long hash;
+    unsigned long    hash;
     OPENSSL_LH_NODE *nn, **rn;
-    void *ret;
+    void            *ret;
 
     lh->error = 0;
     if ((lh->up_load <= (lh->num_items * LH_LOAD_MULT / lh->num_nodes)) && !expand(lh))
-        return NULL;        /* 'lh->error++' already done in 'expand' */
+        return NULL; /* 'lh->error++' already done in 'expand' */
 
     rn = getrn(lh, data, &hash);
 
@@ -134,11 +133,11 @@ void *OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data)
         nn->data = data;
         nn->next = NULL;
         nn->hash = hash;
-        *rn = nn;
-        ret = NULL;
+        *rn      = nn;
+        ret      = NULL;
         lh->num_items++;
-    } else {                    /* replace same key */
-        ret = (*rn)->data;
+    } else { /* replace same key */
+        ret         = (*rn)->data;
         (*rn)->data = data;
     }
     return ret;
@@ -146,25 +145,24 @@ void *OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data)
 
 void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
 {
-    unsigned long hash;
+    unsigned long    hash;
     OPENSSL_LH_NODE *nn, **rn;
-    void *ret;
+    void            *ret;
 
     lh->error = 0;
-    rn = getrn(lh, data, &hash);
+    rn        = getrn(lh, data, &hash);
 
     if (*rn == NULL) {
         return NULL;
     } else {
-        nn = *rn;
+        nn  = *rn;
         *rn = nn->next;
         ret = nn->data;
         OPENSSL_free(nn);
     }
 
     lh->num_items--;
-    if ((lh->num_nodes > MIN_NODES) &&
-        (lh->down_load >= (lh->num_items * LH_LOAD_MULT / lh->num_nodes)))
+    if ((lh->num_nodes > MIN_NODES) && (lh->down_load >= (lh->num_items * LH_LOAD_MULT / lh->num_nodes)))
         contract(lh);
 
     return ret;
@@ -172,7 +170,7 @@ void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
 
 void *OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data)
 {
-    unsigned long hash;
+    unsigned long     hash;
     OPENSSL_LH_NODE **rn;
 
     if (lh->error != 0)
@@ -183,14 +181,15 @@ void *OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data)
     return *rn == NULL ? NULL : (*rn)->data;
 }
 
-static void doall_util_fn(OPENSSL_LHASH *lh, int use_arg,
-                          OPENSSL_LH_DOALL_FUNC_THUNK wfunc,
-                          OPENSSL_LH_DOALL_FUNC func,
-                          OPENSSL_LH_DOALL_FUNCARG func_arg,
+static void doall_util_fn(OPENSSL_LHASH                 *lh,
+                          int                            use_arg,
+                          OPENSSL_LH_DOALL_FUNC_THUNK    wfunc,
+                          OPENSSL_LH_DOALL_FUNC          func,
+                          OPENSSL_LH_DOALL_FUNCARG       func_arg,
                           OPENSSL_LH_DOALL_FUNCARG_THUNK wfunc_arg,
-                          void *arg)
+                          void                          *arg)
 {
-    int i;
+    int              i;
     OPENSSL_LH_NODE *a, *n;
 
     if (lh == NULL)
@@ -218,36 +217,33 @@ void OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func)
     if (lh == NULL)
         return;
 
-    doall_util_fn(lh, 0, lh->daw, func, (OPENSSL_LH_DOALL_FUNCARG)NULL,
-                  (OPENSSL_LH_DOALL_FUNCARG_THUNK)NULL, NULL);
+    doall_util_fn(lh, 0, lh->daw, func, (OPENSSL_LH_DOALL_FUNCARG)NULL, (OPENSSL_LH_DOALL_FUNCARG_THUNK)NULL, NULL);
 }
 
-void OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh,
-                          OPENSSL_LH_DOALL_FUNCARG func, void *arg)
+void OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg)
 {
     if (lh == NULL)
         return;
 
-    doall_util_fn(lh, 1, (OPENSSL_LH_DOALL_FUNC_THUNK)NULL,
-                  (OPENSSL_LH_DOALL_FUNC)NULL, func, lh->daaw, arg);
+    doall_util_fn(lh, 1, (OPENSSL_LH_DOALL_FUNC_THUNK)NULL, (OPENSSL_LH_DOALL_FUNC)NULL, func, lh->daaw, arg);
 }
 
-void OPENSSL_LH_doall_arg_thunk(OPENSSL_LHASH *lh,
+void OPENSSL_LH_doall_arg_thunk(OPENSSL_LHASH                 *lh,
                                 OPENSSL_LH_DOALL_FUNCARG_THUNK daaw,
-                                OPENSSL_LH_DOALL_FUNCARG fn, void *arg)
+                                OPENSSL_LH_DOALL_FUNCARG       fn,
+                                void                          *arg)
 {
-    doall_util_fn(lh, 1, (OPENSSL_LH_DOALL_FUNC_THUNK)NULL,
-                  (OPENSSL_LH_DOALL_FUNC)NULL, fn, daaw, arg);
+    doall_util_fn(lh, 1, (OPENSSL_LH_DOALL_FUNC_THUNK)NULL, (OPENSSL_LH_DOALL_FUNC)NULL, fn, daaw, arg);
 }
 
 static int expand(OPENSSL_LHASH *lh)
 {
     OPENSSL_LH_NODE **n, **n1, **n2, *np;
-    unsigned int p, pmax, nni, j;
-    unsigned long hash;
+    unsigned int      p, pmax, nni, j;
+    unsigned long     hash;
 
-    nni = lh->num_alloc_nodes;
-    p = lh->p;
+    nni  = lh->num_alloc_nodes;
+    p    = lh->p;
     pmax = lh->pmax;
     if (p + 1 >= pmax) {
         j = nni * 2;
@@ -258,24 +254,24 @@ static int expand(OPENSSL_LHASH *lh)
         }
         lh->b = n;
         memset(n + nni, 0, sizeof(*n) * (j - nni));
-        lh->pmax = nni;
+        lh->pmax            = nni;
         lh->num_alloc_nodes = j;
-        lh->p = 0;
+        lh->p               = 0;
     } else {
         lh->p++;
     }
 
     lh->num_nodes++;
-    n1 = &(lh->b[p]);
-    n2 = &(lh->b[p + pmax]);
+    n1  = &(lh->b[p]);
+    n2  = &(lh->b[p + pmax]);
     *n2 = NULL;
 
     for (np = *n1; np != NULL;) {
         hash = np->hash;
         if ((hash % nni) != p) { /* move it */
-            *n1 = (*n1)->next;
+            *n1      = (*n1)->next;
             np->next = *n2;
-            *n2 = np;
+            *n2      = np;
         } else
             n1 = &((*n1)->next);
         np = *n1;
@@ -288,7 +284,7 @@ static void contract(OPENSSL_LHASH *lh)
 {
     OPENSSL_LH_NODE **n, *n1, *np;
 
-    np = lh->b[lh->p + lh->pmax - 1];
+    np                          = lh->b[lh->p + lh->pmax - 1];
     lh->b[lh->p + lh->pmax - 1] = NULL; /* 24/07-92 - eay - weird but :-( */
     if (lh->p == 0) {
         n = OPENSSL_realloc_array(lh->b, lh->pmax, sizeof(OPENSSL_LH_NODE *));
@@ -299,8 +295,8 @@ static void contract(OPENSSL_LHASH *lh)
             lh->b = n;
         }
         lh->num_alloc_nodes /= 2;
-        lh->pmax /= 2;
-        lh->p = lh->pmax - 1;
+        lh->pmax            /= 2;
+        lh->p                = lh->pmax - 1;
     } else
         lh->p--;
 
@@ -316,11 +312,10 @@ static void contract(OPENSSL_LHASH *lh)
     }
 }
 
-static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh,
-                               const void *data, unsigned long *rhash)
+static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh, const void *data, unsigned long *rhash)
 {
     OPENSSL_LH_NODE **ret, *n1;
-    unsigned long hash, nn;
+    unsigned long     hash, nn;
 
     if (lh->hashw != NULL)
         hash = lh->hashw(data, lh->hash);
@@ -329,7 +324,7 @@ static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh,
 
     *rhash = hash;
 
-    nn = hash % lh->pmax;
+    nn     = hash % lh->pmax;
     if (nn < lh->p)
         nn = hash % lh->num_alloc_nodes;
 
@@ -360,20 +355,20 @@ static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh,
 unsigned long OPENSSL_LH_strhash(const char *c)
 {
     unsigned long ret = 0;
-    long n;
+    long          n;
     unsigned long v;
-    int r;
+    int           r;
 
     if ((c == NULL) || (*c == '\0'))
         return ret;
 
     n = 0x100;
     while (*c) {
-        v = n | (*c);
-        n += 0x100;
-        r = (int)((v >> 2) ^ v) & 0x0f;
+        v    = n | (*c);
+        n   += 0x100;
+        r    = (int)((v >> 2) ^ v) & 0x0f;
         /* cast to uint64_t to avoid 32 bit shift of 32 bit value */
-        ret = (ret << r) | (unsigned long)((uint64_t)ret >> (32 - r));
+        ret  = (ret << r) | (unsigned long)((uint64_t)ret >> (32 - r));
         ret &= 0xFFFFFFFFL;
         ret ^= v * v;
         c++;
@@ -398,9 +393,9 @@ unsigned long OPENSSL_LH_strhash(const char *c)
 unsigned long ossl_lh_strcasehash(const char *c)
 {
     unsigned long ret = 0;
-    long n;
+    long          n;
     unsigned long v;
-    int r;
+    int           r;
 #if defined(CHARSET_EBCDIC) && !defined(CHARSET_EBCDIC_TEST)
     const long int case_adjust = ~0x40;
 #else
@@ -411,10 +406,10 @@ unsigned long ossl_lh_strcasehash(const char *c)
         return ret;
 
     for (n = 0x100; *c != '\0'; n += 0x100) {
-        v = n | (case_adjust & *c);
-        r = (int)((v >> 2) ^ v) & 0x0f;
+        v    = n | (case_adjust & *c);
+        r    = (int)((v >> 2) ^ v) & 0x0f;
         /* cast to uint64_t to avoid 32 bit shift of 32 bit value */
-        ret = (ret << r) | (unsigned long)((uint64_t)ret >> (32 - r));
+        ret  = (ret << r) | (unsigned long)((uint64_t)ret >> (32 - r));
         ret &= 0xFFFFFFFFL;
         ret ^= v * v;
         c++;

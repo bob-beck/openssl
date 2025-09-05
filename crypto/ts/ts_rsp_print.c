@@ -16,16 +16,14 @@
 #include "ts_local.h"
 
 struct status_map_st {
-    int bit;
+    int         bit;
     const char *text;
 };
 
-static int ts_status_map_print(BIO *bio, const struct status_map_st *a,
-                               const ASN1_BIT_STRING *v);
+static int ts_status_map_print(BIO *bio, const struct status_map_st *a, const ASN1_BIT_STRING *v);
 static int ts_ACCURACY_print_bio(BIO *bio, const TS_ACCURACY *accuracy);
 
-
-int TS_RESP_print_bio(BIO *bio, TS_RESP *a)
+int        TS_RESP_print_bio(BIO *bio, TS_RESP *a)
 {
     BIO_printf(bio, "Status info:\n");
     TS_STATUS_INFO_print_bio(bio, a->status_info);
@@ -41,36 +39,23 @@ int TS_RESP_print_bio(BIO *bio, TS_RESP *a)
 
 int TS_STATUS_INFO_print_bio(BIO *bio, TS_STATUS_INFO *a)
 {
-    static const char *status_map[] = {
-        "Granted.",
-        "Granted with modifications.",
-        "Rejected.",
-        "Waiting.",
-        "Revocation warning.",
-        "Revoked."
-    };
+    static const char *status_map[] =
+        {"Granted.", "Granted with modifications.", "Rejected.", "Waiting.", "Revocation warning.", "Revoked."};
     static const struct status_map_st failure_map[] = {
-        {TS_INFO_BAD_ALG,
-         "unrecognized or unsupported algorithm identifier"},
-        {TS_INFO_BAD_REQUEST,
-         "transaction not permitted or supported"},
-        {TS_INFO_BAD_DATA_FORMAT,
-         "the data submitted has the wrong format"},
-        {TS_INFO_TIME_NOT_AVAILABLE,
-         "the TSA's time source is not available"},
-        {TS_INFO_UNACCEPTED_POLICY,
-         "the requested TSA policy is not supported by the TSA"},
-        {TS_INFO_UNACCEPTED_EXTENSION,
-         "the requested extension is not supported by the TSA"},
+        {TS_INFO_BAD_ALG,                "unrecognized or unsupported algorithm identifier"    },
+        {TS_INFO_BAD_REQUEST,            "transaction not permitted or supported"              },
+        {TS_INFO_BAD_DATA_FORMAT,        "the data submitted has the wrong format"             },
+        {TS_INFO_TIME_NOT_AVAILABLE,     "the TSA's time source is not available"              },
+        {TS_INFO_UNACCEPTED_POLICY,      "the requested TSA policy is not supported by the TSA"},
+        {TS_INFO_UNACCEPTED_EXTENSION,   "the requested extension is not supported by the TSA" },
         {TS_INFO_ADD_INFO_NOT_AVAILABLE,
          "the additional information requested could not be understood "
-         "or is not available"},
-        {TS_INFO_SYSTEM_FAILURE,
-         "the request cannot be handled due to system failure"},
-        {-1, NULL}
+         "or is not available"                                                                 },
+        {TS_INFO_SYSTEM_FAILURE,         "the request cannot be handled due to system failure" },
+        {-1,                             NULL                                                  }
     };
     long status;
-    int i, lines = 0;
+    int  i, lines = 0;
 
     BIO_printf(bio, "Status: ");
     status = ASN1_INTEGER_get(a->status);
@@ -99,8 +84,7 @@ int TS_STATUS_INFO_print_bio(BIO *bio, TS_STATUS_INFO *a)
     return 1;
 }
 
-static int ts_status_map_print(BIO *bio, const struct status_map_st *a,
-                               const ASN1_BIT_STRING *v)
+static int ts_status_map_print(BIO *bio, const struct status_map_st *a, const ASN1_BIT_STRING *v)
 {
     int lines = 0;
 

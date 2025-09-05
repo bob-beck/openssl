@@ -17,18 +17,18 @@
 #include "err_local.h"
 
 #define ERR_PRINT_BUF_SIZE 4096
-void ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
-                         void *u)
+
+void ERR_print_errors_cb(int (*cb)(const char *str, size_t len, void *u), void *u)
 {
     CRYPTO_THREAD_ID tid = CRYPTO_THREAD_get_current_id();
-    unsigned long l;
-    const char *file, *data, *func;
-    int line, flags;
+    unsigned long    l;
+    const char      *file, *data, *func;
+    int              line, flags;
 
     while ((l = ERR_get_error_all(&file, &line, &func, &data, &flags)) != 0) {
-        char buf[ERR_PRINT_BUF_SIZE] = "";
-        char *hex = NULL;
-        int offset;
+        char  buf[ERR_PRINT_BUF_SIZE] = "";
+        char *hex                     = NULL;
+        int   offset;
 
         if ((flags & ERR_TXT_STRING) == 0)
             data = "";
@@ -38,17 +38,15 @@ void ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
         offset = (int)strlen(buf);
         ossl_err_string_int(l, func, buf + offset, sizeof(buf) - offset);
         offset += (int)strlen(buf + offset);
-        BIO_snprintf(buf + offset, sizeof(buf) - offset, ":%s:%d:%s\n",
-                     file, line, data);
+        BIO_snprintf(buf + offset, sizeof(buf) - offset, ":%s:%d:%s\n", file, line, data);
         OPENSSL_free(hex);
         if (cb(buf, strlen(buf), u) <= 0)
-            break;              /* abort outputting the error report */
+            break; /* abort outputting the error report */
     }
 }
 
 /* auxiliary function for incrementally reporting texts via the error queue */
-static void put_error(int lib, const char *func, int reason,
-                      const char *file, int line)
+static void put_error(int lib, const char *func, int reason, const char *file, int line)
 {
     ERR_new();
     ERR_set_debug(file, line, func);
@@ -57,13 +55,14 @@ static void put_error(int lib, const char *func, int reason,
 
 #define TYPICAL_MAX_OUTPUT_BEFORE_DATA 100
 #define MAX_DATA_LEN (ERR_PRINT_BUF_SIZE - TYPICAL_MAX_OUTPUT_BEFORE_DATA)
+
 void ERR_add_error_txt(const char *separator, const char *txt)
 {
-    const char *file = NULL;
-    int line;
-    const char *func = NULL;
-    const char *data = NULL;
-    int flags;
+    const char   *file = NULL;
+    int           line;
+    const char   *func = NULL;
+    const char   *data = NULL;
+    int           flags;
     unsigned long err = ERR_peek_last_error();
 
     if (separator == NULL)
@@ -72,22 +71,21 @@ void ERR_add_error_txt(const char *separator, const char *txt)
         put_error(ERR_LIB_NONE, NULL, 0, "", 0);
 
     do {
-        size_t available_len, data_len;
+        size_t      available_len, data_len;
         const char *curr = txt, *next = txt;
-        const char *leading_separator = separator;
-        int trailing_separator = 0;
-        char *tmp;
+        const char *leading_separator  = separator;
+        int         trailing_separator = 0;
+        char       *tmp;
 
         ERR_peek_last_error_all(&file, &line, &func, &data, &flags);
         if ((flags & ERR_TXT_STRING) == 0) {
-            data = "";
+            data              = "";
             leading_separator = "";
         }
         data_len = strlen(data);
 
         /* workaround for limit of ERR_print_errors_cb() */
-        if (data_len >= MAX_DATA_LEN
-                || strlen(separator) >= (size_t)(MAX_DATA_LEN - data_len))
+        if (data_len >= MAX_DATA_LEN || strlen(separator) >= (size_t)(MAX_DATA_LEN - data_len))
             available_len = 0;
         else
             available_len = MAX_DATA_LEN - data_len - strlen(separator) - 1;
@@ -98,18 +96,18 @@ void ERR_add_error_txt(const char *separator, const char *txt)
 
             if (len_next <= available_len) {
                 next += len_next;
-                curr = NULL; /* no need to split */
+                curr  = NULL; /* no need to split */
             } else {
                 next += available_len;
-                curr = next; /* will split at this point */
+                curr  = next; /* will split at this point */
             }
         } else {
             while (*next != '\0' && (size_t)(next - txt) <= available_len) {
                 curr = next;
                 next = strstr(curr, separator);
                 if (next != NULL) {
-                    next += strlen(separator);
-                    trailing_separator = *next == '\0';
+                    next               += strlen(separator);
+                    trailing_separator  = *next == '\0';
                 } else {
                     next = curr + strlen(curr);
                 }
@@ -148,7 +146,7 @@ void ERR_add_error_mem_bio(const char *separator, BIO *bio)
 {
     if (bio != NULL) {
         char *str;
-        long len = BIO_get_mem_data(bio, &str);
+        long  len = BIO_get_mem_data(bio, &str);
 
         if (len > 0) {
             if (str[len - 1] != '\0') {

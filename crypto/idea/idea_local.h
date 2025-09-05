@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#define idea_mul(r,a,b,ul) \
+#define idea_mul(r, a, b, ul) \
 ul=(unsigned long)a*b; \
 if (ul != 0) { \
         r=(ul&0xffff)-(ul>>16); \
@@ -17,7 +17,7 @@ if (ul != 0) { \
 }
 
 /* NOTE - c is not incremented as per n2l */
-#define n2ln(c,l1,l2,n) { \
+#define n2ln(c, l1, l2, n) { \
                         c+=n; \
                         l1=l2=0; \
                         switch (n) { \
@@ -40,7 +40,7 @@ if (ul != 0) { \
                         }
 
 /* NOTE - c is not incremented as per l2n */
-#define l2nn(l1,l2,c,n) { \
+#define l2nn(l1, l2, c, n) { \
                         c+=n; \
                         switch (n) { \
                         case 8: *(--(c))=(unsigned char)(((l2)    )&0xff); \
@@ -62,25 +62,24 @@ if (ul != 0) { \
                         }
 
 #undef n2l
-#define n2l(c,l)        (l =((unsigned long)(*((c)++)))<<24L, \
+#define n2l(c, l)        (l =((unsigned long)(*((c)++)))<<24L, \
                          l|=((unsigned long)(*((c)++)))<<16L, \
                          l|=((unsigned long)(*((c)++)))<< 8L, \
                          l|=((unsigned long)(*((c)++))))
 
 #undef l2n
-#define l2n(l,c)        (*((c)++)=(unsigned char)(((l)>>24L)&0xff), \
+#define l2n(l, c)        (*((c)++)=(unsigned char)(((l)>>24L)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>16L)&0xff), \
                          *((c)++)=(unsigned char)(((l)>> 8L)&0xff), \
                          *((c)++)=(unsigned char)(((l)     )&0xff))
 
 #undef s2n
-#define s2n(l,c)        (*((c)++)=(unsigned char)(((l)     )&0xff), \
+#define s2n(l, c)        (*((c)++)=(unsigned char)(((l)     )&0xff), \
                          *((c)++)=(unsigned char)(((l)>> 8L)&0xff))
 
 #undef n2s
-#define n2s(c,l)        (l =((IDEA_INT)(*((c)++)))<< 8L, \
+#define n2s(c, l)        (l =((IDEA_INT)(*((c)++)))<< 8L, \
                          l|=((IDEA_INT)(*((c)++)))      )
-
 
 #define E_IDEA(num) \
         x1&=0xffff; \

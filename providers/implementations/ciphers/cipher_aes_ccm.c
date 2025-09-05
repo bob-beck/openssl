@@ -35,7 +35,7 @@ static void *aes_ccm_newctx(void *provctx, size_t keybits)
 
 static void *aes_ccm_dupctx(void *provctx)
 {
-    PROV_AES_CCM_CTX *ctx = provctx;
+    PROV_AES_CCM_CTX *ctx    = provctx;
     PROV_AES_CCM_CTX *dupctx = NULL;
 
     if (!ossl_prov_is_running())
@@ -57,11 +57,12 @@ static void *aes_ccm_dupctx(void *provctx)
 }
 
 static OSSL_FUNC_cipher_freectx_fn aes_ccm_freectx;
-static void aes_ccm_freectx(void *vctx)
+
+static void                        aes_ccm_freectx(void *vctx)
 {
     PROV_AES_CCM_CTX *ctx = (PROV_AES_CCM_CTX *)vctx;
 
-    OPENSSL_clear_free(ctx,  sizeof(*ctx));
+    OPENSSL_clear_free(ctx, sizeof(*ctx));
 }
 
 /* ossl_aes128ccm_functions */

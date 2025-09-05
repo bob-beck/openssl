@@ -15,7 +15,7 @@
 #ifdef OPENSSL_RAND_SEED_RDCPU
 # if defined(OPENSSL_SYS_TANDEM) && defined(_TNS_X_TARGET)
 #  include <builtin.h> /* _rdrand64 */
-#  include <string.h> /* memcpy */
+#  include <string.h>  /* memcpy */
 # else
 size_t OPENSSL_ia32_rdseed_bytes(unsigned char *buf, size_t len);
 size_t OPENSSL_ia32_rdrand_bytes(unsigned char *buf, size_t len);
@@ -35,9 +35,9 @@ static size_t get_hardware_random_value(unsigned char *buf, size_t len);
  * Returns the total entropy count, if it exceeds the requested
  * entropy count. Otherwise, returns an entropy count of 0.
  */
-size_t ossl_prov_acquire_entropy_from_cpu(RAND_POOL *pool)
+size_t        ossl_prov_acquire_entropy_from_cpu(RAND_POOL *pool)
 {
-    size_t bytes_needed;
+    size_t         bytes_needed;
     unsigned char *buffer;
 
     bytes_needed = ossl_rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
@@ -56,7 +56,7 @@ size_t ossl_prov_acquire_entropy_from_cpu(RAND_POOL *pool)
     return ossl_rand_pool_entropy_available(pool);
 }
 
-#if defined(OPENSSL_SYS_TANDEM) && defined(_TNS_X_TARGET)
+# if defined(OPENSSL_SYS_TANDEM) && defined(_TNS_X_TARGET)
 /* Obtain random bytes from the x86 hardware random function in 64 bit chunks */
 static size_t get_hardware_random_value(unsigned char *buf, size_t len)
 {
@@ -73,11 +73,9 @@ static size_t get_hardware_random_value(unsigned char *buf, size_t len)
             if (bytes_remaining >= sizeof(random_value)) {
                 memcpy(buf, random_buffer, sizeof(random_value));
                 bytes_remaining -= sizeof(random_value);
-                buf += sizeof(random_value);
+                buf             += sizeof(random_value);
             } else {
-                memcpy(buf,
-                    random_buffer + (sizeof(random_value) - bytes_remaining),
-                    bytes_remaining);
+                memcpy(buf, random_buffer + (sizeof(random_value) - bytes_remaining), bytes_remaining);
                 bytes_remaining = 0; /* This will terminate the loop */
             }
         } else
@@ -87,20 +85,21 @@ static size_t get_hardware_random_value(unsigned char *buf, size_t len)
         return len;
     return 0;
 }
-#else
-static size_t get_hardware_random_value(unsigned char *buf, size_t len) {
+# else
+static size_t get_hardware_random_value(unsigned char *buf, size_t len)
+{
     /* Whichever comes first, use RDSEED, RDRAND or nothing */
     if ((OPENSSL_ia32cap_P[2] & (1 << 18)) != 0) {
-	if (OPENSSL_ia32_rdseed_bytes(buf, len) != len)
-	    return 0;
+        if (OPENSSL_ia32_rdseed_bytes(buf, len) != len)
+            return 0;
     } else if ((OPENSSL_ia32cap_P[1] & (1 << (62 - 32))) != 0) {
-	if (OPENSSL_ia32_rdrand_bytes(buf, len) != len)
-	    return 0;
+        if (OPENSSL_ia32_rdrand_bytes(buf, len) != len)
+            return 0;
     } else
-	return 0;
+        return 0;
     return len;
 }
-#endif
+# endif
 
 #else
 NON_EMPTY_TRANSLATION_UNIT

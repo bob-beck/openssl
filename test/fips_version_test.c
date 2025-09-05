@@ -11,23 +11,17 @@
 #include <openssl/provider.h>
 #include "testutil.h"
 
-static OSSL_LIB_CTX *libctx = NULL;
+static OSSL_LIB_CTX  *libctx  = NULL;
 static OSSL_PROVIDER *libprov = NULL;
 
-typedef enum OPTION_choice {
-    OPT_ERR = -1,
-    OPT_EOF = 0,
-    OPT_CONFIG_FILE,
-    OPT_TEST_ENUM
-} OPTION_CHOICE;
+typedef enum OPTION_choice { OPT_ERR = -1, OPT_EOF = 0, OPT_CONFIG_FILE, OPT_TEST_ENUM } OPTION_CHOICE;
 
 const OPTIONS *test_get_options(void)
 {
     static const OPTIONS test_options[] = {
         OPT_TEST_OPTIONS_DEFAULT_USAGE,
-        { "config", OPT_CONFIG_FILE, '<',
-          "The configuration file to use for the libctx" },
-        { NULL }
+        {"config", OPT_CONFIG_FILE, '<', "The configuration file to use for the libctx"},
+        {NULL}
     };
     return test_options;
 }
@@ -43,9 +37,9 @@ static int test_fips_version(int n)
 
 int setup_tests(void)
 {
-    char *config_file = NULL;
+    char         *config_file = NULL;
     OPTION_CHOICE o;
-    size_t n;
+    size_t        n;
 
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
@@ -53,7 +47,7 @@ int setup_tests(void)
             config_file = opt_arg();
             break;
         case OPT_TEST_CASES:
-           break;
+            break;
         default:
         case OPT_ERR:
             return 0;

@@ -11,12 +11,19 @@
 
 static const unsigned char alpn_ossltest[] = {
     /* "\x08ossltest" (hex for EBCDIC resilience) */
-    0x08, 0x6f, 0x73, 0x73, 0x6c, 0x74, 0x65, 0x73, 0x74
-};
+    0x08,
+    0x6f,
+    0x73,
+    0x73,
+    0x6c,
+    0x74,
+    0x65,
+    0x73,
+    0x74};
 
 DEF_FUNC(hf_unbind)
 {
-    int ok = 0;
+    int         ok = 0;
     const char *name;
 
     F_POP(name);
@@ -27,14 +34,15 @@ err:
     return ok;
 }
 
-static int ssl_ctx_select_alpn(SSL *ssl,
-                               const unsigned char **out, unsigned char *out_len,
-                               const unsigned char *in, unsigned int in_len,
-                               void *arg)
+static int ssl_ctx_select_alpn(SSL                  *ssl,
+                               const unsigned char **out,
+                               unsigned char        *out_len,
+                               const unsigned char  *in,
+                               unsigned int          in_len,
+                               void                 *arg)
 {
-    if (SSL_select_next_proto((unsigned char **)out, out_len,
-                              alpn_ossltest, sizeof(alpn_ossltest), in, in_len)
-            != OPENSSL_NPN_NEGOTIATED)
+    if (SSL_select_next_proto((unsigned char **)out, out_len, alpn_ossltest, sizeof(alpn_ossltest), in, in_len)
+        != OPENSSL_NPN_NEGOTIATED)
         return SSL_TLSEXT_ERR_ALERT_FATAL;
 
     return SSL_TLSEXT_ERR_OK;
@@ -59,28 +67,25 @@ static int ssl_ctx_configure(SSL_CTX *ctx, int is_server)
     if (RP()->keylog_out != NULL)
         SSL_CTX_set_keylog_callback(ctx, keylog_cb);
 
-    if (!TEST_int_eq(SSL_CTX_use_certificate_file(ctx, cert_file,
-                                                  SSL_FILETYPE_PEM), 1)
-        || !TEST_int_eq(SSL_CTX_use_PrivateKey_file(ctx, key_file,
-                                                    SSL_FILETYPE_PEM), 1))
+    if (!TEST_int_eq(SSL_CTX_use_certificate_file(ctx, cert_file, SSL_FILETYPE_PEM), 1)
+        || !TEST_int_eq(SSL_CTX_use_PrivateKey_file(ctx, key_file, SSL_FILETYPE_PEM), 1))
         return 0;
 
     SSL_CTX_set_alpn_select_cb(ctx, ssl_ctx_select_alpn, NULL);
     return 1;
 }
 
-static int ssl_create_bound_socket(uint16_t listen_port,
-                                   int *p_fd, uint16_t *p_result_port)
+static int ssl_create_bound_socket(uint16_t listen_port, int *p_fd, uint16_t *p_result_port)
 {
-    int ok = 0;
-    int fd = -1;
-    BIO_ADDR *addr = NULL;
+    int                   ok   = 0;
+    int                   fd   = -1;
+    BIO_ADDR             *addr = NULL;
     union BIO_sock_info_u info;
-    struct in_addr ina;
+    struct in_addr        ina;
 
     ina.s_addr = htonl(INADDR_LOOPBACK);
 
-    fd = BIO_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, 0);
+    fd         = BIO_socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, 0);
     if (!TEST_int_ge(fd, 0))
         goto err;
 
@@ -90,8 +95,7 @@ static int ssl_create_bound_socket(uint16_t listen_port,
     if (!TEST_ptr(addr = BIO_ADDR_new()))
         goto err;
 
-    if (!TEST_true(BIO_ADDR_rawmake(addr, AF_INET,
-                                    &ina, sizeof(ina), 0)))
+    if (!TEST_true(BIO_ADDR_rawmake(addr, AF_INET, &ina, sizeof(ina), 0)))
         goto err;
 
     if (!TEST_true(BIO_bind(fd, addr, 0)))
@@ -117,10 +121,9 @@ err:
     return ok;
 }
 
-static int ssl_attach_bio_dgram(SSL *ssl,
-                                uint16_t local_port, uint16_t *actual_port)
+static int ssl_attach_bio_dgram(SSL *ssl, uint16_t local_port, uint16_t *actual_port)
 {
-    int s_fd = -1;
+    int  s_fd = -1;
     BIO *bio;
 
     if (!TEST_true(ssl_create_bound_socket(local_port, &s_fd, actual_port)))
@@ -160,14 +163,15 @@ static int ssl_attach_bio_dgram(SSL *ssl,
  * For details on this issue see:
  * https://github.com/openssl/project/issues/918
  */
-static SSL *pending_ssl_obj = NULL;
+static SSL *pending_ssl_obj      = NULL;
 static SSL *client_hello_ssl_obj = NULL;
-static int check_pending_match = 0;
-static int pending_cb_called = 0;
-static int hello_cb_called = 0;
-static int new_pending_cb(SSL_CTX *ctx, SSL *new_ssl, void *arg)
+static int  check_pending_match  = 0;
+static int  pending_cb_called    = 0;
+static int  hello_cb_called      = 0;
+
+static int  new_pending_cb(SSL_CTX *ctx, SSL *new_ssl, void *arg)
 {
-    pending_ssl_obj = new_ssl;
+    pending_ssl_obj   = new_ssl;
     pending_cb_called = 1;
     return 1;
 }
@@ -175,33 +179,31 @@ static int new_pending_cb(SSL_CTX *ctx, SSL *new_ssl, void *arg)
 static int client_hello_cb(SSL *s, int *al, void *arg)
 {
     client_hello_ssl_obj = s;
-    hello_cb_called = 1;
+    hello_cb_called      = 1;
     return 1;
 }
 
 DEF_FUNC(hf_new_ssl)
 {
-    int ok = 0;
-    const char *name;
-    SSL_CTX *ctx = NULL;
+    int               ok = 0;
+    const char       *name;
+    SSL_CTX          *ctx = NULL;
     const SSL_METHOD *method;
-    SSL *ssl;
-    uint64_t flags;
-    int is_server, is_domain;
+    SSL              *ssl;
+    uint64_t          flags;
+    int               is_server, is_domain;
 
     F_POP2(name, flags);
 
-    is_domain   = ((flags & 2) != 0);
-    is_server   = ((flags & 1) != 0);
+    is_domain = ((flags & 2) != 0);
+    is_server = ((flags & 1) != 0);
 
-    method = is_server ? OSSL_QUIC_server_method() : OSSL_QUIC_client_method();
+    method    = is_server ? OSSL_QUIC_server_method() : OSSL_QUIC_client_method();
     if (!TEST_ptr(ctx = SSL_CTX_new(method)))
         goto err;
 
 #if defined(OPENSSL_THREADS)
-    if (!TEST_true(SSL_CTX_set_domain_flags(ctx,
-                                            SSL_DOMAIN_FLAG_MULTI_THREAD
-                                            | SSL_DOMAIN_FLAG_BLOCKING)))
+    if (!TEST_true(SSL_CTX_set_domain_flags(ctx, SSL_DOMAIN_FLAG_MULTI_THREAD | SSL_DOMAIN_FLAG_BLOCKING)))
         goto err;
 #endif
 
@@ -240,10 +242,10 @@ err:
 
 DEF_FUNC(hf_new_ssl_listener_from)
 {
-    int ok = 0;
-    SSL *domain, *listener;
+    int         ok = 0;
+    SSL        *domain, *listener;
     const char *listener_name;
-    uint64_t flags;
+    uint64_t    flags;
 
     REQUIRE_SSL(domain);
     F_POP2(listener_name, flags);
@@ -271,7 +273,7 @@ err:
 
 DEF_FUNC(hf_listen)
 {
-    int ok = 0, r;
+    int  ok = 0, r;
     SSL *ssl;
 
     REQUIRE_SSL(ssl);
@@ -290,10 +292,10 @@ err:
 
 DEF_FUNC(hf_new_stream)
 {
-    int ok = 0;
+    int         ok = 0;
     const char *stream_name;
-    SSL *conn, *stream;
-    uint64_t flags, do_accept;
+    SSL        *conn, *stream;
+    uint64_t    flags, do_accept;
 
     F_POP2(flags, do_accept);
     F_POP(stream_name);
@@ -316,8 +318,7 @@ DEF_FUNC(hf_new_stream)
 
     /* TODO(QUIC RADIX): Implement wait behaviour */
 
-    if (stream != NULL
-        && !TEST_true(RADIX_PROCESS_set_ssl(RP(), stream_name, stream))) {
+    if (stream != NULL && !TEST_true(RADIX_PROCESS_set_ssl(RP(), stream_name, stream))) {
         SSL_free(stream);
         goto err;
     }
@@ -329,10 +330,10 @@ err:
 
 DEF_FUNC(hf_accept_conn)
 {
-    int ok = 0;
+    int         ok = 0;
     const char *conn_name;
-    uint64_t flags;
-    SSL *listener, *conn;
+    uint64_t    flags;
+    SSL        *listener, *conn;
 
     F_POP2(conn_name, flags);
     REQUIRE_SSL(listener);
@@ -363,7 +364,7 @@ DEF_FUNC(hf_accept_conn)
             }
         }
         pending_ssl_obj = client_hello_ssl_obj = NULL;
-        check_pending_match = 0;
+        check_pending_match                    = 0;
         pending_cb_called = hello_cb_called = 0;
     }
     ok = 1;
@@ -373,7 +374,7 @@ err:
 
 DEF_FUNC(hf_accept_conn_none)
 {
-    int ok = 0;
+    int  ok = 0;
     SSL *listener, *conn;
 
     REQUIRE_SSL(listener);
@@ -391,10 +392,10 @@ err:
 
 DEF_FUNC(hf_accept_stream_none)
 {
-    int ok = 0;
+    int         ok = 0;
     const char *conn_name;
-    uint64_t flags;
-    SSL *conn, *stream;
+    uint64_t    flags;
+    SSL        *conn, *stream;
 
     F_POP2(conn_name, flags);
 
@@ -421,10 +422,10 @@ DEF_FUNC(hf_pop_err)
 
 DEF_FUNC(hf_stream_reset)
 {
-    int ok = 0;
-    const char *name;
+    int                   ok = 0;
+    const char           *name;
     SSL_STREAM_RESET_ARGS args = {0};
-    SSL *ssl;
+    SSL                  *ssl;
 
     F_POP2(name, args.quic_error_code);
     REQUIRE_SSL(ssl);
@@ -439,9 +440,9 @@ err:
 
 DEF_FUNC(hf_set_default_stream_mode)
 {
-    int ok = 0;
+    int      ok = 0;
     uint64_t mode;
-    SSL *ssl;
+    SSL     *ssl;
 
     F_POP(mode);
     REQUIRE_SSL(ssl);
@@ -456,9 +457,9 @@ err:
 
 DEF_FUNC(hf_set_incoming_stream_policy)
 {
-    int ok = 0;
+    int      ok = 0;
     uint64_t policy, error_code;
-    SSL *ssl;
+    SSL     *ssl;
 
     F_POP(error_code);
     F_POP(policy);
@@ -474,11 +475,11 @@ err:
 
 DEF_FUNC(hf_shutdown_wait)
 {
-    int ok = 0, ret;
-    uint64_t flags;
-    SSL *ssl;
+    int                  ok = 0, ret;
+    uint64_t             flags;
+    SSL                 *ssl;
     SSL_SHUTDOWN_EX_ARGS args = {0};
-    QUIC_CHANNEL *ch;
+    QUIC_CHANNEL        *ch;
 
     F_POP(args.quic_reason);
     F_POP(args.quic_error_code);
@@ -502,7 +503,7 @@ err:
 
 DEF_FUNC(hf_conclude)
 {
-    int ok = 0;
+    int  ok = 0;
     SSL *ssl;
 
     REQUIRE_SSL(ssl);
@@ -525,19 +526,15 @@ static int is_want(SSL *s, int ret)
 static int check_consistent_want(SSL *s, int ret)
 {
     int ec = SSL_get_error(s, ret);
-    int w = SSL_want(s);
+    int w  = SSL_want(s);
 
-    int ok = TEST_true(
-        (ec == SSL_ERROR_NONE                 && w == SSL_NOTHING)
-    ||  (ec == SSL_ERROR_ZERO_RETURN          && w == SSL_NOTHING)
-    ||  (ec == SSL_ERROR_SSL                  && w == SSL_NOTHING)
-    ||  (ec == SSL_ERROR_SYSCALL              && w == SSL_NOTHING)
-    ||  (ec == SSL_ERROR_WANT_READ            && w == SSL_READING)
-    ||  (ec == SSL_ERROR_WANT_WRITE           && w == SSL_WRITING)
-    ||  (ec == SSL_ERROR_WANT_CLIENT_HELLO_CB && w == SSL_CLIENT_HELLO_CB)
-    ||  (ec == SSL_ERROR_WANT_X509_LOOKUP     && w == SSL_X509_LOOKUP)
-    ||  (ec == SSL_ERROR_WANT_RETRY_VERIFY    && w == SSL_RETRY_VERIFY)
-    );
+    int ok =
+        TEST_true((ec == SSL_ERROR_NONE && w == SSL_NOTHING) || (ec == SSL_ERROR_ZERO_RETURN && w == SSL_NOTHING)
+                  || (ec == SSL_ERROR_SSL && w == SSL_NOTHING) || (ec == SSL_ERROR_SYSCALL && w == SSL_NOTHING)
+                  || (ec == SSL_ERROR_WANT_READ && w == SSL_READING) || (ec == SSL_ERROR_WANT_WRITE && w == SSL_WRITING)
+                  || (ec == SSL_ERROR_WANT_CLIENT_HELLO_CB && w == SSL_CLIENT_HELLO_CB)
+                  || (ec == SSL_ERROR_WANT_X509_LOOKUP && w == SSL_X509_LOOKUP)
+                  || (ec == SSL_ERROR_WANT_RETRY_VERIFY && w == SSL_RETRY_VERIFY));
 
     if (!ok)
         TEST_error("got error=%d, want=%d", ec, w);
@@ -547,18 +544,16 @@ static int check_consistent_want(SSL *s, int ret)
 
 DEF_FUNC(hf_write)
 {
-    int ok = 0, r;
-    SSL *ssl;
+    int         ok = 0, r;
+    SSL        *ssl;
     const void *buf;
-    size_t buf_len, bytes_written = 0;
+    size_t      buf_len, bytes_written = 0;
 
     F_POP2(buf, buf_len);
     REQUIRE_SSL(ssl);
 
     r = SSL_write_ex(ssl, buf, buf_len, &bytes_written);
-    if (!TEST_true(r)
-        || !check_consistent_want(ssl, r)
-        || !TEST_size_t_eq(bytes_written, buf_len))
+    if (!TEST_true(r) || !check_consistent_want(ssl, r) || !TEST_size_t_eq(bytes_written, buf_len))
         goto err;
 
     ok = 1;
@@ -568,9 +563,9 @@ err:
 
 DEF_FUNC(hf_write_rand)
 {
-    int ok = 0, r;
-    SSL *ssl;
-    void *buf = NULL;
+    int    ok = 0, r;
+    SSL   *ssl;
+    void  *buf = NULL;
     size_t buf_len, bytes_written = 0;
 
     F_POP(buf_len);
@@ -586,9 +581,7 @@ DEF_FUNC(hf_write_rand)
         if (!TEST_int_eq(RAND_bytes(buf, (int)thislen), 1))
             goto err;
         r = SSL_write_ex(ssl, buf, thislen, &bytes_written);
-        if (!TEST_true(r)
-            || !check_consistent_want(ssl, r)
-            || !TEST_size_t_eq(bytes_written, thislen))
+        if (!TEST_true(r) || !check_consistent_want(ssl, r) || !TEST_size_t_eq(bytes_written, thislen))
             goto err;
 
         buf_len -= thislen;
@@ -602,20 +595,18 @@ err:
 
 DEF_FUNC(hf_write_ex2)
 {
-    int ok = 0, r;
-    SSL *ssl;
+    int         ok = 0, r;
+    SSL        *ssl;
     const void *buf;
-    size_t buf_len, bytes_written = 0;
-    uint64_t flags;
+    size_t      buf_len, bytes_written = 0;
+    uint64_t    flags;
 
     F_POP(flags);
     F_POP2(buf, buf_len);
     REQUIRE_SSL(ssl);
 
     r = SSL_write_ex2(ssl, buf, buf_len, flags, &bytes_written);
-    if (!TEST_true(r)
-        || !check_consistent_want(ssl, r)
-        || !TEST_size_t_eq(bytes_written, buf_len))
+    if (!TEST_true(r) || !check_consistent_want(ssl, r) || !TEST_size_t_eq(bytes_written, buf_len))
         goto err;
 
     ok = 1;
@@ -625,16 +616,14 @@ err:
 
 DEF_FUNC(hf_write_fail)
 {
-    int ok = 0, ret;
-    SSL *ssl;
+    int    ok = 0, ret;
+    SSL   *ssl;
     size_t bytes_written = 0;
 
     REQUIRE_SSL(ssl);
 
     ret = SSL_write_ex(ssl, "apple", 5, &bytes_written);
-    if (!TEST_false(ret)
-        || !TEST_true(check_consistent_want(ssl, ret))
-        || !TEST_size_t_eq(bytes_written, 0))
+    if (!TEST_false(ret) || !TEST_true(check_consistent_want(ssl, ret)) || !TEST_size_t_eq(bytes_written, 0))
         goto err;
 
     ok = 1;
@@ -644,21 +633,18 @@ err:
 
 DEF_FUNC(hf_read_expect)
 {
-    int ok = 0, r;
-    SSL *ssl;
+    int         ok = 0, r;
+    SSL        *ssl;
     const void *buf;
-    size_t buf_len, bytes_read = 0;
+    size_t      buf_len, bytes_read = 0;
 
     F_POP2(buf, buf_len);
     REQUIRE_SSL(ssl);
 
-    if (buf_len > 0 && RT()->tmp_buf == NULL
-        && !TEST_ptr(RT()->tmp_buf = OPENSSL_malloc(buf_len)))
+    if (buf_len > 0 && RT()->tmp_buf == NULL && !TEST_ptr(RT()->tmp_buf = OPENSSL_malloc(buf_len)))
         goto err;
 
-    r = SSL_read_ex(ssl, RT()->tmp_buf + RT()->tmp_buf_offset,
-                    buf_len - RT()->tmp_buf_offset,
-                    &bytes_read);
+    r = SSL_read_ex(ssl, RT()->tmp_buf + RT()->tmp_buf_offset, buf_len - RT()->tmp_buf_offset, &bytes_read);
     if (!TEST_true(check_consistent_want(ssl, r)))
         goto err;
 
@@ -670,34 +656,31 @@ DEF_FUNC(hf_read_expect)
         F_SPIN_AGAIN();
     }
 
-    if (buf_len > 0
-        && !TEST_mem_eq(RT()->tmp_buf, buf_len, buf, buf_len))
+    if (buf_len > 0 && !TEST_mem_eq(RT()->tmp_buf, buf_len, buf, buf_len))
         goto err;
 
     OPENSSL_free(RT()->tmp_buf);
-    RT()->tmp_buf         = NULL;
-    RT()->tmp_buf_offset  = 0;
+    RT()->tmp_buf        = NULL;
+    RT()->tmp_buf_offset = 0;
 
-    ok = 1;
+    ok                   = 1;
 err:
     return ok;
 }
 
 DEF_FUNC(hf_read_fail)
 {
-    int ok = 0, r;
-    SSL *ssl;
-    char buf[1] = {0};
-    size_t bytes_read = 0;
+    int      ok = 0, r;
+    SSL     *ssl;
+    char     buf[1]     = {0};
+    size_t   bytes_read = 0;
     uint64_t do_wait;
 
     F_POP(do_wait);
     REQUIRE_SSL(ssl);
 
     r = SSL_read_ex(ssl, buf, sizeof(buf), &bytes_read);
-    if (!TEST_false(r)
-        || !TEST_true(check_consistent_want(ssl, r))
-        || !TEST_size_t_eq(bytes_read, 0))
+    if (!TEST_false(r) || !TEST_true(check_consistent_want(ssl, r)) || !TEST_size_t_eq(bytes_read, 0))
         goto err;
 
     if (do_wait && is_want(ssl, 0))
@@ -710,7 +693,7 @@ err:
 
 DEF_FUNC(hf_connect_wait)
 {
-    int ok = 0, ret;
+    int  ok = 0, ret;
     SSL *ssl;
 
     REQUIRE_SSL(ssl);
@@ -721,13 +704,12 @@ DEF_FUNC(hf_connect_wait)
             return 0;
 
         /* 0 is the success case for SSL_set_alpn_protos(). */
-        if (!TEST_false(SSL_set_alpn_protos(ssl, alpn_ossltest,
-                                            sizeof(alpn_ossltest))))
+        if (!TEST_false(SSL_set_alpn_protos(ssl, alpn_ossltest, sizeof(alpn_ossltest))))
             goto err;
     }
 
     RT()->scratch0 = 1; /* connect started */
-    ret = SSL_connect(ssl);
+    ret            = SSL_connect(ssl);
     radix_activate_slot(0);
     if (!TEST_true(check_consistent_want(ssl, ret)))
         goto err;
@@ -748,9 +730,9 @@ err:
 
 DEF_FUNC(hf_detach)
 {
-    int ok = 0;
+    int         ok = 0;
     const char *conn_name, *stream_name;
-    SSL *conn, *stream;
+    SSL        *conn, *stream;
 
     F_POP2(conn_name, stream_name);
     if (!TEST_ptr(conn = RADIX_PROCESS_get_ssl(RP(), conn_name)))
@@ -771,9 +753,9 @@ err:
 
 DEF_FUNC(hf_attach)
 {
-    int ok = 0;
+    int         ok = 0;
     const char *conn_name, *stream_name;
-    SSL *conn, *stream;
+    SSL        *conn, *stream;
 
     F_POP2(conn_name, stream_name);
 
@@ -796,24 +778,21 @@ err:
 
 DEF_FUNC(hf_expect_fin)
 {
-    int ok = 0, ret;
-    SSL *ssl;
-    char buf[1];
+    int    ok = 0, ret;
+    SSL   *ssl;
+    char   buf[1];
     size_t bytes_read = 0;
 
     REQUIRE_SSL(ssl);
 
     ret = SSL_read_ex(ssl, buf, sizeof(buf), &bytes_read);
-    if (!TEST_true(check_consistent_want(ssl, ret))
-        || !TEST_false(ret)
-        || !TEST_size_t_eq(bytes_read, 0))
+    if (!TEST_true(check_consistent_want(ssl, ret)) || !TEST_false(ret) || !TEST_size_t_eq(bytes_read, 0))
         goto err;
 
     if (is_want(ssl, 0))
         F_SPIN_AGAIN();
 
-    if (!TEST_int_eq(SSL_get_error(ssl, 0),
-                     SSL_ERROR_ZERO_RETURN))
+    if (!TEST_int_eq(SSL_get_error(ssl, 0), SSL_ERROR_ZERO_RETURN))
         goto err;
 
     if (!TEST_int_eq(SSL_want(ssl), SSL_NOTHING))
@@ -826,10 +805,10 @@ err:
 
 DEF_FUNC(hf_expect_conn_close_info)
 {
-    int ok = 0;
-    SSL *ssl;
+    int                 ok = 0;
+    SSL                *ssl;
     SSL_CONN_CLOSE_INFO cc_info = {0};
-    uint64_t error_code, expect_app, expect_remote;
+    uint64_t            error_code, expect_app, expect_remote;
 
     F_POP(error_code);
     F_POP2(expect_app, expect_remote);
@@ -840,10 +819,8 @@ DEF_FUNC(hf_expect_conn_close_info)
     if (!SSL_get_conn_close_info(ssl, &cc_info, sizeof(cc_info)))
         F_SPIN_AGAIN();
 
-    if (!TEST_int_eq((int)expect_app,
-                     (cc_info.flags & SSL_CONN_CLOSE_FLAG_TRANSPORT) == 0)
-        || !TEST_int_eq((int)expect_remote,
-                        (cc_info.flags & SSL_CONN_CLOSE_FLAG_LOCAL) == 0)
+    if (!TEST_int_eq((int)expect_app, (cc_info.flags & SSL_CONN_CLOSE_FLAG_TRANSPORT) == 0)
+        || !TEST_int_eq((int)expect_remote, (cc_info.flags & SSL_CONN_CLOSE_FLAG_LOCAL) == 0)
         || !TEST_uint64_t_eq(error_code, cc_info.error_code)) {
         TEST_info("connection close reason: %s", cc_info.reason);
         goto err;
@@ -856,15 +833,14 @@ err:
 
 DEF_FUNC(hf_wait_for_data)
 {
-    int ok = 0;
-    SSL *ssl;
-    char buf[1];
+    int    ok = 0;
+    SSL   *ssl;
+    char   buf[1];
     size_t bytes_read = 0;
 
     REQUIRE_SSL(ssl);
 
-    if (!SSL_peek_ex(ssl, buf, sizeof(buf), &bytes_read)
-        || bytes_read == 0)
+    if (!SSL_peek_ex(ssl, buf, sizeof(buf), &bytes_read) || bytes_read == 0)
         F_SPIN_AGAIN();
 
     ok = 1;
@@ -874,14 +850,12 @@ err:
 
 DEF_FUNC(hf_expect_err)
 {
-    int ok = 0;
+    int      ok = 0;
     uint64_t lib, reason;
 
     F_POP2(lib, reason);
-    if (!TEST_size_t_eq((size_t)ERR_GET_LIB(ERR_peek_last_error()),
-                        (size_t)lib)
-        || !TEST_size_t_eq((size_t)ERR_GET_REASON(ERR_peek_last_error()),
-                           (size_t)reason))
+    if (!TEST_size_t_eq((size_t)ERR_GET_LIB(ERR_peek_last_error()), (size_t)lib)
+        || !TEST_size_t_eq((size_t)ERR_GET_REASON(ERR_peek_last_error()), (size_t)reason))
         goto err;
 
     ok = 1;
@@ -891,15 +865,14 @@ err:
 
 DEF_FUNC(hf_expect_ssl_err)
 {
-    int ok = 0;
+    int      ok = 0;
     uint64_t expected;
-    SSL *ssl;
+    SSL     *ssl;
 
     F_POP(expected);
     REQUIRE_SSL(ssl);
 
-    if (!TEST_size_t_eq((size_t)SSL_get_error(ssl, 0), (size_t)expected)
-        || !TEST_int_eq(SSL_want(ssl), SSL_NOTHING))
+    if (!TEST_size_t_eq((size_t)SSL_get_error(ssl, 0), (size_t)expected) || !TEST_int_eq(SSL_want(ssl), SSL_NOTHING))
         goto err;
 
     ok = 1;
@@ -909,8 +882,8 @@ err:
 
 DEF_FUNC(hf_expect_stream_id)
 {
-    int ok = 0;
-    SSL *ssl;
+    int      ok = 0;
+    SSL     *ssl;
     uint64_t expected, actual;
 
     F_POP(expected);
@@ -927,10 +900,10 @@ err:
 
 DEF_FUNC(hf_select_ssl)
 {
-    int ok = 0;
-    uint64_t slot;
+    int         ok = 0;
+    uint64_t    slot;
     const char *name;
-    RADIX_OBJ *obj;
+    RADIX_OBJ  *obj;
 
     F_POP2(slot, name);
     if (!TEST_ptr(obj = RADIX_PROCESS_get_obj(RP(), name)))
@@ -939,32 +912,32 @@ DEF_FUNC(hf_select_ssl)
     if (!TEST_uint64_t_lt(slot, NUM_SLOTS))
         goto err;
 
-    RT()->slot[slot]    = obj;
-    RT()->ssl[slot]     = obj->ssl;
-    ok = 1;
+    RT()->slot[slot] = obj;
+    RT()->ssl[slot]  = obj->ssl;
+    ok               = 1;
 err:
     return ok;
 }
 
 DEF_FUNC(hf_clear_slot)
 {
-    int ok = 0;
+    int      ok = 0;
     uint64_t slot;
 
     F_POP(slot);
     if (!TEST_uint64_t_lt(slot, NUM_SLOTS))
         goto err;
 
-    RT()->slot[slot]    = NULL;
-    RT()->ssl[slot]     = NULL;
-    ok = 1;
+    RT()->slot[slot] = NULL;
+    RT()->ssl[slot]  = NULL;
+    ok               = 1;
 err:
     return ok;
 }
 
 DEF_FUNC(hf_skip_time)
 {
-    int ok = 0;
+    int      ok = 0;
     uint64_t ms;
 
     F_POP(ms);
@@ -977,12 +950,12 @@ err:
 
 DEF_FUNC(hf_set_peer_addr_from)
 {
-    int ok = 0;
-    SSL *dst_ssl, *src_ssl;
-    BIO *dst_bio, *src_bio;
-    int src_fd = -1;
+    int                   ok = 0;
+    SSL                  *dst_ssl, *src_ssl;
+    BIO                  *dst_bio, *src_bio;
+    int                   src_fd = -1;
     union BIO_sock_info_u src_info;
-    BIO_ADDR *src_addr = NULL;
+    BIO_ADDR             *src_addr = NULL;
 
     REQUIRE_SSL_N(0, dst_ssl);
     REQUIRE_SSL_N(1, src_ssl);
@@ -994,8 +967,7 @@ DEF_FUNC(hf_set_peer_addr_from)
     if (!TEST_ptr(src_addr = BIO_ADDR_new()))
         goto err;
 
-    if (!TEST_true(BIO_get_fd(src_bio, &src_fd))
-        || !TEST_int_ge(src_fd, 0))
+    if (!TEST_true(BIO_get_fd(src_bio, &src_fd)) || !TEST_int_ge(src_fd, 0))
         goto err;
 
     src_info.addr = src_addr;
@@ -1018,7 +990,7 @@ err:
 
 DEF_FUNC(hf_sleep)
 {
-    int ok = 0;
+    int      ok = 0;
     uint64_t ms;
 
     F_POP(ms);
@@ -1205,7 +1177,7 @@ err:
     (OP_SELECT_SSL(0, name),                                    \
      OP_PUSH_U64(flags),                                        \
      OP_PUSH_U64(error_code),                                   \
-     OP_FUNC(hf_stream_reset))                                  \
+     OP_FUNC(hf_stream_reset))
 
 #define OP_SHUTDOWN_WAIT(name, flags, error_code, reason)       \
     (OP_SELECT_SSL(0, name),                                    \

@@ -17,14 +17,14 @@
 # include <openssl/err.h>
 # include <openssl/crypto.h>
 
-#define STACKSIZE       32768
+# define STACKSIZE       32768
 
 static CRYPTO_RWLOCK *async_mem_lock;
 
-static void *async_stack_alloc(size_t *num);
-static void async_stack_free(void *addr);
+static void          *async_stack_alloc(size_t *num);
+static void           async_stack_free(void *addr);
 
-int async_local_init(void)
+int                   async_local_init(void)
 {
     async_mem_lock = CRYPTO_THREAD_lock_new();
     return async_mem_lock != NULL;
@@ -35,11 +35,11 @@ void async_local_deinit(void)
     CRYPTO_THREAD_lock_free(async_mem_lock);
 }
 
-static int allow_customize = 1;
+static int                  allow_customize  = 1;
 static ASYNC_stack_alloc_fn stack_alloc_impl = async_stack_alloc;
-static ASYNC_stack_free_fn stack_free_impl = async_stack_free;
+static ASYNC_stack_free_fn  stack_free_impl  = async_stack_free;
 
-int ASYNC_is_capable(void)
+int                         ASYNC_is_capable(void)
 {
     ucontext_t ctx;
 
@@ -50,8 +50,7 @@ int ASYNC_is_capable(void)
     return getcontext(&ctx) == 0;
 }
 
-int ASYNC_set_mem_functions(ASYNC_stack_alloc_fn alloc_fn,
-                            ASYNC_stack_free_fn free_fn)
+int ASYNC_set_mem_functions(ASYNC_stack_alloc_fn alloc_fn, ASYNC_stack_free_fn free_fn)
 {
     OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL);
 
@@ -70,8 +69,7 @@ int ASYNC_set_mem_functions(ASYNC_stack_alloc_fn alloc_fn,
     return 1;
 }
 
-void ASYNC_get_mem_functions(ASYNC_stack_alloc_fn *alloc_fn,
-                             ASYNC_stack_free_fn *free_fn)
+void ASYNC_get_mem_functions(ASYNC_stack_alloc_fn *alloc_fn, ASYNC_stack_free_fn *free_fn)
 {
     if (alloc_fn != NULL)
         *alloc_fn = stack_alloc_impl;
@@ -95,9 +93,9 @@ void async_local_cleanup(void)
 
 int async_fibre_makecontext(async_fibre *fibre)
 {
-#ifndef USE_SWAPCONTEXT
+# ifndef USE_SWAPCONTEXT
     fibre->env_init = 0;
-#endif
+# endif
     if (getcontext(&fibre->fibre) == 0) {
         size_t num = STACKSIZE;
 
@@ -115,7 +113,7 @@ int async_fibre_makecontext(async_fibre *fibre)
         fibre->fibre.uc_stack.ss_sp = stack_alloc_impl(&num);
         if (fibre->fibre.uc_stack.ss_sp != NULL) {
             fibre->fibre.uc_stack.ss_size = num;
-            fibre->fibre.uc_link = NULL;
+            fibre->fibre.uc_link          = NULL;
             makecontext(&fibre->fibre, async_start_func, 0);
             return 1;
         }

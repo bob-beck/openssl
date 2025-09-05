@@ -14,7 +14,7 @@
 /* Must 'OPENSSL_free' the returned data */
 char *BN_bn2hex(const BIGNUM *a)
 {
-    int i, j, v, z = 0;
+    int   i, j, v, z = 0;
     char *buf;
     char *p;
 
@@ -32,12 +32,12 @@ char *BN_bn2hex(const BIGNUM *a)
             v = (int)((a->d[i] >> j) & 0xff);
             if (z || v != 0) {
                 p += ossl_to_hex(p, v);
-                z = 1;
+                z  = 1;
             }
         }
     }
     *p = '\0';
- err:
+err:
     return buf;
 }
 
@@ -46,12 +46,12 @@ char *BN_bn2hex(const BIGNUM *a)
 /* Must 'OPENSSL_free' the returned data */
 char *BN_bn2dec(const BIGNUM *a)
 {
-    int i = 0, num, ok = 0, n, tbytes;
-    char *buf = NULL;
-    char *p;
-    BIGNUM *t = NULL;
+    int       i = 0, num, ok = 0, n, tbytes;
+    char     *buf = NULL;
+    char     *p;
+    BIGNUM   *t       = NULL;
     BN_ULONG *bn_data = NULL, *lp;
-    int bn_data_num;
+    int       bn_data_num;
 
     /*-
      * get an upper bound for the length of the decimal integer
@@ -59,18 +59,18 @@ char *BN_bn2dec(const BIGNUM *a)
      *     <= 3 * BN_num_bits(a) * 0.101 + log(2) + 1     (rounding error)
      *     <= 3 * BN_num_bits(a) / 10 + 3 * BN_num_bits / 1000 + 1 + 1
      */
-    i = BN_num_bits(a) * 3;
-    num = (i / 10 + i / 1000 + 1) + 1;
-    tbytes = num + 3;   /* negative and terminator and one spare? */
+    i           = BN_num_bits(a) * 3;
+    num         = (i / 10 + i / 1000 + 1) + 1;
+    tbytes      = num + 3; /* negative and terminator and one spare? */
     bn_data_num = num / BN_DEC_NUM + 1;
-    bn_data = OPENSSL_malloc_array(bn_data_num, sizeof(BN_ULONG));
-    buf = OPENSSL_malloc(tbytes);
+    bn_data     = OPENSSL_malloc_array(bn_data_num, sizeof(BN_ULONG));
+    buf         = OPENSSL_malloc(tbytes);
     if (buf == NULL || bn_data == NULL)
         goto err;
     if ((t = BN_dup(a)) == NULL)
         goto err;
 
-    p = buf;
+    p  = buf;
     lp = bn_data;
     if (BN_is_zero(t)) {
         *p++ = '0';
@@ -106,7 +106,7 @@ char *BN_bn2dec(const BIGNUM *a)
         }
     }
     ok = 1;
- err:
+err:
     OPENSSL_free(bn_data);
     BN_free(t);
     if (ok)
@@ -118,10 +118,10 @@ char *BN_bn2dec(const BIGNUM *a)
 
 int BN_hex2bn(BIGNUM **bn, const char *a)
 {
-    BIGNUM *ret = NULL;
-    BN_ULONG l = 0;
-    int neg = 0, h, m, i, j, k, c;
-    int num;
+    BIGNUM  *ret = NULL;
+    BN_ULONG l   = 0;
+    int      neg = 0, h, m, i, j, k, c;
+    int      num;
 
     if (a == NULL || *a == '\0')
         return 0;
@@ -158,7 +158,7 @@ int BN_hex2bn(BIGNUM **bn, const char *a)
     if (bn_expand(ret, i * 4) == NULL)
         goto err;
 
-    j = i;                      /* least significant 'hex' */
+    j = i; /* least significant 'hex' */
     m = 0;
     h = 0;
     while (j > 0) {
@@ -168,7 +168,7 @@ int BN_hex2bn(BIGNUM **bn, const char *a)
             c = a[j - m];
             k = OPENSSL_hexchar2int(c);
             if (k < 0)
-                k = 0;          /* paranoia */
+                k = 0; /* paranoia */
             l = (l << 4) | k;
 
             if (--m <= 0) {
@@ -187,7 +187,7 @@ int BN_hex2bn(BIGNUM **bn, const char *a)
     if (ret->top != 0)
         ret->neg = neg;
     return num;
- err:
+err:
     if (*bn == NULL)
         BN_free(ret);
     return 0;
@@ -195,10 +195,10 @@ int BN_hex2bn(BIGNUM **bn, const char *a)
 
 int BN_dec2bn(BIGNUM **bn, const char *a)
 {
-    BIGNUM *ret = NULL;
-    BN_ULONG l = 0;
-    int neg = 0, i, j;
-    int num;
+    BIGNUM  *ret = NULL;
+    BN_ULONG l   = 0;
+    int      neg = 0, i, j;
+    int      num;
 
     if (a == NULL || *a == '\0')
         return 0;
@@ -242,8 +242,7 @@ int BN_dec2bn(BIGNUM **bn, const char *a)
         l += *a - '0';
         a++;
         if (++j == BN_DEC_NUM) {
-            if (!BN_mul_word(ret, BN_DEC_CONV)
-                || !BN_add_word(ret, l))
+            if (!BN_mul_word(ret, BN_DEC_CONV) || !BN_add_word(ret, l))
                 goto err;
             l = 0;
             j = 0;
@@ -257,7 +256,7 @@ int BN_dec2bn(BIGNUM **bn, const char *a)
     if (ret->top != 0)
         ret->neg = neg;
     return num;
- err:
+err:
     if (*bn == NULL)
         BN_free(ret);
     return 0;

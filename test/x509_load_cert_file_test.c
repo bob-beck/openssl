@@ -14,21 +14,18 @@
 static const char *chain;
 static const char *crl;
 
-static int test_load_cert_file(void)
+static int         test_load_cert_file(void)
 {
-    int ret = 0, i;
-    X509_STORE *store = NULL;
-    X509_LOOKUP *lookup = NULL;
-    STACK_OF(X509) *certs = NULL;
-    STACK_OF(X509_OBJECT) *objs = NULL;
+    int                    ret    = 0, i;
+    X509_STORE            *store  = NULL;
+    X509_LOOKUP           *lookup = NULL;
+    STACK_OF(X509)        *certs  = NULL;
+    STACK_OF(X509_OBJECT) *objs   = NULL;
 
-    if (!TEST_ptr(store = X509_STORE_new())
-        || !TEST_ptr(lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file()))
+    if (!TEST_ptr(store = X509_STORE_new()) || !TEST_ptr(lookup = X509_STORE_add_lookup(store, X509_LOOKUP_file()))
         || !TEST_true(X509_load_cert_file(lookup, chain, X509_FILETYPE_PEM))
-        || !TEST_ptr(certs = X509_STORE_get1_all_certs(store))
-        || !TEST_int_eq(sk_X509_num(certs), 4)
-        || !TEST_ptr(objs = X509_STORE_get1_objects(store))
-        || !TEST_int_eq(sk_X509_OBJECT_num(objs), 4))
+        || !TEST_ptr(certs = X509_STORE_get1_all_certs(store)) || !TEST_int_eq(sk_X509_num(certs), 4)
+        || !TEST_ptr(objs = X509_STORE_get1_objects(store)) || !TEST_int_eq(sk_X509_OBJECT_num(objs), 4))
         goto err;
 
     for (i = 0; i < sk_X509_OBJECT_num(objs); i++) {

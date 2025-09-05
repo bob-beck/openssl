@@ -15,18 +15,15 @@
 static int test_set0_default(void)
 {
     OSSL_LIB_CTX *global = OSSL_LIB_CTX_get0_global_default();
-    OSSL_LIB_CTX *local = OSSL_LIB_CTX_new();
+    OSSL_LIB_CTX *local  = OSSL_LIB_CTX_new();
     OSSL_LIB_CTX *prev;
-    int testresult = 0;
+    int           testresult = 0;
 
-    if (!TEST_ptr(global)
-            || !TEST_ptr(local)
-            || !TEST_ptr_eq(global, OSSL_LIB_CTX_set0_default(NULL)))
+    if (!TEST_ptr(global) || !TEST_ptr(local) || !TEST_ptr_eq(global, OSSL_LIB_CTX_set0_default(NULL)))
         goto err;
 
     /* Check we can change the local default context */
-    if (!TEST_ptr(prev = OSSL_LIB_CTX_set0_default(local))
-            || !TEST_ptr_eq(global, prev))
+    if (!TEST_ptr(prev = OSSL_LIB_CTX_set0_default(local)) || !TEST_ptr_eq(global, prev))
         goto err;
 
     /* Calling OSSL_LIB_CTX_set0_default() with a NULL should be a no-op */
@@ -38,12 +35,11 @@ static int test_set0_default(void)
         goto err;
 
     /* Check we can swap back to the global default */
-    if (!TEST_ptr(prev = OSSL_LIB_CTX_set0_default(global))
-            || !TEST_ptr_eq(local, prev))
+    if (!TEST_ptr(prev = OSSL_LIB_CTX_set0_default(global)) || !TEST_ptr_eq(local, prev))
         goto err;
 
     testresult = 1;
- err:
+err:
     OSSL_LIB_CTX_free(local);
     return testresult;
 }
@@ -51,7 +47,7 @@ static int test_set0_default(void)
 static int test_set_get_conf_diagnostics(void)
 {
     OSSL_LIB_CTX *ctx = OSSL_LIB_CTX_new();
-    int res = 0;
+    int           res = 0;
 
     if (!TEST_ptr(ctx))
         goto err;
@@ -70,7 +66,7 @@ static int test_set_get_conf_diagnostics(void)
         goto err;
 
     res = 1;
- err:
+err:
     OSSL_LIB_CTX_free(ctx);
     return res;
 }

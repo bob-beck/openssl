@@ -52,10 +52,10 @@ int RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
     mtmp = rsa->meth;
     if (mtmp->finish)
         mtmp->finish(rsa);
-#ifndef OPENSSL_NO_ENGINE
+# ifndef OPENSSL_NO_ENGINE
     ENGINE_finish(rsa->engine);
     rsa->engine = NULL;
-#endif
+# endif
     rsa->meth = meth;
     if (meth->init)
         meth->init(rsa);
@@ -98,7 +98,7 @@ static RSA *rsa_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
         goto err;
 
     ret->libctx = libctx;
-    ret->meth = RSA_get_default_method();
+    ret->meth   = RSA_get_default_method();
 #if !defined(OPENSSL_NO_ENGINE) && !defined(FIPS_MODULE)
     ret->flags = ret->meth->flags & ~RSA_FLAG_NON_FIPS_ALLOW;
     if (engine) {
@@ -133,7 +133,7 @@ static RSA *rsa_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
 
     return ret;
 
- err:
+err:
     RSA_free(ret);
     return NULL;
 }
@@ -232,14 +232,14 @@ void *RSA_get_ex_data(const RSA *r, int idx)
  * should not be so large that a multiplication of two scaled numbers
  * overflows a 64 bit unsigned integer.
  */
-static const unsigned int scale = 1 << 18;
-static const unsigned int cbrt_scale = 1 << (2 * 18 / 3);
+static const unsigned int   scale      = 1 << 18;
+static const unsigned int   cbrt_scale = 1 << (2 * 18 / 3);
 
 /* Define some constants, none exceed 32 bits */
-static const unsigned int log_2  = 0x02c5c8;    /* scale * log(2) */
-static const unsigned int log_e  = 0x05c551;    /* scale * log2(M_E) */
-static const unsigned int c1_923 = 0x07b126;    /* scale * 1.923 */
-static const unsigned int c4_690 = 0x12c28f;    /* scale * 4.690 */
+static const unsigned int   log_2      = 0x02c5c8; /* scale * log(2) */
+static const unsigned int   log_e      = 0x05c551; /* scale * log2(M_E) */
+static const unsigned int   c1_923     = 0x07b126; /* scale * 1.923 */
+static const unsigned int   c4_690     = 0x12c28f; /* scale * 4.690 */
 
 /*
  * Multiply two scaled integers together and rescale the result.
@@ -260,11 +260,11 @@ static uint64_t icbrt64(uint64_t x)
 {
     uint64_t r = 0;
     uint64_t b;
-    int s;
+    int      s;
 
     for (s = 63; s >= 0; s -= 3) {
         r <<= 1;
-        b = 3 * r * (r + 1) + 1;
+        b   = 3 * r * (r + 1) + 1;
         if ((x >> s) >= b) {
             x -= b << s;
             r++;
@@ -293,13 +293,13 @@ static uint32_t ilog_e(uint64_t v)
      */
     while (v >= 2 * scale) {
         v >>= 1;
-        r += scale;
+        r  += scale;
     }
     for (i = scale / 2; i != 0; i /= 2) {
         v = mul2(v, v);
         if (v >= 2 * scale) {
             v >>= 1;
-            r += i;
+            r  += i;
         }
     }
     r = (r * (uint64_t)scale) / log_e;
@@ -335,19 +335,19 @@ uint16_t ossl_ifc_ffc_compute_security_bits(int n)
      * the standards but are defined to be canonical.
      */
     switch (n) {
-    case 2048:      /* SP 800-56B rev 2 Appendix D and FIPS 140-2 IG 7.5 */
+    case 2048: /* SP 800-56B rev 2 Appendix D and FIPS 140-2 IG 7.5 */
         return 112;
-    case 3072:      /* SP 800-56B rev 2 Appendix D and FIPS 140-2 IG 7.5 */
+    case 3072: /* SP 800-56B rev 2 Appendix D and FIPS 140-2 IG 7.5 */
         return 128;
-    case 4096:      /* SP 800-56B rev 2 Appendix D */
+    case 4096: /* SP 800-56B rev 2 Appendix D */
         return 152;
-    case 6144:      /* SP 800-56B rev 2 Appendix D */
+    case 6144: /* SP 800-56B rev 2 Appendix D */
         return 176;
-    case 7680:      /* FIPS 140-2 IG 7.5 */
+    case 7680: /* FIPS 140-2 IG 7.5 */
         return 192;
-    case 8192:      /* SP 800-56B rev 2 Appendix D */
+    case 8192: /* SP 800-56B rev 2 Appendix D */
         return 200;
-    case 15360:     /* FIPS 140-2 IG 7.5 */
+    case 15360: /* FIPS 140-2 IG 7.5 */
         return 256;
     }
 
@@ -374,17 +374,14 @@ uint16_t ossl_ifc_ffc_compute_security_bits(int n)
     else
         cap = 1200;
 
-    x = n * (uint64_t)log_2;
+    x  = n * (uint64_t)log_2;
     lx = ilog_e(x);
-    y = (uint16_t)((mul2(c1_923, icbrt64(mul2(mul2(x, lx), lx))) - c4_690)
-                   / log_2);
-    y = (y + 4) & ~7;
+    y  = (uint16_t)((mul2(c1_923, icbrt64(mul2(mul2(x, lx), lx))) - c4_690) / log_2);
+    y  = (y + 4) & ~7;
     if (y > cap)
         y = cap;
     return y;
 }
-
-
 
 int RSA_security_bits(const RSA *rsa)
 {
@@ -408,8 +405,7 @@ int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
      * parameters MUST be non-NULL for n and e.  d may be
      * left NULL (in case only the public key is used).
      */
-    if ((r->n == NULL && n == NULL)
-        || (r->e == NULL && e == NULL))
+    if ((r->n == NULL && n == NULL) || (r->e == NULL && e == NULL))
         return 0;
 
     if (n != NULL) {
@@ -435,8 +431,7 @@ int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
     /* If the fields p and q in r are NULL, the corresponding input
      * parameters MUST be non-NULL.
      */
-    if ((r->p == NULL && p == NULL)
-        || (r->q == NULL && q == NULL))
+    if ((r->p == NULL && p == NULL) || (r->q == NULL && q == NULL))
         return 0;
 
     if (p != NULL) {
@@ -459,9 +454,7 @@ int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
     /* If the fields dmp1, dmq1 and iqmp in r are NULL, the corresponding input
      * parameters MUST be non-NULL.
      */
-    if ((r->dmp1 == NULL && dmp1 == NULL)
-        || (r->dmq1 == NULL && dmq1 == NULL)
-        || (r->iqmp == NULL && iqmp == NULL))
+    if ((r->dmp1 == NULL && dmp1 == NULL) || (r->dmq1 == NULL && dmq1 == NULL) || (r->iqmp == NULL && iqmp == NULL))
         return 0;
 
     if (dmp1 != NULL) {
@@ -489,12 +482,11 @@ int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
  * Is it better to export RSA_PRIME_INFO structure
  * and related functions to let user pass a triplet?
  */
-int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
-                                BIGNUM *coeffs[], int pnum)
+int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[], BIGNUM *coeffs[], int pnum)
 {
     STACK_OF(RSA_PRIME_INFO) *prime_infos, *old = NULL;
-    RSA_PRIME_INFO *pinfo;
-    int i;
+    RSA_PRIME_INFO           *pinfo;
+    int                       i;
 
     if (primes == NULL || exps == NULL || coeffs == NULL || pnum == 0)
         return 0;
@@ -548,15 +540,14 @@ int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
     r->dirty_cnt++;
 
     return 1;
- err:
+err:
     /* r, d, t should not be freed */
     sk_RSA_PRIME_INFO_pop_free(prime_infos, ossl_rsa_multip_info_free_ex);
     return 0;
 }
 #endif
 
-void RSA_get0_key(const RSA *r,
-                  const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
+void RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
 {
     if (n != NULL)
         *n = r->n;
@@ -587,7 +578,7 @@ int RSA_get_multi_prime_extra_count(const RSA *r)
 
 int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
 {
-    int pnum, i;
+    int             pnum, i;
     RSA_PRIME_INFO *pinfo;
 
     if ((pnum = RSA_get_multi_prime_extra_count(r)) == 0)
@@ -598,7 +589,7 @@ int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
      * it's caller's responsibility to allocate oth_primes[pnum]
      */
     for (i = 0; i < pnum; i++) {
-        pinfo = sk_RSA_PRIME_INFO_value(r->prime_infos, i);
+        pinfo     = sk_RSA_PRIME_INFO_value(r->prime_infos, i);
         primes[i] = pinfo->r;
     }
 
@@ -606,9 +597,7 @@ int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
 }
 #endif
 
-void RSA_get0_crt_params(const RSA *r,
-                         const BIGNUM **dmp1, const BIGNUM **dmq1,
-                         const BIGNUM **iqmp)
+void RSA_get0_crt_params(const RSA *r, const BIGNUM **dmp1, const BIGNUM **dmq1, const BIGNUM **iqmp)
 {
     if (dmp1 != NULL)
         *dmp1 = r->dmp1;
@@ -619,8 +608,7 @@ void RSA_get0_crt_params(const RSA *r,
 }
 
 #ifndef FIPS_MODULE
-int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
-                                    const BIGNUM *coeffs[])
+int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[], const BIGNUM *coeffs[])
 {
     int pnum;
 
@@ -630,7 +618,7 @@ int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
     /* return other primes */
     if (exps != NULL || coeffs != NULL) {
         RSA_PRIME_INFO *pinfo;
-        int i;
+        int             i;
 
         /* it's the user's job to guarantee the buffer length */
         for (i = 0; i < pnum; i++) {
@@ -743,11 +731,10 @@ ENGINE *RSA_get0_engine(const RSA *r)
 int RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2)
 {
     /* If key type not RSA or RSA-PSS return error */
-    if (ctx != NULL && ctx->pmeth != NULL
-        && ctx->pmeth->pkey_id != EVP_PKEY_RSA
+    if (ctx != NULL && ctx->pmeth != NULL && ctx->pmeth->pkey_id != EVP_PKEY_RSA
         && ctx->pmeth->pkey_id != EVP_PKEY_RSA_PSS)
         return -1;
-     return EVP_PKEY_CTX_ctrl(ctx, -1, optype, cmd, p1, p2);
+    return EVP_PKEY_CTX_ctrl(ctx, -1, optype, cmd, p1, p2);
 }
 #endif
 
@@ -757,9 +744,7 @@ DEFINE_STACK_OF(BIGNUM)
  * Note: This function deletes values from the parameter
  * stack values as they are consumed and set in the RSA key.
  */
-int ossl_rsa_set0_all_params(RSA *r, STACK_OF(BIGNUM) *primes,
-                             STACK_OF(BIGNUM) *exps,
-                             STACK_OF(BIGNUM) *coeffs)
+int ossl_rsa_set0_all_params(RSA *r, STACK_OF(BIGNUM) *primes, STACK_OF(BIGNUM) *exps, STACK_OF(BIGNUM) *coeffs)
 {
 #ifndef FIPS_MODULE
     STACK_OF(RSA_PRIME_INFO) *prime_infos, *old_infos = NULL;
@@ -775,8 +760,7 @@ int ossl_rsa_set0_all_params(RSA *r, STACK_OF(BIGNUM) *primes,
     if (pnum < 2)
         return 0;
 
-    if (!RSA_set0_factors(r, sk_BIGNUM_value(primes, 0),
-                          sk_BIGNUM_value(primes, 1)))
+    if (!RSA_set0_factors(r, sk_BIGNUM_value(primes, 0), sk_BIGNUM_value(primes, 1)))
         return 0;
 
     /*
@@ -790,13 +774,9 @@ int ossl_rsa_set0_all_params(RSA *r, STACK_OF(BIGNUM) *primes,
     sk_BIGNUM_delete(primes, 0);
     sk_BIGNUM_delete(primes, 0);
 
-    if (pnum == sk_BIGNUM_num(exps)
-        && pnum == sk_BIGNUM_num(coeffs) + 1) {
-
-        if (!RSA_set0_crt_params(r, sk_BIGNUM_value(exps, 0),
-                                 sk_BIGNUM_value(exps, 1),
-                                 sk_BIGNUM_value(coeffs, 0)))
-        return 0;
+    if (pnum == sk_BIGNUM_num(exps) && pnum == sk_BIGNUM_num(coeffs) + 1) {
+        if (!RSA_set0_crt_params(r, sk_BIGNUM_value(exps, 0), sk_BIGNUM_value(exps, 1), sk_BIGNUM_value(coeffs, 0)))
+            return 0;
 
         /* as above, once we consume the above params, delete them from the list */
         sk_BIGNUM_delete(exps, 0);
@@ -817,9 +797,9 @@ int ossl_rsa_set0_all_params(RSA *r, STACK_OF(BIGNUM) *primes,
             return 0;
 
         for (i = 2; i < pnum; i++) {
-            BIGNUM *prime = sk_BIGNUM_pop(primes);
-            BIGNUM *exp = sk_BIGNUM_pop(exps);
-            BIGNUM *coeff = sk_BIGNUM_pop(coeffs);
+            BIGNUM         *prime = sk_BIGNUM_pop(primes);
+            BIGNUM         *exp   = sk_BIGNUM_pop(exps);
+            BIGNUM         *coeff = sk_BIGNUM_pop(coeffs);
             RSA_PRIME_INFO *pinfo = NULL;
 
             if (!ossl_assert(prime != NULL && exp != NULL && coeff != NULL))
@@ -866,7 +846,7 @@ int ossl_rsa_set0_all_params(RSA *r, STACK_OF(BIGNUM) *primes,
 
     return 1;
 #ifndef FIPS_MODULE
- err:
+err:
     /* r, d, t should not be freed */
     sk_RSA_PRIME_INFO_pop_free(prime_infos, ossl_rsa_multip_info_free_ex);
     return 0;
@@ -875,13 +855,14 @@ int ossl_rsa_set0_all_params(RSA *r, STACK_OF(BIGNUM) *primes,
 
 DEFINE_SPECIAL_STACK_OF_CONST(BIGNUM_const, BIGNUM)
 
-int ossl_rsa_get0_all_params(RSA *r, STACK_OF(BIGNUM_const) *primes,
+int ossl_rsa_get0_all_params(RSA                    *r,
+                             STACK_OF(BIGNUM_const) *primes,
                              STACK_OF(BIGNUM_const) *exps,
                              STACK_OF(BIGNUM_const) *coeffs)
 {
 #ifndef FIPS_MODULE
     RSA_PRIME_INFO *pinfo;
-    int i, pnum;
+    int             i, pnum;
 #endif
 
     if (r == NULL)
@@ -911,13 +892,14 @@ int ossl_rsa_get0_all_params(RSA *r, STACK_OF(BIGNUM_const) *primes,
 }
 
 #define safe_BN_num_bits(_k_)  (((_k_) == NULL) ? 0 : BN_num_bits((_k_)))
+
 int ossl_rsa_check_factors(RSA *r)
 {
-    int valid = 0;
-    int n, i, bits;
+    int                     valid = 0;
+    int                     n, i, bits;
     STACK_OF(BIGNUM_const) *factors = sk_BIGNUM_const_new_null();
-    STACK_OF(BIGNUM_const) *exps = sk_BIGNUM_const_new_null();
-    STACK_OF(BIGNUM_const) *coeffs = sk_BIGNUM_const_new_null();
+    STACK_OF(BIGNUM_const) *exps    = sk_BIGNUM_const_new_null();
+    STACK_OF(BIGNUM_const) *coeffs  = sk_BIGNUM_const_new_null();
 
     if (factors == NULL || exps == NULL || coeffs == NULL)
         goto done;
@@ -964,10 +946,13 @@ done:
 /* Helpers to set or get diverse hash algorithm names */
 static int int_set_rsa_md_name(EVP_PKEY_CTX *ctx,
                                /* For checks */
-                               int keytype, int optype,
+                               int           keytype,
+                               int           optype,
                                /* For EVP_PKEY_CTX_set_params() */
-                               const char *mdkey, const char *mdname,
-                               const char *propkey, const char *mdprops)
+                               const char   *mdkey,
+                               const char   *mdname,
+                               const char   *propkey,
+                               const char   *mdprops)
 {
     OSSL_PARAM params[3], *p = params;
 
@@ -980,8 +965,7 @@ static int int_set_rsa_md_name(EVP_PKEY_CTX *ctx,
     /* If key type not RSA return error */
     switch (keytype) {
     case -1:
-        if (!EVP_PKEY_CTX_is_a(ctx, "RSA")
-            && !EVP_PKEY_CTX_is_a(ctx, "RSA-PSS"))
+        if (!EVP_PKEY_CTX_is_a(ctx, "RSA") && !EVP_PKEY_CTX_is_a(ctx, "RSA-PSS"))
             return -1;
         break;
     default:
@@ -1004,10 +988,12 @@ static int int_set_rsa_md_name(EVP_PKEY_CTX *ctx,
 /* Helpers to set or get diverse hash algorithm names */
 static int int_get_rsa_md_name(EVP_PKEY_CTX *ctx,
                                /* For checks */
-                               int keytype, int optype,
+                               int           keytype,
+                               int           optype,
                                /* For EVP_PKEY_CTX_get_params() */
-                               const char *mdkey,
-                               char *mdname, size_t mdnamesize)
+                               const char   *mdkey,
+                               char         *mdname,
+                               size_t        mdnamesize)
 {
     OSSL_PARAM params[2], *p = params;
 
@@ -1020,8 +1006,7 @@ static int int_get_rsa_md_name(EVP_PKEY_CTX *ctx,
     /* If key type not RSA return error */
     switch (keytype) {
     case -1:
-        if (!EVP_PKEY_CTX_is_a(ctx, "RSA")
-            && !EVP_PKEY_CTX_is_a(ctx, "RSA-PSS"))
+        if (!EVP_PKEY_CTX_is_a(ctx, "RSA") && !EVP_PKEY_CTX_is_a(ctx, "RSA-PSS"))
             return -1;
         break;
     default:
@@ -1043,8 +1028,7 @@ static int int_get_rsa_md_name(EVP_PKEY_CTX *ctx,
  */
 int EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad_mode)
 {
-    return RSA_pkey_ctx_ctrl(ctx, -1, EVP_PKEY_CTRL_RSA_PADDING,
-                             pad_mode, NULL);
+    return RSA_pkey_ctx_ctrl(ctx, -1, EVP_PKEY_CTRL_RSA_PADDING, pad_mode, NULL);
 }
 
 /*
@@ -1053,8 +1037,7 @@ int EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad_mode)
  */
 int EVP_PKEY_CTX_get_rsa_padding(EVP_PKEY_CTX *ctx, int *pad_mode)
 {
-    return RSA_pkey_ctx_ctrl(ctx, -1, EVP_PKEY_CTRL_GET_RSA_PADDING,
-                             0, pad_mode);
+    return RSA_pkey_ctx_ctrl(ctx, -1, EVP_PKEY_CTRL_GET_RSA_PADDING, 0, pad_mode);
 }
 
 /*
@@ -1063,17 +1046,18 @@ int EVP_PKEY_CTX_get_rsa_padding(EVP_PKEY_CTX *ctx, int *pad_mode)
  */
 int EVP_PKEY_CTX_set_rsa_pss_keygen_md(EVP_PKEY_CTX *ctx, const EVP_MD *md)
 {
-    return EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA_PSS, EVP_PKEY_OP_KEYGEN,
-                             EVP_PKEY_CTRL_MD, 0, (void *)(md));
+    return EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA_PSS, EVP_PKEY_OP_KEYGEN, EVP_PKEY_CTRL_MD, 0, (void *)(md));
 }
 
-int EVP_PKEY_CTX_set_rsa_pss_keygen_md_name(EVP_PKEY_CTX *ctx,
-                                            const char *mdname,
-                                            const char *mdprops)
+int EVP_PKEY_CTX_set_rsa_pss_keygen_md_name(EVP_PKEY_CTX *ctx, const char *mdname, const char *mdprops)
 {
-    return int_set_rsa_md_name(ctx, EVP_PKEY_RSA_PSS, EVP_PKEY_OP_KEYGEN,
-                               OSSL_PKEY_PARAM_RSA_DIGEST, mdname,
-                               OSSL_PKEY_PARAM_RSA_DIGEST_PROPS, mdprops);
+    return int_set_rsa_md_name(ctx,
+                               EVP_PKEY_RSA_PSS,
+                               EVP_PKEY_OP_KEYGEN,
+                               OSSL_PKEY_PARAM_RSA_DIGEST,
+                               mdname,
+                               OSSL_PKEY_PARAM_RSA_DIGEST_PROPS,
+                               mdprops);
 }
 
 /*
@@ -1086,25 +1070,28 @@ int EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md)
     if (!EVP_PKEY_CTX_is_a(ctx, "RSA"))
         return -1;
 
-    return EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,
-                             EVP_PKEY_CTRL_RSA_OAEP_MD, 0, (void *)(md));
+    return EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT, EVP_PKEY_CTRL_RSA_OAEP_MD, 0, (void *)(md));
 }
 
-int EVP_PKEY_CTX_set_rsa_oaep_md_name(EVP_PKEY_CTX *ctx, const char *mdname,
-                                      const char *mdprops)
+int EVP_PKEY_CTX_set_rsa_oaep_md_name(EVP_PKEY_CTX *ctx, const char *mdname, const char *mdprops)
 {
-    return
-        int_set_rsa_md_name(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,
-                            OSSL_ASYM_CIPHER_PARAM_OAEP_DIGEST, mdname,
-                            OSSL_ASYM_CIPHER_PARAM_OAEP_DIGEST_PROPS, mdprops);
-}
-
-int EVP_PKEY_CTX_get_rsa_oaep_md_name(EVP_PKEY_CTX *ctx, char *name,
-                                      size_t namesize)
-{
-    return int_get_rsa_md_name(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,
+    return int_set_rsa_md_name(ctx,
+                               EVP_PKEY_RSA,
+                               EVP_PKEY_OP_TYPE_CRYPT,
                                OSSL_ASYM_CIPHER_PARAM_OAEP_DIGEST,
-                               name, namesize);
+                               mdname,
+                               OSSL_ASYM_CIPHER_PARAM_OAEP_DIGEST_PROPS,
+                               mdprops);
+}
+
+int EVP_PKEY_CTX_get_rsa_oaep_md_name(EVP_PKEY_CTX *ctx, char *name, size_t namesize)
+{
+    return int_get_rsa_md_name(ctx,
+                               EVP_PKEY_RSA,
+                               EVP_PKEY_OP_TYPE_CRYPT,
+                               OSSL_ASYM_CIPHER_PARAM_OAEP_DIGEST,
+                               name,
+                               namesize);
 }
 
 /*
@@ -1117,8 +1104,7 @@ int EVP_PKEY_CTX_get_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD **md)
     if (!EVP_PKEY_CTX_is_a(ctx, "RSA"))
         return -1;
 
-    return EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT,
-                             EVP_PKEY_CTRL_GET_RSA_OAEP_MD, 0, (void *)md);
+    return EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_TYPE_CRYPT, EVP_PKEY_CTRL_GET_RSA_OAEP_MD, 0, (void *)md);
 }
 
 /*
@@ -1127,25 +1113,32 @@ int EVP_PKEY_CTX_get_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD **md)
  */
 int EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md)
 {
-    return RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_TYPE_SIG | EVP_PKEY_OP_TYPE_CRYPT,
-                             EVP_PKEY_CTRL_RSA_MGF1_MD, 0, (void *)(md));
+    return RSA_pkey_ctx_ctrl(ctx,
+                             EVP_PKEY_OP_TYPE_SIG | EVP_PKEY_OP_TYPE_CRYPT,
+                             EVP_PKEY_CTRL_RSA_MGF1_MD,
+                             0,
+                             (void *)(md));
 }
 
-int EVP_PKEY_CTX_set_rsa_mgf1_md_name(EVP_PKEY_CTX *ctx, const char *mdname,
-                                      const char *mdprops)
+int EVP_PKEY_CTX_set_rsa_mgf1_md_name(EVP_PKEY_CTX *ctx, const char *mdname, const char *mdprops)
 {
-    return int_set_rsa_md_name(ctx, -1,
+    return int_set_rsa_md_name(ctx,
+                               -1,
                                EVP_PKEY_OP_TYPE_CRYPT | EVP_PKEY_OP_TYPE_SIG,
-                               OSSL_PKEY_PARAM_MGF1_DIGEST, mdname,
-                               OSSL_PKEY_PARAM_MGF1_PROPERTIES, mdprops);
+                               OSSL_PKEY_PARAM_MGF1_DIGEST,
+                               mdname,
+                               OSSL_PKEY_PARAM_MGF1_PROPERTIES,
+                               mdprops);
 }
 
-int EVP_PKEY_CTX_get_rsa_mgf1_md_name(EVP_PKEY_CTX *ctx, char *name,
-                                      size_t namesize)
+int EVP_PKEY_CTX_get_rsa_mgf1_md_name(EVP_PKEY_CTX *ctx, char *name, size_t namesize)
 {
-    return int_get_rsa_md_name(ctx, -1,
+    return int_get_rsa_md_name(ctx,
+                               -1,
                                EVP_PKEY_OP_TYPE_CRYPT | EVP_PKEY_OP_TYPE_SIG,
-                               OSSL_PKEY_PARAM_MGF1_DIGEST, name, namesize);
+                               OSSL_PKEY_PARAM_MGF1_DIGEST,
+                               name,
+                               namesize);
 }
 
 /*
@@ -1154,16 +1147,18 @@ int EVP_PKEY_CTX_get_rsa_mgf1_md_name(EVP_PKEY_CTX *ctx, char *name,
  */
 int EVP_PKEY_CTX_set_rsa_pss_keygen_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md)
 {
-    return EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA_PSS, EVP_PKEY_OP_KEYGEN,
-                             EVP_PKEY_CTRL_RSA_MGF1_MD, 0, (void *)(md));
+    return EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA_PSS, EVP_PKEY_OP_KEYGEN, EVP_PKEY_CTRL_RSA_MGF1_MD, 0, (void *)(md));
 }
 
-int EVP_PKEY_CTX_set_rsa_pss_keygen_mgf1_md_name(EVP_PKEY_CTX *ctx,
-                                                 const char *mdname)
+int EVP_PKEY_CTX_set_rsa_pss_keygen_mgf1_md_name(EVP_PKEY_CTX *ctx, const char *mdname)
 {
-    return int_set_rsa_md_name(ctx, EVP_PKEY_RSA_PSS, EVP_PKEY_OP_KEYGEN,
-                               OSSL_PKEY_PARAM_MGF1_DIGEST, mdname,
-                               NULL, NULL);
+    return int_set_rsa_md_name(ctx,
+                               EVP_PKEY_RSA_PSS,
+                               EVP_PKEY_OP_KEYGEN,
+                               OSSL_PKEY_PARAM_MGF1_DIGEST,
+                               mdname,
+                               NULL,
+                               NULL);
 }
 
 /*
@@ -1172,20 +1167,23 @@ int EVP_PKEY_CTX_set_rsa_pss_keygen_mgf1_md_name(EVP_PKEY_CTX *ctx,
  */
 int EVP_PKEY_CTX_get_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD **md)
 {
-    return RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_TYPE_SIG | EVP_PKEY_OP_TYPE_CRYPT,
-                             EVP_PKEY_CTRL_GET_RSA_MGF1_MD, 0, (void *)(md));
+    return RSA_pkey_ctx_ctrl(ctx,
+                             EVP_PKEY_OP_TYPE_SIG | EVP_PKEY_OP_TYPE_CRYPT,
+                             EVP_PKEY_CTRL_GET_RSA_MGF1_MD,
+                             0,
+                             (void *)(md));
 }
 
 int EVP_PKEY_CTX_set0_rsa_oaep_label(EVP_PKEY_CTX *ctx, void *label, int llen)
 {
-    OSSL_PARAM rsa_params[2], *p = rsa_params;
-    const char *empty = "";
+    OSSL_PARAM  rsa_params[2], *p = rsa_params;
+    const char *empty  = "";
     /*
      * Needed as we swap label with empty if it is NULL, and label is
      * freed at the end of this function.
      */
-    void *plabel = label;
-    int ret;
+    void       *plabel = label;
+    int         ret;
 
     if (ctx == NULL || !EVP_PKEY_CTX_IS_ASYM_CIPHER_OP(ctx)) {
         ERR_raise(ERR_LIB_EVP, EVP_R_COMMAND_NOT_SUPPORTED);
@@ -1202,11 +1200,10 @@ int EVP_PKEY_CTX_set0_rsa_oaep_label(EVP_PKEY_CTX *ctx, void *label, int llen)
         plabel = (void *)empty;
 
     /* Cast away the const. This is read only so should be safe */
-    *p++ = OSSL_PARAM_construct_octet_string(OSSL_ASYM_CIPHER_PARAM_OAEP_LABEL,
-                                             (void *)plabel, (size_t)llen);
+    *p++ = OSSL_PARAM_construct_octet_string(OSSL_ASYM_CIPHER_PARAM_OAEP_LABEL, (void *)plabel, (size_t)llen);
     *p++ = OSSL_PARAM_construct_end();
 
-    ret = evp_pkey_ctx_set_params_strict(ctx, rsa_params);
+    ret  = evp_pkey_ctx_set_params_strict(ctx, rsa_params);
     if (ret <= 0)
         return ret;
 
@@ -1218,7 +1215,7 @@ int EVP_PKEY_CTX_set0_rsa_oaep_label(EVP_PKEY_CTX *ctx, void *label, int llen)
 int EVP_PKEY_CTX_get0_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char **label)
 {
     OSSL_PARAM rsa_params[2], *p = rsa_params;
-    size_t labellen;
+    size_t     labellen;
 
     if (ctx == NULL || !EVP_PKEY_CTX_IS_ASYM_CIPHER_OP(ctx)) {
         ERR_raise(ERR_LIB_EVP, EVP_R_COMMAND_NOT_SUPPORTED);
@@ -1230,8 +1227,7 @@ int EVP_PKEY_CTX_get0_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char **label)
     if (!EVP_PKEY_CTX_is_a(ctx, "RSA"))
         return -1;
 
-    *p++ = OSSL_PARAM_construct_octet_ptr(OSSL_ASYM_CIPHER_PARAM_OAEP_LABEL,
-                                          (void **)label, 0);
+    *p++ = OSSL_PARAM_construct_octet_ptr(OSSL_ASYM_CIPHER_PARAM_OAEP_LABEL, (void **)label, 0);
     *p++ = OSSL_PARAM_construct_end();
 
     if (!EVP_PKEY_CTX_get_params(ctx, rsa_params))
@@ -1260,8 +1256,7 @@ int EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int saltlen)
      *
      * EVP_PKEY_OP_TYPE_SIG
      */
-    return RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_TYPE_SIG,
-                             EVP_PKEY_CTRL_RSA_PSS_SALTLEN, saltlen, NULL);
+    return RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_TYPE_SIG, EVP_PKEY_CTRL_RSA_PSS_SALTLEN, saltlen, NULL);
 }
 
 /*
@@ -1279,8 +1274,7 @@ int EVP_PKEY_CTX_get_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int *saltlen)
      *
      * EVP_PKEY_OP_TYPE_SIG
      */
-    return RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_TYPE_SIG,
-                             EVP_PKEY_CTRL_GET_RSA_PSS_SALTLEN, 0, saltlen);
+    return RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_TYPE_SIG, EVP_PKEY_CTRL_GET_RSA_PSS_SALTLEN, 0, saltlen);
 }
 
 int EVP_PKEY_CTX_set_rsa_pss_keygen_saltlen(EVP_PKEY_CTX *ctx, int saltlen)
@@ -1296,8 +1290,7 @@ int EVP_PKEY_CTX_set_rsa_pss_keygen_saltlen(EVP_PKEY_CTX *ctx, int saltlen)
     if (!EVP_PKEY_CTX_is_a(ctx, "RSA-PSS"))
         return -1;
 
-    *p++ = OSSL_PARAM_construct_int(OSSL_SIGNATURE_PARAM_PSS_SALTLEN,
-                                    &saltlen);
+    *p++ = OSSL_PARAM_construct_int(OSSL_SIGNATURE_PARAM_PSS_SALTLEN, &saltlen);
     *p++ = OSSL_PARAM_construct_end();
 
     return evp_pkey_ctx_set_params_strict(ctx, pad_params);
@@ -1306,7 +1299,7 @@ int EVP_PKEY_CTX_set_rsa_pss_keygen_saltlen(EVP_PKEY_CTX *ctx, int saltlen)
 int EVP_PKEY_CTX_set_rsa_keygen_bits(EVP_PKEY_CTX *ctx, int bits)
 {
     OSSL_PARAM params[2], *p = params;
-    size_t bits2 = bits;
+    size_t     bits2 = bits;
 
     if (ctx == NULL || !EVP_PKEY_CTX_IS_GEN_OP(ctx)) {
         ERR_raise(ERR_LIB_EVP, EVP_R_COMMAND_NOT_SUPPORTED);
@@ -1315,8 +1308,7 @@ int EVP_PKEY_CTX_set_rsa_keygen_bits(EVP_PKEY_CTX *ctx, int bits)
     }
 
     /* If key type not RSA return error */
-    if (!EVP_PKEY_CTX_is_a(ctx, "RSA")
-        && !EVP_PKEY_CTX_is_a(ctx, "RSA-PSS"))
+    if (!EVP_PKEY_CTX_is_a(ctx, "RSA") && !EVP_PKEY_CTX_is_a(ctx, "RSA-PSS"))
         return -1;
 
     *p++ = OSSL_PARAM_construct_size_t(OSSL_PKEY_PARAM_RSA_BITS, &bits2);
@@ -1327,8 +1319,7 @@ int EVP_PKEY_CTX_set_rsa_keygen_bits(EVP_PKEY_CTX *ctx, int bits)
 
 int EVP_PKEY_CTX_set_rsa_keygen_pubexp(EVP_PKEY_CTX *ctx, BIGNUM *pubexp)
 {
-    int ret = RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_KEYGEN,
-                                EVP_PKEY_CTRL_RSA_KEYGEN_PUBEXP, 0, pubexp);
+    int ret = RSA_pkey_ctx_ctrl(ctx, EVP_PKEY_OP_KEYGEN, EVP_PKEY_CTRL_RSA_KEYGEN_PUBEXP, 0, pubexp);
 
     /*
      * Satisfy memory semantics for pre-3.0 callers of
@@ -1356,8 +1347,7 @@ int EVP_PKEY_CTX_set1_rsa_keygen_pubexp(EVP_PKEY_CTX *ctx, BIGNUM *pubexp)
         if (pubexp == NULL)
             return 0;
     }
-    ret = EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_KEYGEN,
-                            EVP_PKEY_CTRL_RSA_KEYGEN_PUBEXP, 0, pubexp);
+    ret = EVP_PKEY_CTX_ctrl(ctx, EVP_PKEY_RSA, EVP_PKEY_OP_KEYGEN, EVP_PKEY_CTRL_RSA_KEYGEN_PUBEXP, 0, pubexp);
     if (evp_pkey_ctx_is_legacy(ctx) && ret <= 0)
         BN_free(pubexp);
     return ret;
@@ -1366,7 +1356,7 @@ int EVP_PKEY_CTX_set1_rsa_keygen_pubexp(EVP_PKEY_CTX *ctx, BIGNUM *pubexp)
 int EVP_PKEY_CTX_set_rsa_keygen_primes(EVP_PKEY_CTX *ctx, int primes)
 {
     OSSL_PARAM params[2], *p = params;
-    size_t primes2 = primes;
+    size_t     primes2 = primes;
 
     if (ctx == NULL || !EVP_PKEY_CTX_IS_GEN_OP(ctx)) {
         ERR_raise(ERR_LIB_EVP, EVP_R_COMMAND_NOT_SUPPORTED);
@@ -1375,8 +1365,7 @@ int EVP_PKEY_CTX_set_rsa_keygen_primes(EVP_PKEY_CTX *ctx, int primes)
     }
 
     /* If key type not RSA return error */
-    if (!EVP_PKEY_CTX_is_a(ctx, "RSA")
-        && !EVP_PKEY_CTX_is_a(ctx, "RSA-PSS"))
+    if (!EVP_PKEY_CTX_is_a(ctx, "RSA") && !EVP_PKEY_CTX_is_a(ctx, "RSA-PSS"))
         return -1;
 
     *p++ = OSSL_PARAM_construct_size_t(OSSL_PKEY_PARAM_RSA_PRIMES, &primes2);

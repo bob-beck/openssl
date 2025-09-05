@@ -24,7 +24,7 @@
 
 unsigned char *MD2(const unsigned char *d, size_t n, unsigned char *md)
 {
-    MD2_CTX c;
+    MD2_CTX              c;
     static unsigned char m[MD2_DIGEST_LENGTH];
 
     if (md == NULL)
@@ -35,7 +35,7 @@ unsigned char *MD2(const unsigned char *d, size_t n, unsigned char *md)
     MD2_Update(&c, d, n);
 #else
     {
-        char temp[1024];
+        char          temp[1024];
         unsigned long chunk;
 
         while (n > 0) {

@@ -26,13 +26,12 @@ CONF_VALUE *_CONF_get_section(const CONF *conf, const char *section)
 
     if (conf == NULL || section == NULL)
         return NULL;
-    vv.name = NULL;
+    vv.name    = NULL;
     vv.section = (char *)section;
     return conf->data != NULL ? lh_CONF_VALUE_retrieve(conf->data, &vv) : NULL;
 }
 
-STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf,
-                                               const char *section)
+STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf, const char *section)
 {
     CONF_VALUE *v;
 
@@ -44,10 +43,10 @@ STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf,
 
 int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
 {
-    CONF_VALUE *v = NULL;
+    CONF_VALUE           *v = NULL;
     STACK_OF(CONF_VALUE) *ts;
 
-    ts = (STACK_OF(CONF_VALUE) *)section->value;
+    ts             = (STACK_OF(CONF_VALUE) *)section->value;
 
     value->section = section->section;
     if (!sk_CONF_VALUE_push(ts, value))
@@ -63,11 +62,10 @@ int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
     return 1;
 }
 
-char *_CONF_get_string(const CONF *conf, const char *section,
-                       const char *name)
+char *_CONF_get_string(const CONF *conf, const char *section, const char *name)
 {
     CONF_VALUE *v, vv;
-    char *p;
+    char       *p;
 
     if (name == NULL)
         return NULL;
@@ -76,9 +74,9 @@ char *_CONF_get_string(const CONF *conf, const char *section,
     if (conf->data == NULL)
         return NULL;
     if (section != NULL) {
-        vv.name = (char *)name;
+        vv.name    = (char *)name;
         vv.section = (char *)section;
-        v = lh_CONF_VALUE_retrieve(conf->data, &vv);
+        v          = lh_CONF_VALUE_retrieve(conf->data, &vv);
         if (v != NULL)
             return v->value;
         if (strcmp(section, "ENV") == 0) {
@@ -88,8 +86,8 @@ char *_CONF_get_string(const CONF *conf, const char *section,
         }
     }
     vv.section = "default";
-    vv.name = (char *)name;
-    v = lh_CONF_VALUE_retrieve(conf->data, &vv);
+    vv.name    = (char *)name;
+    v          = lh_CONF_VALUE_retrieve(conf->data, &vv);
     if (v == NULL)
         return NULL;
     return v->value;
@@ -163,9 +161,9 @@ static void value_free_hash(const CONF_VALUE *a, LHASH_OF(CONF_VALUE) *conf)
 
 static void value_free_stack_doall(CONF_VALUE *a)
 {
-    CONF_VALUE *vv;
+    CONF_VALUE           *vv;
     STACK_OF(CONF_VALUE) *sk;
-    int i;
+    int                   i;
 
     if (a->name != NULL)
         return;
@@ -185,8 +183,8 @@ static void value_free_stack_doall(CONF_VALUE *a)
 CONF_VALUE *_CONF_new_section(CONF *conf, const char *section)
 {
     STACK_OF(CONF_VALUE) *sk = NULL;
-    int i;
-    CONF_VALUE *v = NULL, *vv;
+    int                   i;
+    CONF_VALUE           *v = NULL, *vv;
 
     if ((sk = sk_CONF_VALUE_new_null()) == NULL)
         goto err;
@@ -197,15 +195,15 @@ CONF_VALUE *_CONF_new_section(CONF *conf, const char *section)
         goto err;
 
     memcpy(v->section, section, i);
-    v->name = NULL;
+    v->name  = NULL;
     v->value = (char *)sk;
 
-    vv = lh_CONF_VALUE_insert(conf->data, v);
+    vv       = lh_CONF_VALUE_insert(conf->data, v);
     if (vv != NULL || lh_CONF_VALUE_error(conf->data) > 0)
         goto err;
     return v;
 
- err:
+err:
     sk_CONF_VALUE_free(sk);
     if (v != NULL)
         OPENSSL_free(v->section);

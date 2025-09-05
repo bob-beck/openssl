@@ -33,19 +33,14 @@ static int test_ctype_chars(int n)
     if (!ossl_isascii(n))
         return 1;
 
-    return TEST_int_eq(isalpha(n) != 0, ossl_isalpha(n) != 0)
-           && TEST_int_eq(isalnum(n) != 0, ossl_isalnum(n) != 0)
+    return TEST_int_eq(isalpha(n) != 0, ossl_isalpha(n) != 0) && TEST_int_eq(isalnum(n) != 0, ossl_isalnum(n) != 0)
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
            && TEST_int_eq(isblank(n) != 0, ossl_isblank(n) != 0)
 #endif
-           && TEST_int_eq(iscntrl(n) != 0, ossl_iscntrl(n) != 0)
-           && TEST_int_eq(isdigit(n) != 0, ossl_isdigit(n) != 0)
-           && TEST_int_eq(isgraph(n) != 0, ossl_isgraph(n) != 0)
-           && TEST_int_eq(islower(n) != 0, ossl_islower(n) != 0)
-           && TEST_int_eq(isprint(n) != 0, ossl_isprint(n) != 0)
-           && TEST_int_eq(ispunct(n) != 0, ossl_ispunct(n) != 0)
-           && TEST_int_eq(isspace(n) != 0, ossl_isspace(n) != 0)
-           && TEST_int_eq(isupper(n) != 0, ossl_isupper(n) != 0)
+           && TEST_int_eq(iscntrl(n) != 0, ossl_iscntrl(n) != 0) && TEST_int_eq(isdigit(n) != 0, ossl_isdigit(n) != 0)
+           && TEST_int_eq(isgraph(n) != 0, ossl_isgraph(n) != 0) && TEST_int_eq(islower(n) != 0, ossl_islower(n) != 0)
+           && TEST_int_eq(isprint(n) != 0, ossl_isprint(n) != 0) && TEST_int_eq(ispunct(n) != 0, ossl_ispunct(n) != 0)
+           && TEST_int_eq(isspace(n) != 0, ossl_isspace(n) != 0) && TEST_int_eq(isupper(n) != 0, ossl_isupper(n) != 0)
            && TEST_int_eq(isxdigit(n) != 0, ossl_isxdigit(n) != 0);
 }
 
@@ -53,14 +48,14 @@ static struct {
     int u;
     int l;
 } case_change[] = {
-    { 'A', 'a' },
-    { 'X', 'x' },
-    { 'Z', 'z' },
-    { '0', '0' },
-    { '%', '%' },
-    { '~', '~' },
-    {   0,   0 },
-    { EOF, EOF }
+    {'A', 'a'},
+    {'X', 'x'},
+    {'Z', 'z'},
+    {'0', '0'},
+    {'%', '%'},
+    {'~', '~'},
+    {0,   0  },
+    {EOF, EOF}
 };
 
 static int test_ctype_toupper(int n)

@@ -14,18 +14,18 @@
 
 int main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL, *tbio = NULL;
-    X509 *scert = NULL;
-    EVP_PKEY *skey = NULL;
-    CMS_ContentInfo *cms = NULL;
-    int ret = EXIT_FAILURE;
+    BIO             *in = NULL, *out = NULL, *tbio = NULL;
+    X509            *scert = NULL;
+    EVP_PKEY        *skey  = NULL;
+    CMS_ContentInfo *cms   = NULL;
+    int              ret   = EXIT_FAILURE;
 
     /*
      * For simple S/MIME signing use CMS_DETACHED. On OpenSSL 1.0.0 only: for
      * streaming detached set CMS_DETACHED|CMS_STREAM for streaming
      * non-detached set CMS_STREAM
      */
-    int flags = CMS_DETACHED | CMS_STREAM;
+    int              flags = CMS_DETACHED | CMS_STREAM;
 
     OpenSSL_add_all_algorithms();
     ERR_load_crypto_strings();
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
         goto err;
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS) {
         fprintf(stderr, "Error Signing Data\n");
         ERR_print_errors_fp(stderr);

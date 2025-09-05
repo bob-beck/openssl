@@ -48,11 +48,11 @@ void ERR_set_error(int lib, int reason, const char *fmt, ...)
 
 void ERR_vset_error(int lib, int reason, const char *fmt, va_list args)
 {
-    ERR_STATE *es;
-    char *buf = NULL;
-    size_t buf_size = 0;
-    unsigned long flags = 0;
-    size_t i;
+    ERR_STATE    *es;
+    char         *buf      = NULL;
+    size_t        buf_size = 0;
+    unsigned long flags    = 0;
+    size_t        i;
 
     es = ossl_err_get_state_int();
     if (es == NULL)
@@ -60,11 +60,11 @@ void ERR_vset_error(int lib, int reason, const char *fmt, va_list args)
     i = es->top;
 
     if (fmt != NULL) {
-        int printed_len = 0;
-        char *rbuf = NULL;
+        int   printed_len     = 0;
+        char *rbuf            = NULL;
 
-        buf = es->err_data[i];
-        buf_size = es->err_data_size[i];
+        buf                   = es->err_data[i];
+        buf_size              = es->err_data_size[i];
 
         /*
          * To protect the string we just grabbed from tampering by other
@@ -73,16 +73,15 @@ void ERR_vset_error(int lib, int reason, const char *fmt, va_list args)
          * data pointer and the flags.  We will set them again at the end
          * of this function.
          */
-        es->err_data[i] = NULL;
+        es->err_data[i]       = NULL;
         es->err_data_flags[i] = 0;
 
         /*
          * Try to maximize the space available.  If that fails, we use what
          * we have.
          */
-        if (buf_size < ERR_MAX_DATA_SIZE
-            && (rbuf = OPENSSL_realloc(buf, ERR_MAX_DATA_SIZE)) != NULL) {
-            buf = rbuf;
+        if (buf_size < ERR_MAX_DATA_SIZE && (rbuf = OPENSSL_realloc(buf, ERR_MAX_DATA_SIZE)) != NULL) {
+            buf      = rbuf;
             buf_size = ERR_MAX_DATA_SIZE;
         }
 
@@ -101,8 +100,8 @@ void ERR_vset_error(int lib, int reason, const char *fmt, va_list args)
          * if it fails)
          */
         if ((rbuf = OPENSSL_realloc(buf, printed_len + 1)) != NULL) {
-            buf = rbuf;
-            buf_size = printed_len + 1;
+            buf              = rbuf;
+            buf_size         = printed_len + 1;
             buf[printed_len] = '\0';
         }
 

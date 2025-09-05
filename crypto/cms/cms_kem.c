@@ -20,14 +20,14 @@
 
 static int kem_cms_decrypt(CMS_RecipientInfo *ri)
 {
-    uint32_t *kekLength;
-    X509_ALGOR *wrap;
-    EVP_PKEY_CTX *pctx;
+    uint32_t       *kekLength;
+    X509_ALGOR     *wrap;
+    EVP_PKEY_CTX   *pctx;
     EVP_CIPHER_CTX *kekctx;
-    uint32_t cipher_length;
-    char name[OSSL_MAX_NAME_SIZE];
-    EVP_CIPHER *kekcipher = NULL;
-    int rv = 0;
+    uint32_t        cipher_length;
+    char            name[OSSL_MAX_NAME_SIZE];
+    EVP_CIPHER     *kekcipher = NULL;
+    int             rv        = 0;
 
     if (!ossl_cms_RecipientInfo_kemri_get0_alg(ri, &kekLength, &wrap))
         goto err;
@@ -63,19 +63,19 @@ err:
 
 static int kem_cms_encrypt(CMS_RecipientInfo *ri)
 {
-    uint32_t *kekLength;
-    X509_ALGOR *wrap;
-    X509_ALGOR *kdf;
-    EVP_PKEY_CTX *pctx;
-    EVP_PKEY *pkey;
-    int security_bits;
+    uint32_t          *kekLength;
+    X509_ALGOR        *wrap;
+    X509_ALGOR        *kdf;
+    EVP_PKEY_CTX      *pctx;
+    EVP_PKEY          *pkey;
+    int                security_bits;
     const ASN1_OBJECT *kdf_obj = NULL;
-    unsigned char kemri_x509_algor[OSSL_MAX_ALGORITHM_ID_SIZE];
-    OSSL_PARAM params[2];
-    X509_ALGOR *x509_algor = NULL;
-    EVP_CIPHER_CTX *kekctx;
-    int wrap_nid;
-    int rv = 0;
+    unsigned char      kemri_x509_algor[OSSL_MAX_ALGORITHM_ID_SIZE];
+    OSSL_PARAM         params[2];
+    X509_ALGOR        *x509_algor = NULL;
+    EVP_CIPHER_CTX    *kekctx;
+    int                wrap_nid;
+    int                rv = 0;
 
     if (!ossl_cms_RecipientInfo_kemri_get0_alg(ri, &kekLength, &wrap))
         goto err;
@@ -103,14 +103,15 @@ static int kem_cms_encrypt(CMS_RecipientInfo *ri)
          * for a default KDF.
          */
         params[0] = OSSL_PARAM_construct_octet_string(OSSL_PKEY_PARAM_CMS_KEMRI_KDF_ALGORITHM,
-                                                      kemri_x509_algor, sizeof(kemri_x509_algor));
+                                                      kemri_x509_algor,
+                                                      sizeof(kemri_x509_algor));
         params[1] = OSSL_PARAM_construct_end();
         if (!EVP_PKEY_get_params(pkey, params))
             goto err;
         if (OSSL_PARAM_modified(&params[0])) {
             const unsigned char *p = kemri_x509_algor;
 
-            x509_algor = d2i_X509_ALGOR(NULL, &p, (long)params[0].return_size);
+            x509_algor             = d2i_X509_ALGOR(NULL, &p, (long)params[0].return_size);
             if (x509_algor == NULL)
                 goto err;
             if (!X509_ALGOR_copy(kdf, x509_algor))
@@ -126,7 +127,7 @@ static int kem_cms_encrypt(CMS_RecipientInfo *ri)
     if (kekctx == NULL)
         goto err;
     *kekLength = EVP_CIPHER_CTX_get_key_length(kekctx);
-    wrap_nid = EVP_CIPHER_CTX_get_type(kekctx);
+    wrap_nid   = EVP_CIPHER_CTX_get_type(kekctx);
 
     /* Package wrap algorithm in an AlgorithmIdentifier */
     ASN1_OBJECT_free(wrap->algorithm);

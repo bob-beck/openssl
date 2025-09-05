@@ -21,15 +21,15 @@ static char *certsDir = NULL;
  * version 6, instead of 1. As this request is malformed, even its
  * signature is valid, the verification must fail.
  */
-static int test_x509_req_detect_invalid_version(void)
+static int   test_x509_req_detect_invalid_version(void)
 {
-    char *certFilePath;
-    BIO *bio = NULL;
+    char     *certFilePath;
+    BIO      *bio  = NULL;
     EVP_PKEY *pkey = NULL;
-    X509_REQ *req = NULL;
-    int ret = 0;
+    X509_REQ *req  = NULL;
+    int       ret  = 0;
 
-    certFilePath = test_mk_file_path(certsDir, "x509-req-detect-invalid-version.pem");
+    certFilePath   = test_mk_file_path(certsDir, "x509-req-detect-invalid-version.pem");
     if (certFilePath == NULL)
         goto err;
     if (!TEST_ptr(bio = BIO_new_file(certFilePath, "r")))

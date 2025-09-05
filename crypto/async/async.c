@@ -28,7 +28,7 @@
 #define ASYNC_JOB_PAUSED    2
 #define ASYNC_JOB_STOPPING  3
 
-static void async_delete_thread_state(void *arg);
+static void       async_delete_thread_state(void *arg);
 
 static async_ctx *async_ctx_new(void)
 {
@@ -44,8 +44,7 @@ static async_ctx *async_ctx_new(void)
     async_fibre_init_dispatcher(&nctx->dispatcher);
     nctx->currjob = NULL;
     nctx->blocked = 0;
-    if (!CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_CTX_KEY,
-                                    CRYPTO_THREAD_NO_CONTEXT, nctx))
+    if (!CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_CTX_KEY, CRYPTO_THREAD_NO_CONTEXT, nctx))
         goto err;
 
     return nctx;
@@ -57,8 +56,7 @@ err:
 
 async_ctx *async_get_ctx(void)
 {
-    return (async_ctx *)CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_CTX_KEY,
-                                                   CRYPTO_THREAD_NO_CONTEXT);
+    return (async_ctx *)CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_CTX_KEY, CRYPTO_THREAD_NO_CONTEXT);
 }
 
 static int async_ctx_free(void)
@@ -67,8 +65,7 @@ static int async_ctx_free(void)
 
     ctx = async_get_ctx();
 
-    if (!CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_CTX_KEY,
-                                    CRYPTO_THREAD_NO_CONTEXT, NULL))
+    if (!CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_CTX_KEY, CRYPTO_THREAD_NO_CONTEXT, NULL))
         return 0;
 
     OPENSSL_free(ctx);
@@ -80,7 +77,7 @@ static ASYNC_JOB *async_job_new(void)
 {
     ASYNC_JOB *job = NULL;
 
-    job = OPENSSL_zalloc(sizeof(*job));
+    job            = OPENSSL_zalloc(sizeof(*job));
     if (job == NULL)
         return NULL;
 
@@ -98,12 +95,12 @@ static void async_job_free(ASYNC_JOB *job)
     }
 }
 
-static ASYNC_JOB *async_get_pool_job(void) {
-    ASYNC_JOB *job;
+static ASYNC_JOB *async_get_pool_job(void)
+{
+    ASYNC_JOB  *job;
     async_pool *pool;
 
-    pool = (async_pool *)CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY,
-                                                    CRYPTO_THREAD_NO_CONTEXT);
+    pool = (async_pool *)CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY, CRYPTO_THREAD_NO_CONTEXT);
     if (pool == NULL) {
         /*
          * Pool has not been initialised, so init with the defaults, i.e.
@@ -111,8 +108,7 @@ static ASYNC_JOB *async_get_pool_job(void) {
          */
         if (ASYNC_init_thread(0, 0) == 0)
             return NULL;
-        pool = (async_pool *)CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY,
-                                                        CRYPTO_THREAD_NO_CONTEXT);
+        pool = (async_pool *)CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY, CRYPTO_THREAD_NO_CONTEXT);
     }
 
     job = sk_ASYNC_JOB_pop(pool->jobs);
@@ -123,7 +119,7 @@ static ASYNC_JOB *async_get_pool_job(void) {
 
         job = async_job_new();
         if (job != NULL) {
-            if (! async_fibre_makecontext(&job->fibrectx)) {
+            if (!async_fibre_makecontext(&job->fibrectx)) {
                 async_job_free(job);
                 return NULL;
             }
@@ -133,11 +129,11 @@ static ASYNC_JOB *async_get_pool_job(void) {
     return job;
 }
 
-static void async_release_job(ASYNC_JOB *job) {
+static void async_release_job(ASYNC_JOB *job)
+{
     async_pool *pool;
 
-    pool = (async_pool *)CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY,
-                                                    CRYPTO_THREAD_NO_CONTEXT);
+    pool = (async_pool *)CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY, CRYPTO_THREAD_NO_CONTEXT);
     if (pool == NULL) {
         ERR_raise(ERR_LIB_ASYNC, ERR_R_INTERNAL_ERROR);
         return;
@@ -158,13 +154,12 @@ void async_start_func(void)
     }
     while (1) {
         /* Run the job */
-        job = ctx->currjob;
-        job->ret = job->func(job->funcargs);
+        job         = ctx->currjob;
+        job->ret    = job->func(job->funcargs);
 
         /* Stop the job */
         job->status = ASYNC_JOB_STOPPING;
-        if (!async_fibre_swapcontext(&job->fibrectx,
-                                     &ctx->dispatcher, 1)) {
+        if (!async_fibre_swapcontext(&job->fibrectx, &ctx->dispatcher, 1)) {
             /*
              * Should not happen. Getting here will close the thread...can't do
              * much about it
@@ -174,10 +169,9 @@ void async_start_func(void)
     }
 }
 
-int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret,
-                    int (*func)(void *), void *args, size_t size)
+int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret, int (*func)(void *), void *args, size_t size)
 {
-    async_ctx *ctx;
+    async_ctx    *ctx;
     OSSL_LIB_CTX *libctx;
 
     if (!OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
@@ -195,18 +189,18 @@ int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret,
     for (;;) {
         if (ctx->currjob != NULL) {
             if (ctx->currjob->status == ASYNC_JOB_STOPPING) {
-                *ret = ctx->currjob->ret;
+                *ret                  = ctx->currjob->ret;
                 ctx->currjob->waitctx = NULL;
                 async_release_job(ctx->currjob);
                 ctx->currjob = NULL;
-                *job = NULL;
+                *job         = NULL;
                 return ASYNC_FINISH;
             }
 
             if (ctx->currjob->status == ASYNC_JOB_PAUSING) {
-                *job = ctx->currjob;
+                *job                 = ctx->currjob;
                 ctx->currjob->status = ASYNC_JOB_PAUSED;
-                ctx->currjob = NULL;
+                ctx->currjob         = NULL;
                 return ASYNC_PAUSE;
             }
 
@@ -219,15 +213,14 @@ int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret,
                  * Restore the default libctx to what it was the last time the
                  * fibre ran
                  */
-                libctx = OSSL_LIB_CTX_set0_default(ctx->currjob->libctx);
+                libctx       = OSSL_LIB_CTX_set0_default(ctx->currjob->libctx);
                 if (libctx == NULL) {
                     /* Failed to set the default context */
                     ERR_raise(ERR_LIB_ASYNC, ERR_R_INTERNAL_ERROR);
                     goto err;
                 }
                 /* Resume previous job */
-                if (!async_fibre_swapcontext(&ctx->dispatcher,
-                        &ctx->currjob->fibrectx, 1)) {
+                if (!async_fibre_swapcontext(&ctx->dispatcher, &ctx->currjob->fibrectx, 1)) {
                     ctx->currjob->libctx = OSSL_LIB_CTX_set0_default(libctx);
                     ERR_raise(ERR_LIB_ASYNC, ASYNC_R_FAILED_TO_SWAP_CONTEXT);
                     goto err;
@@ -245,7 +238,7 @@ int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret,
             ERR_raise(ERR_LIB_ASYNC, ERR_R_INTERNAL_ERROR);
             async_release_job(ctx->currjob);
             ctx->currjob = NULL;
-            *job = NULL;
+            *job         = NULL;
             return ASYNC_ERR;
         }
 
@@ -265,11 +258,10 @@ int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret,
             ctx->currjob->funcargs = NULL;
         }
 
-        ctx->currjob->func = func;
+        ctx->currjob->func    = func;
         ctx->currjob->waitctx = wctx;
-        libctx = ossl_lib_ctx_get_concrete(NULL);
-        if (!async_fibre_swapcontext(&ctx->dispatcher,
-                &ctx->currjob->fibrectx, 1)) {
+        libctx                = ossl_lib_ctx_get_concrete(NULL);
+        if (!async_fibre_swapcontext(&ctx->dispatcher, &ctx->currjob->fibrectx, 1)) {
             ERR_raise(ERR_LIB_ASYNC, ASYNC_R_FAILED_TO_SWAP_CONTEXT);
             goto err;
         }
@@ -283,7 +275,7 @@ int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret,
 err:
     async_release_job(ctx->currjob);
     ctx->currjob = NULL;
-    *job = NULL;
+    *job         = NULL;
     return ASYNC_ERR;
 }
 
@@ -292,9 +284,7 @@ int ASYNC_pause_job(void)
     ASYNC_JOB *job;
     async_ctx *ctx = async_get_ctx();
 
-    if (ctx == NULL
-            || ctx->currjob == NULL
-            || ctx->blocked) {
+    if (ctx == NULL || ctx->currjob == NULL || ctx->blocked) {
         /*
          * Could be we've deliberately not been started within a job so this is
          * counted as success.
@@ -302,11 +292,10 @@ int ASYNC_pause_job(void)
         return 1;
     }
 
-    job = ctx->currjob;
+    job         = ctx->currjob;
     job->status = ASYNC_JOB_PAUSING;
 
-    if (!async_fibre_swapcontext(&job->fibrectx,
-                                 &ctx->dispatcher, 1)) {
+    if (!async_fibre_swapcontext(&job->fibrectx, &ctx->dispatcher, 1)) {
         ERR_raise(ERR_LIB_ASYNC, ASYNC_R_FAILED_TO_SWAP_CONTEXT);
         return 0;
     }
@@ -342,7 +331,7 @@ void async_deinit(void)
 int ASYNC_init_thread(size_t max_size, size_t init_size)
 {
     async_pool *pool;
-    size_t curr_size = 0;
+    size_t      curr_size = 0;
 
     if (init_size > max_size || max_size > INT_MAX) {
         ERR_raise(ERR_LIB_ASYNC, ASYNC_R_INVALID_POOL_SIZE);
@@ -385,8 +374,7 @@ int ASYNC_init_thread(size_t max_size, size_t init_size)
         curr_size++;
     }
     pool->curr_size = curr_size;
-    if (!CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY,
-                                    CRYPTO_THREAD_NO_CONTEXT, pool)) {
+    if (!CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY, CRYPTO_THREAD_NO_CONTEXT, pool)) {
         ERR_raise(ERR_LIB_ASYNC, ASYNC_R_FAILED_TO_SET_POOL);
         goto err;
     }
@@ -401,15 +389,14 @@ err:
 
 static void async_delete_thread_state(void *arg)
 {
-    async_pool *pool = (async_pool *)CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY,
-                                                                CRYPTO_THREAD_NO_CONTEXT);
+    async_pool *pool =
+        (async_pool *)CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY, CRYPTO_THREAD_NO_CONTEXT);
 
     if (pool != NULL) {
         async_empty_pool(pool);
         sk_ASYNC_JOB_free(pool->jobs);
         OPENSSL_free(pool);
-        CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY,
-                                   CRYPTO_THREAD_NO_CONTEXT, NULL);
+        CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_ASYNC_POOL_KEY, CRYPTO_THREAD_NO_CONTEXT, NULL);
     }
     async_local_cleanup();
     async_ctx_free();

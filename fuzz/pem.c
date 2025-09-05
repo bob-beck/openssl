@@ -22,10 +22,10 @@ int FuzzerInitialize(int *argc, char ***argv)
 
 int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 {
-    BIO *in;
-    char *name = NULL, *header = NULL;
+    BIO           *in;
+    char          *name = NULL, *header = NULL;
     unsigned char *data = NULL;
-    long outlen;
+    long           outlen;
 
     if (len <= 1 || len > INT_MAX)
         return 0;

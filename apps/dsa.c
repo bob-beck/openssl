@@ -34,11 +34,23 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_INFORM, OPT_OUTFORM, OPT_IN, OPT_OUT, OPT_ENGINE,
+    OPT_INFORM,
+    OPT_OUTFORM,
+    OPT_IN,
+    OPT_OUT,
+    OPT_ENGINE,
     /* Do not change the order here; see case statements below */
-    OPT_PVK_NONE, OPT_PVK_WEAK, OPT_PVK_STRONG,
-    OPT_NOOUT, OPT_TEXT, OPT_MODULUS, OPT_PUBIN,
-    OPT_PUBOUT, OPT_CIPHER, OPT_PASSIN, OPT_PASSOUT,
+    OPT_PVK_NONE,
+    OPT_PVK_WEAK,
+    OPT_PVK_STRONG,
+    OPT_NOOUT,
+    OPT_TEXT,
+    OPT_MODULUS,
+    OPT_PUBIN,
+    OPT_PUBOUT,
+    OPT_CIPHER,
+    OPT_PASSIN,
+    OPT_PASSOUT,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
@@ -76,21 +88,21 @@ const OPTIONS dsa_options[] = {
 
 int dsa_main(int argc, char **argv)
 {
-    BIO *out = NULL;
-    ENGINE *e = NULL;
-    EVP_PKEY *pkey = NULL;
-    EVP_CIPHER *enc = NULL;
-    char *infile = NULL, *outfile = NULL, *prog;
-    char *passin = NULL, *passout = NULL, *passinarg = NULL, *passoutarg = NULL;
+    BIO          *out    = NULL;
+    ENGINE       *e      = NULL;
+    EVP_PKEY     *pkey   = NULL;
+    EVP_CIPHER   *enc    = NULL;
+    char         *infile = NULL, *outfile = NULL, *prog;
+    char         *passin = NULL, *passout = NULL, *passinarg = NULL, *passoutarg = NULL;
     OPTION_CHOICE o;
-    int informat = FORMAT_UNDEF, outformat = FORMAT_PEM, text = 0, noout = 0;
-    int modulus = 0, pubin = 0, pubout = 0, ret = 1;
-    int pvk_encr = DEFAULT_PVK_ENCR_STRENGTH;
-    int private = 0;
-    const char *output_type = NULL, *ciphername = NULL;
-    const char *output_structure = NULL;
-    int selection = 0;
-    OSSL_ENCODER_CTX *ectx = NULL;
+    int           informat = FORMAT_UNDEF, outformat = FORMAT_PEM, text = 0, noout = 0;
+    int           modulus = 0, pubin = 0, pubout = 0, ret = 1;
+    int           pvk_encr        = DEFAULT_PVK_ENCR_STRENGTH;
+    int private                   = 0;
+    const char       *output_type = NULL, *ciphername = NULL;
+    const char       *output_structure = NULL;
+    int               selection        = 0;
+    OSSL_ENCODER_CTX *ectx             = NULL;
 
     opt_set_unknown_name("cipher");
     prog = opt_init(argc, argv, dsa_options);
@@ -98,7 +110,7 @@ int dsa_main(int argc, char **argv)
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             ret = 0;
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
@@ -129,9 +141,9 @@ int dsa_main(int argc, char **argv)
         case OPT_PASSOUT:
             passoutarg = opt_arg();
             break;
-        case OPT_PVK_STRONG:    /* pvk_encr:= 2 */
-        case OPT_PVK_WEAK:      /* pvk_encr:= 1 */
-        case OPT_PVK_NONE:      /* pvk_encr:= 0 */
+        case OPT_PVK_STRONG: /* pvk_encr:= 2 */
+        case OPT_PVK_WEAK:   /* pvk_encr:= 1 */
+        case OPT_PVK_NONE:   /* pvk_encr:= 0 */
 #ifndef OPENSSL_NO_RC4
             pvk_encr = (o - OPT_PVK_NONE);
 #endif
@@ -167,7 +179,8 @@ int dsa_main(int argc, char **argv)
 
     if (!opt_cipher(ciphername, &enc))
         goto end;
-    private = !pubin && (!pubout || text);
+  private
+    = !pubin && (!pubout || text);
 
     if (!app_passwd(passinarg, passoutarg, &passin, &passout)) {
         BIO_printf(bio_err, "Error getting passwords\n");
@@ -251,13 +264,11 @@ int dsa_main(int argc, char **argv)
         selection = OSSL_KEYMGMT_SELECT_PUBLIC_KEY;
     } else {
         assert(private);
-        selection = (OSSL_KEYMGMT_SELECT_KEYPAIR
-                     | OSSL_KEYMGMT_SELECT_ALL_PARAMETERS);
+        selection = (OSSL_KEYMGMT_SELECT_KEYPAIR | OSSL_KEYMGMT_SELECT_ALL_PARAMETERS);
     }
 
     /* Perform the encoding */
-    ectx = OSSL_ENCODER_CTX_new_for_pkey(pkey, selection, output_type,
-                                         output_structure, NULL);
+    ectx = OSSL_ENCODER_CTX_new_for_pkey(pkey, selection, output_type, output_structure, NULL);
     if (OSSL_ENCODER_CTX_get_num_encoders(ectx) == 0) {
         BIO_printf(bio_err, "%s format not supported\n", output_type);
         goto end;
@@ -272,16 +283,14 @@ int dsa_main(int argc, char **argv)
         OSSL_ENCODER_CTX_set_passphrase_ui(ectx, get_ui_method(), NULL);
         if (passout != NULL)
             /* When passout given, override the passphrase prompter */
-            OSSL_ENCODER_CTX_set_passphrase(ectx,
-                                            (const unsigned char *)passout,
-                                            strlen(passout));
+            OSSL_ENCODER_CTX_set_passphrase(ectx, (const unsigned char *)passout, strlen(passout));
     }
 
     /* PVK requires a bit more */
     if (outformat == FORMAT_PVK) {
-        OSSL_PARAM params[2] = { OSSL_PARAM_END, OSSL_PARAM_END };
+        OSSL_PARAM params[2] = {OSSL_PARAM_END, OSSL_PARAM_END};
 
-        params[0] = OSSL_PARAM_construct_int("encrypt-level", &pvk_encr);
+        params[0]            = OSSL_PARAM_construct_int("encrypt-level", &pvk_encr);
         if (!OSSL_ENCODER_CTX_set_params(ectx, params)) {
             BIO_printf(bio_err, "invalid PVK encryption level\n");
             goto end;
@@ -293,7 +302,7 @@ int dsa_main(int argc, char **argv)
         goto end;
     }
     ret = 0;
- end:
+end:
     if (ret != 0)
         ERR_print_errors(bio_err);
     OSSL_ENCODER_CTX_free(ectx);

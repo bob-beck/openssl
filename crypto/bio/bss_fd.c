@@ -48,14 +48,14 @@ const BIO_METHOD *BIO_s_fd(void)
  * file descriptors can only be provided by application. Therefore
  * "UPLINK" calls are due...
  */
-static int fd_write(BIO *h, const char *buf, int num);
-static int fd_read(BIO *h, char *buf, int size);
-static int fd_puts(BIO *h, const char *str);
-static int fd_gets(BIO *h, char *buf, int size);
-static long fd_ctrl(BIO *h, int cmd, long arg1, void *arg2);
-static int fd_new(BIO *h);
-static int fd_free(BIO *data);
-int BIO_fd_should_retry(int s);
+static int              fd_write(BIO *h, const char *buf, int num);
+static int              fd_read(BIO *h, char *buf, int size);
+static int              fd_puts(BIO *h, const char *str);
+static int              fd_gets(BIO *h, char *buf, int size);
+static long             fd_ctrl(BIO *h, int cmd, long arg1, void *arg2);
+static int              fd_new(BIO *h);
+static int              fd_free(BIO *data);
+int                     BIO_fd_should_retry(int s);
 
 static const BIO_METHOD methods_fdp = {
     BIO_TYPE_FD,
@@ -69,7 +69,7 @@ static const BIO_METHOD methods_fdp = {
     fd_ctrl,
     fd_new,
     fd_free,
-    NULL,                       /* fd_callback_ctrl */
+    NULL, /* fd_callback_ctrl */
 };
 
 const BIO_METHOD *BIO_s_fd(void)
@@ -89,9 +89,9 @@ BIO *BIO_new_fd(int fd, int close_flag)
 
 static int fd_new(BIO *bi)
 {
-    bi->init = 0;
-    bi->num = -1;
-    bi->ptr = NULL;
+    bi->init  = 0;
+    bi->num   = -1;
+    bi->ptr   = NULL;
     bi->flags = BIO_FLAGS_UPLINK_INTERNAL; /* essentially redundant */
     return 1;
 }
@@ -104,7 +104,7 @@ static int fd_free(BIO *a)
         if (a->init) {
             UP_close(a->num);
         }
-        a->init = 0;
+        a->init  = 0;
         a->flags = BIO_FLAGS_UPLINK_INTERNAL;
     }
     return 1;
@@ -159,9 +159,9 @@ static long fd_ctrl(BIO *b, int cmd, long num, void *ptr)
         break;
     case BIO_C_SET_FD:
         fd_free(b);
-        b->num = *((int *)ptr);
+        b->num      = *((int *)ptr);
         b->shutdown = (int)num;
-        b->init = 1;
+        b->init     = 1;
         break;
     case BIO_C_GET_FD:
         if (b->init) {
@@ -198,7 +198,7 @@ static long fd_ctrl(BIO *b, int cmd, long num, void *ptr)
 
 static int fd_puts(BIO *bp, const char *str)
 {
-    int ret;
+    int    ret;
     size_t n = strlen(str);
 
     if (n > INT_MAX)
@@ -209,13 +209,13 @@ static int fd_puts(BIO *bp, const char *str)
 
 static int fd_gets(BIO *bp, char *buf, int size)
 {
-    int ret = 0;
+    int   ret = 0;
     char *ptr = buf;
     char *end = buf + size - 1;
 
     while (ptr < end && fd_read(bp, ptr, 1) > 0) {
         if (*ptr++ == '\n')
-           break;
+            break;
     }
 
     ptr[0] = '\0';

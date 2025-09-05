@@ -22,37 +22,34 @@
 
 typedef struct {
     OSSL_PARAM *param;
-    int32_t i32;
-    int64_t i64;
-    uint32_t u32;
-    uint64_t u64;
-    double d;
-    int valid_i32, valid_i64, valid_u32, valid_u64, valid_d;
-    void *ref, *datum;
-    size_t size;
+    int32_t     i32;
+    int64_t     i64;
+    uint32_t    u32;
+    uint64_t    u64;
+    double      d;
+    int         valid_i32, valid_i64, valid_u32, valid_u64, valid_d;
+    void       *ref, *datum;
+    size_t      size;
 } PARAM_CONVERSION;
 
 static int param_conversion_load_stanza(PARAM_CONVERSION *pc, const STANZA *s)
 {
-
-    static int32_t datum_i32, ref_i32;
-    static int64_t datum_i64, ref_i64;
-    static uint32_t datum_u32, ref_u32;
-    static uint64_t datum_u64, ref_u64;
-    static double datum_d, ref_d;
-    static OSSL_PARAM params[] = {
-        OSSL_PARAM_int32("int32",   &datum_i32),
-        OSSL_PARAM_int64("int64",   &datum_i64),
-        OSSL_PARAM_uint32("uint32", &datum_u32),
-        OSSL_PARAM_uint64("uint64", &datum_u64),
-        OSSL_PARAM_double("double", &datum_d),
-        OSSL_PARAM_END
-    };
-    int def_i32 = 0, def_i64 = 0, def_u32 = 0, def_u64 = 0, def_d = 0;
-    const PAIR *pp = s->pairs;
-    const char *type = NULL;
-    char *p;
-    int i;
+    static int32_t    datum_i32, ref_i32;
+    static int64_t    datum_i64, ref_i64;
+    static uint32_t   datum_u32, ref_u32;
+    static uint64_t   datum_u64, ref_u64;
+    static double     datum_d, ref_d;
+    static OSSL_PARAM params[] = {OSSL_PARAM_int32("int32", &datum_i32),
+                                  OSSL_PARAM_int64("int64", &datum_i64),
+                                  OSSL_PARAM_uint32("uint32", &datum_u32),
+                                  OSSL_PARAM_uint64("uint64", &datum_u64),
+                                  OSSL_PARAM_double("double", &datum_d),
+                                  OSSL_PARAM_END};
+    int               def_i32 = 0, def_i64 = 0, def_u32 = 0, def_u64 = 0, def_d = 0;
+    const PAIR       *pp   = s->pairs;
+    const char       *type = NULL;
+    char             *p;
+    int               i;
 
     memset(pc, 0, sizeof(*pc));
 
@@ -75,7 +72,7 @@ static int param_conversion_load_stanza(PARAM_CONVERSION *pc, const STANZA *s)
             }
             if (OPENSSL_strcasecmp(pp->value, "invalid") != 0) {
                 pc->valid_i32 = 1;
-                pc->i32 = (int32_t)strtoimax(pp->value, &p, 10);
+                pc->i32       = (int32_t)strtoimax(pp->value, &p, 10);
             }
         } else if (OPENSSL_strcasecmp(pp->key, "int64") == 0) {
             if (def_i64++) {
@@ -84,7 +81,7 @@ static int param_conversion_load_stanza(PARAM_CONVERSION *pc, const STANZA *s)
             }
             if (OPENSSL_strcasecmp(pp->value, "invalid") != 0) {
                 pc->valid_i64 = 1;
-                pc->i64 = (int64_t)strtoimax(pp->value, &p, 10);
+                pc->i64       = (int64_t)strtoimax(pp->value, &p, 10);
             }
         } else if (OPENSSL_strcasecmp(pp->key, "uint32") == 0) {
             if (def_u32++) {
@@ -93,7 +90,7 @@ static int param_conversion_load_stanza(PARAM_CONVERSION *pc, const STANZA *s)
             }
             if (OPENSSL_strcasecmp(pp->value, "invalid") != 0) {
                 pc->valid_u32 = 1;
-                pc->u32 = (uint32_t)strtoumax(pp->value, &p, 10);
+                pc->u32       = (uint32_t)strtoumax(pp->value, &p, 10);
             }
         } else if (OPENSSL_strcasecmp(pp->key, "uint64") == 0) {
             if (def_u64++) {
@@ -102,7 +99,7 @@ static int param_conversion_load_stanza(PARAM_CONVERSION *pc, const STANZA *s)
             }
             if (OPENSSL_strcasecmp(pp->value, "invalid") != 0) {
                 pc->valid_u64 = 1;
-                pc->u64 = (uint64_t)strtoumax(pp->value, &p, 10);
+                pc->u64       = (uint64_t)strtoumax(pp->value, &p, 10);
             }
         } else if (OPENSSL_strcasecmp(pp->key, "double") == 0) {
             if (def_d++) {
@@ -111,15 +108,14 @@ static int param_conversion_load_stanza(PARAM_CONVERSION *pc, const STANZA *s)
             }
             if (OPENSSL_strcasecmp(pp->value, "invalid") != 0) {
                 pc->valid_d = 1;
-                pc->d = strtod(pp->value, &p);
+                pc->d       = strtod(pp->value, &p);
             }
         } else {
             TEST_info("Line %d: unknown keyword %s", s->curr, pp->key);
             return 0;
         }
         if (*p != '\0') {
-            TEST_info("Line %d: extra characters at end '%s' for %s",
-                      s->curr, p, pp->key);
+            TEST_info("Line %d: extra characters at end '%s' for %s", s->curr, p, pp->key);
             return 0;
         }
     }
@@ -135,45 +131,45 @@ static int param_conversion_load_stanza(PARAM_CONVERSION *pc, const STANZA *s)
             return 0;
         }
         datum_i32 = ref_i32 = pc->i32;
-        pc->datum = &datum_i32;
-        pc->ref = &ref_i32;
-        pc->size = sizeof(ref_i32);
+        pc->datum           = &datum_i32;
+        pc->ref             = &ref_i32;
+        pc->size            = sizeof(ref_i32);
     } else if (OPENSSL_strcasecmp(type, "int64") == 0) {
         if (!TEST_true(def_i64) || !TEST_true(pc->valid_i64)) {
             TEST_note("errant int64 on line %d", s->curr);
             return 0;
         }
         datum_i64 = ref_i64 = pc->i64;
-        pc->datum = &datum_i64;
-        pc->ref = &ref_i64;
-        pc->size = sizeof(ref_i64);
+        pc->datum           = &datum_i64;
+        pc->ref             = &ref_i64;
+        pc->size            = sizeof(ref_i64);
     } else if (OPENSSL_strcasecmp(type, "uint32") == 0) {
         if (!TEST_true(def_u32) || !TEST_true(pc->valid_u32)) {
             TEST_note("errant uint32 on line %d", s->curr);
             return 0;
         }
         datum_u32 = ref_u32 = pc->u32;
-        pc->datum = &datum_u32;
-        pc->ref = &ref_u32;
-        pc->size = sizeof(ref_u32);
+        pc->datum           = &datum_u32;
+        pc->ref             = &ref_u32;
+        pc->size            = sizeof(ref_u32);
     } else if (OPENSSL_strcasecmp(type, "uint64") == 0) {
         if (!TEST_true(def_u64) || !TEST_true(pc->valid_u64)) {
             TEST_note("errant uint64 on line %d", s->curr);
             return 0;
         }
         datum_u64 = ref_u64 = pc->u64;
-        pc->datum = &datum_u64;
-        pc->ref = &ref_u64;
-        pc->size = sizeof(ref_u64);
+        pc->datum           = &datum_u64;
+        pc->ref             = &ref_u64;
+        pc->size            = sizeof(ref_u64);
     } else if (OPENSSL_strcasecmp(type, "double") == 0) {
         if (!TEST_true(def_d) || !TEST_true(pc->valid_d)) {
             TEST_note("errant double on line %d", s->curr);
             return 0;
         }
         datum_d = ref_d = pc->d;
-        pc->datum = &datum_d;
-        pc->ref = &ref_d;
-        pc->size = sizeof(ref_d);
+        pc->datum       = &datum_d;
+        pc->ref         = &ref_d;
+        pc->size        = sizeof(ref_d);
     } else {
         TEST_error("type unknown at line %d", s->curr);
         return 0;
@@ -183,99 +179,82 @@ static int param_conversion_load_stanza(PARAM_CONVERSION *pc, const STANZA *s)
 
 static int param_conversion_test(const PARAM_CONVERSION *pc, int line)
 {
-    int32_t i32;
-    int64_t i64;
+    int32_t  i32;
+    int64_t  i64;
     uint32_t u32;
     uint64_t u64;
-    double d;
+    double   d;
 
     if (!pc->valid_i32) {
-        if (!TEST_false(OSSL_PARAM_get_int32(pc->param, &i32))
-                || !TEST_ulong_ne(ERR_get_error(), 0)) {
+        if (!TEST_false(OSSL_PARAM_get_int32(pc->param, &i32)) || !TEST_ulong_ne(ERR_get_error(), 0)) {
             TEST_note("unexpected valid conversion to int32 on line %d", line);
             return 0;
         }
     } else {
-        if (!TEST_true(OSSL_PARAM_get_int32(pc->param, &i32))
-            || !TEST_true(i32 == pc->i32)) {
+        if (!TEST_true(OSSL_PARAM_get_int32(pc->param, &i32)) || !TEST_true(i32 == pc->i32)) {
             TEST_note("unexpected conversion to int32 on line %d", line);
             return 0;
         }
         memset(pc->datum, 44, pc->size);
-        if (!TEST_true(OSSL_PARAM_set_int32(pc->param, i32))
-            || !TEST_mem_eq(pc->datum, pc->size, pc->ref, pc->size)) {
-            TEST_note("unexpected valid conversion from int32 on line %d",
-                      line);
+        if (!TEST_true(OSSL_PARAM_set_int32(pc->param, i32)) || !TEST_mem_eq(pc->datum, pc->size, pc->ref, pc->size)) {
+            TEST_note("unexpected valid conversion from int32 on line %d", line);
             return 0;
         }
     }
 
     if (!pc->valid_i64) {
-        if (!TEST_false(OSSL_PARAM_get_int64(pc->param, &i64))
-                || !TEST_ulong_ne(ERR_get_error(), 0)) {
+        if (!TEST_false(OSSL_PARAM_get_int64(pc->param, &i64)) || !TEST_ulong_ne(ERR_get_error(), 0)) {
             TEST_note("unexpected valid conversion to int64 on line %d", line);
             return 0;
         }
     } else {
-        if (!TEST_true(OSSL_PARAM_get_int64(pc->param, &i64))
-            || !TEST_true(i64 == pc->i64)) {
+        if (!TEST_true(OSSL_PARAM_get_int64(pc->param, &i64)) || !TEST_true(i64 == pc->i64)) {
             TEST_note("unexpected conversion to int64 on line %d", line);
             return 0;
         }
         memset(pc->datum, 44, pc->size);
-        if (!TEST_true(OSSL_PARAM_set_int64(pc->param, i64))
-            || !TEST_mem_eq(pc->datum, pc->size, pc->ref, pc->size)) {
-            TEST_note("unexpected valid conversion from int64 on line %d",
-                      line);
+        if (!TEST_true(OSSL_PARAM_set_int64(pc->param, i64)) || !TEST_mem_eq(pc->datum, pc->size, pc->ref, pc->size)) {
+            TEST_note("unexpected valid conversion from int64 on line %d", line);
             return 0;
         }
     }
 
     if (!pc->valid_u32) {
-        if (!TEST_false(OSSL_PARAM_get_uint32(pc->param, &u32))
-                || !TEST_ulong_ne(ERR_get_error(), 0)) {
+        if (!TEST_false(OSSL_PARAM_get_uint32(pc->param, &u32)) || !TEST_ulong_ne(ERR_get_error(), 0)) {
             TEST_note("unexpected valid conversion to uint32 on line %d", line);
             return 0;
         }
     } else {
-        if (!TEST_true(OSSL_PARAM_get_uint32(pc->param, &u32))
-            || !TEST_true(u32 == pc->u32)) {
+        if (!TEST_true(OSSL_PARAM_get_uint32(pc->param, &u32)) || !TEST_true(u32 == pc->u32)) {
             TEST_note("unexpected conversion to uint32 on line %d", line);
             return 0;
         }
         memset(pc->datum, 44, pc->size);
-        if (!TEST_true(OSSL_PARAM_set_uint32(pc->param, u32))
-            || !TEST_mem_eq(pc->datum, pc->size, pc->ref, pc->size)) {
-            TEST_note("unexpected valid conversion from uint32 on line %d",
-                      line);
+        if (!TEST_true(OSSL_PARAM_set_uint32(pc->param, u32)) || !TEST_mem_eq(pc->datum, pc->size, pc->ref, pc->size)) {
+            TEST_note("unexpected valid conversion from uint32 on line %d", line);
             return 0;
         }
     }
 
     if (!pc->valid_u64) {
-        if (!TEST_false(OSSL_PARAM_get_uint64(pc->param, &u64))
-                || !TEST_ulong_ne(ERR_get_error(), 0)) {
+        if (!TEST_false(OSSL_PARAM_get_uint64(pc->param, &u64)) || !TEST_ulong_ne(ERR_get_error(), 0)) {
             TEST_note("unexpected valid conversion to uint64 on line %d", line);
             return 0;
         }
     } else {
-        if (!TEST_true(OSSL_PARAM_get_uint64(pc->param, &u64))
-            || !TEST_true(u64 == pc->u64)) {
+        if (!TEST_true(OSSL_PARAM_get_uint64(pc->param, &u64)) || !TEST_true(u64 == pc->u64)) {
             TEST_note("unexpected conversion to uint64 on line %d", line);
             return 0;
         }
         memset(pc->datum, 44, pc->size);
-        if (!TEST_true(OSSL_PARAM_set_uint64(pc->param, u64))
-            || !TEST_mem_eq(pc->datum, pc->size, pc->ref, pc->size)) {
-            TEST_note("unexpected valid conversion from uint64 on line %d",
-                      line);
+        if (!TEST_true(OSSL_PARAM_set_uint64(pc->param, u64)) || !TEST_mem_eq(pc->datum, pc->size, pc->ref, pc->size)) {
+            TEST_note("unexpected valid conversion from uint64 on line %d", line);
             return 0;
         }
     }
 
     if (!pc->valid_d) {
-        if (!TEST_false(OSSL_PARAM_get_double(pc->param, &d))
-                || !TEST_ulong_ne(ERR_get_error(), 0)) {
+        if (!TEST_false(OSSL_PARAM_get_double(pc->param, &d)) || !TEST_ulong_ne(ERR_get_error(), 0)) {
             TEST_note("unexpected valid conversion to double on line %d", line);
             return 0;
         }
@@ -306,10 +285,8 @@ static int param_conversion_test(const PARAM_CONVERSION *pc, int line)
             return 0;
         }
         memset(pc->datum, 44, pc->size);
-        if (!TEST_true(OSSL_PARAM_set_double(pc->param, d))
-            || !TEST_mem_eq(pc->datum, pc->size, pc->ref, pc->size)) {
-            TEST_note("unexpected valid conversion from double on line %d",
-                      line);
+        if (!TEST_true(OSSL_PARAM_set_double(pc->param, d)) || !TEST_mem_eq(pc->datum, pc->size, pc->ref, pc->size)) {
+            TEST_note("unexpected valid conversion from double on line %d", line);
             return 0;
         }
     }
@@ -319,10 +296,10 @@ static int param_conversion_test(const PARAM_CONVERSION *pc, int line)
 
 static int run_param_file_tests(int i)
 {
-    STANZA *s;
+    STANZA          *s;
     PARAM_CONVERSION pc;
-    const char *testfile = test_get_argument(i);
-    int res = 1;
+    const char      *testfile = test_get_argument(i);
+    int              res      = 1;
 
     if (!TEST_ptr(s = OPENSSL_zalloc(sizeof(*s))))
         return 0;
@@ -337,8 +314,7 @@ static int run_param_file_tests(int i)
             goto end;
         }
         if (s->numpairs != 0)
-            if (!param_conversion_load_stanza(&pc, s)
-                || !param_conversion_test(&pc, s->curr))
+            if (!param_conversion_load_stanza(&pc, s) || !param_conversion_test(&pc, s->curr))
                 res = 0;
         test_clearstanza(s);
     }

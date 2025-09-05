@@ -9,18 +9,18 @@
  */
 
 #ifndef OSSL_CRYPTO_SPARSE_ARRAY_H
-# define OSSL_CRYPTO_SPARSE_ARRAY_H
-# pragma once
+#define OSSL_CRYPTO_SPARSE_ARRAY_H
+#pragma once
 
-# include <openssl/e_os2.h>
+#include <openssl/e_os2.h>
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-# endif
+#endif
 
-# define SPARSE_ARRAY_OF(type) struct sparse_array_st_ ## type
+#define SPARSE_ARRAY_OF(type) struct sparse_array_st_ ## type
 
-# define DEFINE_SPARSE_ARRAY_OF_INTERNAL(type, ctype) \
+#define DEFINE_SPARSE_ARRAY_OF_INTERNAL(type, ctype) \
     SPARSE_ARRAY_OF(type); \
     static ossl_unused ossl_inline SPARSE_ARRAY_OF(type) * \
         ossl_sa_##type##_new(void) \
@@ -70,23 +70,22 @@ extern "C" {
     } \
     SPARSE_ARRAY_OF(type)
 
-# define DEFINE_SPARSE_ARRAY_OF(type) \
+#define DEFINE_SPARSE_ARRAY_OF(type) \
     DEFINE_SPARSE_ARRAY_OF_INTERNAL(type, type)
-# define DEFINE_SPARSE_ARRAY_OF_CONST(type) \
+#define DEFINE_SPARSE_ARRAY_OF_CONST(type) \
     DEFINE_SPARSE_ARRAY_OF_INTERNAL(type, const type)
 
 typedef struct sparse_array_st OPENSSL_SA;
-OPENSSL_SA *ossl_sa_new(void);
-void ossl_sa_free(OPENSSL_SA *sa);
-void ossl_sa_free_leaves(OPENSSL_SA *sa);
-size_t ossl_sa_num(const OPENSSL_SA *sa);
-void ossl_sa_doall(const OPENSSL_SA *sa, void (*leaf)(ossl_uintmax_t, void *));
-void ossl_sa_doall_arg(const OPENSSL_SA *sa,
-                       void (*leaf)(ossl_uintmax_t, void *, void *), void *);
+OPENSSL_SA                    *ossl_sa_new(void);
+void                           ossl_sa_free(OPENSSL_SA *sa);
+void                           ossl_sa_free_leaves(OPENSSL_SA *sa);
+size_t                         ossl_sa_num(const OPENSSL_SA *sa);
+void                           ossl_sa_doall(const OPENSSL_SA *sa, void (*leaf)(ossl_uintmax_t, void *));
+void  ossl_sa_doall_arg(const OPENSSL_SA *sa, void (*leaf)(ossl_uintmax_t, void *, void *), void *);
 void *ossl_sa_get(const OPENSSL_SA *sa, ossl_uintmax_t n);
-int ossl_sa_set(OPENSSL_SA *sa, ossl_uintmax_t n, void *val);
+int   ossl_sa_set(OPENSSL_SA *sa, ossl_uintmax_t n, void *val);
 
-# ifdef  __cplusplus
+#ifdef __cplusplus
 }
-# endif
+#endif
 #endif

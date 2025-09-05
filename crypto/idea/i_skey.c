@@ -18,9 +18,10 @@
 #include "idea_local.h"
 
 static IDEA_INT inverse(unsigned int xin);
-void IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks)
+
+void            IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks)
 {
-    int i;
+    int                i;
     register IDEA_INT *kt, *kf, r0, r1, r2;
 
     kt = &(ks->data[0][0]);
@@ -33,34 +34,34 @@ void IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks)
     n2s(key, kt[6]);
     n2s(key, kt[7]);
 
-    kf = kt;
+    kf  = kt;
     kt += 8;
     for (i = 0; i < 6; i++) {
-        r2 = kf[1];
-        r1 = kf[2];
+        r2      = kf[1];
+        r1      = kf[2];
         *(kt++) = ((r2 << 9) | (r1 >> 7)) & 0xffff;
-        r0 = kf[3];
+        r0      = kf[3];
         *(kt++) = ((r1 << 9) | (r0 >> 7)) & 0xffff;
-        r1 = kf[4];
+        r1      = kf[4];
         *(kt++) = ((r0 << 9) | (r1 >> 7)) & 0xffff;
-        r0 = kf[5];
+        r0      = kf[5];
         *(kt++) = ((r1 << 9) | (r0 >> 7)) & 0xffff;
-        r1 = kf[6];
+        r1      = kf[6];
         *(kt++) = ((r0 << 9) | (r1 >> 7)) & 0xffff;
-        r0 = kf[7];
+        r0      = kf[7];
         *(kt++) = ((r1 << 9) | (r0 >> 7)) & 0xffff;
-        r1 = kf[0];
+        r1      = kf[0];
         if (i >= 5)
             break;
-        *(kt++) = ((r0 << 9) | (r1 >> 7)) & 0xffff;
-        *(kt++) = ((r1 << 9) | (r2 >> 7)) & 0xffff;
-        kf += 8;
+        *(kt++)  = ((r0 << 9) | (r1 >> 7)) & 0xffff;
+        *(kt++)  = ((r1 << 9) | (r2 >> 7)) & 0xffff;
+        kf      += 8;
     }
 }
 
 void IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk)
 {
-    int r;
+    int                r;
     register IDEA_INT *fp, *tp, t;
 
     tp = &(dk->data[0][0]);
@@ -72,17 +73,17 @@ void IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk)
         *(tp++) = inverse(fp[3]);
         if (r == 8)
             break;
-        fp -= 6;
-        *(tp++) = fp[4];
-        *(tp++) = fp[5];
+        fp      -= 6;
+        *(tp++)  = fp[4];
+        *(tp++)  = fp[5];
     }
 
-    tp = &(dk->data[0][0]);
-    t = tp[1];
-    tp[1] = tp[2];
-    tp[2] = t;
+    tp     = &(dk->data[0][0]);
+    t      = tp[1];
+    tp[1]  = tp[2];
+    tp[2]  = t;
 
-    t = tp[49];
+    t      = tp[49];
     tp[49] = tp[50];
     tp[50] = t;
 }
@@ -109,7 +110,7 @@ static IDEA_INT inverse(unsigned int xin)
             } else {
                 n1 = n2;
                 n2 = r;
-                t = b2;
+                t  = b2;
                 b2 = b1 - q * b2;
                 b1 = t;
             }

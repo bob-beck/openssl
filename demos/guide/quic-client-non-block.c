@@ -27,19 +27,17 @@
 #include <openssl/err.h>
 
 /* Helper function to create a BIO connected to the server */
-static BIO *create_socket_bio(const char *hostname, const char *port,
-                              int family, BIO_ADDR **peer_addr)
+static BIO *create_socket_bio(const char *hostname, const char *port, int family, BIO_ADDR **peer_addr)
 {
-    int sock = -1;
-    BIO_ADDRINFO *res;
+    int                 sock = -1;
+    BIO_ADDRINFO       *res;
     const BIO_ADDRINFO *ai = NULL;
-    BIO *bio;
+    BIO                *bio;
 
     /*
      * Lookup IP address info for the server.
      */
-    if (!BIO_lookup_ex(hostname, port, BIO_LOOKUP_CLIENT, family, SOCK_DGRAM, 0,
-                       &res))
+    if (!BIO_lookup_ex(hostname, port, BIO_LOOKUP_CLIENT, family, SOCK_DGRAM, 0, &res))
         return NULL;
 
     /*
@@ -111,13 +109,13 @@ static BIO *create_socket_bio(const char *hostname, const char *port,
 
 static void wait_for_activity(SSL *ssl)
 {
-    fd_set wfds, rfds;
-    int width, sock, isinfinite;
-    struct timeval tv;
+    fd_set          wfds, rfds;
+    int             width, sock, isinfinite;
+    struct timeval  tv;
     struct timeval *tvp = NULL;
 
     /* Get hold of the underlying file descriptor for the socket */
-    sock = SSL_get_fd(ssl);
+    sock                = SSL_get_fd(ssl);
 
     FD_ZERO(&wfds);
     FD_ZERO(&rfds);
@@ -207,14 +205,14 @@ static int handle_io_failure(SSL *ssl, int res)
          * information about it from SSL_get_verify_result().
          */
         if (SSL_get_verify_result(ssl) != X509_V_OK)
-            printf("Verify error: %s\n",
-                X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
+            printf("Verify error: %s\n", X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
         return -1;
 
     default:
         return -1;
     }
 }
+
 /*
  * Simple application to send a basic HTTP/1.0 request to a server and
  * print the response on the screen. Note that HTTP/1.0 over QUIC is
@@ -223,21 +221,21 @@ static int handle_io_failure(SSL *ssl, int res)
  */
 int main(int argc, char *argv[])
 {
-    SSL_CTX *ctx = NULL;
-    SSL *ssl = NULL;
-    BIO *bio = NULL;
-    int res = EXIT_FAILURE;
-    int ret;
-    unsigned char alpn[] = { 8, 'h', 't', 't', 'p', '/', '1', '.', '0' };
-    const char *request_start = "GET / HTTP/1.0\r\nConnection: close\r\nHost: ";
-    const char *request_end = "\r\n\r\n";
-    size_t written, readbytes = 0;
-    char buf[160];
-    BIO_ADDR *peer_addr = NULL;
-    int eof = 0;
-    char *hostname, *port;
-    int ipv6 = 0;
-    int argnext = 1;
+    SSL_CTX      *ctx = NULL;
+    SSL          *ssl = NULL;
+    BIO          *bio = NULL;
+    int           res = EXIT_FAILURE;
+    int           ret;
+    unsigned char alpn[]        = {8, 'h', 't', 't', 'p', '/', '1', '.', '0'};
+    const char   *request_start = "GET / HTTP/1.0\r\nConnection: close\r\nHost: ";
+    const char   *request_end   = "\r\n\r\n";
+    size_t        written, readbytes = 0;
+    char          buf[160];
+    BIO_ADDR     *peer_addr = NULL;
+    int           eof       = 0;
+    char         *hostname, *port;
+    int           ipv6    = 0;
+    int           argnext = 1;
 
     if (argc < 3) {
         printf("Usage: quic-client-non-block [-6] hostname port\n");
@@ -253,14 +251,14 @@ int main(int argc, char *argv[])
         argnext++;
     }
     hostname = argv[argnext++];
-    port = argv[argnext];
+    port     = argv[argnext];
 
     /*
      * Create an SSL_CTX which we can use to create SSL objects from. We
      * want an SSL_CTX for creating clients so we use
      * OSSL_QUIC_client_method() here.
      */
-    ctx = SSL_CTX_new(OSSL_QUIC_client_method());
+    ctx      = SSL_CTX_new(OSSL_QUIC_client_method());
     if (ctx == NULL) {
         printf("Failed to create the SSL_CTX\n");
         goto end;
@@ -290,8 +288,7 @@ int main(int argc, char *argv[])
      * Create the underlying transport socket/BIO and associate it with the
      * connection.
      */
-    bio = create_socket_bio(hostname, port, ipv6 ? AF_INET6 : AF_INET,
-                            &peer_addr);
+    bio = create_socket_bio(hostname, port, ipv6 ? AF_INET6 : AF_INET, &peer_addr);
     if (bio == NULL) {
         printf("Failed to crete the BIO\n");
         goto end;
@@ -361,8 +358,7 @@ int main(int argc, char *argv[])
         printf("Failed to write hostname in HTTP request\n");
         goto end; /* Cannot retry: error */
     }
-    while (!SSL_write_ex2(ssl, request_end, strlen(request_end),
-                          SSL_WRITE_FLAG_CONCLUDE, &written)) {
+    while (!SSL_write_ex2(ssl, request_end, strlen(request_end), SSL_WRITE_FLAG_CONCLUDE, &written)) {
         if (handle_io_failure(ssl, 0) == 1)
             continue; /* Retry */
         printf("Failed to write end of HTTP request\n");
@@ -411,7 +407,7 @@ int main(int argc, char *argv[])
 
     /* Success! */
     res = EXIT_SUCCESS;
- end:
+end:
     /*
      * If something bad happened then we will dump the contents of the
      * OpenSSL error stack to stderr. There might be some useful diagnostic

@@ -30,16 +30,16 @@
 # define PATH_MAX 4096
 #endif
 
-# if !defined(S_ISREG)
-#   define S_ISREG(m) ((m) & S_IFREG)
-# endif
+#if !defined(S_ISREG)
+# define S_ISREG(m) ((m) & S_IFREG)
+#endif
 
 static void testfile(const char *pathname)
 {
-    struct stat st;
-    FILE *f;
+    struct stat    st;
+    FILE          *f;
     unsigned char *buf;
-    size_t s;
+    size_t         s;
 
     if (stat(pathname, &st) < 0 || !S_ISREG(st.st_mode))
         return;
@@ -58,17 +58,18 @@ static void testfile(const char *pathname)
     fclose(f);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     int n;
 
     FuzzerInitialize(&argc, &argv);
 
     for (n = 1; n < argc; ++n) {
-        size_t dirname_len = strlen(argv[n]);
-        const char *filename = NULL;
-        char *pathname = NULL;
-        OPENSSL_DIR_CTX *ctx = NULL;
-        int wasdir = 0;
+        size_t           dirname_len = strlen(argv[n]);
+        const char      *filename    = NULL;
+        char            *pathname    = NULL;
+        OPENSSL_DIR_CTX *ctx         = NULL;
+        int              wasdir      = 0;
 
         /*
          * We start with trying to read the given path as a directory.

@@ -24,7 +24,7 @@ static const char *int_no_description = "";
  * set the ENGINE_FLAGS_MANUAL_CMD_CTRL flag.
  */
 
-static int int_ctrl_cmd_is_null(const ENGINE_CMD_DEFN *defn)
+static int         int_ctrl_cmd_is_null(const ENGINE_CMD_DEFN *defn)
 {
     if ((defn->cmd_num == 0) || (defn->cmd_name == NULL))
         return 1;
@@ -61,11 +61,10 @@ static int int_ctrl_cmd_by_num(const ENGINE_CMD_DEFN *defn, unsigned int num)
     return -1;
 }
 
-static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
-                           void (*f) (void))
+static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p, void (*f)(void))
 {
-    int idx;
-    char *s = (char *)p;
+    int                    idx;
+    char                  *s = (char *)p;
     const ENGINE_CMD_DEFN *cdp;
 
     /* Take care of the easy one first (eg. it requires no searches) */
@@ -75,9 +74,8 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
         return e->cmd_defns->cmd_num;
     }
     /* One or two commands require that "p" be a valid string buffer */
-    if ((cmd == ENGINE_CTRL_GET_CMD_FROM_NAME) ||
-        (cmd == ENGINE_CTRL_GET_NAME_FROM_CMD) ||
-        (cmd == ENGINE_CTRL_GET_DESC_FROM_CMD)) {
+    if ((cmd == ENGINE_CTRL_GET_CMD_FROM_NAME) || (cmd == ENGINE_CTRL_GET_NAME_FROM_CMD)
+        || (cmd == ENGINE_CTRL_GET_DESC_FROM_CMD)) {
         if (s == NULL) {
             ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
             return -1;
@@ -85,8 +83,7 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
     }
     /* Now handle cmd_name -> cmd_num conversion */
     if (cmd == ENGINE_CTRL_GET_CMD_FROM_NAME) {
-        if ((e->cmd_defns == NULL)
-            || ((idx = int_ctrl_cmd_by_name(e->cmd_defns, s)) < 0)) {
+        if ((e->cmd_defns == NULL) || ((idx = int_ctrl_cmd_by_name(e->cmd_defns, s)) < 0)) {
             ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INVALID_CMD_NAME);
             return -1;
         }
@@ -96,8 +93,7 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
      * For the rest of the commands, the 'long' argument must specify a valid
      * command number - so we need to conduct a search.
      */
-    if ((e->cmd_defns == NULL)
-        || ((idx = int_ctrl_cmd_by_num(e->cmd_defns, (unsigned int)i)) < 0)) {
+    if ((e->cmd_defns == NULL) || ((idx = int_ctrl_cmd_by_num(e->cmd_defns, (unsigned int)i)) < 0)) {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INVALID_CMD_NUMBER);
         return -1;
     }
@@ -112,11 +108,9 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
     case ENGINE_CTRL_GET_NAME_FROM_CMD:
         return (int)strlen(strcpy(s, cdp->cmd_name));
     case ENGINE_CTRL_GET_DESC_LEN_FROM_CMD:
-        return (int)strlen(cdp->cmd_desc == NULL ? int_no_description
-                                                 : cdp->cmd_desc);
+        return (int)strlen(cdp->cmd_desc == NULL ? int_no_description : cdp->cmd_desc);
     case ENGINE_CTRL_GET_DESC_FROM_CMD:
-        return (int)strlen(strcpy(s, cdp->cmd_desc == NULL ? int_no_description
-                                                           : cdp->cmd_desc));
+        return (int)strlen(strcpy(s, cdp->cmd_desc == NULL ? int_no_description : cdp->cmd_desc));
     case ENGINE_CTRL_GET_CMD_FLAGS:
         return cdp->cmd_flags;
     }
@@ -125,7 +119,7 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
     return -1;
 }
 
-int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
+int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f)(void))
 {
     int ctrl_exists;
 
@@ -176,20 +170,16 @@ int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
 int ENGINE_cmd_is_executable(ENGINE *e, int cmd)
 {
     int flags;
-    if ((flags =
-         ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FLAGS, cmd, NULL, NULL)) < 0) {
+    if ((flags = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FLAGS, cmd, NULL, NULL)) < 0) {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_INVALID_CMD_NUMBER);
         return 0;
     }
-    if (!(flags & ENGINE_CMD_FLAG_NO_INPUT) &&
-        !(flags & ENGINE_CMD_FLAG_NUMERIC) &&
-        !(flags & ENGINE_CMD_FLAG_STRING))
+    if (!(flags & ENGINE_CMD_FLAG_NO_INPUT) && !(flags & ENGINE_CMD_FLAG_NUMERIC) && !(flags & ENGINE_CMD_FLAG_STRING))
         return 0;
     return 1;
 }
 
-int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
-                    long i, void *p, void (*f) (void), int cmd_optional)
+int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name, long i, void *p, void (*f)(void), int cmd_optional)
 {
     int num;
 
@@ -197,9 +187,7 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (e->ctrl == NULL
-        || (num = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME,
-                              0, (void *)cmd_name, NULL)) <= 0) {
+    if (e->ctrl == NULL || (num = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME, 0, (void *)cmd_name, NULL)) <= 0) {
         /*
          * If the command didn't *have* to be supported, we fake success.
          * This allows certain settings to be specified for multiple ENGINEs
@@ -224,20 +212,17 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
     return 0;
 }
 
-int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
-                           int cmd_optional)
+int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg, int cmd_optional)
 {
-    int num, flags;
-    long l;
+    int   num, flags;
+    long  l;
     char *ptr;
 
     if (e == NULL || cmd_name == NULL) {
         ERR_raise(ERR_LIB_ENGINE, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
-    if (e->ctrl == NULL
-        || (num = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME,
-                              0, (void *)cmd_name, NULL)) <= 0) {
+    if (e->ctrl == NULL || (num = ENGINE_ctrl(e, ENGINE_CTRL_GET_CMD_FROM_NAME, 0, (void *)cmd_name, NULL)) <= 0) {
         /*
          * If the command didn't *have* to be supported, we fake success.
          * This allows certain settings to be specified for multiple ENGINEs

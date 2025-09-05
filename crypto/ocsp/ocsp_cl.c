@@ -63,13 +63,11 @@ int OCSP_request_set1_name(OCSP_REQUEST *req, const X509_NAME *nm)
 /* Add a certificate to an OCSP request */
 int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
 {
-    if (req->optionalSignature == NULL
-            && (req->optionalSignature = OCSP_SIGNATURE_new()) == NULL)
+    if (req->optionalSignature == NULL && (req->optionalSignature = OCSP_SIGNATURE_new()) == NULL)
         return 0;
     if (cert == NULL)
         return 1;
-    return ossl_x509_add_cert_new(&req->optionalSignature->certs, cert,
-                                  X509_ADD_FLAG_UP_REF);
+    return ossl_x509_add_cert_new(&req->optionalSignature->certs, cert, X509_ADD_FLAG_UP_REF);
 }
 
 /*
@@ -77,11 +75,12 @@ int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
  * optional signers certificate and include one or more optional certificates
  * in the request. Behaves like PKCS7_sign().
  */
-int OCSP_request_sign(OCSP_REQUEST *req,
-                      X509 *signer,
-                      EVP_PKEY *key,
-                      const EVP_MD *dgst,
-                      STACK_OF(X509) *certs, unsigned long flags)
+int OCSP_request_sign(OCSP_REQUEST   *req,
+                      X509           *signer,
+                      EVP_PKEY       *key,
+                      const EVP_MD   *dgst,
+                      STACK_OF(X509) *certs,
+                      unsigned long   flags)
 {
     if (!OCSP_request_set1_name(req, X509_get_subject_name(signer)))
         goto err;
@@ -90,8 +89,7 @@ int OCSP_request_sign(OCSP_REQUEST *req,
         goto err;
     if (key != NULL) {
         if (!X509_check_private_key(signer, key)) {
-            ERR_raise(ERR_LIB_OCSP,
-                      OCSP_R_PRIVATE_KEY_DOES_NOT_MATCH_CERTIFICATE);
+            ERR_raise(ERR_LIB_OCSP, OCSP_R_PRIVATE_KEY_DOES_NOT_MATCH_CERTIFICATE);
             goto err;
         }
         if (!OCSP_REQUEST_sign(req, key, dgst, signer->libctx, signer->propq))
@@ -100,13 +98,12 @@ int OCSP_request_sign(OCSP_REQUEST *req,
 
     if ((flags & OCSP_NOCERTS) == 0) {
         if (!OCSP_request_add1_cert(req, signer)
-            || !X509_add_certs(req->optionalSignature->certs, certs,
-                               X509_ADD_FLAG_UP_REF))
+            || !X509_add_certs(req->optionalSignature->certs, certs, X509_ADD_FLAG_UP_REF))
             goto err;
     }
 
     return 1;
- err:
+err:
     OCSP_SIGNATURE_free(req->optionalSignature);
     req->optionalSignature = NULL;
     return 0;
@@ -180,17 +177,15 @@ const STACK_OF(X509) *OCSP_resp_get0_certs(const OCSP_BASICRESP *bs)
     return bs->certs;
 }
 
-int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
-                      const ASN1_OCTET_STRING **pid,
-                      const X509_NAME **pname)
+int OCSP_resp_get0_id(const OCSP_BASICRESP *bs, const ASN1_OCTET_STRING **pid, const X509_NAME **pname)
 {
     const OCSP_RESPID *rid = &bs->tbsResponseData.responderId;
 
     if (rid->type == V_OCSP_RESPID_NAME) {
         *pname = rid->value.byName;
-        *pid = NULL;
+        *pid   = NULL;
     } else if (rid->type == V_OCSP_RESPID_KEY) {
-        *pid = rid->value.byKey;
+        *pid   = rid->value.byKey;
         *pname = NULL;
     } else {
         return 0;
@@ -198,17 +193,15 @@ int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
     return 1;
 }
 
-int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
-                      ASN1_OCTET_STRING **pid,
-                      X509_NAME **pname)
+int OCSP_resp_get1_id(const OCSP_BASICRESP *bs, ASN1_OCTET_STRING **pid, X509_NAME **pname)
 {
     const OCSP_RESPID *rid = &bs->tbsResponseData.responderId;
 
     if (rid->type == V_OCSP_RESPID_NAME) {
         *pname = X509_NAME_dup(rid->value.byName);
-        *pid = NULL;
+        *pid   = NULL;
     } else if (rid->type == V_OCSP_RESPID_KEY) {
-        *pid = ASN1_OCTET_STRING_dup(rid->value.byKey);
+        *pid   = ASN1_OCTET_STRING_dup(rid->value.byKey);
         *pname = NULL;
     } else {
         return 0;
@@ -221,9 +214,9 @@ int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
 /* Look single response matching a given certificate ID */
 int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
 {
-    int i;
+    int                        i;
     STACK_OF(OCSP_SINGLERESP) *sresp;
-    OCSP_SINGLERESP *single;
+    OCSP_SINGLERESP           *single;
 
     if (bs == NULL)
         return -1;
@@ -245,12 +238,13 @@ int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
  * revtime and reason values are only set if the certificate status is
  * revoked. Returns numerical value of status.
  */
-int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
+int OCSP_single_get0_status(OCSP_SINGLERESP       *single,
+                            int                   *reason,
                             ASN1_GENERALIZEDTIME **revtime,
                             ASN1_GENERALIZEDTIME **thisupd,
                             ASN1_GENERALIZEDTIME **nextupd)
 {
-    int ret;
+    int              ret;
     OCSP_CERTSTATUS *cst;
 
     if (single == NULL)
@@ -280,20 +274,22 @@ int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
  * This function combines the previous ones: look up a certificate ID and if
  * found extract status information. Return 0 is successful.
  */
-int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
-                          int *reason,
+int OCSP_resp_find_status(OCSP_BASICRESP        *bs,
+                          OCSP_CERTID           *id,
+                          int                   *status,
+                          int                   *reason,
                           ASN1_GENERALIZEDTIME **revtime,
                           ASN1_GENERALIZEDTIME **thisupd,
                           ASN1_GENERALIZEDTIME **nextupd)
 {
-    int i = OCSP_resp_find(bs, id, -1);
+    int              i = OCSP_resp_find(bs, id, -1);
     OCSP_SINGLERESP *single;
 
     /* Maybe check for multiple responses and give an error? */
     if (i < 0)
         return 0;
     single = OCSP_resp_get0(bs, i);
-    i = OCSP_single_get0_status(single, reason, revtime, thisupd, nextupd);
+    i      = OCSP_single_get0_status(single, reason, revtime, thisupd, nextupd);
     if (status != NULL)
         *status = i;
     return 1;
@@ -307,10 +303,9 @@ int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
  * accepting very old responses without a nextUpdate field an optional maxage
  * parameter specifies the maximum age the thisUpdate field can be.
  */
-int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
-                        ASN1_GENERALIZEDTIME *nextupd, long nsec, long maxsec)
+int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd, ASN1_GENERALIZEDTIME *nextupd, long nsec, long maxsec)
 {
-    int ret = 1;
+    int    ret = 1;
     time_t t_now, t_tmp;
 
     time(&t_now);

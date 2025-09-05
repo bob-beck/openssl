@@ -8,8 +8,8 @@
  */
 
 #ifndef OPENSSL_HASHTABLE_H
-# define OPENSSL_HASHTABLE_H
-# pragma once
+#define OPENSSL_HASHTABLE_H
+#pragma once
 
 #include <stddef.h>
 #include <stdint.h>
@@ -23,7 +23,7 @@ typedef struct ht_internal_st HT;
  * Represents a key to a hashtable
  */
 typedef struct ht_key_header_st {
-    size_t keysize;
+    size_t   keysize;
     uint8_t *keybuf;
 } HT_KEY;
 
@@ -31,16 +31,16 @@ typedef struct ht_key_header_st {
  * Represents a value in the hash table
  */
 typedef struct ht_value_st {
-    void *value;
+    void      *value;
     uintptr_t *type_id;
-    HT_KEY key;
+    HT_KEY     key;
 } HT_VALUE;
 
 /*
  * Represents a list of values filtered from a hash table
  */
 typedef struct ht_value_list_st {
-    size_t list_len;
+    size_t     list_len;
     HT_VALUE **list;
 } HT_VALUE_LIST;
 
@@ -51,7 +51,7 @@ typedef struct ht_config_st {
     OSSL_LIB_CTX *ctx;
     void (*ht_free_fn)(HT_VALUE *obj);
     uint64_t (*ht_hash_fn)(uint8_t *key, size_t keylen);
-    size_t init_neighborhoods;
+    size_t   init_neighborhoods;
     uint32_t collision_check;
     uint32_t lockless_reads;
 } HT_CONFIG;
@@ -246,7 +246,7 @@ vtype *ossl_unused ossl_ht_##name##_##vtype##_get(HT *h,                       \
                                                   HT_KEY *key,                 \
                                                   HT_VALUE **v);               \
 HT_VALUE *ossl_ht_##name##_##vtype##_to_value(vtype *data, HT_VALUE *v);       \
-int ossl_ht_##name##_##vtype##_type(HT_VALUE *h);                              \
+int ossl_ht_##name##_##vtype##_type(HT_VALUE *h);
 
 /*
  * Helper function to construct case insensitive keys
@@ -270,56 +270,55 @@ static void ossl_unused ossl_ht_strcase(char *tgt, const char *src, int len)
 /*
  * Create a new hashtable
  */
-HT *ossl_ht_new(const HT_CONFIG *conf);
+HT            *ossl_ht_new(const HT_CONFIG *conf);
 
 /*
  * Frees a hash table, potentially freeing all elements
  */
-void ossl_ht_free(HT *htable);
+void           ossl_ht_free(HT *htable);
 
 /*
  * Lock the table for reading
  */
-int ossl_ht_read_lock(HT *htable);
+int            ossl_ht_read_lock(HT *htable);
 
 /*
  * Lock the table for writing
  */
-void ossl_ht_write_lock(HT *htable);
+void           ossl_ht_write_lock(HT *htable);
 
 /*
  * Read unlock
  */
-void ossl_ht_read_unlock(HT *htable);
+void           ossl_ht_read_unlock(HT *htable);
 
 /*
  * Write unlock
  */
-void ossl_ht_write_unlock (HT *htable);
+void           ossl_ht_write_unlock(HT *htable);
 
 /*
  * Empties a hash table, potentially freeing all elements
  */
-int  ossl_ht_flush(HT *htable);
+int            ossl_ht_flush(HT *htable);
 
 /*
  * Inserts an element to a hash table, optionally returning
  * replaced data to caller
  * Returns 1 if the insert was successful, 0 on error
  */
-int ossl_ht_insert(HT *htable, HT_KEY *key, HT_VALUE *data,
-                   HT_VALUE **olddata);
+int            ossl_ht_insert(HT *htable, HT_KEY *key, HT_VALUE *data, HT_VALUE **olddata);
 
 /*
  * Deletes a value from a hash table, based on key
  * Returns 1 if the key was removed, 0 if they key was not found
  */
-int ossl_ht_delete(HT *htable, HT_KEY *key);
+int            ossl_ht_delete(HT *htable, HT_KEY *key);
 
 /*
  * Returns number of elements in the hash table
  */
-size_t ossl_ht_count(HT *htable);
+size_t         ossl_ht_count(HT *htable);
 
 /*
  * Iterates over each element in the table.
@@ -329,27 +328,24 @@ size_t ossl_ht_count(HT *htable);
  * so (holding the table write lock is sufficient).  However, elements of the
  * table may not be inserted or removed while iterating.
  */
-void ossl_ht_foreach_until(HT *htable, int (*cb)(HT_VALUE *obj, void *arg),
-                           void *arg);
+void           ossl_ht_foreach_until(HT *htable, int (*cb)(HT_VALUE *obj, void *arg), void *arg);
 /*
  * Returns a list of elements in a hash table based on
  * filter function return value.  Returns NULL on error,
  * or an HT_VALUE_LIST object on success.  Note it is possible
  * That a list will be returned with 0 entries, if none were found.
- * The zero length list must still be freed via ossl_ht_value_list_free 
+ * The zero length list must still be freed via ossl_ht_value_list_free
  */
-HT_VALUE_LIST *ossl_ht_filter(HT *htable, size_t max_len,
-                              int (*filter)(HT_VALUE *obj, void *arg),
-                              void *arg);
+HT_VALUE_LIST *ossl_ht_filter(HT *htable, size_t max_len, int (*filter)(HT_VALUE *obj, void *arg), void *arg);
 /*
  * Frees the list returned from ossl_ht_filter
  */
-void ossl_ht_value_list_free(HT_VALUE_LIST *list);
+void           ossl_ht_value_list_free(HT_VALUE_LIST *list);
 
 /*
  * Fetches a value from the hash table, based
  * on key.  Returns NULL if the element was not found.
  */
-HT_VALUE *ossl_ht_get(HT *htable, HT_KEY *key);
+HT_VALUE      *ossl_ht_get(HT *htable, HT_KEY *key);
 
 #endif

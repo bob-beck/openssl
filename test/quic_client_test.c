@@ -16,7 +16,7 @@
 #include "testutil.h"
 
 static const char msg1[] = "GET LICENSE.txt\r\n";
-static char msg2[16000];
+static char       msg2[16000];
 
 #define DST_PORT        4433
 #define DST_ADDR        0x7f000001UL
@@ -30,19 +30,18 @@ static int is_want(SSL *s, int ret)
 
 static int test_quic_client_ex(int fd_arg)
 {
-    int testresult = 0, ret;
-    int c_fd;
-    BIO *c_net_bio = NULL, *c_net_bio_own = NULL;
-    BIO_ADDR *s_addr_ = NULL;
-    struct in_addr ina = {0};
-    SSL_CTX *c_ctx = NULL;
-    SSL *c_ssl = NULL;
-    short port = DST_PORT;
-    int c_connected = 0, c_write_done = 0, c_shutdown = 0;
-    size_t l = 0, c_total_read = 0;
-    OSSL_TIME start_time;
-    unsigned char alpn[] = { 8, 'h', 't', 't', 'p', '/', '0', '.', '9' };
-
+    int            testresult = 0, ret;
+    int            c_fd;
+    BIO           *c_net_bio = NULL, *c_net_bio_own = NULL;
+    BIO_ADDR      *s_addr_     = NULL;
+    struct in_addr ina         = {0};
+    SSL_CTX       *c_ctx       = NULL;
+    SSL           *c_ssl       = NULL;
+    short          port        = DST_PORT;
+    int            c_connected = 0, c_write_done = 0, c_shutdown = 0;
+    size_t         l = 0, c_total_read = 0;
+    OSSL_TIME      start_time;
+    unsigned char  alpn[] = {8, 'h', 't', 't', 'p', '/', '0', '.', '9'};
 
     if (fd_arg == INVALID_SOCKET) {
         /* Setup test client. */
@@ -57,8 +56,7 @@ static int test_quic_client_ex(int fd_arg)
             goto err;
 
         ina.s_addr = htonl(DST_ADDR);
-        if (!TEST_true(BIO_ADDR_rawmake(s_addr_, AF_INET, &ina, sizeof(ina),
-                                        htons(port))))
+        if (!TEST_true(BIO_ADDR_rawmake(s_addr_, AF_INET, &ina, sizeof(ina), htons(port))))
             goto err;
     } else {
         c_fd = fd_arg;
@@ -99,8 +97,7 @@ static int test_quic_client_ex(int fd_arg)
     start_time = ossl_time_now();
 
     for (;;) {
-        if (ossl_time_compare(ossl_time_subtract(ossl_time_now(), start_time),
-                              ossl_ms2time(10000)) >= 0) {
+        if (ossl_time_compare(ossl_time_subtract(ossl_time_now(), start_time), ossl_ms2time(10000)) >= 0) {
             TEST_error("timeout while attempting QUIC client test");
             goto err;
         }
@@ -117,8 +114,7 @@ static int test_quic_client_ex(int fd_arg)
         }
 
         if (c_connected && !c_write_done) {
-            if (!TEST_int_eq(SSL_write(c_ssl, msg1, sizeof(msg1) - 1),
-                             (int)sizeof(msg1) - 1))
+            if (!TEST_int_eq(SSL_write(c_ssl, msg1, sizeof(msg1) - 1), (int)sizeof(msg1) - 1))
                 goto err;
 
             if (!TEST_true(SSL_stream_conclude(c_ssl, 0)))
@@ -128,8 +124,7 @@ static int test_quic_client_ex(int fd_arg)
         }
 
         if (c_write_done && !c_shutdown && c_total_read < sizeof(msg2) - 1) {
-            ret = SSL_read_ex(c_ssl, msg2 + c_total_read,
-                              sizeof(msg2) - 1 - c_total_read, &l);
+            ret = SSL_read_ex(c_ssl, msg2 + c_total_read, sizeof(msg2) - 1 - c_total_read, &l);
             if (ret != 1) {
                 if (SSL_get_error(c_ssl, ret) == SSL_ERROR_ZERO_RETURN) {
                     c_shutdown = 1;
@@ -178,17 +173,17 @@ static int test_quic_client(void)
 static int test_quic_client_connect_first(void)
 {
     struct sockaddr_in sin = {0};
-    int c_fd;
-    int rv;
+    int                c_fd;
+    int                rv;
 
 #ifdef SA_LEN
     sin.sin_len = sizeof(struct sockaddr_in);
 #endif
-    sin.sin_family = AF_INET;
-    sin.sin_port = htons(DST_PORT);
+    sin.sin_family      = AF_INET;
+    sin.sin_port        = htons(DST_PORT);
     sin.sin_addr.s_addr = htonl(DST_ADDR);
 
-    c_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    c_fd                = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (!TEST_int_ne(c_fd, INVALID_SOCKET))
         goto err;
 

@@ -22,14 +22,14 @@
 int main(int argc, char *argv[])
 {
     unsigned char buf[512];
-    char *port = "*:4433";
-    BIO *in = NULL;
-    BIO *ssl_bio = NULL;
-    BIO *tmp;
-    SSL_CTX *ctx;
-    int ret = EXIT_FAILURE, i;
+    char         *port    = "*:4433";
+    BIO          *in      = NULL;
+    BIO          *ssl_bio = NULL;
+    BIO          *tmp;
+    SSL_CTX      *ctx;
+    int           ret = EXIT_FAILURE, i;
 
-    ctx = SSL_CTX_new(TLS_server_method());
+    ctx               = SSL_CTX_new(TLS_server_method());
 
     if (CONF_modules_load_file("cmod.cnf", "testapp", 0) <= 0) {
         fprintf(stderr, "Error processing config file\n");
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     BIO_set_accept_bios(in, ssl_bio);
     ssl_bio = NULL;
 
- again:
+again:
     /*
      * The first call will setup the accept socket, and the second will get a
      * socket.  In this loop, the first actual accept will occur in the
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     }
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS)
         ERR_print_errors_fp(stderr);
     BIO_free(in);

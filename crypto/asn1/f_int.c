@@ -15,7 +15,7 @@
 
 int i2a_ASN1_INTEGER(BIO *bp, const ASN1_INTEGER *a)
 {
-    int i, n = 0;
+    int  i, n = 0;
     char buf[2];
 
     if (a == NULL)
@@ -45,20 +45,20 @@ int i2a_ASN1_INTEGER(BIO *bp, const ASN1_INTEGER *a)
         }
     }
     return n;
- err:
+err:
     return -1;
 }
 
 int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
 {
-    int i, j, k, m, n, again, bufsize;
+    int            i, j, k, m, n, again, bufsize;
     unsigned char *s = NULL, *sp;
     unsigned char *bufp;
-    int num = 0, slen = 0, first = 1;
+    int            num = 0, slen = 0, first = 1;
 
     bs->type = V_ASN1_INTEGER;
 
-    bufsize = BIO_gets(bp, buf, size);
+    bufsize  = BIO_gets(bp, buf, size);
     for (;;) {
         if (bufsize < 1)
             goto err;
@@ -91,10 +91,10 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
             first = 0;
             if ((bufp[0] == '0') && (bufp[1] == '0')) {
                 bufp += 2;
-                i -= 2;
+                i    -= 2;
             }
         }
-        k = 0;
+        k  = 0;
         i -= again;
         if (i % 2 != 0) {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ODD_NUMBER_OF_CHARS);
@@ -108,7 +108,7 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
                 OPENSSL_free(s);
                 return 0;
             }
-            s = sp;
+            s    = sp;
             slen = num + i * 2;
         }
         for (j = 0; j < i; j++, k += 2) {
@@ -119,7 +119,7 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
                     goto err;
                 }
                 s[num + j] <<= 4;
-                s[num + j] |= m;
+                s[num + j]  |= m;
             }
         }
         num += i;
@@ -129,9 +129,9 @@ int a2i_ASN1_INTEGER(BIO *bp, ASN1_INTEGER *bs, char *buf, int size)
             break;
     }
     bs->length = num;
-    bs->data = s;
+    bs->data   = s;
     return 1;
- err:
+err:
     ERR_raise(ERR_LIB_ASN1, ASN1_R_SHORT_LINE);
     OPENSSL_free(s);
     return 0;

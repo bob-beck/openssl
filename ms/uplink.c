@@ -22,11 +22,11 @@
 #include <stdio.h>
 #include <stddef.h>
 #include "uplink.h"
-void OPENSSL_showfatal(const char *, ...);
+void         OPENSSL_showfatal(const char *, ...);
 
 static TCHAR msg[128];
 
-static void unimplemented(void)
+static void  unimplemented(void)
 {
     OPENSSL_showfatal(sizeof(TCHAR) == sizeof(char) ? "%s\n" : "%S\n", msg);
     TerminateProcess(GetCurrentProcess(), 1);
@@ -34,10 +34,10 @@ static void unimplemented(void)
 
 void OPENSSL_Uplink(volatile void **table, int index)
 {
-    static HMODULE volatile apphandle = NULL;
+    static HMODULE volatile apphandle   = NULL;
     static void **volatile applinktable = NULL;
     int len;
-    void (*func) (void) = unimplemented;
+    void (*func)(void) = unimplemented;
     HANDLE h;
     void **p;
 
@@ -56,33 +56,32 @@ void OPENSSL_Uplink(volatile void **table, int index)
      * instructions].
      */
     do {
-        len = _sntprintf(msg, sizeof(msg) / sizeof(TCHAR),
-                         _T("OPENSSL_Uplink(%p,%02X): "), table, index);
+        len = _sntprintf(msg, sizeof(msg) / sizeof(TCHAR), _T("OPENSSL_Uplink(%p,%02X): "), table, index);
         _tcscpy(msg + len, _T("unimplemented function"));
 
         if ((h = apphandle) == NULL) {
             if ((h = GetModuleHandle(NULL)) == NULL) {
-                apphandle = (HMODULE) - 1;
+                apphandle = (HMODULE)-1;
                 _tcscpy(msg + len, _T("no host application"));
                 break;
             }
             apphandle = h;
         }
-        if ((h = apphandle) == (HMODULE) - 1) /* revalidate */
+        if ((h = apphandle) == (HMODULE)-1) /* revalidate */
             break;
 
         if (applinktable == NULL) {
-            void **(*applink) ();
+            void **(*applink)();
 
             applink = (void **(*)())GetProcAddress(h, "OPENSSL_Applink");
             if (applink == NULL) {
-                apphandle = (HMODULE) - 1;
+                apphandle = (HMODULE)-1;
                 _tcscpy(msg + len, _T("no OPENSSL_Applink"));
                 break;
             }
-            p = (*applink) ();
+            p = (*applink)();
             if (p == NULL) {
-                apphandle = (HMODULE) - 1;
+                apphandle = (HMODULE)-1;
                 _tcscpy(msg + len, _T("no ApplinkTable"));
                 break;
             }
@@ -124,22 +123,62 @@ __declspec(naked) static void lazy##i (void) { \
               "m" (OPENSSL_UplinkTable[i]));   }
 # endif
 
-# if APPLINK_MAX>25
+# if APPLINK_MAX > 25
 #  error "Add more stubs..."
 # endif
 /* make some in advance... */
-LAZY(1) LAZY(2) LAZY(3) LAZY(4) LAZY(5)
-    LAZY(6) LAZY(7) LAZY(8) LAZY(9) LAZY(10)
-    LAZY(11) LAZY(12) LAZY(13) LAZY(14) LAZY(15)
-    LAZY(16) LAZY(17) LAZY(18) LAZY(19) LAZY(20)
-    LAZY(21) LAZY(22) LAZY(23) LAZY(24) LAZY(25)
+LAZY(1)
+LAZY(2)
+LAZY(3)
+LAZY(4)
+LAZY(5)
+LAZY(6)
+LAZY(7)
+LAZY(8)
+LAZY(9)
+LAZY(10)
+LAZY(11)
+LAZY(12)
+LAZY(13)
+LAZY(14)
+LAZY(15)
+LAZY(16)
+LAZY(17)
+LAZY(18)
+LAZY(19)
+LAZY(20)
+LAZY(21)
+LAZY(22)
+LAZY(23)
+LAZY(24)
+LAZY(25)
 void *OPENSSL_UplinkTable[] = {
     (void *)APPLINK_MAX,
-    lazy1, lazy2, lazy3, lazy4, lazy5,
-    lazy6, lazy7, lazy8, lazy9, lazy10,
-    lazy11, lazy12, lazy13, lazy14, lazy15,
-    lazy16, lazy17, lazy18, lazy19, lazy20,
-    lazy21, lazy22, lazy23, lazy24, lazy25,
+    lazy1,
+    lazy2,
+    lazy3,
+    lazy4,
+    lazy5,
+    lazy6,
+    lazy7,
+    lazy8,
+    lazy9,
+    lazy10,
+    lazy11,
+    lazy12,
+    lazy13,
+    lazy14,
+    lazy15,
+    lazy16,
+    lazy17,
+    lazy18,
+    lazy19,
+    lazy20,
+    lazy21,
+    lazy22,
+    lazy23,
+    lazy24,
+    lazy25,
 };
 #endif
 

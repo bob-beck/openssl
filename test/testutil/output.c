@@ -12,7 +12,7 @@
 int test_printf_stdout(const char *fmt, ...)
 {
     va_list ap;
-    int ret;
+    int     ret;
 
     va_start(ap, fmt);
     ret = test_vprintf_stdout(fmt, ap);
@@ -24,7 +24,7 @@ int test_printf_stdout(const char *fmt, ...)
 int test_printf_stderr(const char *fmt, ...)
 {
     va_list ap;
-    int ret;
+    int     ret;
 
     va_start(ap, fmt);
     ret = test_vprintf_stderr(fmt, ap);
@@ -36,7 +36,7 @@ int test_printf_stderr(const char *fmt, ...)
 int test_printf_tapout(const char *fmt, ...)
 {
     va_list ap;
-    int ret;
+    int     ret;
 
     va_start(ap, fmt);
     ret = test_vprintf_tapout(fmt, ap);
@@ -48,7 +48,7 @@ int test_printf_tapout(const char *fmt, ...)
 int test_printf_taperr(const char *fmt, ...)
 {
     va_list ap;
-    int ret;
+    int     ret;
 
     va_start(ap, fmt);
     ret = test_vprintf_taperr(fmt, ap);

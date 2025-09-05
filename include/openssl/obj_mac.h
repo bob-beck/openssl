@@ -10,8 +10,8 @@
  */
 
 #ifndef OPENSSL_OBJ_MAC_H
-# define OPENSSL_OBJ_MAC_H
-# pragma once
+#define OPENSSL_OBJ_MAC_H
+#pragma once
 
 #define SN_undef                        "UNDEF"
 #define LN_undef                        "undefined"
@@ -6692,4 +6692,4 @@
 #define SN_grasshopper_mac              SN_kuznyechik_mac
 #define NID_grasshopper_mac             NID_kuznyechik_mac
 
-#endif  /* OPENSSL_NO_DEPRECATED_3_0 */
+#endif /* OPENSSL_NO_DEPRECATED_3_0 */

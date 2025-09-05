@@ -22,15 +22,30 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_INFORM, OPT_OUTFORM, OPT_ENGINE, OPT_IN, OPT_OUT,
-    OPT_TOPK8, OPT_NOITER, OPT_NOCRYPT,
+    OPT_INFORM,
+    OPT_OUTFORM,
+    OPT_ENGINE,
+    OPT_IN,
+    OPT_OUT,
+    OPT_TOPK8,
+    OPT_NOITER,
+    OPT_NOCRYPT,
 #ifndef OPENSSL_NO_SCRYPT
-    OPT_SCRYPT, OPT_SCRYPT_N, OPT_SCRYPT_R, OPT_SCRYPT_P,
+    OPT_SCRYPT,
+    OPT_SCRYPT_N,
+    OPT_SCRYPT_R,
+    OPT_SCRYPT_P,
 #endif
-    OPT_V2, OPT_V1, OPT_V2PRF, OPT_ITER, OPT_PASSIN, OPT_PASSOUT,
+    OPT_V2,
+    OPT_V1,
+    OPT_V2PRF,
+    OPT_ITER,
+    OPT_PASSIN,
+    OPT_PASSOUT,
     OPT_TRADITIONAL,
     OPT_SALTLEN,
-    OPT_R_ENUM, OPT_PROV_ENUM
+    OPT_R_ENUM,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS pkcs8_options[] = {
@@ -74,33 +89,33 @@ const OPTIONS pkcs8_options[] = {
 
 int pkcs8_main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL;
-    ENGINE *e = NULL;
-    EVP_PKEY *pkey = NULL;
-    PKCS8_PRIV_KEY_INFO *p8inf = NULL;
-    X509_SIG *p8 = NULL;
-    EVP_CIPHER *cipher = NULL;
-    char *infile = NULL, *outfile = NULL, *ciphername = NULL;
-    char *passinarg = NULL, *passoutarg = NULL, *prog;
+    BIO                 *in = NULL, *out = NULL;
+    ENGINE              *e      = NULL;
+    EVP_PKEY            *pkey   = NULL;
+    PKCS8_PRIV_KEY_INFO *p8inf  = NULL;
+    X509_SIG            *p8     = NULL;
+    EVP_CIPHER          *cipher = NULL;
+    char                *infile = NULL, *outfile = NULL, *ciphername = NULL;
+    char                *passinarg = NULL, *passoutarg = NULL, *prog;
 #ifndef OPENSSL_NO_UI_CONSOLE
     char pass[APP_PASS_LEN];
 #endif
-    char *passin = NULL, *passout = NULL, *p8pass = NULL;
+    char         *passin = NULL, *passout = NULL, *p8pass = NULL;
     OPTION_CHOICE o;
-    int nocrypt = 0, ret = 1, iter = PKCS12_DEFAULT_ITER;
-    int informat = FORMAT_UNDEF, outformat = FORMAT_PEM, topk8 = 0, pbe_nid = -1;
+    int           nocrypt = 0, ret = 1, iter = PKCS12_DEFAULT_ITER;
+    int           informat = FORMAT_UNDEF, outformat = FORMAT_PEM, topk8 = 0, pbe_nid = -1;
     int private = 0, traditional = 0;
 #ifndef OPENSSL_NO_SCRYPT
     long scrypt_N = 0, scrypt_r = 0, scrypt_p = 0;
 #endif
     int saltlen = 0; /* A value of zero chooses the default */
 
-    prog = opt_init(argc, argv, pkcs8_options);
+    prog        = opt_init(argc, argv, pkcs8_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -147,23 +162,21 @@ int pkcs8_main(int argc, char **argv)
         case OPT_V1:
             pbe_nid = OBJ_txt2nid(opt_arg());
             if (pbe_nid == NID_undef) {
-                BIO_printf(bio_err,
-                           "%s: Unknown PBE algorithm %s\n", prog, opt_arg());
+                BIO_printf(bio_err, "%s: Unknown PBE algorithm %s\n", prog, opt_arg());
                 goto opthelp;
             }
             break;
         case OPT_V2PRF:
             pbe_nid = OBJ_txt2nid(opt_arg());
             if (!EVP_PBE_find(EVP_PBE_TYPE_PRF, pbe_nid, NULL, NULL, 0)) {
-                BIO_printf(bio_err,
-                           "%s: Unknown PRF algorithm %s\n", prog, opt_arg());
+                BIO_printf(bio_err, "%s: Unknown PRF algorithm %s\n", prog, opt_arg());
                 goto opthelp;
             }
             if (cipher == NULL)
                 cipher = (EVP_CIPHER *)EVP_aes_256_cbc();
             break;
         case OPT_ITER:
-            iter =  opt_int_arg();
+            iter = opt_int_arg();
             break;
         case OPT_PASSIN:
             passinarg = opt_arg();
@@ -206,7 +219,8 @@ int pkcs8_main(int argc, char **argv)
     if (!opt_check_rest_arg(NULL))
         goto opthelp;
 
-    private = 1;
+  private
+    = 1;
     if (!app_RAND_load())
         goto end;
 
@@ -223,8 +237,7 @@ int pkcs8_main(int argc, char **argv)
     if ((pbe_nid == -1) && cipher == NULL)
         cipher = (EVP_CIPHER *)EVP_aes_256_cbc();
 
-    in = bio_open_default(infile, 'r',
-                          informat == FORMAT_UNDEF ? FORMAT_PEM : informat);
+    in = bio_open_default(infile, 'r', informat == FORMAT_UNDEF ? FORMAT_PEM : informat);
     if (in == NULL)
         goto end;
 
@@ -254,12 +267,10 @@ int pkcs8_main(int argc, char **argv)
             if (cipher) {
 #ifndef OPENSSL_NO_SCRYPT
                 if (scrypt_N && scrypt_r && scrypt_p)
-                    pbe = PKCS5_pbe2_set_scrypt(cipher, NULL, saltlen, NULL,
-                                                scrypt_N, scrypt_r, scrypt_p);
+                    pbe = PKCS5_pbe2_set_scrypt(cipher, NULL, saltlen, NULL, scrypt_N, scrypt_r, scrypt_p);
                 else
 #endif
-                    pbe = PKCS5_pbe2_set_iv(cipher, iter, NULL, saltlen, NULL,
-                                            pbe_nid);
+                    pbe = PKCS5_pbe2_set_iv(cipher, iter, NULL, saltlen, NULL, pbe_nid);
             } else {
                 pbe = PKCS5_pbe_set(pbe_nid, iter, NULL, saltlen);
             }
@@ -274,8 +285,7 @@ int pkcs8_main(int argc, char **argv)
                 /* To avoid bit rot */
 #ifndef OPENSSL_NO_UI_CONSOLE
                 p8pass = pass;
-                if (EVP_read_pw_string
-                    (pass, sizeof(pass), "Enter Encryption Password:", 1)) {
+                if (EVP_read_pw_string(pass, sizeof(pass), "Enter Encryption Password:", 1)) {
                     X509_ALGOR_free(pbe);
                     goto end;
                 }
@@ -365,8 +375,7 @@ int pkcs8_main(int argc, char **argv)
         goto end;
     if (outformat == FORMAT_PEM) {
         if (traditional)
-            PEM_write_bio_PrivateKey_traditional(out, pkey, NULL, NULL, 0,
-                                                 NULL, passout);
+            PEM_write_bio_PrivateKey_traditional(out, pkey, NULL, NULL, 0, NULL, passout);
         else
             PEM_write_bio_PrivateKey(out, pkey, NULL, NULL, 0, NULL, passout);
     } else if (outformat == FORMAT_ASN1) {
@@ -377,7 +386,7 @@ int pkcs8_main(int argc, char **argv)
     }
     ret = 0;
 
- end:
+end:
     X509_SIG_free(p8);
     PKCS8_PRIV_KEY_INFO_free(p8inf);
     EVP_PKEY_free(pkey);

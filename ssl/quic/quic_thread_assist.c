@@ -20,9 +20,9 @@
 static unsigned int assist_thread_main(void *arg)
 {
     QUIC_THREAD_ASSIST *qta = arg;
-    CRYPTO_MUTEX *m = ossl_quic_channel_get_mutex(qta->ch);
-    QUIC_REACTOR *rtor;
-    QUIC_ENGINE *eng = ossl_quic_channel_get0_engine(qta->ch);
+    CRYPTO_MUTEX       *m   = ossl_quic_channel_get_mutex(qta->ch);
+    QUIC_REACTOR       *rtor;
+    QUIC_ENGINE        *eng = ossl_quic_channel_get0_engine(qta->ch);
 
     ossl_crypto_mutex_lock(m);
 
@@ -63,24 +63,22 @@ static unsigned int assist_thread_main(void *arg)
     return 1;
 }
 
-int ossl_quic_thread_assist_init_start(QUIC_THREAD_ASSIST *qta,
-                                       QUIC_CHANNEL *ch)
+int ossl_quic_thread_assist_init_start(QUIC_THREAD_ASSIST *qta, QUIC_CHANNEL *ch)
 {
     CRYPTO_MUTEX *mutex = ossl_quic_channel_get_mutex(ch);
 
     if (mutex == NULL)
         return 0;
 
-    qta->ch         = ch;
-    qta->teardown   = 0;
-    qta->joined     = 0;
+    qta->ch       = ch;
+    qta->teardown = 0;
+    qta->joined   = 0;
 
-    qta->cv = ossl_crypto_condvar_new();
+    qta->cv       = ossl_crypto_condvar_new();
     if (qta->cv == NULL)
         return 0;
 
-    qta->t = ossl_crypto_thread_native_start(assist_thread_main,
-                                             qta, /*joinable=*/1);
+    qta->t = ossl_crypto_thread_native_start(assist_thread_main, qta, /*joinable=*/1);
     if (qta->t == NULL) {
         ossl_crypto_condvar_free(&qta->cv);
         return 0;
@@ -102,7 +100,7 @@ int ossl_quic_thread_assist_stop_async(QUIC_THREAD_ASSIST *qta)
 int ossl_quic_thread_assist_wait_stopped(QUIC_THREAD_ASSIST *qta)
 {
     CRYPTO_THREAD_RETVAL rv;
-    CRYPTO_MUTEX *m = ossl_quic_channel_get_mutex(qta->ch);
+    CRYPTO_MUTEX        *m = ossl_quic_channel_get_mutex(qta->ch);
 
     if (qta->joined)
         return 1;
@@ -131,8 +129,8 @@ int ossl_quic_thread_assist_cleanup(QUIC_THREAD_ASSIST *qta)
     ossl_crypto_condvar_free(&qta->cv);
     ossl_crypto_thread_native_clean(qta->t);
 
-    qta->ch     = NULL;
-    qta->t      = NULL;
+    qta->ch = NULL;
+    qta->t  = NULL;
     return 1;
 }
 

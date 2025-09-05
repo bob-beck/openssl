@@ -28,27 +28,27 @@
 
 typedef struct {
     /* Parameter gen parameters */
-    int prime_len;
-    int generator;
-    int paramgen_type;
-    int subprime_len;
-    int pad;
+    int            prime_len;
+    int            generator;
+    int            paramgen_type;
+    int            subprime_len;
+    int            pad;
     /* message digest used for parameter generation */
-    const EVP_MD *md;
-    int param_nid;
+    const EVP_MD  *md;
+    int            param_nid;
     /* Keygen callback info */
-    int gentmp[2];
+    int            gentmp[2];
     /* KDF (if any) to use for DH */
-    char kdf_type;
+    char           kdf_type;
     /* OID to use for KDF */
-    ASN1_OBJECT *kdf_oid;
+    ASN1_OBJECT   *kdf_oid;
     /* Message digest to use for key derivation */
-    const EVP_MD *kdf_md;
+    const EVP_MD  *kdf_md;
     /* User key material */
     unsigned char *kdf_ukm;
-    size_t kdf_ukmlen;
+    size_t         kdf_ukmlen;
     /* KDF output length */
-    size_t kdf_outlen;
+    size_t         kdf_outlen;
 } DH_PKEY_CTX;
 
 static int pkey_dh_init(EVP_PKEY_CTX *ctx)
@@ -57,13 +57,13 @@ static int pkey_dh_init(EVP_PKEY_CTX *ctx)
 
     if ((dctx = OPENSSL_zalloc(sizeof(*dctx))) == NULL)
         return 0;
-    dctx->prime_len = 2048;
-    dctx->subprime_len = -1;
-    dctx->generator = 2;
-    dctx->kdf_type = EVP_PKEY_DH_KDF_NONE;
+    dctx->prime_len        = 2048;
+    dctx->subprime_len     = -1;
+    dctx->generator        = 2;
+    dctx->kdf_type         = EVP_PKEY_DH_KDF_NONE;
 
-    ctx->data = dctx;
-    ctx->keygen_info = dctx->gentmp;
+    ctx->data              = dctx;
+    ctx->keygen_info       = dctx->gentmp;
     ctx->keygen_info_count = 2;
 
     return 1;
@@ -80,32 +80,31 @@ static void pkey_dh_cleanup(EVP_PKEY_CTX *ctx)
     }
 }
 
-
 static int pkey_dh_copy(EVP_PKEY_CTX *dst, const EVP_PKEY_CTX *src)
 {
     DH_PKEY_CTX *dctx, *sctx;
 
     if (!pkey_dh_init(dst))
         return 0;
-    sctx = src->data;
-    dctx = dst->data;
-    dctx->prime_len = sctx->prime_len;
-    dctx->subprime_len = sctx->subprime_len;
-    dctx->generator = sctx->generator;
+    sctx                = src->data;
+    dctx                = dst->data;
+    dctx->prime_len     = sctx->prime_len;
+    dctx->subprime_len  = sctx->subprime_len;
+    dctx->generator     = sctx->generator;
     dctx->paramgen_type = sctx->paramgen_type;
-    dctx->pad = sctx->pad;
-    dctx->md = sctx->md;
-    dctx->param_nid = sctx->param_nid;
+    dctx->pad           = sctx->pad;
+    dctx->md            = sctx->md;
+    dctx->param_nid     = sctx->param_nid;
 
-    dctx->kdf_type = sctx->kdf_type;
-    dctx->kdf_oid = OBJ_dup(sctx->kdf_oid);
+    dctx->kdf_type      = sctx->kdf_type;
+    dctx->kdf_oid       = OBJ_dup(sctx->kdf_oid);
     if (dctx->kdf_oid == NULL)
         return 0;
     dctx->kdf_md = sctx->kdf_md;
     if (sctx->kdf_ukm != NULL) {
         dctx->kdf_ukm = OPENSSL_memdup(sctx->kdf_ukm, sctx->kdf_ukmlen);
         if (dctx->kdf_ukm == NULL)
-          return 0;
+            return 0;
         dctx->kdf_ukmlen = sctx->kdf_ukmlen;
     }
     dctx->kdf_outlen = sctx->kdf_outlen;
@@ -215,12 +214,10 @@ static int pkey_dh_ctrl(EVP_PKEY_CTX *ctx, int type, int p1, void *p2)
 
     default:
         return -2;
-
     }
 }
 
-static int pkey_dh_ctrl_str(EVP_PKEY_CTX *ctx,
-                            const char *type, const char *value)
+static int pkey_dh_ctrl_str(EVP_PKEY_CTX *ctx, const char *type, const char *value)
 {
     if (strcmp(type, "dh_paramgen_prime_len") == 0) {
         int len;
@@ -229,7 +226,7 @@ static int pkey_dh_ctrl_str(EVP_PKEY_CTX *ctx,
     }
     if (strcmp(type, "dh_rfc5114") == 0) {
         DH_PKEY_CTX *dctx = ctx->data;
-        int id;
+        int          id;
 
         id = atoi(value);
         if (id < 0 || id > 3)
@@ -239,7 +236,7 @@ static int pkey_dh_ctrl_str(EVP_PKEY_CTX *ctx,
     }
     if (strcmp(type, "dh_param") == 0) {
         DH_PKEY_CTX *dctx = ctx->data;
-        int nid = OBJ_sn2nid(value);
+        int          nid  = OBJ_sn2nid(value);
 
         if (nid == NID_undef) {
             ERR_raise(ERR_LIB_DH, DH_R_INVALID_PARAMETER_NAME);
@@ -271,13 +268,12 @@ static int pkey_dh_ctrl_str(EVP_PKEY_CTX *ctx,
     return -2;
 }
 
-static DH *ffc_params_generate(OSSL_LIB_CTX *libctx, DH_PKEY_CTX *dctx,
-                               BN_GENCB *pcb)
+static DH *ffc_params_generate(OSSL_LIB_CTX *libctx, DH_PKEY_CTX *dctx, BN_GENCB *pcb)
 {
     DH *ret;
     int rv = 0;
     int res;
-    int prime_len = dctx->prime_len;
+    int prime_len    = dctx->prime_len;
     int subprime_len = dctx->subprime_len;
 
     if (dctx->paramgen_type > DH_PARAMGEN_TYPE_FIPS_186_4)
@@ -296,20 +292,26 @@ static DH *ffc_params_generate(OSSL_LIB_CTX *libctx, DH_PKEY_CTX *dctx,
     if (dctx->md != NULL)
         ossl_ffc_set_digest(&ret->params, EVP_MD_get0_name(dctx->md), NULL);
 
-# ifndef FIPS_MODULE
+#ifndef FIPS_MODULE
     if (dctx->paramgen_type == DH_PARAMGEN_TYPE_FIPS_186_2)
-        rv = ossl_ffc_params_FIPS186_2_generate(libctx, &ret->params,
+        rv = ossl_ffc_params_FIPS186_2_generate(libctx,
+                                                &ret->params,
                                                 FFC_PARAM_TYPE_DH,
-                                                prime_len, subprime_len, &res,
+                                                prime_len,
+                                                subprime_len,
+                                                &res,
                                                 pcb);
     else
-# endif
-    /* For FIPS we always use the DH_PARAMGEN_TYPE_FIPS_186_4 generator */
-    if (dctx->paramgen_type >= DH_PARAMGEN_TYPE_FIPS_186_2)
-        rv = ossl_ffc_params_FIPS186_4_generate(libctx, &ret->params,
-                                                FFC_PARAM_TYPE_DH,
-                                                prime_len, subprime_len, &res,
-                                                pcb);
+#endif
+        /* For FIPS we always use the DH_PARAMGEN_TYPE_FIPS_186_4 generator */
+        if (dctx->paramgen_type >= DH_PARAMGEN_TYPE_FIPS_186_2)
+            rv = ossl_ffc_params_FIPS186_4_generate(libctx,
+                                                    &ret->params,
+                                                    FFC_PARAM_TYPE_DH,
+                                                    prime_len,
+                                                    subprime_len,
+                                                    &res,
+                                                    pcb);
     if (rv <= 0) {
         DH_free(ret);
         return NULL;
@@ -317,13 +319,12 @@ static DH *ffc_params_generate(OSSL_LIB_CTX *libctx, DH_PKEY_CTX *dctx,
     return ret;
 }
 
-static int pkey_dh_paramgen(EVP_PKEY_CTX *ctx,
-                            EVP_PKEY *pkey)
+static int pkey_dh_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
 {
-    DH *dh = NULL;
+    DH          *dh   = NULL;
     DH_PKEY_CTX *dctx = ctx->data;
-    BN_GENCB *pcb = NULL;
-    int ret;
+    BN_GENCB    *pcb  = NULL;
+    int          ret;
 
     /*
      * Look for a safe prime group for key establishment. Which uses
@@ -345,9 +346,9 @@ static int pkey_dh_paramgen(EVP_PKEY_CTX *ctx,
             return 0;
         evp_pkey_set_cb_translate(pcb, ctx);
     }
-# ifdef FIPS_MODULE
+#ifdef FIPS_MODULE
     dctx->paramgen_type = DH_PARAMGEN_TYPE_FIPS_186_4;
-# endif /* FIPS_MODULE */
+#endif /* FIPS_MODULE */
     if (dctx->paramgen_type >= DH_PARAMGEN_TYPE_FIPS_186_2) {
         dh = ffc_params_generate(NULL, dctx, pcb);
         BN_GENCB_free(pcb);
@@ -361,8 +362,7 @@ static int pkey_dh_paramgen(EVP_PKEY_CTX *ctx,
         BN_GENCB_free(pcb);
         return 0;
     }
-    ret = DH_generate_parameters_ex(dh,
-                                    dctx->prime_len, dctx->generator, pcb);
+    ret = DH_generate_parameters_ex(dh, dctx->prime_len, dctx->generator, pcb);
     BN_GENCB_free(pcb);
     if (ret)
         EVP_PKEY_assign_DH(pkey, dh);
@@ -374,7 +374,7 @@ static int pkey_dh_paramgen(EVP_PKEY_CTX *ctx,
 static int pkey_dh_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
 {
     DH_PKEY_CTX *dctx = ctx->data;
-    DH *dh = NULL;
+    DH          *dh   = NULL;
 
     if (ctx->pkey == NULL && dctx->param_nid == NID_undef) {
         ERR_raise(ERR_LIB_DH, DH_R_NO_PARAMETERS_SET);
@@ -393,20 +393,19 @@ static int pkey_dh_keygen(EVP_PKEY_CTX *ctx, EVP_PKEY *pkey)
     return DH_generate_key((DH *)EVP_PKEY_get0_DH(pkey));
 }
 
-static int pkey_dh_derive(EVP_PKEY_CTX *ctx, unsigned char *key,
-                          size_t *keylen)
+static int pkey_dh_derive(EVP_PKEY_CTX *ctx, unsigned char *key, size_t *keylen)
 {
-    int ret;
-    DH *dh;
-    const DH *dhpub;
+    int          ret;
+    DH          *dh;
+    const DH    *dhpub;
     DH_PKEY_CTX *dctx = ctx->data;
-    BIGNUM *dhpubbn;
+    BIGNUM      *dhpubbn;
 
     if (ctx->pkey == NULL || ctx->peerkey == NULL) {
         ERR_raise(ERR_LIB_DH, DH_R_KEYS_NOT_SET);
         return 0;
     }
-    dh = (DH *)EVP_PKEY_get0_DH(ctx->pkey);
+    dh    = (DH *)EVP_PKEY_get0_DH(ctx->pkey);
     dhpub = EVP_PKEY_get0_DH(ctx->peerkey);
     if (dhpub == NULL || dh == NULL) {
         ERR_raise(ERR_LIB_DH, DH_R_KEYS_NOT_SET);
@@ -426,11 +425,9 @@ static int pkey_dh_derive(EVP_PKEY_CTX *ctx, unsigned char *key,
             return ret;
         *keylen = ret;
         return 1;
-    }
-    else if (dctx->kdf_type == EVP_PKEY_DH_KDF_X9_42) {
-
-        unsigned char *Z = NULL;
-        int Zlen = 0;
+    } else if (dctx->kdf_type == EVP_PKEY_DH_KDF_X9_42) {
+        unsigned char *Z    = NULL;
+        int            Zlen = 0;
 
         if (!dctx->kdf_outlen || !dctx->kdf_oid)
             return 0;
@@ -447,92 +444,99 @@ static int pkey_dh_derive(EVP_PKEY_CTX *ctx, unsigned char *key,
             return 0;
         if (DH_compute_key_padded(Z, dhpubbn, dh) <= 0)
             goto err;
-        if (!DH_KDF_X9_42(key, *keylen, Z, Zlen, dctx->kdf_oid,
-                          dctx->kdf_ukm, dctx->kdf_ukmlen, dctx->kdf_md))
+        if (!DH_KDF_X9_42(key, *keylen, Z, Zlen, dctx->kdf_oid, dctx->kdf_ukm, dctx->kdf_ukmlen, dctx->kdf_md))
             goto err;
         *keylen = dctx->kdf_outlen;
-        ret = 1;
- err:
+        ret     = 1;
+err:
         OPENSSL_clear_free(Z, Zlen);
         return ret;
     }
     return 0;
 }
 
-static const EVP_PKEY_METHOD dh_pkey_meth = {
-    EVP_PKEY_DH,
-    0,
-    pkey_dh_init,
-    pkey_dh_copy,
-    pkey_dh_cleanup,
+static const EVP_PKEY_METHOD dh_pkey_meth = {EVP_PKEY_DH,
+                                             0,
+                                             pkey_dh_init,
+                                             pkey_dh_copy,
+                                             pkey_dh_cleanup,
 
-    0,
-    pkey_dh_paramgen,
+                                             0,
+                                             pkey_dh_paramgen,
 
-    0,
-    pkey_dh_keygen,
+                                             0,
+                                             pkey_dh_keygen,
 
-    0,
-    0,
+                                             0,
+                                             0,
 
-    0,
-    0,
+                                             0,
+                                             0,
 
-    0, 0,
+                                             0,
+                                             0,
 
-    0, 0, 0, 0,
+                                             0,
+                                             0,
+                                             0,
+                                             0,
 
-    0, 0,
+                                             0,
+                                             0,
 
-    0, 0,
+                                             0,
+                                             0,
 
-    0,
-    pkey_dh_derive,
+                                             0,
+                                             pkey_dh_derive,
 
-    pkey_dh_ctrl,
-    pkey_dh_ctrl_str
-};
+                                             pkey_dh_ctrl,
+                                             pkey_dh_ctrl_str};
 
-const EVP_PKEY_METHOD *ossl_dh_pkey_method(void)
+const EVP_PKEY_METHOD       *ossl_dh_pkey_method(void)
 {
     return &dh_pkey_meth;
 }
 
-static const EVP_PKEY_METHOD dhx_pkey_meth = {
-    EVP_PKEY_DHX,
-    0,
-    pkey_dh_init,
-    pkey_dh_copy,
-    pkey_dh_cleanup,
+static const EVP_PKEY_METHOD dhx_pkey_meth = {EVP_PKEY_DHX,
+                                              0,
+                                              pkey_dh_init,
+                                              pkey_dh_copy,
+                                              pkey_dh_cleanup,
 
-    0,
-    pkey_dh_paramgen,
+                                              0,
+                                              pkey_dh_paramgen,
 
-    0,
-    pkey_dh_keygen,
+                                              0,
+                                              pkey_dh_keygen,
 
-    0,
-    0,
+                                              0,
+                                              0,
 
-    0,
-    0,
+                                              0,
+                                              0,
 
-    0, 0,
+                                              0,
+                                              0,
 
-    0, 0, 0, 0,
+                                              0,
+                                              0,
+                                              0,
+                                              0,
 
-    0, 0,
+                                              0,
+                                              0,
 
-    0, 0,
+                                              0,
+                                              0,
 
-    0,
-    pkey_dh_derive,
+                                              0,
+                                              pkey_dh_derive,
 
-    pkey_dh_ctrl,
-    pkey_dh_ctrl_str
-};
+                                              pkey_dh_ctrl,
+                                              pkey_dh_ctrl_str};
 
-const EVP_PKEY_METHOD *ossl_dhx_pkey_method(void)
+const EVP_PKEY_METHOD       *ossl_dhx_pkey_method(void)
 {
     return &dhx_pkey_meth;
 }

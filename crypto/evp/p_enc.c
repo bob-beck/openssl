@@ -18,10 +18,9 @@
 #include <openssl/x509.h>
 #include "crypto/evp.h"
 
-int EVP_PKEY_encrypt_old(unsigned char *ek, const unsigned char *key,
-                         int key_len, EVP_PKEY *pubk)
+int EVP_PKEY_encrypt_old(unsigned char *ek, const unsigned char *key, int key_len, EVP_PKEY *pubk)
 {
-    int ret = 0;
+    int  ret = 0;
     RSA *rsa = NULL;
 
     if (EVP_PKEY_get_id(pubk) != EVP_PKEY_RSA) {
@@ -33,8 +32,7 @@ int EVP_PKEY_encrypt_old(unsigned char *ek, const unsigned char *key,
     if (rsa == NULL)
         goto err;
 
-    ret =
-        RSA_public_encrypt(key_len, key, ek, rsa, RSA_PKCS1_PADDING);
- err:
+    ret = RSA_public_encrypt(key_len, key, ek, rsa, RSA_PKCS1_PADDING);
+err:
     return ret;
 }

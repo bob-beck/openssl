@@ -77,8 +77,7 @@ int TS_VERIFY_CTX_set0_store(TS_VERIFY_CTX *ctx, X509_STORE *s)
 }
 
 #ifndef OPENSSL_NO_DEPRECATED_3_4
-STACK_OF(X509) *TS_VERIFY_CTX_set_certs(TS_VERIFY_CTX *ctx,
-                                        STACK_OF(X509) *certs)
+STACK_OF(X509) *TS_VERIFY_CTX_set_certs(TS_VERIFY_CTX *ctx, STACK_OF(X509) *certs)
 {
     ctx->certs = certs;
     return ctx->certs;
@@ -93,21 +92,19 @@ int TS_VERIFY_CTX_set0_certs(TS_VERIFY_CTX *ctx, STACK_OF(X509) *certs)
 }
 
 #ifndef OPENSSL_NO_DEPRECATED_3_4
-unsigned char *TS_VERIFY_CTX_set_imprint(TS_VERIFY_CTX *ctx,
-                                         unsigned char *hexstr, long len)
+unsigned char *TS_VERIFY_CTX_set_imprint(TS_VERIFY_CTX *ctx, unsigned char *hexstr, long len)
 {
     OPENSSL_free(ctx->imprint);
-    ctx->imprint = hexstr;
+    ctx->imprint     = hexstr;
     ctx->imprint_len = len;
     return ctx->imprint;
 }
 #endif
 
-int TS_VERIFY_CTX_set0_imprint(TS_VERIFY_CTX *ctx,
-                              unsigned char *hexstr, long len)
+int TS_VERIFY_CTX_set0_imprint(TS_VERIFY_CTX *ctx, unsigned char *hexstr, long len)
 {
     OPENSSL_free(ctx->imprint);
-    ctx->imprint = hexstr;
+    ctx->imprint     = hexstr;
     ctx->imprint_len = len;
     return 1;
 }
@@ -136,11 +133,11 @@ void TS_VERIFY_CTX_cleanup(TS_VERIFY_CTX *ctx)
 
 TS_VERIFY_CTX *TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx)
 {
-    TS_VERIFY_CTX *ret = ctx;
-    ASN1_OBJECT *policy;
-    TS_MSG_IMPRINT *imprint;
-    X509_ALGOR *md_alg;
-    ASN1_OCTET_STRING *msg;
+    TS_VERIFY_CTX      *ret = ctx;
+    ASN1_OBJECT        *policy;
+    TS_MSG_IMPRINT     *imprint;
+    X509_ALGOR         *md_alg;
+    ASN1_OCTET_STRING  *msg;
     const ASN1_INTEGER *nonce;
 
     OPENSSL_assert(req != NULL);
@@ -158,10 +155,10 @@ TS_VERIFY_CTX *TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx)
         ret->flags &= ~TS_VFY_POLICY;
 
     imprint = req->msg_imprint;
-    md_alg = imprint->hash_algo;
+    md_alg  = imprint->hash_algo;
     if ((ret->md_alg = X509_ALGOR_dup(md_alg)) == NULL)
         goto err;
-    msg = imprint->hashed_msg;
+    msg              = imprint->hashed_msg;
     ret->imprint_len = ASN1_STRING_length(msg);
     if (ret->imprint_len <= 0)
         goto err;
@@ -176,7 +173,7 @@ TS_VERIFY_CTX *TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx)
         ret->flags &= ~TS_VFY_NONCE;
 
     return ret;
- err:
+err:
     if (ctx)
         TS_VERIFY_CTX_cleanup(ctx);
     else

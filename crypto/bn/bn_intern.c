@@ -21,29 +21,29 @@
  */
 signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
 {
-    int window_val;
-    signed char *r = NULL;
-    int sign = 1;
-    int bit, next_bit, mask;
-    size_t len = 0, j;
+    int          window_val;
+    signed char *r    = NULL;
+    int          sign = 1;
+    int          bit, next_bit, mask;
+    size_t       len = 0, j;
 
     if (BN_is_zero(scalar)) {
         r = OPENSSL_malloc(1);
         if (r == NULL)
             goto err;
-        r[0] = 0;
+        r[0]     = 0;
         *ret_len = 1;
         return r;
     }
 
-    if (w <= 0 || w > 7) {      /* 'signed char' can represent integers with
-                                 * absolute values less than 2^7 */
+    if (w <= 0 || w > 7) { /* 'signed char' can represent integers with
+                            * absolute values less than 2^7 */
         ERR_raise(ERR_LIB_BN, ERR_R_INTERNAL_ERROR);
         goto err;
     }
-    bit = 1 << w;               /* at most 128 */
-    next_bit = bit << 1;        /* at most 256 */
-    mask = next_bit - 1;        /* at most 255 */
+    bit      = 1 << w;       /* at most 128 */
+    next_bit = bit << 1;     /* at most 256 */
+    mask     = next_bit - 1; /* at most 255 */
 
     if (BN_is_negative(scalar)) {
         sign = -1;
@@ -55,15 +55,15 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
     }
 
     len = BN_num_bits(scalar);
-    r = OPENSSL_malloc(len + 1); /*
-                                  * Modified wNAF may be one digit longer than binary representation
-                                  * (*ret_len will be set to the actual length, i.e. at most
-                                  * BN_num_bits(scalar) + 1)
-                                  */
+    r   = OPENSSL_malloc(len + 1); /*
+                                    * Modified wNAF may be one digit longer than binary representation
+                                    * (*ret_len will be set to the actual length, i.e. at most
+                                    * BN_num_bits(scalar) + 1)
+                                    */
     if (r == NULL)
         goto err;
     window_val = scalar->d[0] & mask;
-    j = 0;
+    j          = 0;
     while ((window_val != 0) || (j + w + 1 < len)) { /* if j+w+1 >= len,
                                                       * window_val will not
                                                       * increase */
@@ -77,7 +77,7 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
             if (window_val & bit) {
                 digit = window_val - next_bit; /* -2^w < digit < 0 */
 
-#if 1                           /* modified wNAF */
+#if 1 /* modified wNAF */
                 if (j + w + 1 >= len) {
                     /*
                      * Special case for generating modified wNAFs:
@@ -104,17 +104,16 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
              * now window_val is 0 or 2^(w+1) in standard wNAF generation;
              * for modified window NAFs, it may also be 2^w
              */
-            if (window_val != 0 && window_val != next_bit
-                && window_val != bit) {
+            if (window_val != 0 && window_val != next_bit && window_val != bit) {
                 ERR_raise(ERR_LIB_BN, ERR_R_INTERNAL_ERROR);
                 goto err;
             }
         }
 
-        r[j++] = sign * digit;
+        r[j++]       = sign * digit;
 
         window_val >>= 1;
-        window_val += bit * BN_is_bit_set(scalar, (int)(j + w));
+        window_val  += bit * BN_is_bit_set(scalar, (int)(j + w));
 
         if (window_val > next_bit) {
             ERR_raise(ERR_LIB_BN, ERR_R_INTERNAL_ERROR);
@@ -129,7 +128,7 @@ signed char *bn_compute_wNAF(const BIGNUM *scalar, int w, size_t *ret_len)
     *ret_len = j;
     return r;
 
- err:
+err:
     OPENSSL_free(r);
     return NULL;
 }
@@ -174,10 +173,10 @@ void bn_set_static_words(BIGNUM *a, const BN_ULONG *words, int size)
      * |const| qualifier omission is compensated by BN_FLG_STATIC_DATA
      * flag, which effectively means "read-only data".
      */
-    a->d = (BN_ULONG *)words;
-    a->dmax = a->top = size;
-    a->neg = 0;
-    a->flags |= BN_FLG_STATIC_DATA;
+    a->d    = (BN_ULONG *)words;
+    a->dmax = a->top  = size;
+    a->neg            = 0;
+    a->flags         |= BN_FLG_STATIC_DATA;
     bn_correct_top(a);
 }
 

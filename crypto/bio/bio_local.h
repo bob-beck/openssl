@@ -56,11 +56,11 @@
 #  define bai_next        ai_next
 # else
 struct bio_addrinfo_st {
-    int bai_family;
-    int bai_socktype;
-    int bai_protocol;
-    size_t bai_addrlen;
-    struct sockaddr *bai_addr;
+    int                     bai_family;
+    int                     bai_socktype;
+    int                     bai_protocol;
+    size_t                  bai_addrlen;
+    struct sockaddr        *bai_addr;
     struct bio_addrinfo_st *bai_next;
 };
 # endif
@@ -82,40 +82,40 @@ typedef struct bio_f_buffer_ctx_struct {
      * +---------------------------------------------------+
      * <-- off --><------- len ------->
      */
-    /*- BIO *bio; *//*
-     * this is now in the BIO struct
-     */
-    int ibuf_size;              /* how big is the input buffer */
-    int obuf_size;              /* how big is the output buffer */
-    char *ibuf;                 /* the char array */
-    int ibuf_len;               /* how many bytes are in it */
-    int ibuf_off;               /* write/read offset */
-    char *obuf;                 /* the char array */
-    int obuf_len;               /* how many bytes are in it */
-    int obuf_off;               /* write/read offset */
+    /*- BIO *bio; */ /*
+                      * this is now in the BIO struct
+                      */
+    int   ibuf_size; /* how big is the input buffer */
+    int   obuf_size; /* how big is the output buffer */
+    char *ibuf;      /* the char array */
+    int   ibuf_len;  /* how many bytes are in it */
+    int   ibuf_off;  /* write/read offset */
+    char *obuf;      /* the char array */
+    int   obuf_len;  /* how many bytes are in it */
+    int   obuf_off;  /* write/read offset */
 } BIO_F_BUFFER_CTX;
 
 struct bio_st {
-    OSSL_LIB_CTX *libctx;
+    OSSL_LIB_CTX     *libctx;
     const BIO_METHOD *method;
     /* bio, mode, argp, argi, argl, ret */
 #ifndef OPENSSL_NO_DEPRECATED_3_0
     BIO_callback_fn callback;
 #endif
     BIO_callback_fn_ex callback_ex;
-    char *cb_arg;               /* first argument for the callback */
-    int init;
-    int shutdown;
-    int flags;                  /* extra storage */
-    int retry_reason;
-    int num;
-    void *ptr;
-    struct bio_st *next_bio;    /* used by filter BIOs */
-    struct bio_st *prev_bio;    /* used by filter BIOs */
-    CRYPTO_REF_COUNT references;
-    uint64_t num_read;
-    uint64_t num_write;
-    CRYPTO_EX_DATA ex_data;
+    char              *cb_arg; /* first argument for the callback */
+    int                init;
+    int                shutdown;
+    int                flags; /* extra storage */
+    int                retry_reason;
+    int                num;
+    void              *ptr;
+    struct bio_st     *next_bio; /* used by filter BIOs */
+    struct bio_st     *prev_bio; /* used by filter BIOs */
+    CRYPTO_REF_COUNT   references;
+    uint64_t           num_read;
+    uint64_t           num_write;
+    CRYPTO_EX_DATA     ex_data;
 };
 
 #ifndef OPENSSL_NO_SOCK
@@ -123,13 +123,13 @@ struct bio_st {
 typedef unsigned int socklen_t;
 # endif
 
-extern CRYPTO_RWLOCK *bio_lookup_lock;
+extern CRYPTO_RWLOCK  *bio_lookup_lock;
 
-int BIO_ADDR_make(BIO_ADDR *ap, const struct sockaddr *sa);
+int                    BIO_ADDR_make(BIO_ADDR *ap, const struct sockaddr *sa);
 const struct sockaddr *BIO_ADDR_sockaddr(const BIO_ADDR *ap);
-struct sockaddr *BIO_ADDR_sockaddr_noconst(BIO_ADDR *ap);
-socklen_t BIO_ADDR_sockaddr_size(const BIO_ADDR *ap);
-socklen_t BIO_ADDRINFO_sockaddr_size(const BIO_ADDRINFO *bai);
+struct sockaddr       *BIO_ADDR_sockaddr_noconst(BIO_ADDR *ap);
+socklen_t              BIO_ADDR_sockaddr_size(const BIO_ADDR *ap);
+socklen_t              BIO_ADDRINFO_sockaddr_size(const BIO_ADDRINFO *bai);
 const struct sockaddr *BIO_ADDRINFO_sockaddr(const BIO_ADDRINFO *bai);
 
 # if defined(OPENSSL_SYS_WINDOWS) && defined(WSAID_WSARECVMSG)
@@ -141,9 +141,9 @@ extern LPFN_WSASENDMSG bio_WSASendMsg;
 
 extern CRYPTO_REF_COUNT bio_type_count;
 
-void bio_sock_cleanup_int(void);
+void                    bio_sock_cleanup_int(void);
 
-#if BIO_FLAGS_UPLINK_INTERNAL==0
+#if BIO_FLAGS_UPLINK_INTERNAL == 0
 /* Shortcut UPLINK calls on most platforms... */
 # define UP_stdin        stdin
 # define UP_stdout       stdout
@@ -152,7 +152,7 @@ void bio_sock_cleanup_int(void);
 # define UP_fgets        fgets
 # define UP_fread        fread
 # define UP_fwrite       fwrite
-# undef  UP_fsetmod
+# undef UP_fsetmod
 # define UP_feof         feof
 # define UP_fclose       fclose
 
@@ -178,4 +178,3 @@ void bio_sock_cleanup_int(void);
 # endif
 
 #endif
-

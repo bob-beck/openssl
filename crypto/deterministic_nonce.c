@@ -25,8 +25,7 @@
  *     in, inlen The input Bit String (in bytes).
  * Returns: 1 if successful, or  0 otherwise.
  */
-static int bits2int(BIGNUM *out, int qlen_bits,
-                    const unsigned char *in, size_t inlen)
+static int bits2int(BIGNUM *out, int qlen_bits, const unsigned char *in, size_t inlen)
 {
     int blen_bits = (int)(inlen * 8);
     int shift;
@@ -52,8 +51,7 @@ static int bits2int(BIGNUM *out, int qlen_bits,
  *               the conversion.
  * Returns: 1 if successful, or  0 otherwise.
  */
-static int bits2int_consttime(BIGNUM *out, int qlen_bits,
-                              const unsigned char *in, size_t inlen)
+static int bits2int_consttime(BIGNUM *out, int qlen_bits, const unsigned char *in, size_t inlen)
 {
     int blen_bits = (int)((inlen - sizeof(BN_ULONG)) * 8);
     int shift;
@@ -96,25 +94,23 @@ static int int2octets(unsigned char *out, const BIGNUM *num, int rlen)
  *     in, inlen The input bit string (in bytes)
  * Returns: 1 if successful, or  0 otherwise.
  */
-static int bits2octets(unsigned char *out, const BIGNUM *q, int qlen_bits,
-                       int rlen, const unsigned char *in, size_t inlen)
+static int
+bits2octets(unsigned char *out, const BIGNUM *q, int qlen_bits, int rlen, const unsigned char *in, size_t inlen)
 {
-   int ret = 0;
-   BIGNUM *z = BN_new();
+    int     ret = 0;
+    BIGNUM *z   = BN_new();
 
-   if (z == NULL
-           || !bits2int(z, qlen_bits, in, inlen))
-       goto err;
+    if (z == NULL || !bits2int(z, qlen_bits, in, inlen))
+        goto err;
 
-   /* z2 = z1 mod q (Do a simple subtract, since z1 < 2^qlen_bits) */
-   if (BN_cmp(z, q) >= 0
-           && !BN_usub(z, z, q))
-       goto err;
+    /* z2 = z1 mod q (Do a simple subtract, since z1 < 2^qlen_bits) */
+    if (BN_cmp(z, q) >= 0 && !BN_usub(z, z, q))
+        goto err;
 
-   ret = int2octets(out, z, rlen);
+    ret = int2octets(out, z, rlen);
 err:
-   BN_free(z);
-   return ret;
+    BN_free(z);
+    return ret;
 }
 
 /*
@@ -128,14 +124,17 @@ err:
  *
  * Returns: The created KDF HMAC_DRBG object if successful, or NULL otherwise.
  */
-static EVP_KDF_CTX *kdf_setup(const char *digestname,
-                              const unsigned char *entropy, size_t entropylen,
-                              const unsigned char *nonce, size_t noncelen,
-                              OSSL_LIB_CTX *libctx, const char *propq)
+static EVP_KDF_CTX *kdf_setup(const char          *digestname,
+                              const unsigned char *entropy,
+                              size_t               entropylen,
+                              const unsigned char *nonce,
+                              size_t               noncelen,
+                              OSSL_LIB_CTX        *libctx,
+                              const char          *propq)
 {
     EVP_KDF_CTX *ctx = NULL;
-    EVP_KDF *kdf = NULL;
-    OSSL_PARAM params[5], *p;
+    EVP_KDF     *kdf = NULL;
+    OSSL_PARAM   params[5], *p;
 
     kdf = EVP_KDF_fetch(libctx, "HMAC-DRBG-KDF", propq);
     ctx = EVP_KDF_CTX_new(kdf);
@@ -143,17 +142,13 @@ static EVP_KDF_CTX *kdf_setup(const char *digestname,
     if (ctx == NULL)
         goto err;
 
-    p = params;
-    *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST,
-                                            (char *)digestname, 0);
+    p    = params;
+    *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_DIGEST, (char *)digestname, 0);
     if (propq != NULL)
-        *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_PROPERTIES,
-                                                (char *)propq, 0);
-    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_HMACDRBG_ENTROPY,
-                                             (void *)entropy, entropylen);
-    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_HMACDRBG_NONCE,
-                                             (void *)nonce, noncelen);
-    *p = OSSL_PARAM_construct_end();
+        *p++ = OSSL_PARAM_construct_utf8_string(OSSL_KDF_PARAM_PROPERTIES, (char *)propq, 0);
+    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_HMACDRBG_ENTROPY, (void *)entropy, entropylen);
+    *p++ = OSSL_PARAM_construct_octet_string(OSSL_KDF_PARAM_HMACDRBG_NONCE, (void *)nonce, noncelen);
+    *p   = OSSL_PARAM_construct_end();
 
     if (EVP_KDF_CTX_set_params(ctx, params) <= 0)
         goto err;
@@ -178,18 +173,20 @@ err:
  *
  * Returns: 1 if successful, or  0 otherwise.
  */
-int ossl_gen_deterministic_nonce_rfc6979(BIGNUM *out, const BIGNUM *q,
-                                         const BIGNUM *priv,
-                                         const unsigned char *hm, size_t hmlen,
-                                         const char *digestname,
-                                         OSSL_LIB_CTX *libctx,
-                                         const char *propq)
+int ossl_gen_deterministic_nonce_rfc6979(BIGNUM              *out,
+                                         const BIGNUM        *q,
+                                         const BIGNUM        *priv,
+                                         const unsigned char *hm,
+                                         size_t               hmlen,
+                                         const char          *digestname,
+                                         OSSL_LIB_CTX        *libctx,
+                                         const char          *propq)
 {
-    EVP_KDF_CTX *kdfctx = NULL;
-    int ret = 0, rlen = 0, qlen_bits = 0;
+    EVP_KDF_CTX   *kdfctx = NULL;
+    int            ret = 0, rlen = 0, qlen_bits = 0;
     unsigned char *entropyx = NULL, *nonceh = NULL, *rbits = NULL, *T = NULL;
-    size_t allocsz = 0;
-    const size_t prefsz = sizeof(BN_ULONG);
+    size_t         allocsz = 0;
+    const size_t   prefsz  = sizeof(BN_ULONG);
 
     if (out == NULL)
         return 0;
@@ -199,21 +196,20 @@ int ossl_gen_deterministic_nonce_rfc6979(BIGNUM *out, const BIGNUM *q,
         return 0;
 
     /* Note rlen used here is in bytes since the input values are byte arrays */
-    rlen = (qlen_bits + 7) / 8;
+    rlen    = (qlen_bits + 7) / 8;
     allocsz = prefsz + 3 * rlen;
 
     /* Use a single alloc for the buffers T, nonceh and entropyx */
-    T = (unsigned char *)OPENSSL_zalloc(allocsz);
+    T       = (unsigned char *)OPENSSL_zalloc(allocsz);
     if (T == NULL)
         return 0;
-    rbits = T + prefsz;
-    nonceh = rbits + rlen;
+    rbits    = T + prefsz;
+    nonceh   = rbits + rlen;
     entropyx = nonceh + rlen;
 
     memset(T, 0xff, prefsz);
 
-    if (!int2octets(entropyx, priv, rlen)
-            || !bits2octets(nonceh, q, qlen_bits, rlen, hm, hmlen))
+    if (!int2octets(entropyx, priv, rlen) || !bits2octets(nonceh, q, qlen_bits, rlen, hm, hmlen))
         goto end;
 
     kdfctx = kdf_setup(digestname, entropyx, rlen, nonceh, rlen, libctx, propq);
@@ -221,12 +217,9 @@ int ossl_gen_deterministic_nonce_rfc6979(BIGNUM *out, const BIGNUM *q,
         goto end;
 
     do {
-        if (!EVP_KDF_derive(kdfctx, rbits, rlen, NULL)
-                || !bits2int_consttime(out, qlen_bits, T, rlen + prefsz))
+        if (!EVP_KDF_derive(kdfctx, rbits, rlen, NULL) || !bits2int_consttime(out, qlen_bits, T, rlen + prefsz))
             goto end;
-    } while (ossl_bn_is_word_fixed_top(out, 0)
-            || ossl_bn_is_word_fixed_top(out, 1)
-            || BN_ucmp(out, q) >= 0);
+    } while (ossl_bn_is_word_fixed_top(out, 0) || ossl_bn_is_word_fixed_top(out, 1) || BN_ucmp(out, q) >= 0);
 #ifdef BN_DEBUG
     /* With BN_DEBUG on a fixed top number cannot be returned */
     bn_correct_top(out);

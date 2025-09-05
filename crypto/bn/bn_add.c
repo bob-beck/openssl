@@ -20,15 +20,15 @@ int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 
     if (a->neg == b->neg) {
         r_neg = a->neg;
-        ret = BN_uadd(r, a, b);
+        ret   = BN_uadd(r, a, b);
     } else {
         cmp_res = BN_ucmp(a, b);
         if (cmp_res > 0) {
             r_neg = a->neg;
-            ret = BN_usub(r, a, b);
+            ret   = BN_usub(r, a, b);
         } else if (cmp_res < 0) {
             r_neg = b->neg;
-            ret = BN_usub(r, b, a);
+            ret   = BN_usub(r, b, a);
         } else {
             r_neg = 0;
             BN_zero(r);
@@ -51,15 +51,15 @@ int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 
     if (a->neg != b->neg) {
         r_neg = a->neg;
-        ret = BN_uadd(r, a, b);
+        ret   = BN_uadd(r, a, b);
     } else {
         cmp_res = BN_ucmp(a, b);
         if (cmp_res > 0) {
             r_neg = a->neg;
-            ret = BN_usub(r, a, b);
+            ret   = BN_usub(r, a, b);
         } else if (cmp_res < 0) {
             r_neg = !b->neg;
-            ret = BN_usub(r, b, a);
+            ret   = BN_usub(r, b, a);
         } else {
             r_neg = 0;
             BN_zero(r);
@@ -75,9 +75,9 @@ int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 /* unsigned add of b to a, r can be equal to a or b. */
 int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 {
-    int max, min, dif;
+    int             max, min, dif;
     const BN_ULONG *ap, *bp;
-    BN_ULONG *rp, carry, t1, t2;
+    BN_ULONG       *rp, carry, t1, t2;
 
     bn_check_top(a);
     bn_check_top(b);
@@ -86,8 +86,8 @@ int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
         const BIGNUM *tmp;
 
         tmp = a;
-        a = b;
-        b = tmp;
+        a   = b;
+        b   = tmp;
     }
     max = a->top;
     min = b->top;
@@ -96,27 +96,27 @@ int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     if (bn_wexpand(r, max + 1) == NULL)
         return 0;
 
-    r->top = max;
+    r->top  = max;
 
-    ap = a->d;
-    bp = b->d;
-    rp = r->d;
+    ap      = a->d;
+    bp      = b->d;
+    rp      = r->d;
 
-    carry = bn_add_words(rp, ap, bp, min);
-    rp += min;
-    ap += min;
+    carry   = bn_add_words(rp, ap, bp, min);
+    rp     += min;
+    ap     += min;
 
     while (dif) {
         dif--;
-        t1 = *(ap++);
-        t2 = (t1 + carry) & BN_MASK2;
-        *(rp++) = t2;
-        carry &= (t2 == 0);
+        t1       = *(ap++);
+        t2       = (t1 + carry) & BN_MASK2;
+        *(rp++)  = t2;
+        carry   &= (t2 == 0);
     }
-    *rp = carry;
+    *rp     = carry;
     r->top += (int)carry;
 
-    r->neg = 0;
+    r->neg  = 0;
     bn_check_top(r);
     return 1;
 }
@@ -124,8 +124,8 @@ int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 /* unsigned subtraction of b from a, a must be larger than b. */
 int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 {
-    int max, min, dif;
-    BN_ULONG t1, t2, borrow, *rp;
+    int             max, min, dif;
+    BN_ULONG        t1, t2, borrow, *rp;
     const BN_ULONG *ap, *bp;
 
     bn_check_top(a);
@@ -135,7 +135,7 @@ int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     min = b->top;
     dif = max - min;
 
-    if (dif < 0) {              /* hmm... should not be happening */
+    if (dif < 0) { /* hmm... should not be happening */
         ERR_raise(ERR_LIB_BN, BN_R_ARG2_LT_ARG3);
         return 0;
     }
@@ -143,20 +143,20 @@ int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
     if (bn_wexpand(r, max) == NULL)
         return 0;
 
-    ap = a->d;
-    bp = b->d;
-    rp = r->d;
+    ap      = a->d;
+    bp      = b->d;
+    rp      = r->d;
 
-    borrow = bn_sub_words(rp, ap, bp, min);
-    ap += min;
-    rp += min;
+    borrow  = bn_sub_words(rp, ap, bp, min);
+    ap     += min;
+    rp     += min;
 
     while (dif) {
         dif--;
-        t1 = *(ap++);
-        t2 = (t1 - borrow) & BN_MASK2;
-        *(rp++) = t2;
-        borrow &= (t1 == 0);
+        t1       = *(ap++);
+        t2       = (t1 - borrow) & BN_MASK2;
+        *(rp++)  = t2;
+        borrow  &= (t1 == 0);
     }
 
     while (max && *--rp == 0)
@@ -168,4 +168,3 @@ int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 
     return 1;
 }
-

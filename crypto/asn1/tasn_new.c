@@ -15,14 +15,11 @@
 #include <string.h>
 #include "asn1_local.h"
 
-static int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it,
-                               int embed, OSSL_LIB_CTX *libctx,
-                               const char *propq);
-static int asn1_primitive_new(ASN1_VALUE **pval, const ASN1_ITEM *it,
-                              int embed);
+static int
+asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed, OSSL_LIB_CTX *libctx, const char *propq);
+static int  asn1_primitive_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed);
 static void asn1_item_clear(ASN1_VALUE **pval, const ASN1_ITEM *it);
-static int asn1_template_new(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt,
-                             OSSL_LIB_CTX *libctx, const char *propq);
+static int  asn1_template_new(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt, OSSL_LIB_CTX *libctx, const char *propq);
 static void asn1_template_clear(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt);
 static void asn1_primitive_clear(ASN1_VALUE **pval, const ASN1_ITEM *it);
 
@@ -34,8 +31,7 @@ ASN1_VALUE *ASN1_item_new(const ASN1_ITEM *it)
     return NULL;
 }
 
-ASN1_VALUE *ASN1_item_new_ex(const ASN1_ITEM *it, OSSL_LIB_CTX *libctx,
-                             const char *propq)
+ASN1_VALUE *ASN1_item_new_ex(const ASN1_ITEM *it, OSSL_LIB_CTX *libctx, const char *propq)
 {
     ASN1_VALUE *ret = NULL;
     if (asn1_item_embed_new(&ret, it, 0, libctx, propq) > 0)
@@ -45,9 +41,7 @@ ASN1_VALUE *ASN1_item_new_ex(const ASN1_ITEM *it, OSSL_LIB_CTX *libctx,
 
 /* Allocate an ASN1 structure */
 
-
-int ossl_asn1_item_ex_new_intern(ASN1_VALUE **pval, const ASN1_ITEM *it,
-                                 OSSL_LIB_CTX *libctx, const char *propq)
+int ossl_asn1_item_ex_new_intern(ASN1_VALUE **pval, const ASN1_ITEM *it, OSSL_LIB_CTX *libctx, const char *propq)
 {
     return asn1_item_embed_new(pval, it, 0, libctx, propq);
 }
@@ -57,22 +51,20 @@ int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
     return asn1_item_embed_new(pval, it, 0, NULL, NULL);
 }
 
-int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed,
-                        OSSL_LIB_CTX *libctx, const char *propq)
+int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed, OSSL_LIB_CTX *libctx, const char *propq)
 {
-    const ASN1_TEMPLATE *tt = NULL;
+    const ASN1_TEMPLATE     *tt = NULL;
     const ASN1_EXTERN_FUNCS *ef;
-    const ASN1_AUX *aux = it->funcs;
-    ASN1_aux_cb *asn1_cb;
-    ASN1_VALUE **pseqval;
-    int i;
+    const ASN1_AUX          *aux = it->funcs;
+    ASN1_aux_cb             *asn1_cb;
+    ASN1_VALUE             **pseqval;
+    int                      i;
     if (aux && aux->asn1_cb)
         asn1_cb = aux->asn1_cb;
     else
         asn1_cb = 0;
 
     switch (it->itype) {
-
     case ASN1_ITYPE_EXTERN:
         ef = it->funcs;
         if (ef != NULL) {
@@ -157,18 +149,17 @@ int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed,
     }
     return 1;
 
- asn1err2:
+asn1err2:
     ossl_asn1_item_embed_free(pval, it, embed);
- asn1err:
+asn1err:
     ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
     return 0;
 
- auxerr2:
+auxerr2:
     ossl_asn1_item_embed_free(pval, it, embed);
- auxerr:
+auxerr:
     ERR_raise(ERR_LIB_ASN1, ASN1_R_AUX_ERROR);
     return 0;
-
 }
 
 static void asn1_item_clear(ASN1_VALUE **pval, const ASN1_ITEM *it)
@@ -176,7 +167,6 @@ static void asn1_item_clear(ASN1_VALUE **pval, const ASN1_ITEM *it)
     const ASN1_EXTERN_FUNCS *ef;
 
     switch (it->itype) {
-
     case ASN1_ITYPE_EXTERN:
         ef = it->funcs;
         if (ef && ef->asn1_ex_clear)
@@ -204,13 +194,12 @@ static void asn1_item_clear(ASN1_VALUE **pval, const ASN1_ITEM *it)
     }
 }
 
-static int asn1_template_new(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt,
-                             OSSL_LIB_CTX *libctx, const char *propq)
+static int asn1_template_new(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt, OSSL_LIB_CTX *libctx, const char *propq)
 {
-    const ASN1_ITEM *it = ASN1_ITEM_ptr(tt->item);
-    int embed = tt->flags & ASN1_TFLG_EMBED;
-    ASN1_VALUE *tval;
-    int ret;
+    const ASN1_ITEM *it    = ASN1_ITEM_ptr(tt->item);
+    int              embed = tt->flags & ASN1_TFLG_EMBED;
+    ASN1_VALUE      *tval;
+    int              ret;
     if (embed) {
         tval = (ASN1_VALUE *)pval;
         pval = &tval;
@@ -235,12 +224,12 @@ static int asn1_template_new(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt,
             goto done;
         }
         *pval = (ASN1_VALUE *)skval;
-        ret = 1;
+        ret   = 1;
         goto done;
     }
     /* Otherwise pass it back to the item routine */
     ret = asn1_item_embed_new(pval, it, embed, libctx, propq);
- done:
+done:
     return ret;
 }
 
@@ -258,12 +247,11 @@ static void asn1_template_clear(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt)
  * all the old functions.
  */
 
-static int asn1_primitive_new(ASN1_VALUE **pval, const ASN1_ITEM *it,
-                              int embed)
+static int asn1_primitive_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
 {
-    ASN1_TYPE *typ;
+    ASN1_TYPE   *typ;
     ASN1_STRING *str;
-    int utype;
+    int          utype;
 
     if (!it)
         return 0;
@@ -301,18 +289,18 @@ static int asn1_primitive_new(ASN1_VALUE **pval, const ASN1_ITEM *it,
         if ((typ = OPENSSL_malloc(sizeof(*typ))) == NULL)
             return 0;
         typ->value.ptr = NULL;
-        typ->type = -1;
-        *pval = (ASN1_VALUE *)typ;
+        typ->type      = -1;
+        *pval          = (ASN1_VALUE *)typ;
         break;
 
     default:
         if (embed) {
             str = *(ASN1_STRING **)pval;
             memset(str, 0, sizeof(*str));
-            str->type = utype;
+            str->type  = utype;
             str->flags = ASN1_STRING_FLAG_EMBED;
         } else {
-            str = ASN1_STRING_type_new(utype);
+            str   = ASN1_STRING_type_new(utype);
             *pval = (ASN1_VALUE *)str;
         }
         if (it->itype == ASN1_ITYPE_MSTRING && str)

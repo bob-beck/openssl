@@ -29,10 +29,10 @@ EVP_PKEY *NETSCAPE_SPKI_get_pubkey(NETSCAPE_SPKI *x)
 
 NETSCAPE_SPKI *NETSCAPE_SPKI_b64_decode(const char *str, int len)
 {
-    unsigned char *spki_der;
+    unsigned char       *spki_der;
     const unsigned char *p;
-    int spki_len;
-    NETSCAPE_SPKI *spki;
+    int                  spki_len;
+    NETSCAPE_SPKI       *spki;
     if (len <= 0)
         len = (int)strlen(str);
     if ((spki_der = OPENSSL_malloc(len + 1)) == NULL)
@@ -43,7 +43,7 @@ NETSCAPE_SPKI *NETSCAPE_SPKI_b64_decode(const char *str, int len)
         OPENSSL_free(spki_der);
         return NULL;
     }
-    p = spki_der;
+    p    = spki_der;
     spki = d2i_NETSCAPE_SPKI(NULL, &p, spki_len);
     OPENSSL_free(spki_der);
     return spki;
@@ -54,14 +54,14 @@ NETSCAPE_SPKI *NETSCAPE_SPKI_b64_decode(const char *str, int len)
 char *NETSCAPE_SPKI_b64_encode(NETSCAPE_SPKI *spki)
 {
     unsigned char *der_spki, *p;
-    char *b64_str;
-    int der_len;
+    char          *b64_str;
+    int            der_len;
 
     der_len = i2d_NETSCAPE_SPKI(spki, NULL);
     if (der_len <= 0)
         return NULL;
     der_spki = OPENSSL_malloc(der_len);
-    b64_str = OPENSSL_malloc_array(der_len, 2);
+    b64_str  = OPENSSL_malloc_array(der_len, 2);
     if (der_spki == NULL || b64_str == NULL) {
         OPENSSL_free(der_spki);
         OPENSSL_free(b64_str);

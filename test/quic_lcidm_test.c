@@ -10,24 +10,24 @@
 #include "internal/quic_lcidm.h"
 #include "testutil.h"
 
-static char ptrs[8];
+static char               ptrs[8];
 
-static const QUIC_CONN_ID cid8_1 = { 8, { 1 } };
-static const QUIC_CONN_ID cid8_2 = { 8, { 2 } };
-static const QUIC_CONN_ID cid8_3 = { 8, { 3 } };
-static const QUIC_CONN_ID cid8_4 = { 8, { 4 } };
-static const QUIC_CONN_ID cid8_5 = { 8, { 5 } };
+static const QUIC_CONN_ID cid8_1 = {8, {1}};
+static const QUIC_CONN_ID cid8_2 = {8, {2}};
+static const QUIC_CONN_ID cid8_3 = {8, {3}};
+static const QUIC_CONN_ID cid8_4 = {8, {4}};
+static const QUIC_CONN_ID cid8_5 = {8, {5}};
 
-static int test_lcidm(void)
+static int                test_lcidm(void)
 {
-    int testresult = 0;
-    QUIC_LCIDM *lcidm;
-    size_t lcid_len = 10; /* != ODCID len */
-    QUIC_CONN_ID lcid_1, lcid_dummy, lcid_init = {0};
+    int                         testresult = 0;
+    QUIC_LCIDM                 *lcidm;
+    size_t                      lcid_len = 10; /* != ODCID len */
+    QUIC_CONN_ID                lcid_1, lcid_dummy, lcid_init = {0};
     OSSL_QUIC_FRAME_NEW_CONN_ID ncid_frame_1, ncid_frame_2, ncid_frame_3;
-    void *opaque = NULL;
-    uint64_t seq_num = UINT64_MAX;
-    int did_retire = 0;
+    void                       *opaque     = NULL;
+    uint64_t                    seq_num    = UINT64_MAX;
+    int                         did_retire = 0;
 
     if (!TEST_ptr(lcidm = ossl_quic_lcidm_new(NULL, lcid_len)))
         goto err;
@@ -56,39 +56,23 @@ static int test_lcidm(void)
         || !TEST_true(ossl_quic_lcidm_generate(lcidm, ptrs + 2, &ncid_frame_2))
         || !TEST_true(ossl_quic_lcidm_generate(lcidm, ptrs + 2, &ncid_frame_3))
         || !TEST_size_t_eq(ossl_quic_lcidm_get_num_active_lcid(lcidm, ptrs + 2), 4)
-        || !TEST_true(ossl_quic_lcidm_lookup(lcidm, &lcid_1, &seq_num, &opaque))
-        || !TEST_ptr_eq(opaque, ptrs + 2)
+        || !TEST_true(ossl_quic_lcidm_lookup(lcidm, &lcid_1, &seq_num, &opaque)) || !TEST_ptr_eq(opaque, ptrs + 2)
         || !TEST_uint64_t_eq(seq_num, 0)
-        || !TEST_true(ossl_quic_lcidm_lookup(lcidm, &ncid_frame_1.conn_id,
-                                             &seq_num, &opaque))
-        || !TEST_ptr_eq(opaque, ptrs + 2)
-        || !TEST_uint64_t_eq(seq_num, 1)
-        || !TEST_true(ossl_quic_lcidm_lookup(lcidm, &ncid_frame_2.conn_id,
-                                             &seq_num, &opaque))
-        || !TEST_ptr_eq(opaque, ptrs + 2)
-        || !TEST_uint64_t_eq(seq_num, 2)
-        || !TEST_true(ossl_quic_lcidm_lookup(lcidm, &ncid_frame_3.conn_id,
-                                             &seq_num, &opaque))
-        || !TEST_ptr_eq(opaque, ptrs + 2)
-        || !TEST_uint64_t_eq(seq_num, 3)
-        || !TEST_true(ossl_quic_lcidm_retire(lcidm, ptrs + 2, 2, NULL,
-                                             &lcid_dummy, &seq_num, &did_retire))
-        || !TEST_true(did_retire)
-        || !TEST_size_t_eq(ossl_quic_lcidm_get_num_active_lcid(lcidm, ptrs + 2), 3)
-        || !TEST_true(ossl_quic_lcidm_retire(lcidm, ptrs + 2, 2, NULL,
-                                             &lcid_dummy, &seq_num, &did_retire))
-        || !TEST_true(did_retire)
-        || !TEST_size_t_eq(ossl_quic_lcidm_get_num_active_lcid(lcidm, ptrs + 2), 2)
-        || !TEST_true(ossl_quic_lcidm_retire(lcidm, ptrs + 2, 2, NULL,
-                                             &lcid_dummy, &seq_num, &did_retire))
-        || !TEST_false(did_retire)
-        || !TEST_size_t_eq(ossl_quic_lcidm_get_num_active_lcid(lcidm, ptrs + 2), 2)
-        || !TEST_false(ossl_quic_lcidm_lookup(lcidm, &lcid_init,
-                                              &seq_num, &opaque))
-        || !TEST_false(ossl_quic_lcidm_lookup(lcidm, &ncid_frame_1.conn_id,
-                                              &seq_num, &opaque))
-        || !TEST_true(ossl_quic_lcidm_lookup(lcidm, &ncid_frame_2.conn_id,
-                                             &seq_num, &opaque))
+        || !TEST_true(ossl_quic_lcidm_lookup(lcidm, &ncid_frame_1.conn_id, &seq_num, &opaque))
+        || !TEST_ptr_eq(opaque, ptrs + 2) || !TEST_uint64_t_eq(seq_num, 1)
+        || !TEST_true(ossl_quic_lcidm_lookup(lcidm, &ncid_frame_2.conn_id, &seq_num, &opaque))
+        || !TEST_ptr_eq(opaque, ptrs + 2) || !TEST_uint64_t_eq(seq_num, 2)
+        || !TEST_true(ossl_quic_lcidm_lookup(lcidm, &ncid_frame_3.conn_id, &seq_num, &opaque))
+        || !TEST_ptr_eq(opaque, ptrs + 2) || !TEST_uint64_t_eq(seq_num, 3)
+        || !TEST_true(ossl_quic_lcidm_retire(lcidm, ptrs + 2, 2, NULL, &lcid_dummy, &seq_num, &did_retire))
+        || !TEST_true(did_retire) || !TEST_size_t_eq(ossl_quic_lcidm_get_num_active_lcid(lcidm, ptrs + 2), 3)
+        || !TEST_true(ossl_quic_lcidm_retire(lcidm, ptrs + 2, 2, NULL, &lcid_dummy, &seq_num, &did_retire))
+        || !TEST_true(did_retire) || !TEST_size_t_eq(ossl_quic_lcidm_get_num_active_lcid(lcidm, ptrs + 2), 2)
+        || !TEST_true(ossl_quic_lcidm_retire(lcidm, ptrs + 2, 2, NULL, &lcid_dummy, &seq_num, &did_retire))
+        || !TEST_false(did_retire) || !TEST_size_t_eq(ossl_quic_lcidm_get_num_active_lcid(lcidm, ptrs + 2), 2)
+        || !TEST_false(ossl_quic_lcidm_lookup(lcidm, &lcid_init, &seq_num, &opaque))
+        || !TEST_false(ossl_quic_lcidm_lookup(lcidm, &ncid_frame_1.conn_id, &seq_num, &opaque))
+        || !TEST_true(ossl_quic_lcidm_lookup(lcidm, &ncid_frame_2.conn_id, &seq_num, &opaque))
         || !TEST_true(ossl_quic_lcidm_cull(lcidm, ptrs + 2))
         || !TEST_size_t_eq(ossl_quic_lcidm_get_num_active_lcid(lcidm, ptrs + 2), 0))
         goto err;

@@ -33,7 +33,7 @@ static const char cache_id[] = "OpenSSL Demo Server";
 #ifdef _WIN32
 static const char *progname;
 
-static void vwarnx(const char *fmt, va_list ap)
+static void        vwarnx(const char *fmt, va_list ap)
 {
     if (progname != NULL)
         fprintf(stderr, "%s: ", progname);
@@ -62,11 +62,11 @@ static void warnx(const char *fmt, ...)
 /* Minimal TLS echo server. */
 int main(int argc, char *argv[])
 {
-    int res = EXIT_FAILURE;
-    long opts;
+    int         res = EXIT_FAILURE;
+    long        opts;
     const char *hostport;
-    SSL_CTX *ctx = NULL;
-    BIO *acceptor_bio;
+    SSL_CTX    *ctx = NULL;
+    BIO        *acceptor_bio;
 
 #ifdef _WIN32
     progname = argv[0];
@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
      * An SSL_CTX holds shared configuration information for multiple
      * subsequent per-client SSL connections.
      */
-    ctx = SSL_CTX_new(TLS_server_method());
+    ctx      = SSL_CTX_new(TLS_server_method());
     if (ctx == NULL) {
         ERR_print_errors_fp(stderr);
         errx(res, "Failed to create server SSL_CTX");
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
      * application protocols which perform their own message "framing", and
      * don't rely on TLS to defend against "truncation" attacks.
      */
-    opts = SSL_OP_IGNORE_UNEXPECTED_EOF;
+    opts  = SSL_OP_IGNORE_UNEXPECTED_EOF;
 
     /*
      * Block potential CPU-exhaustion attacks by clients that request frequent
@@ -165,8 +165,9 @@ int main(int argc, char *argv[])
     if (SSL_CTX_use_PrivateKey_file(ctx, "pkey.pem", SSL_FILETYPE_PEM) <= 0) {
         SSL_CTX_free(ctx);
         ERR_print_errors_fp(stderr);
-        errx(res, "Error loading the server private key file, "
-                  "possible key/cert mismatch???");
+        errx(res,
+             "Error loading the server private key file, "
+             "possible key/cert mismatch???");
     }
 
     /*
@@ -226,12 +227,12 @@ int main(int argc, char *argv[])
 
     /* Wait for incoming connection */
     for (;;) {
-        BIO *client_bio;
-        SSL *ssl;
+        BIO          *client_bio;
+        SSL          *ssl;
         unsigned char buf[8192];
-        size_t nread;
-        size_t nwritten;
-        size_t total = 0;
+        size_t        nread;
+        size_t        nwritten;
+        size_t        total = 0;
 
         /* Pristine error stack for each new connection */
         ERR_clear_error();
@@ -264,8 +265,7 @@ int main(int argc, char *argv[])
         }
 
         while (SSL_read_ex(ssl, buf, sizeof(buf), &nread) > 0) {
-            if (SSL_write_ex(ssl, buf, nread, &nwritten) > 0 &&
-                nwritten == nread) {
+            if (SSL_write_ex(ssl, buf, nread, &nwritten) > 0 && nwritten == nread) {
                 total += nwritten;
                 continue;
             }

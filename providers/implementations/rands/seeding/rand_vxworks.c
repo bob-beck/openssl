@@ -24,9 +24,9 @@
 
 #if defined(OPENSSL_RAND_SEED_OS)
 # if _WRS_VXWORKS_MAJOR >= 7
-#   define RAND_SEED_VXRANDLIB
+#  define RAND_SEED_VXRANDLIB
 # else
-#   error "VxWorks <7 only support RAND_SEED_NONE"
+#  error "VxWorks <7 only support RAND_SEED_NONE"
 # endif
 #endif
 
@@ -48,7 +48,7 @@ static uint64_t get_time_stamp(void)
 
 static uint64_t get_timer_bits(void)
 {
-    uint64_t res = OPENSSL_rdtsc();
+    uint64_t        res = OPENSSL_rdtsc();
     struct timespec ts;
 
     if (res != 0)
@@ -79,9 +79,9 @@ void ossl_rand_pool_keep_random_devices_open(int keep)
 int ossl_pool_add_nonce_data(RAND_POOL *pool)
 {
     struct {
-        pid_t pid;
+        pid_t            pid;
         CRYPTO_THREAD_ID tid;
-        uint64_t time;
+        uint64_t         time;
     } data;
 
     memset(&data, 0, sizeof(data));
@@ -91,8 +91,8 @@ int ossl_pool_add_nonce_data(RAND_POOL *pool)
      * ensure that the nonce is unique with high probability for
      * different process instances.
      */
-    data.pid = getpid();
-    data.tid = CRYPTO_THREAD_get_current_id();
+    data.pid  = getpid();
+    data.tid  = CRYPTO_THREAD_get_current_id();
     data.time = get_time_stamp();
 
     return ossl_rand_pool_add(pool, (unsigned char *)&data, sizeof(data), 0);
@@ -106,16 +106,15 @@ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
 
     bytes_needed = ossl_rand_pool_bytes_needed(pool, 1 /*entropy_factor*/);
     if (bytes_needed > 0) {
-        int retryCount = 0;
-        STATUS result = ERROR;
+        int            retryCount = 0;
+        STATUS         result     = ERROR;
         unsigned char *buffer;
 
         buffer = ossl_rand_pool_add_begin(pool, bytes_needed);
         while ((result != OK) && (retryCount < 10)) {
             RANDOM_NUM_GEN_STATUS status = randStatus();
 
-            if ((status == RANDOM_NUM_GEN_ENOUGH_ENTROPY)
-                    || (status == RANDOM_NUM_GEN_MAX_ENTROPY)) {
+            if ((status == RANDOM_NUM_GEN_ENOUGH_ENTROPY) || (status == RANDOM_NUM_GEN_MAX_ENTROPY)) {
                 result = randBytes(buffer, bytes_needed);
                 if (result == OK)
                     ossl_rand_pool_add_end(pool, bytes_needed, 8 * bytes_needed);

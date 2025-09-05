@@ -17,21 +17,21 @@
 /* The low-level handle type used to refer to a loaded shared library */
 
 struct dso_st {
-    DSO_METHOD *meth;
+    DSO_METHOD             *meth;
     /*
      * Standard dlopen uses a (void *). Win32 uses a HANDLE. VMS doesn't use
      * anything but will need to cache the filename for use in the dso_bind
      * handler. All in all, let each method control its own destiny.
      * "Handles" and such go in a STACK.
      */
-    STACK_OF(void) *meth_data;
-    CRYPTO_REF_COUNT references;
-    int flags;
+    STACK_OF(void)         *meth_data;
+    CRYPTO_REF_COUNT        references;
+    int                     flags;
     /*
      * For use by applications etc ... use this for your bits'n'pieces, don't
      * touch meth_data!
      */
-    CRYPTO_EX_DATA ex_data;
+    CRYPTO_EX_DATA          ex_data;
     /*
      * If this callback function pointer is set to non-NULL, then it will be
      * used in DSO_load() in place of meth->dso_name_converter. NB: This
@@ -43,12 +43,12 @@ struct dso_st {
      * used in DSO_load() in place of meth->dso_merger. NB: This should
      * normally set using DSO_set_merger().
      */
-    DSO_MERGER_FUNC merger;
+    DSO_MERGER_FUNC         merger;
     /*
      * This is populated with (a copy of) the platform-independent filename
      * used for this DSO.
      */
-    char *filename;
+    char                   *filename;
     /*
      * This is populated with (a copy of) the translated filename by which
      * the DSO was actually loaded. It is NULL iff the DSO is not currently
@@ -60,7 +60,7 @@ struct dso_st {
      * loaded library or not, and (b) the filename with which it was actually
      * loaded.
      */
-    char *loaded_filename;
+    char                   *loaded_filename;
 };
 
 struct dso_meth_st {
@@ -70,9 +70,9 @@ struct dso_meth_st {
      * successful load populates the loaded_filename field, and likewise a
      * successful unload OPENSSL_frees and NULLs it out.
      */
-    int (*dso_load) (DSO *dso);
+    int (*dso_load)(DSO *dso);
     /* Unloads a shared library */
-    int (*dso_unload) (DSO *dso);
+    int (*dso_unload)(DSO *dso);
     /*
      * Binds a function - assumes a return type of DSO_FUNC_TYPE. This should
      * be cast to the real function prototype by the caller. Platforms that
@@ -80,12 +80,12 @@ struct dso_meth_st {
      * is possible within ANSI C) are highly unlikely to have shared
      * libraries at all, let alone a DSO_METHOD implemented for them.
      */
-    DSO_FUNC_TYPE (*dso_bind_func) (DSO *dso, const char *symname);
+    DSO_FUNC_TYPE (*dso_bind_func)(DSO *dso, const char *symname);
     /*
      * The generic (yuck) "ctrl()" function. NB: Negative return values
      * (rather than zero) indicate errors.
      */
-    long (*dso_ctrl) (DSO *dso, int cmd, long larg, void *parg);
+    long (*dso_ctrl)(DSO *dso, int cmd, long larg, void *parg);
     /*
      * The default DSO_METHOD-specific function for converting filenames to a
      * canonical native form.
@@ -95,12 +95,12 @@ struct dso_meth_st {
      * The default DSO_METHOD-specific function for converting filenames to a
      * canonical native form.
      */
-    DSO_MERGER_FUNC dso_merger;
+    DSO_MERGER_FUNC         dso_merger;
     /* [De]Initialisation handlers. */
-    int (*init) (DSO *dso);
-    int (*finish) (DSO *dso);
+    int (*init)(DSO *dso);
+    int (*finish)(DSO *dso);
     /* Return pathname of the module containing location */
-    int (*pathbyaddr) (void *addr, char *path, int sz);
+    int (*pathbyaddr)(void *addr, char *path, int sz);
     /* Perform global symbol lookup, i.e. among *all* modules */
-    void *(*globallookup) (const char *symname);
+    void *(*globallookup)(const char *symname);
 };

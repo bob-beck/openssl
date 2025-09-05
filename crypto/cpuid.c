@@ -10,9 +10,8 @@
 #include "internal/e_os.h"
 #include "crypto/cryptlib.h"
 
-#if     defined(__i386)   || defined(__i386__)   || defined(_M_IX86) || \
-        defined(__x86_64) || defined(__x86_64__) || \
-        defined(_M_AMD64) || defined(_M_X64)
+#if defined(__i386) || defined(__i386__) || defined(_M_IX86) || defined(__x86_64) || defined(__x86_64__) \
+    || defined(_M_AMD64) || defined(_M_X64)
 
 extern unsigned int OPENSSL_ia32cap_P[OPENSSL_IA32CAP_P_MAX_INDEXES];
 
@@ -30,6 +29,7 @@ extern unsigned int OPENSSL_ia32cap_P[OPENSSL_IA32CAP_P_MAX_INDEXES];
 #  ifdef _WIN32
 typedef WCHAR variant_char;
 #   define OPENSSL_IA32CAP_P_MAX_CHAR_SIZE 256
+
 static variant_char *ossl_getenv(const char *name)
 {
     /*
@@ -38,7 +38,7 @@ static variant_char *ossl_getenv(const char *name)
      * As well as to ignore excessively long values...
      */
     static WCHAR value[OPENSSL_IA32CAP_P_MAX_CHAR_SIZE];
-    DWORD len = GetEnvironmentVariableW(L"OPENSSL_ia32cap", value, OPENSSL_IA32CAP_P_MAX_CHAR_SIZE);
+    DWORD        len = GetEnvironmentVariableW(L"OPENSSL_ia32cap", value, OPENSSL_IA32CAP_P_MAX_CHAR_SIZE);
 
     return (len > 0 && len < OPENSSL_IA32CAP_P_MAX_CHAR_SIZE) ? value : NULL;
 }
@@ -62,7 +62,7 @@ static int todigit(variant_char c)
 
 static uint64_t ossl_strtouint64(const variant_char *str)
 {
-    uint64_t ret = 0;
+    uint64_t     ret = 0;
     unsigned int digit, base = 10;
 
     if (*str == '0') {
@@ -78,7 +78,8 @@ static uint64_t ossl_strtouint64(const variant_char *str)
 }
 
 static variant_char *ossl_strchr(const variant_char *str, char srch)
-{   variant_char c;
+{
+    variant_char c;
 
     while ((c = *str)) {
         if (c == srch)
@@ -92,13 +93,13 @@ static variant_char *ossl_strchr(const variant_char *str, char srch)
 #  define OPENSSL_CPUID_SETUP
 typedef uint64_t IA32CAP;
 
-void OPENSSL_cpuid_setup(void)
+void             OPENSSL_cpuid_setup(void)
 {
-    static int trigger = 0;
-    IA32CAP OPENSSL_ia32_cpuid(unsigned int *);
-    IA32CAP vec;
+    static int          trigger = 0;
+    IA32CAP             OPENSSL_ia32_cpuid(unsigned int *);
+    IA32CAP             vec;
     const variant_char *env;
-    int index = 2;
+    int                 index = 2;
 
     if (trigger)
         return;
@@ -107,12 +108,12 @@ void OPENSSL_cpuid_setup(void)
     if ((env = ossl_getenv("OPENSSL_ia32cap")) != NULL) {
         int off = (env[0] == '~') ? 1 : 0;
 
-        vec = ossl_strtouint64(env + off);
+        vec     = ossl_strtouint64(env + off);
 
         if (off) {
             IA32CAP mask = vec;
-            vec = OPENSSL_ia32_cpuid(OPENSSL_ia32cap_P) & ~mask;
-            if (mask & (1<<24)) {
+            vec          = OPENSSL_ia32_cpuid(OPENSSL_ia32cap_P) & ~mask;
+            if (mask & (1 << 24)) {
                 /*
                  * User disables FXSR bit, mask even other capabilities
                  * that operate exclusively on XMM, so we don't have to
@@ -121,7 +122,7 @@ void OPENSSL_cpuid_setup(void)
                  * do it in x86_64 case, but we can safely assume that
                  * x86_64 users won't actually flip this flag.
                  */
-                vec &= ~((IA32CAP)(1<<1|1<<11|1<<25|1<<28) << 32);
+                vec &= ~((IA32CAP)(1 << 1 | 1 << 11 | 1 << 25 | 1 << 28) << 32);
             }
         } else if (env[0] == ':') {
             vec = OPENSSL_ia32_cpuid(OPENSSL_ia32cap_P);
@@ -136,13 +137,13 @@ void OPENSSL_cpuid_setup(void)
                 if (env[0] != ':') {
                     IA32CAP vecx;
 
-                    off = (env[0] == '~') ? 1 : 0;
+                    off  = (env[0] == '~') ? 1 : 0;
                     vecx = ossl_strtouint64(env + off);
                     if (off) {
-                        OPENSSL_ia32cap_P[index] &= ~(unsigned int)vecx;
+                        OPENSSL_ia32cap_P[index]     &= ~(unsigned int)vecx;
                         OPENSSL_ia32cap_P[index + 1] &= ~(unsigned int)(vecx >> 32);
                     } else {
-                        OPENSSL_ia32cap_P[index] = (unsigned int)vecx;
+                        OPENSSL_ia32cap_P[index]     = (unsigned int)vecx;
                         OPENSSL_ia32cap_P[index + 1] = (unsigned int)(vecx >> 32);
                     }
                 }
@@ -150,7 +151,7 @@ void OPENSSL_cpuid_setup(void)
                 if ((env = ossl_strchr(env, ':')) != NULL)
                     env++;
             } else { /* zeroize the next two indexes */
-                OPENSSL_ia32cap_P[index] = 0;
+                OPENSSL_ia32cap_P[index]     = 0;
                 OPENSSL_ia32cap_P[index + 1] = 0;
             }
         }
@@ -196,12 +197,13 @@ void OPENSSL_cpuid_setup(void)
  * There are also assembler versions of this function.
  */
 # undef CRYPTO_memcmp
+
 int CRYPTO_memcmp(const void *in_a, const void *in_b, size_t len)
 {
-    size_t i;
+    size_t                        i;
     const volatile unsigned char *a = in_a;
     const volatile unsigned char *b = in_b;
-    unsigned char x = 0;
+    unsigned char                 x = 0;
 
     for (i = 0; i < len; i++)
         x |= a[i] ^ b[i];

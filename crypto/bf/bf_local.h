@@ -8,11 +8,11 @@
  */
 
 #ifndef OSSL_CRYPTO_BF_LOCAL_H
-# define OSSL_CRYPTO_BF_LOCAL_H
-# include <openssl/opensslconf.h>
+#define OSSL_CRYPTO_BF_LOCAL_H
+#include <openssl/opensslconf.h>
 
 /* NOTE - c is not incremented as per n2l */
-# define n2ln(c,l1,l2,n) { \
+#define n2ln(c, l1, l2, n) { \
                         c+=n; \
                         l1=l2=0; \
                         switch (n) { \
@@ -35,7 +35,7 @@
                         }
 
 /* NOTE - c is not incremented as per l2n */
-# define l2nn(l1,l2,c,n) { \
+#define l2nn(l1, l2, c, n) { \
                         c+=n; \
                         switch (n) { \
                         case 8: *(--(c))=(unsigned char)(((l2)    )&0xff); \
@@ -56,14 +56,14 @@
                                 } \
                         }
 
-# undef n2l
-# define n2l(c,l)        (l =((unsigned long)(*((c)++)))<<24L, \
+#undef n2l
+#define n2l(c, l)        (l =((unsigned long)(*((c)++)))<<24L, \
                          l|=((unsigned long)(*((c)++)))<<16L, \
                          l|=((unsigned long)(*((c)++)))<< 8L, \
                          l|=((unsigned long)(*((c)++))))
 
-# undef l2n
-# define l2n(l,c)        (*((c)++)=(unsigned char)(((l)>>24L)&0xff), \
+#undef l2n
+#define l2n(l, c)        (*((c)++)=(unsigned char)(((l)>>24L)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>16L)&0xff), \
                          *((c)++)=(unsigned char)(((l)>> 8L)&0xff), \
                          *((c)++)=(unsigned char)(((l)     )&0xff))
@@ -73,7 +73,7 @@
  * to lookup array 0
  */
 
-# define BF_ENC(LL,R,S,P) ( \
+#define BF_ENC(LL, R, S, P) ( \
         LL^=P, \
         LL^=((( S[       ((R>>24)&0xff)] + \
                 S[0x0100+((R>>16)&0xff)])^ \

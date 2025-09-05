@@ -42,6 +42,4 @@ DH *DH_get_##x(void) \
     return dh; \
 }
 
-make_dh(1024_160)
-make_dh(2048_224)
-make_dh(2048_256)
+make_dh(1024_160) make_dh(2048_224) make_dh(2048_256)

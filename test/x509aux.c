@@ -20,33 +20,31 @@
 
 static int test_certs(int num)
 {
-    int c;
-    char *name = 0;
-    char *header = 0;
-    unsigned char *data = 0;
-    long len;
+    int            c;
+    char          *name   = 0;
+    char          *header = 0;
+    unsigned char *data   = 0;
+    long           len;
     typedef X509 *(*d2i_X509_t)(X509 **, const unsigned char **, long);
     typedef int (*i2d_X509_t)(const X509 *, unsigned char **);
-    int err = 0;
-    BIO *fp = BIO_new_file(test_get_argument(num), "r");
+    int  err = 0;
+    BIO *fp  = BIO_new_file(test_get_argument(num), "r");
 
     if (!TEST_ptr(fp))
         return 0;
 
     for (c = 0; !err && PEM_read_bio(fp, &name, &header, &data, &len); ++c) {
-        const int trusted = (strcmp(name, PEM_STRING_X509_TRUSTED) == 0);
-        d2i_X509_t d2i = trusted ? d2i_X509_AUX : d2i_X509;
-        i2d_X509_t i2d = trusted ? i2d_X509_AUX : i2d_X509;
-        X509 *cert = NULL;
-        X509 *reuse = NULL;
-        const unsigned char *p = data;
-        unsigned char *buf = NULL;
-        unsigned char *bufp;
-        long enclen;
+        const int            trusted = (strcmp(name, PEM_STRING_X509_TRUSTED) == 0);
+        d2i_X509_t           d2i     = trusted ? d2i_X509_AUX : d2i_X509;
+        i2d_X509_t           i2d     = trusted ? i2d_X509_AUX : i2d_X509;
+        X509                *cert    = NULL;
+        X509                *reuse   = NULL;
+        const unsigned char *p       = data;
+        unsigned char       *buf     = NULL;
+        unsigned char       *bufp;
+        long                 enclen;
 
-        if (!trusted
-            && strcmp(name, PEM_STRING_X509) != 0
-            && strcmp(name, PEM_STRING_X509_OLD) != 0) {
+        if (!trusted && strcmp(name, PEM_STRING_X509) != 0 && strcmp(name, PEM_STRING_X509_OLD) != 0) {
             TEST_error("unexpected PEM object: %s", name);
             err = 1;
             goto next;
@@ -62,8 +60,7 @@ static int test_certs(int num)
         /* Test traditional 2-pass encoding into caller allocated buffer */
         enclen = i2d(cert, NULL);
         if (len != enclen) {
-            TEST_error("encoded length %ld of %s != input length %ld",
-                       enclen, name, len);
+            TEST_error("encoded length %ld of %s != input length %ld", enclen, name, len);
             err = 1;
             goto next;
         }
@@ -74,12 +71,11 @@ static int test_certs(int num)
         }
         enclen = i2d(cert, &bufp);
         if (len != enclen) {
-            TEST_error("encoded length %ld of %s != input length %ld",
-                       enclen, name, len);
+            TEST_error("encoded length %ld of %s != input length %ld", enclen, name, len);
             err = 1;
             goto next;
         }
-        enclen = (long) (bufp - buf);
+        enclen = (long)(bufp - buf);
         if (enclen != len) {
             TEST_error("unexpected buffer position after encoding %s", name);
             err = 1;
@@ -90,7 +86,7 @@ static int test_certs(int num)
             err = 1;
             goto next;
         }
-        p = buf;
+        p     = buf;
         reuse = d2i(NULL, &p, enclen);
         if (reuse == NULL) {
             TEST_error("second d2i call failed for %s", name);
@@ -104,13 +100,12 @@ static int test_certs(int num)
             goto next;
         }
         OPENSSL_free(buf);
-        buf = NULL;
+        buf    = NULL;
 
         /* Test 1-pass encoding into library allocated buffer */
         enclen = i2d(cert, &buf);
         if (len != enclen) {
-            TEST_error("encoded length %ld of %s != input length %ld",
-                       enclen, name, len);
+            TEST_error("encoded length %ld of %s != input length %ld", enclen, name, len);
             err = 1;
             goto next;
         }
@@ -123,13 +118,12 @@ static int test_certs(int num)
         if (trusted) {
             /* Encode just the cert and compare with initial encoding */
             OPENSSL_free(buf);
-            buf = NULL;
+            buf    = NULL;
 
             /* Test 1-pass encoding into library allocated buffer */
             enclen = i2d(cert, &buf);
             if (enclen > len) {
-                TEST_error("encoded length %ld of %s > input length %ld",
-                           enclen, name, len);
+                TEST_error("encoded length %ld of %s > input length %ld", enclen, name, len);
                 err = 1;
                 goto next;
             }
@@ -143,7 +137,7 @@ static int test_certs(int num)
         /*
          * If any of these were null, PEM_read() would have failed.
          */
-    next:
+next:
         X509_free(cert);
         X509_free(reuse);
         OPENSSL_free(buf);

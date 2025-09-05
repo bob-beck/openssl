@@ -24,8 +24,14 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_OUT, OPT_PASSOUT, OPT_ENGINE, OPT_CIPHER, OPT_VERBOSE, OPT_QUIET,
-    OPT_R_ENUM, OPT_PROV_ENUM
+    OPT_OUT,
+    OPT_PASSOUT,
+    OPT_ENGINE,
+    OPT_CIPHER,
+    OPT_VERBOSE,
+    OPT_QUIET,
+    OPT_R_ENUM,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS gendsa_options[] = {
@@ -53,15 +59,15 @@ const OPTIONS gendsa_options[] = {
 
 int gendsa_main(int argc, char **argv)
 {
-    ENGINE *e = NULL;
-    BIO *out = NULL, *in = NULL;
-    EVP_PKEY *pkey = NULL;
-    EVP_PKEY_CTX *ctx = NULL;
-    EVP_CIPHER *enc = NULL;
-    char *dsaparams = NULL, *ciphername = NULL;
-    char *outfile = NULL, *passoutarg = NULL, *passout = NULL, *prog;
+    ENGINE       *e   = NULL;
+    BIO          *out = NULL, *in = NULL;
+    EVP_PKEY     *pkey      = NULL;
+    EVP_PKEY_CTX *ctx       = NULL;
+    EVP_CIPHER   *enc       = NULL;
+    char         *dsaparams = NULL, *ciphername = NULL;
+    char         *outfile = NULL, *passoutarg = NULL, *passout = NULL, *prog;
     OPTION_CHOICE o;
-    int ret = 1, private = 0, verbose = 0, nbits;
+    int           ret = 1, private = 0, verbose = 0, nbits;
 
     opt_set_unknown_name("cipher");
     prog = opt_init(argc, argv, gendsa_options);
@@ -69,7 +75,7 @@ int gendsa_main(int argc, char **argv)
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -108,7 +114,7 @@ int gendsa_main(int argc, char **argv)
     /* One argument, the params file. */
     if (!opt_check_rest_arg("params file"))
         goto opthelp;
-    argv = opt_rest();
+    argv      = opt_rest();
     dsaparams = argv[0];
 
     if (!app_RAND_load())
@@ -116,7 +122,8 @@ int gendsa_main(int argc, char **argv)
 
     if (!opt_cipher(ciphername, &enc))
         goto end;
-    private = 1;
+  private
+    = 1;
 
     if (!app_passwd(NULL, passoutarg, NULL, &passout)) {
         BIO_printf(bio_err, "Error getting password\n");
@@ -125,7 +132,7 @@ int gendsa_main(int argc, char **argv)
 
     pkey = load_keyparams(dsaparams, FORMAT_UNDEF, 1, "DSA", "DSA parameters");
 
-    out = bio_open_owner(outfile, FORMAT_PEM, private);
+    out  = bio_open_owner(outfile, FORMAT_PEM, private);
     if (out == NULL)
         goto end2;
 
@@ -134,7 +141,8 @@ int gendsa_main(int argc, char **argv)
         BIO_printf(bio_err,
                    "Warning: It is not recommended to use more than %d bit for DSA keys.\n"
                    "         Your key size is %d! Larger key size may behave not as expected.\n",
-                   OPENSSL_DSA_MAX_MODULUS_BITS, EVP_PKEY_get_bits(pkey));
+                   OPENSSL_DSA_MAX_MODULUS_BITS,
+                   EVP_PKEY_get_bits(pkey));
 
     ctx = EVP_PKEY_CTX_new_from_pkey(app_get0_libctx(), pkey, app_get0_propq());
     if (ctx == NULL) {
@@ -157,10 +165,10 @@ int gendsa_main(int argc, char **argv)
         goto end;
     }
     ret = 0;
- end:
+end:
     if (ret != 0)
         ERR_print_errors(bio_err);
- end2:
+end2:
     BIO_free(in);
     BIO_free_all(out);
     EVP_PKEY_free(pkey);

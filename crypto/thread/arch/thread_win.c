@@ -15,14 +15,14 @@
 
 static unsigned __stdcall thread_start_thunk(LPVOID vthread)
 {
-    CRYPTO_THREAD *thread;
+    CRYPTO_THREAD       *thread;
     CRYPTO_THREAD_RETVAL ret;
 
-    thread = (CRYPTO_THREAD *)vthread;
+    thread            = (CRYPTO_THREAD *)vthread;
 
     thread->thread_id = GetCurrentThreadId();
 
-    ret = thread->routine(thread->data);
+    ret               = thread->routine(thread->data);
     ossl_crypto_mutex_lock(thread->statelock);
     CRYPTO_THREAD_SET_STATE(thread, CRYPTO_THREAD_FINISHED);
     thread->retval = ret;
@@ -55,13 +55,13 @@ fail:
 
 int ossl_crypto_thread_native_perform_join(CRYPTO_THREAD *thread, CRYPTO_THREAD_RETVAL *retval)
 {
-    DWORD thread_retval;
+    DWORD   thread_retval;
     HANDLE *handle;
 
     if (thread == NULL || thread->handle == NULL)
         return 0;
 
-    handle = (HANDLE *) thread->handle;
+    handle = (HANDLE *)thread->handle;
     if (WaitForSingleObject(*handle, INFINITE) != WAIT_OBJECT_0)
         return 0;
 
@@ -145,14 +145,14 @@ void ossl_crypto_mutex_free(CRYPTO_MUTEX **mutex)
 static int determine_timeout(OSSL_TIME deadline, DWORD *w_timeout_p)
 {
     OSSL_TIME now, delta;
-    uint64_t ms;
+    uint64_t  ms;
 
     if (ossl_time_is_infinite(deadline)) {
         *w_timeout_p = INFINITE;
         return 1;
     }
 
-    now = ossl_time_now();
+    now   = ossl_time_now();
     delta = ossl_time_subtract(deadline, now);
 
     if (ossl_time_is_zero(delta))
@@ -280,9 +280,9 @@ static int determine_timeout(OSSL_TIME deadline, DWORD *w_timeout_p)
  *
  */
 typedef struct legacy_condvar_st {
-    CRYPTO_MUTEX    *int_m;       /* internal mutex */
-    HANDLE          sema;         /* main wait semaphore */
-    HANDLE          prewait_sema; /* prewait semaphore */
+    CRYPTO_MUTEX *int_m;        /* internal mutex */
+    HANDLE        sema;         /* main wait semaphore */
+    HANDLE        prewait_sema; /* prewait semaphore */
     /*
      * All of the following fields are protected by int_m.
      *
@@ -290,11 +290,11 @@ typedef struct legacy_condvar_st {
      * num_wait. num_wait can decrease for other reasons (for example due to a
      * wait operation timing out).
      */
-    size_t          num_wait;     /* Num. threads currently blocked */
-    size_t          num_wake;     /* Num. threads due to wake up */
-    size_t          num_prewait;  /* Num. threads in prewait */
-    size_t          gen;          /* Prewait generation */
-    int             closed;       /* Is closed? */
+    size_t        num_wait;    /* Num. threads currently blocked */
+    size_t        num_wake;    /* Num. threads due to wake up */
+    size_t        num_prewait; /* Num. threads in prewait */
+    size_t        gen;         /* Prewait generation */
+    int           closed;      /* Is closed? */
 } LEGACY_CONDVAR;
 
 CRYPTO_CONDVAR *ossl_crypto_condvar_new(void)
@@ -322,10 +322,10 @@ CRYPTO_CONDVAR *ossl_crypto_condvar_new(void)
         return NULL;
     }
 
-    cv->num_wait      = 0;
-    cv->num_wake      = 0;
-    cv->num_prewait   = 0;
-    cv->closed        = 0;
+    cv->num_wait    = 0;
+    cv->num_wake    = 0;
+    cv->num_prewait = 0;
+    cv->closed      = 0;
 
     return (CRYPTO_CONDVAR *)cv;
 }
@@ -354,13 +354,12 @@ static uint32_t obj_wait(HANDLE h, OSSL_TIME deadline)
     return WaitForSingleObject(h, timeout);
 }
 
-void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m,
-                                      OSSL_TIME deadline)
+void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m, OSSL_TIME deadline)
 {
     LEGACY_CONDVAR *cv = (LEGACY_CONDVAR *)cv_;
-    int closed, set_prewait = 0, have_orig_gen = 0;
-    uint32_t rc;
-    size_t orig_gen;
+    int             closed, set_prewait = 0, have_orig_gen = 0;
+    uint32_t        rc;
+    size_t          orig_gen;
 
     /* Admission control - prewait until we can enter our actual wait phase. */
     do {
@@ -375,11 +374,11 @@ void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv_, CRYPTO_MUTEX *ext_m,
          * timeout or failure of WaitForSingleObject).
          */
         if (!have_orig_gen) {
-            orig_gen = cv->gen;
+            orig_gen      = cv->gen;
             have_orig_gen = 1;
         } else if (cv->gen != orig_gen) {
             set_prewait = 0;
-            orig_gen = cv->gen;
+            orig_gen    = cv->gen;
         }
 
         if (!closed) {
@@ -489,7 +488,7 @@ void ossl_crypto_condvar_wait(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *ext_m)
 void ossl_crypto_condvar_broadcast(CRYPTO_CONDVAR *cv_)
 {
     LEGACY_CONDVAR *cv = (LEGACY_CONDVAR *)cv_;
-    size_t num_wake;
+    size_t          num_wake;
 
     ossl_crypto_mutex_lock(cv->int_m);
 
@@ -499,9 +498,9 @@ void ossl_crypto_condvar_broadcast(CRYPTO_CONDVAR *cv_)
         return;
     }
 
-    cv->num_wake  += num_wake;
-    cv->num_wait  -= num_wake;
-    cv->closed     = 1;
+    cv->num_wake += num_wake;
+    cv->num_wait -= num_wake;
+    cv->closed    = 1;
 
     ossl_crypto_mutex_unlock(cv->int_m);
     ReleaseSemaphore(cv->sema, (LONG)num_wake, NULL);
@@ -544,19 +543,18 @@ CRYPTO_CONDVAR *ossl_crypto_condvar_new(void)
 void ossl_crypto_condvar_wait(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex)
 {
     CONDITION_VARIABLE *cv_p;
-    CRITICAL_SECTION *mutex_p;
+    CRITICAL_SECTION   *mutex_p;
 
-    cv_p = (CONDITION_VARIABLE *)cv;
+    cv_p    = (CONDITION_VARIABLE *)cv;
     mutex_p = (CRITICAL_SECTION *)mutex;
     SleepConditionVariableCS(cv_p, mutex_p, INFINITE);
 }
 
-void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex,
-                                      OSSL_TIME deadline)
+void ossl_crypto_condvar_wait_timeout(CRYPTO_CONDVAR *cv, CRYPTO_MUTEX *mutex, OSSL_TIME deadline)
 {
-    DWORD timeout;
-    CONDITION_VARIABLE *cv_p = (CONDITION_VARIABLE *)cv;
-    CRITICAL_SECTION *mutex_p = (CRITICAL_SECTION *)mutex;
+    DWORD               timeout;
+    CONDITION_VARIABLE *cv_p    = (CONDITION_VARIABLE *)cv;
+    CRITICAL_SECTION   *mutex_p = (CRITICAL_SECTION *)mutex;
 
     if (!determine_timeout(deadline, &timeout))
         timeout = 1;

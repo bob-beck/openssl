@@ -13,7 +13,7 @@
  * too late, because those headers are protected from re- inclusion.
  */
 #ifndef _GNU_SOURCE
-# define _GNU_SOURCE            /* make sure dladdr is declared */
+#define _GNU_SOURCE /* make sure dladdr is declared */
 #endif
 
 #include "dso_local.h"
@@ -21,47 +21,42 @@
 
 #ifdef DSO_DLFCN
 
-# ifdef HAVE_DLFCN_H
-#  ifdef __osf__
-#   define __EXTENSIONS__
-#  endif
-#  include <dlfcn.h>
-#  define HAVE_DLINFO 1
-#  if defined(__SCO_VERSION__) || defined(_SCO_ELF) || \
-     (defined(__osf__) && !defined(RTLD_NEXT))     || \
-     (defined(__OpenBSD__) && !defined(RTLD_SELF)) || \
-     defined(__ANDROID__) || defined(__TANDEM)
-#   undef HAVE_DLINFO
-#  endif
+#ifdef HAVE_DLFCN_H
+# ifdef __osf__
+#  define __EXTENSIONS__
 # endif
+# include <dlfcn.h>
+# define HAVE_DLINFO 1
+# if defined(__SCO_VERSION__) || defined(_SCO_ELF) || (defined(__osf__) && !defined(RTLD_NEXT)) \
+     || (defined(__OpenBSD__) && !defined(RTLD_SELF)) || defined(__ANDROID__) || defined(__TANDEM)
+#  undef HAVE_DLINFO
+# endif
+#endif
 
 /* Part of the hack in "dlfcn_load" ... */
-# define DSO_MAX_TRANSLATED_SIZE 256
+#define DSO_MAX_TRANSLATED_SIZE 256
 
-static int dlfcn_load(DSO *dso);
-static int dlfcn_unload(DSO *dso);
+static int           dlfcn_load(DSO *dso);
+static int           dlfcn_unload(DSO *dso);
 static DSO_FUNC_TYPE dlfcn_bind_func(DSO *dso, const char *symname);
-static char *dlfcn_name_converter(DSO *dso, const char *filename);
-static char *dlfcn_merger(DSO *dso, const char *filespec1,
-                          const char *filespec2);
-static int dlfcn_pathbyaddr(void *addr, char *path, int sz);
-static void *dlfcn_globallookup(const char *name);
+static char         *dlfcn_name_converter(DSO *dso, const char *filename);
+static char         *dlfcn_merger(DSO *dso, const char *filespec1, const char *filespec2);
+static int           dlfcn_pathbyaddr(void *addr, char *path, int sz);
+static void         *dlfcn_globallookup(const char *name);
 
-static DSO_METHOD dso_meth_dlfcn = {
-    "OpenSSL 'dlfcn' shared library method",
-    dlfcn_load,
-    dlfcn_unload,
-    dlfcn_bind_func,
-    NULL,                       /* ctrl */
-    dlfcn_name_converter,
-    dlfcn_merger,
-    NULL,                       /* init */
-    NULL,                       /* finish */
-    dlfcn_pathbyaddr,
-    dlfcn_globallookup
-};
+static DSO_METHOD    dso_meth_dlfcn = {"OpenSSL 'dlfcn' shared library method",
+                                       dlfcn_load,
+                                       dlfcn_unload,
+                                       dlfcn_bind_func,
+                                       NULL, /* ctrl */
+                                       dlfcn_name_converter,
+                                       dlfcn_merger,
+                                       NULL, /* init */
+                                       NULL, /* finish */
+                                       dlfcn_pathbyaddr,
+                                       dlfcn_globallookup};
 
-DSO_METHOD *DSO_METHOD_openssl(void)
+DSO_METHOD          *DSO_METHOD_openssl(void)
 {
     return &dso_meth_dlfcn;
 }
@@ -74,19 +69,19 @@ DSO_METHOD *DSO_METHOD_openssl(void)
  * relatively easily to deal with cases as we find them. Initially this is to
  * cope with OpenBSD.
  */
-# if defined(__OpenBSD__) || defined(__NetBSD__)
-#  ifdef DL_LAZY
-#   define DLOPEN_FLAG DL_LAZY
-#  else
-#   ifdef RTLD_NOW
-#    define DLOPEN_FLAG RTLD_NOW
-#   else
-#    define DLOPEN_FLAG 0
-#   endif
-#  endif
+#if defined(__OpenBSD__) || defined(__NetBSD__)
+# ifdef DL_LAZY
+#  define DLOPEN_FLAG DL_LAZY
 # else
-#  define DLOPEN_FLAG RTLD_NOW  /* Hope this works everywhere else */
+#  ifdef RTLD_NOW
+#   define DLOPEN_FLAG RTLD_NOW
+#  else
+#   define DLOPEN_FLAG 0
+#  endif
 # endif
+#else
+# define DLOPEN_FLAG RTLD_NOW  /* Hope this works everywhere else */
+#endif
 
 /*
  * For this DSO_METHOD, our meth_data STACK will contain; (i) the handle
@@ -95,28 +90,27 @@ DSO_METHOD *DSO_METHOD_openssl(void)
 
 static int dlfcn_load(DSO *dso)
 {
-    void *ptr = NULL;
+    void *ptr       = NULL;
     /* See applicable comments in dso_dl.c */
-    char *filename = DSO_convert_filename(dso, NULL);
-    int flags = DLOPEN_FLAG;
-    int saveerrno = get_last_sys_error();
+    char *filename  = DSO_convert_filename(dso, NULL);
+    int   flags     = DLOPEN_FLAG;
+    int   saveerrno = get_last_sys_error();
 
     if (filename == NULL) {
         ERR_raise(ERR_LIB_DSO, DSO_R_NO_FILENAME);
         goto err;
     }
-# ifdef RTLD_GLOBAL
+#ifdef RTLD_GLOBAL
     if (dso->flags & DSO_FLAG_GLOBAL_SYMBOLS)
         flags |= RTLD_GLOBAL;
-# endif
-# ifdef _AIX
+#endif
+#ifdef _AIX
     if (filename[strlen(filename) - 1] == ')')
         flags |= RTLD_MEMBER;
-# endif
+#endif
     ptr = dlopen(filename, flags);
     if (ptr == NULL) {
-        ERR_raise_data(ERR_LIB_DSO, DSO_R_LOAD_FAILED,
-                       "filename(%s): %s", filename, dlerror());
+        ERR_raise_data(ERR_LIB_DSO, DSO_R_LOAD_FAILED, "filename(%s): %s", filename, dlerror());
         goto err;
     }
     /*
@@ -131,7 +125,7 @@ static int dlfcn_load(DSO *dso)
     /* Success */
     dso->loaded_filename = filename;
     return 1;
- err:
+err:
     /* Cleanup! */
     OPENSSL_free(filename);
     if (ptr != NULL)
@@ -165,9 +159,10 @@ static int dlfcn_unload(DSO *dso)
 static DSO_FUNC_TYPE dlfcn_bind_func(DSO *dso, const char *symname)
 {
     void *ptr;
+
     union {
         DSO_FUNC_TYPE sym;
-        void *dlret;
+        void         *dlret;
     } u;
 
     if ((dso == NULL) || (symname == NULL)) {
@@ -185,15 +180,13 @@ static DSO_FUNC_TYPE dlfcn_bind_func(DSO *dso, const char *symname)
     }
     u.dlret = dlsym(ptr, symname);
     if (u.dlret == NULL) {
-        ERR_raise_data(ERR_LIB_DSO, DSO_R_SYM_FAILURE,
-                       "symname(%s): %s", symname, dlerror());
+        ERR_raise_data(ERR_LIB_DSO, DSO_R_SYM_FAILURE, "symname(%s): %s", symname, dlerror());
         return NULL;
     }
     return u.sym;
 }
 
-static char *dlfcn_merger(DSO *dso, const char *filespec1,
-                          const char *filespec2)
+static char *dlfcn_merger(DSO *dso, const char *filespec1, const char *filespec2)
 {
     char *merged;
 
@@ -228,7 +221,7 @@ static char *dlfcn_merger(DSO *dso, const char *filespec1,
         int spec2len, len;
 
         spec2len = strlen(filespec2);
-        len = spec2len + strlen(filespec1);
+        len      = spec2len + strlen(filespec1);
 
         if (spec2len && filespec2[spec2len - 1] == '/') {
             spec2len--;
@@ -247,16 +240,16 @@ static char *dlfcn_merger(DSO *dso, const char *filespec1,
 static char *dlfcn_name_converter(DSO *dso, const char *filename)
 {
     char *translated;
-    int len, rsize, transform;
+    int   len, rsize, transform;
 
-    len = strlen(filename);
-    rsize = len + 1;
+    len       = strlen(filename);
+    rsize     = len + 1;
     transform = (strchr(filename, '/') == NULL);
     if (transform) {
         /* We will convert this to "%s.so" or "lib%s.so" etc */
-        rsize += strlen(DSO_EXTENSION);    /* The length of ".so" */
+        rsize += strlen(DSO_EXTENSION); /* The length of ".so" */
         if ((DSO_flags(dso) & DSO_FLAG_NAME_TRANSLATION_EXT_ONLY) == 0)
-            rsize += 3;         /* The length of "lib" */
+            rsize += 3; /* The length of "lib" */
     }
     translated = OPENSSL_malloc(rsize);
     if (translated == NULL) {
@@ -274,7 +267,7 @@ static char *dlfcn_name_converter(DSO *dso, const char *filename)
     return translated;
 }
 
-# ifdef __sgi
+#ifdef __sgi
 /*-
 This is a quote from IRIX manual for dladdr(3c):
 
@@ -288,22 +281,23 @@ This is a quote from IRIX manual for dladdr(3c):
      intention to change this interface, so on a practical level, the code
      below is safe to use on IRIX.
 */
-#  include <rld_interface.h>
-#  ifndef _RLD_INTERFACE_DLFCN_H_DLADDR
-#   define _RLD_INTERFACE_DLFCN_H_DLADDR
+# include <rld_interface.h>
+# ifndef _RLD_INTERFACE_DLFCN_H_DLADDR
+#  define _RLD_INTERFACE_DLFCN_H_DLADDR
+
 typedef struct Dl_info {
     const char *dli_fname;
-    void *dli_fbase;
+    void       *dli_fbase;
     const char *dli_sname;
-    void *dli_saddr;
-    int dli_version;
-    int dli_reserved1;
-    long dli_reserved[4];
+    void       *dli_saddr;
+    int         dli_version;
+    int         dli_reserved1;
+    long        dli_reserved[4];
 } Dl_info;
-#  else
+# else
 typedef struct Dl_info Dl_info;
-#  endif
-#  define _RLD_DLADDR             14
+# endif
+# define _RLD_DLADDR             14
 
 static int dladdr(void *address, Dl_info *dl)
 {
@@ -311,21 +305,23 @@ static int dladdr(void *address, Dl_info *dl)
     v = _rld_new_interface(_RLD_DLADDR, address, dl);
     return (int)v;
 }
-# endif                         /* __sgi */
+#endif /* __sgi */
 
-# ifdef _AIX
+#ifdef _AIX
 /*-
  * See IBM's AIX Version 7.2, Technical Reference:
  *  Base Operating System and Extensions, Volume 1 and 2
  *  https://www.ibm.com/support/knowledgecenter/ssw_aix_72/com.ibm.aix.base/technicalreferences.htm
  */
-#  include <sys/ldr.h>
-#  include <errno.h>
+# include <sys/ldr.h>
+# include <errno.h>
 /* ~ 64 * (sizeof(struct ld_info) + _XOPEN_PATH_MAX + _XOPEN_NAME_MAX) */
-#  define DLFCN_LDINFO_SIZE 86976
+# define DLFCN_LDINFO_SIZE 86976
+
 typedef struct Dl_info {
     const char *dli_fname;
 } Dl_info;
+
 /*
  * This dladdr()-implementation will also find the ptrgl (Pointer Glue) virtual
  * address of a function, which is just located in the DATA segment instead of
@@ -333,12 +329,12 @@ typedef struct Dl_info {
  */
 static int dladdr(void *ptr, Dl_info *dl)
 {
-    uintptr_t addr = (uintptr_t)ptr;
-    unsigned int found = 0;
+    uintptr_t       addr  = (uintptr_t)ptr;
+    unsigned int    found = 0;
     struct ld_info *ldinfos, *next_ldi, *this_ldi;
 
     if ((ldinfos = OPENSSL_malloc(DLFCN_LDINFO_SIZE)) == NULL) {
-        errno = ENOMEM;
+        errno         = ENOMEM;
         dl->dli_fname = NULL;
         return 0;
     }
@@ -359,16 +355,14 @@ static int dladdr(void *ptr, Dl_info *dl)
     do {
         this_ldi = next_ldi;
         if (((addr >= (uintptr_t)this_ldi->ldinfo_textorg)
-             && (addr < ((uintptr_t)this_ldi->ldinfo_textorg +
-                         this_ldi->ldinfo_textsize)))
+             && (addr < ((uintptr_t)this_ldi->ldinfo_textorg + this_ldi->ldinfo_textsize)))
             || ((addr >= (uintptr_t)this_ldi->ldinfo_dataorg)
-                && (addr < ((uintptr_t)this_ldi->ldinfo_dataorg +
-                            this_ldi->ldinfo_datasize)))) {
-            char *buffer, *member;
+                && (addr < ((uintptr_t)this_ldi->ldinfo_dataorg + this_ldi->ldinfo_datasize)))) {
+            char  *buffer, *member;
             size_t buffer_sz, member_len;
 
             buffer_sz = strlen(this_ldi->ldinfo_filename) + 1;
-            member = this_ldi->ldinfo_filename + buffer_sz;
+            member    = this_ldi->ldinfo_filename + buffer_sz;
             if ((member_len = strlen(member)) > 0)
                 buffer_sz += 1 + member_len + 1;
             found = 1;
@@ -389,51 +383,49 @@ static int dladdr(void *ptr, Dl_info *dl)
                 errno = ENOMEM;
             }
         } else {
-            next_ldi = (struct ld_info *)((uintptr_t)this_ldi +
-                                          this_ldi->ldinfo_next);
+            next_ldi = (struct ld_info *)((uintptr_t)this_ldi + this_ldi->ldinfo_next);
         }
     } while (this_ldi->ldinfo_next && !found);
     OPENSSL_free((void *)ldinfos);
     return (found && dl->dli_fname != NULL);
 }
-# endif                         /* _AIX */
+#endif /* _AIX */
 
 static int dlfcn_pathbyaddr(void *addr, char *path, int sz)
 {
-# ifdef HAVE_DLINFO
+#ifdef HAVE_DLINFO
     Dl_info dli;
-    int len;
+    int     len;
 
     if (addr == NULL) {
         union {
-            int (*f) (void *, char *, int);
+            int (*f)(void *, char *, int);
             void *p;
-        } t = {
-            dlfcn_pathbyaddr
-        };
+        } t  = {dlfcn_pathbyaddr};
+
         addr = t.p;
     }
 
     if (dladdr(addr, &dli)) {
         len = (int)strlen(dli.dli_fname);
         if (sz <= 0) {
-#  ifdef _AIX
+# ifdef _AIX
             OPENSSL_free((void *)dli.dli_fname);
-#  endif
+# endif
             return len + 1;
         }
         if (len >= sz)
             len = sz - 1;
         memcpy(path, dli.dli_fname, len);
         path[len++] = 0;
-#  ifdef _AIX
+# ifdef _AIX
         OPENSSL_free((void *)dli.dli_fname);
-#  endif
+# endif
         return len;
     }
 
     ERR_add_error_data(2, "dlfcn_pathbyaddr(): ", dlerror());
-# endif
+#endif
     return -1;
 }
 
@@ -448,4 +440,4 @@ static void *dlfcn_globallookup(const char *name)
 
     return ret;
 }
-#endif                          /* DSO_DLFCN */
+#endif /* DSO_DLFCN */

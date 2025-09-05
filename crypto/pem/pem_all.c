@@ -41,8 +41,7 @@ IMPLEMENT_PEM_rw(X509_CRL, X509_CRL, PEM_STRING_X509_CRL, X509_CRL)
 IMPLEMENT_PEM_rw(X509_PUBKEY, X509_PUBKEY, PEM_STRING_PUBLIC, X509_PUBKEY)
 IMPLEMENT_PEM_rw(PKCS7, PKCS7, PEM_STRING_PKCS7, PKCS7)
 
-IMPLEMENT_PEM_rw(NETSCAPE_CERT_SEQUENCE, NETSCAPE_CERT_SEQUENCE,
-                 PEM_STRING_X509, NETSCAPE_CERT_SEQUENCE)
+IMPLEMENT_PEM_rw(NETSCAPE_CERT_SEQUENCE, NETSCAPE_CERT_SEQUENCE, PEM_STRING_X509, NETSCAPE_CERT_SEQUENCE)
 #ifndef OPENSSL_NO_DEPRECATED_3_0
 /*
  * We treat RSA or DSA private keys as a special case. For private keys we
@@ -66,8 +65,7 @@ static RSA *pkey_get_rsa(EVP_PKEY *key, RSA **rsa)
     return rtmp;
 }
 
-RSA *PEM_read_bio_RSAPrivateKey(BIO *bp, RSA **rsa, pem_password_cb *cb,
-                                void *u)
+RSA *PEM_read_bio_RSAPrivateKey(BIO *bp, RSA **rsa, pem_password_cb *cb, void *u)
 {
     EVP_PKEY *pktmp;
     pktmp = PEM_read_bio_PrivateKey(bp, NULL, cb, u);
@@ -106,8 +104,7 @@ static DSA *pkey_get_dsa(EVP_PKEY *key, DSA **dsa)
     return dtmp;
 }
 
-DSA *PEM_read_bio_DSAPrivateKey(BIO *bp, DSA **dsa, pem_password_cb *cb,
-                                void *u)
+DSA *PEM_read_bio_DSAPrivateKey(BIO *bp, DSA **dsa, pem_password_cb *cb, void *u)
 {
     EVP_PKEY *pktmp;
     pktmp = PEM_read_bio_PrivateKey(bp, NULL, cb, u);
@@ -147,24 +144,19 @@ static EC_KEY *pkey_get_eckey(EVP_PKEY *key, EC_KEY **eckey)
     return dtmp;
 }
 
-EC_KEY *PEM_read_bio_ECPrivateKey(BIO *bp, EC_KEY **key, pem_password_cb *cb,
-                                  void *u)
+EC_KEY *PEM_read_bio_ECPrivateKey(BIO *bp, EC_KEY **key, pem_password_cb *cb, void *u)
 {
     EVP_PKEY *pktmp;
     pktmp = PEM_read_bio_PrivateKey(bp, NULL, cb, u);
     return pkey_get_eckey(pktmp, key); /* will free pktmp */
 }
 
-IMPLEMENT_PEM_rw(ECPKParameters, EC_GROUP, PEM_STRING_ECPARAMETERS,
-                 ECPKParameters)
+IMPLEMENT_PEM_rw(ECPKParameters, EC_GROUP, PEM_STRING_ECPARAMETERS, ECPKParameters)
 
-
-IMPLEMENT_PEM_write_cb(ECPrivateKey, EC_KEY, PEM_STRING_ECPRIVATEKEY,
-                       ECPrivateKey)
+IMPLEMENT_PEM_write_cb(ECPrivateKey, EC_KEY, PEM_STRING_ECPRIVATEKEY, ECPrivateKey)
 IMPLEMENT_PEM_rw(EC_PUBKEY, EC_KEY, PEM_STRING_PUBLIC, EC_PUBKEY)
 #  ifndef OPENSSL_NO_STDIO
-EC_KEY *PEM_read_ECPrivateKey(FILE *fp, EC_KEY **eckey, pem_password_cb *cb,
-                              void *u)
+EC_KEY *PEM_read_ECPrivateKey(FILE *fp, EC_KEY **eckey, pem_password_cb *cb, void *u)
 {
     EVP_PKEY *pktmp;
     pktmp = PEM_read_PrivateKey(fp, NULL, cb, u);
@@ -172,7 +164,7 @@ EC_KEY *PEM_read_ECPrivateKey(FILE *fp, EC_KEY **eckey, pem_password_cb *cb,
 }
 #  endif
 # endif /* !OPENSSL_NO_EC */
-#endif /* !OPENSSL_NO_DEPRECATED_3_0 */
+#endif  /* !OPENSSL_NO_DEPRECATED_3_0 */
 
 #ifndef OPENSSL_NO_DH
 
@@ -183,11 +175,11 @@ IMPLEMENT_PEM_write(DHxparams, DH, PEM_STRING_DHXPARAMS, DHxparams)
 
 DH *PEM_read_bio_DHparams(BIO *bp, DH **x, pem_password_cb *cb, void *u)
 {
-    char *nm = NULL;
-    const unsigned char *p = NULL;
-    unsigned char *data = NULL;
-    long len;
-    DH *ret = NULL;
+    char                *nm   = NULL;
+    const unsigned char *p    = NULL;
+    unsigned char       *data = NULL;
+    long                 len;
+    DH                  *ret = NULL;
 
     if (!PEM_bytes_read_bio(&data, &len, &nm, PEM_STRING_DHPARAMS, bp, cb, u))
         return NULL;
@@ -209,7 +201,7 @@ DH *PEM_read_bio_DHparams(BIO *bp, DH **x, pem_password_cb *cb, void *u)
 DH *PEM_read_DHparams(FILE *fp, DH **x, pem_password_cb *cb, void *u)
 {
     BIO *b;
-    DH *ret;
+    DH  *ret;
 
     if ((b = BIO_new(BIO_s_file())) == NULL) {
         ERR_raise(ERR_LIB_PEM, ERR_R_BUF_LIB);

@@ -15,7 +15,8 @@
  * For example, contains these lines:
     Len = 80
     Msg = 1ca984dcc913344370cf
-    MD = 6915ea0eeffb99b9b246a0e34daf3947852684c3d618260119a22835659e4f23d4eb66a15d0affb8e93771578f5e8f25b7a5f2a55f511fb8b96325ba2cd14816
+    MD =
+ 6915ea0eeffb99b9b246a0e34daf3947852684c3d618260119a22835659e4f23d4eb66a15d0affb8e93771578f5e8f25b7a5f2a55f511fb8b96325ba2cd14816
  * use xxd convert the hex message string to binary input for BIO_f_md:
  * echo "1ca984dcc913344370cf" | xxd -r -p | ./BIO_f_md
  * and then verify the output matches MD above.
@@ -40,15 +41,15 @@
 
 int main(int argc, char *argv[])
 {
-    int ret = EXIT_FAILURE;
+    int           ret             = EXIT_FAILURE;
     OSSL_LIB_CTX *library_context = NULL;
-    BIO *input = NULL;
-    BIO *bio_digest = NULL, *reading = NULL;
-    EVP_MD *md = NULL;
+    BIO          *input           = NULL;
+    BIO          *bio_digest = NULL, *reading = NULL;
+    EVP_MD       *md = NULL;
     unsigned char buffer[512];
-    int digest_size;
-    char *digest_value = NULL;
-    int j;
+    int           digest_size;
+    char         *digest_value = NULL;
+    int           j;
 
     input = BIO_new_fd(fileno(stdin), 1);
     if (input == NULL) {
@@ -90,8 +91,8 @@ int main(int argc, char *argv[])
     }
     /* set our bio_digest BIO to digest data */
     if (BIO_set_md(bio_digest, md) != 1) {
-           fprintf(stderr, "BIO_set_md failed.\n");
-           goto cleanup;
+        fprintf(stderr, "BIO_set_md failed.\n");
+        goto cleanup;
     }
     /*-
      * We will use BIO chaining so that as we read, the digest gets updated

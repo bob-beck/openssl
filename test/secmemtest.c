@@ -15,21 +15,18 @@
 static int test_sec_mem(void)
 {
 #ifndef OPENSSL_NO_SECURE_MEMORY
-    int testresult = 0;
+    int   testresult = 0;
     char *p = NULL, *q = NULL, *r = NULL, *s = NULL;
 
     TEST_info("Secure memory is implemented.");
 
     s = OPENSSL_secure_malloc(20);
     /* s = non-secure 20 */
-    if (!TEST_ptr(s)
-        || !TEST_false(CRYPTO_secure_allocated(s)))
+    if (!TEST_ptr(s) || !TEST_false(CRYPTO_secure_allocated(s)))
         goto end;
     r = OPENSSL_secure_malloc(20);
     /* r = non-secure 20, s = non-secure 20 */
-    if (!TEST_ptr(r)
-        || !TEST_true(CRYPTO_secure_malloc_init(4096, 32))
-        || !TEST_false(CRYPTO_secure_allocated(r)))
+    if (!TEST_ptr(r) || !TEST_true(CRYPTO_secure_malloc_init(4096, 32)) || !TEST_false(CRYPTO_secure_allocated(r)))
         goto end;
     p = OPENSSL_secure_malloc(20);
     if (!TEST_ptr(p)
@@ -60,14 +57,12 @@ static int test_sec_mem(void)
     OPENSSL_free(q);
     q = NULL;
     /* should not complete, as secure memory is still allocated */
-    if (!TEST_false(CRYPTO_secure_malloc_done())
-        || !TEST_true(CRYPTO_secure_malloc_initialized()))
+    if (!TEST_false(CRYPTO_secure_malloc_done()) || !TEST_true(CRYPTO_secure_malloc_initialized()))
         goto end;
     OPENSSL_secure_free(s);
     s = NULL;
     /* secure memory should now be 0, so done should complete */
-    if (!TEST_size_t_eq(CRYPTO_secure_used(), 0)
-        || !TEST_true(CRYPTO_secure_malloc_done())
+    if (!TEST_size_t_eq(CRYPTO_secure_used(), 0) || !TEST_true(CRYPTO_secure_malloc_done())
         || !TEST_false(CRYPTO_secure_malloc_initialized()))
         goto end;
 
@@ -81,8 +76,7 @@ static int test_sec_mem(void)
      * If init fails, then initialized should be false, if not, this
      * could cause an infinite loop secure_malloc, but we don't test it
      */
-    if (TEST_false(CRYPTO_secure_malloc_init(16, 16)) &&
-        !TEST_false(CRYPTO_secure_malloc_initialized())) {
+    if (TEST_false(CRYPTO_secure_malloc_init(16, 16)) && !TEST_false(CRYPTO_secure_malloc_initialized())) {
         TEST_true(CRYPTO_secure_malloc_done());
         goto end;
     }
@@ -120,7 +114,7 @@ static int test_sec_mem(void)
 
     /* this can complete - it was not really secure */
     testresult = 1;
- end:
+end:
     OPENSSL_secure_free(p);
     OPENSSL_free(q);
     OPENSSL_secure_free(r);
@@ -136,12 +130,11 @@ static int test_sec_mem(void)
 static int test_sec_mem_clear(void)
 {
 #ifndef OPENSSL_NO_SECURE_MEMORY
-    const int size = 64;
-    unsigned char *p = NULL;
-    int i, res = 0;
+    const int      size = 64;
+    unsigned char *p    = NULL;
+    int            i, res = 0;
 
-    if (!TEST_true(CRYPTO_secure_malloc_init(4096, 32))
-            || !TEST_ptr(p = OPENSSL_secure_malloc(size)))
+    if (!TEST_true(CRYPTO_secure_malloc_init(4096, 32)) || !TEST_ptr(p = OPENSSL_secure_malloc(size)))
         goto err;
 
     for (i = 0; i < size; i++)
@@ -165,7 +158,7 @@ static int test_sec_mem_clear(void)
             return 0;
 
     res = 1;
-    p = NULL;
+    p   = NULL;
 err:
     OPENSSL_secure_free(p);
     CRYPTO_secure_malloc_done();

@@ -18,7 +18,7 @@
 int ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, const void *x)
 {
     BIO *b;
-    int ret;
+    int  ret;
 
     if ((b = BIO_new(BIO_s_file())) == NULL) {
         ERR_raise(ERR_LIB_ASN1, ERR_R_BUF_LIB);
@@ -33,9 +33,9 @@ int ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, const void *x)
 
 int ASN1_i2d_bio(i2d_of_void *i2d, BIO *out, const void *x)
 {
-    char *b;
+    char          *b;
     unsigned char *p;
-    int i, j = 0, n, ret = 1;
+    int            i, j = 0, n, ret = 1;
 
     n = i2d(x, NULL);
     if (n <= 0)
@@ -69,7 +69,7 @@ int ASN1_i2d_bio(i2d_of_void *i2d, BIO *out, const void *x)
 int ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, const void *x)
 {
     BIO *b;
-    int ret;
+    int  ret;
 
     if ((b = BIO_new(BIO_s_file())) == NULL) {
         ERR_raise(ERR_LIB_ASN1, ERR_R_BUF_LIB);
@@ -85,7 +85,7 @@ int ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, const void *x)
 int ASN1_item_i2d_bio(const ASN1_ITEM *it, BIO *out, const void *x)
 {
     unsigned char *b = NULL;
-    int i, j = 0, n, ret = 1;
+    int            i, j = 0, n, ret = 1;
 
     n = ASN1_item_i2d(x, &b, it);
     if (n < 0 || b == NULL) {

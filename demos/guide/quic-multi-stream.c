@@ -26,19 +26,17 @@
 #include <openssl/err.h>
 
 /* Helper function to create a BIO connected to the server */
-static BIO *create_socket_bio(const char *hostname, const char *port,
-                              int family, BIO_ADDR **peer_addr)
+static BIO *create_socket_bio(const char *hostname, const char *port, int family, BIO_ADDR **peer_addr)
 {
-    int sock = -1;
-    BIO_ADDRINFO *res;
+    int                 sock = -1;
+    BIO_ADDRINFO       *res;
     const BIO_ADDRINFO *ai = NULL;
-    BIO *bio;
+    BIO                *bio;
 
     /*
      * Lookup IP address info for the server.
      */
-    if (!BIO_lookup_ex(hostname, port, BIO_LOOKUP_CLIENT, family, SOCK_DGRAM, 0,
-                       &res))
+    if (!BIO_lookup_ex(hostname, port, BIO_LOOKUP_CLIENT, family, SOCK_DGRAM, 0, &res))
         return NULL;
 
     /*
@@ -108,14 +106,12 @@ static BIO *create_socket_bio(const char *hostname, const char *port,
     return bio;
 }
 
-static int write_a_request(SSL *stream, const char *request_start,
-                           const char *hostname)
+static int write_a_request(SSL *stream, const char *request_start, const char *hostname)
 {
     const char *request_end = "\r\n\r\n";
-    size_t written;
+    size_t      written;
 
-    if (!SSL_write_ex(stream, request_start, strlen(request_start),
-                      &written))
+    if (!SSL_write_ex(stream, request_start, strlen(request_start), &written))
         return 0;
     if (!SSL_write_ex(stream, hostname, strlen(hostname), &written))
         return 0;
@@ -133,23 +129,21 @@ static int write_a_request(SSL *stream, const char *request_start,
  */
 int main(int argc, char *argv[])
 {
-    SSL_CTX *ctx = NULL;
-    SSL *ssl = NULL;
-    SSL *stream1 = NULL, *stream2 = NULL, *stream3 = NULL;
-    BIO *bio = NULL;
-    int res = EXIT_FAILURE;
-    int ret;
-    unsigned char alpn[] = { 8, 'h', 't', 't', 'p', '/', '1', '.', '0' };
-    const char *request1_start =
-        "GET /request1.html HTTP/1.0\r\nConnection: close\r\nHost: ";
-    const char *request2_start =
-        "GET /request2.html HTTP/1.0\r\nConnection: close\r\nHost: ";
-    size_t readbytes;
-    char buf[160];
-    BIO_ADDR *peer_addr = NULL;
-    char *hostname, *port;
-    int argnext = 1;
-    int ipv6 = 0;
+    SSL_CTX      *ctx     = NULL;
+    SSL          *ssl     = NULL;
+    SSL          *stream1 = NULL, *stream2 = NULL, *stream3 = NULL;
+    BIO          *bio = NULL;
+    int           res = EXIT_FAILURE;
+    int           ret;
+    unsigned char alpn[]         = {8, 'h', 't', 't', 'p', '/', '1', '.', '0'};
+    const char   *request1_start = "GET /request1.html HTTP/1.0\r\nConnection: close\r\nHost: ";
+    const char   *request2_start = "GET /request2.html HTTP/1.0\r\nConnection: close\r\nHost: ";
+    size_t        readbytes;
+    char          buf[160];
+    BIO_ADDR     *peer_addr = NULL;
+    char         *hostname, *port;
+    int           argnext = 1;
+    int           ipv6    = 0;
 
     if (argc < 3) {
         printf("Usage: quic-client-non-block [-6] hostname port\n");
@@ -165,14 +159,14 @@ int main(int argc, char *argv[])
         argnext++;
     }
     hostname = argv[argnext++];
-    port = argv[argnext];
+    port     = argv[argnext];
 
     /*
      * Create an SSL_CTX which we can use to create SSL objects from. We
      * want an SSL_CTX for creating clients so we use
      * OSSL_QUIC_client_method() here.
      */
-    ctx = SSL_CTX_new(OSSL_QUIC_client_method());
+    ctx      = SSL_CTX_new(OSSL_QUIC_client_method());
     if (ctx == NULL) {
         printf("Failed to create the SSL_CTX\n");
         goto end;
@@ -258,8 +252,7 @@ int main(int argc, char *argv[])
          * information about it from SSL_get_verify_result().
          */
         if (SSL_get_verify_result(ssl) != X509_V_OK)
-            printf("Verify error: %s\n",
-                X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
+            printf("Verify error: %s\n", X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
         goto end;
     }
 
@@ -300,12 +293,12 @@ int main(int argc, char *argv[])
      */
     while (SSL_read_ex(stream1, buf, sizeof(buf), &readbytes)) {
         /*
-        * OpenSSL does not guarantee that the returned data is a string or
-        * that it is NUL terminated so we use fwrite() to write the exact
-        * number of bytes that we read. The data could be non-printable or
-        * have NUL characters in the middle of it. For this simple example
-        * we're going to print it to stdout anyway.
-        */
+         * OpenSSL does not guarantee that the returned data is a string or
+         * that it is NUL terminated so we use fwrite() to write the exact
+         * number of bytes that we read. The data could be non-printable or
+         * have NUL characters in the middle of it. For this simple example
+         * we're going to print it to stdout anyway.
+         */
         fwrite(buf, 1, readbytes, stdout);
     }
     /* In case the response didn't finish with a newline we add one now */
@@ -348,7 +341,7 @@ int main(int argc, char *argv[])
 
     default:
         /* Some other unexpected error occurred */
-        printf ("Failed reading remaining data\n");
+        printf("Failed reading remaining data\n");
         break;
     }
 
@@ -402,7 +395,7 @@ int main(int argc, char *argv[])
         break;
 
     default:
-        printf ("Failed reading remaining data\n");
+        printf("Failed reading remaining data\n");
         break;
     }
 
@@ -420,7 +413,7 @@ int main(int argc, char *argv[])
 
     /* Success! */
     res = EXIT_SUCCESS;
- end:
+end:
     /*
      * If something bad happened then we will dump the contents of the
      * OpenSSL error stack to stderr. There might be some useful diagnostic

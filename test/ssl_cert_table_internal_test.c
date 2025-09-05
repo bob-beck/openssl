@@ -21,22 +21,18 @@
 #define test_cert_table(nid, amask, idx) \
     do_test_cert_table(nid, amask, idx, #idx)
 
-static int do_test_cert_table(int nid, uint32_t amask, size_t idx,
-                              const char *idxname)
+static int do_test_cert_table(int nid, uint32_t amask, size_t idx, const char *idxname)
 {
     const SSL_CERT_LOOKUP *clu = &ssl_cert_info[idx];
 
     if (clu->nid == nid && clu->amask == amask)
         return 1;
 
-    TEST_error("Invalid table entry for certificate type %s, index %zu",
-               idxname, idx);
+    TEST_error("Invalid table entry for certificate type %s, index %zu", idxname, idx);
     if (clu->nid != nid)
-        TEST_note("Expected %s, got %s\n", OBJ_nid2sn(nid),
-                  OBJ_nid2sn(clu->nid));
+        TEST_note("Expected %s, got %s\n", OBJ_nid2sn(nid), OBJ_nid2sn(clu->nid));
     if (clu->amask != amask)
-        TEST_note("Expected auth mask 0x%x, got 0x%x\n",
-                  (unsigned int)amask, (unsigned int)clu->amask);
+        TEST_note("Expected auth mask 0x%x, got 0x%x\n", (unsigned int)amask, (unsigned int)clu->amask);
     return 0;
 }
 
@@ -48,12 +44,9 @@ static int test_ssl_cert_table(void)
            && test_cert_table(EVP_PKEY_RSA, SSL_aRSA, SSL_PKEY_RSA)
            && test_cert_table(EVP_PKEY_DSA, SSL_aDSS, SSL_PKEY_DSA_SIGN)
            && test_cert_table(EVP_PKEY_EC, SSL_aECDSA, SSL_PKEY_ECC)
-           && test_cert_table(NID_id_GostR3410_2001, SSL_aGOST01,
-                              SSL_PKEY_GOST01)
-           && test_cert_table(NID_id_GostR3410_2012_256, SSL_aGOST12,
-                              SSL_PKEY_GOST12_256)
-           && test_cert_table(NID_id_GostR3410_2012_512, SSL_aGOST12,
-                              SSL_PKEY_GOST12_512)
+           && test_cert_table(NID_id_GostR3410_2001, SSL_aGOST01, SSL_PKEY_GOST01)
+           && test_cert_table(NID_id_GostR3410_2012_256, SSL_aGOST12, SSL_PKEY_GOST12_256)
+           && test_cert_table(NID_id_GostR3410_2012_512, SSL_aGOST12, SSL_PKEY_GOST12_512)
            && test_cert_table(EVP_PKEY_ED25519, SSL_aECDSA, SSL_PKEY_ED25519)
            && test_cert_table(EVP_PKEY_ED448, SSL_aECDSA, SSL_PKEY_ED448);
 }

@@ -59,19 +59,19 @@
 #define CTS_BLOCK_SIZE 16
 
 typedef union {
-    size_t align;
+    size_t        align;
     unsigned char c[CTS_BLOCK_SIZE];
 } aligned_16bytes;
 
 typedef struct cts_mode_name2id_st {
     unsigned int id;
-    const char *name;
+    const char  *name;
 } CTS_MODE_NAME2ID;
 
 static CTS_MODE_NAME2ID cts_modes[] = {
-    { CTS_CS1, OSSL_CIPHER_CTS_MODE_CS1 },
-    { CTS_CS2, OSSL_CIPHER_CTS_MODE_CS2 },
-    { CTS_CS3, OSSL_CIPHER_CTS_MODE_CS3 },
+    {CTS_CS1, OSSL_CIPHER_CTS_MODE_CS1},
+    {CTS_CS2, OSSL_CIPHER_CTS_MODE_CS2},
+    {CTS_CS3, OSSL_CIPHER_CTS_MODE_CS3},
 };
 
 const char *ossl_cipher_cbc_cts_mode_id2name(unsigned int id)
@@ -96,33 +96,30 @@ int ossl_cipher_cbc_cts_mode_name2id(const char *name)
     return -1;
 }
 
-static size_t cts128_cs1_encrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
-                                 unsigned char *out, size_t len)
+static size_t cts128_cs1_encrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in, unsigned char *out, size_t len)
 {
     aligned_16bytes tmp_in;
-    size_t residue;
+    size_t          residue;
 
-    residue = len % CTS_BLOCK_SIZE;
-    len -= residue;
+    residue  = len % CTS_BLOCK_SIZE;
+    len     -= residue;
     if (!ctx->hw->cipher(ctx, out, in, len))
         return 0;
 
     if (residue == 0)
         return len;
 
-    in += len;
+    in  += len;
     out += len;
 
     memset(tmp_in.c, 0, sizeof(tmp_in));
     memcpy(tmp_in.c, in, residue);
-    if (!ctx->hw->cipher(ctx, out - CTS_BLOCK_SIZE + residue, tmp_in.c,
-                         CTS_BLOCK_SIZE))
+    if (!ctx->hw->cipher(ctx, out - CTS_BLOCK_SIZE + residue, tmp_in.c, CTS_BLOCK_SIZE))
         return 0;
     return len + residue;
 }
 
-static void do_xor(const unsigned char *in1, const unsigned char *in2,
-                   size_t len, unsigned char *out)
+static void do_xor(const unsigned char *in1, const unsigned char *in2, size_t len, unsigned char *out)
 {
     size_t i;
 
@@ -130,11 +127,10 @@ static void do_xor(const unsigned char *in1, const unsigned char *in2,
         out[i] = in1[i] ^ in2[i];
 }
 
-static size_t cts128_cs1_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
-                                 unsigned char *out, size_t len)
+static size_t cts128_cs1_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in, unsigned char *out, size_t len)
 {
     aligned_16bytes mid_iv, ct_mid, cn, pt_last;
-    size_t residue;
+    size_t          residue;
 
     residue = len % CTS_BLOCK_SIZE;
     if (residue == 0) {
@@ -148,7 +144,7 @@ static size_t cts128_cs1_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
     if (len > 0) {
         if (!ctx->hw->cipher(ctx, out, in, len))
             return 0;
-        in += len;
+        in  += len;
         out += len;
     }
     /* Save the iv that will be used by the second last block */
@@ -192,13 +188,12 @@ static size_t cts128_cs1_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
     return len + CTS_BLOCK_SIZE + residue;
 }
 
-static size_t cts128_cs3_encrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
-                                 unsigned char *out, size_t len)
+static size_t cts128_cs3_encrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in, unsigned char *out, size_t len)
 {
     aligned_16bytes tmp_in;
-    size_t residue;
+    size_t          residue;
 
-    if (len < CTS_BLOCK_SIZE)  /* CS3 requires at least one block */
+    if (len < CTS_BLOCK_SIZE) /* CS3 requires at least one block */
         return 0;
 
     /* If we only have one block then just process the aligned block */
@@ -213,7 +208,7 @@ static size_t cts128_cs3_encrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
     if (!ctx->hw->cipher(ctx, out, in, len))
         return 0;
 
-    in += len;
+    in  += len;
     out += len;
 
     memset(tmp_in.c, 0, sizeof(tmp_in));
@@ -232,11 +227,10 @@ static size_t cts128_cs3_encrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
  *  This means that the output plaintext (out) needs to swap the plaintext of
  *  the last two decoded ciphertext blocks.
  */
-static size_t cts128_cs3_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
-                                 unsigned char *out, size_t len)
+static size_t cts128_cs3_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in, unsigned char *out, size_t len)
 {
     aligned_16bytes mid_iv, ct_mid, cn, pt_last;
-    size_t residue;
+    size_t          residue;
 
     if (len < CTS_BLOCK_SIZE) /* CS3 requires at least one block */
         return 0;
@@ -254,7 +248,7 @@ static size_t cts128_cs3_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
     if (len > 0) {
         if (!ctx->hw->cipher(ctx, out, in, len))
             return 0;
-        in += len;
+        in  += len;
         out += len;
     }
     /* Save the iv that will be used by the second last block */
@@ -298,8 +292,7 @@ static size_t cts128_cs3_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
     return len + CTS_BLOCK_SIZE + residue;
 }
 
-static size_t cts128_cs2_encrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
-                                 unsigned char *out, size_t len)
+static size_t cts128_cs2_encrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in, unsigned char *out, size_t len)
 {
     if (len % CTS_BLOCK_SIZE == 0) {
         /* If there are no partial blocks then it is the same as CBC mode */
@@ -311,8 +304,7 @@ static size_t cts128_cs2_encrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
     return cts128_cs3_encrypt(ctx, in, out, len);
 }
 
-static size_t cts128_cs2_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
-                                 unsigned char *out, size_t len)
+static size_t cts128_cs2_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in, unsigned char *out, size_t len)
 {
     if (len % CTS_BLOCK_SIZE == 0) {
         /* If there are no partial blocks then it is the same as CBC mode */
@@ -324,12 +316,15 @@ static size_t cts128_cs2_decrypt(PROV_CIPHER_CTX *ctx, const unsigned char *in,
     return cts128_cs3_decrypt(ctx, in, out, len);
 }
 
-int ossl_cipher_cbc_cts_block_update(void *vctx, unsigned char *out, size_t *outl,
-                                     size_t outsize, const unsigned char *in,
-                                     size_t inl)
+int ossl_cipher_cbc_cts_block_update(void                *vctx,
+                                     unsigned char       *out,
+                                     size_t              *outl,
+                                     size_t               outsize,
+                                     const unsigned char *in,
+                                     size_t               inl)
 {
     PROV_CIPHER_CTX *ctx = (PROV_CIPHER_CTX *)vctx;
-    size_t sz = 0;
+    size_t           sz  = 0;
 
     if (inl < CTS_BLOCK_SIZE) /* There must be at least one block for CTS mode */
         return 0;
@@ -365,12 +360,11 @@ int ossl_cipher_cbc_cts_block_update(void *vctx, unsigned char *out, size_t *out
     if (sz == 0)
         return 0;
     ctx->updated = 1; /* Stop multiple updates being allowed */
-    *outl = sz;
+    *outl        = sz;
     return 1;
 }
 
-int ossl_cipher_cbc_cts_block_final(void *vctx, unsigned char *out, size_t *outl,
-                                    size_t outsize)
+int ossl_cipher_cbc_cts_block_final(void *vctx, unsigned char *out, size_t *outl, size_t outsize)
 {
     *outl = 0;
     return 1;

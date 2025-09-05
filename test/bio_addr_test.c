@@ -12,19 +12,19 @@
 #include "internal/sockets.h"
 #include "testutil.h"
 
-static int families[] = {
-    AF_INET,
+static int families[] = {AF_INET,
 #if OPENSSL_USE_IPV6
-    AF_INET6,
+                         AF_INET6,
 #endif
 #ifndef OPENSSL_NO_UNIX_SOCK
-    AF_UNIX
+                         AF_UNIX
 #endif
 };
 
 static BIO_ADDR *make_dummy_addr(int family)
 {
     BIO_ADDR *addr;
+
     union {
         struct sockaddr_in sin;
 #if OPENSSL_USE_IPV6
@@ -34,24 +34,25 @@ static BIO_ADDR *make_dummy_addr(int family)
         struct sockaddr_un sunaddr;
 #endif
     } sa;
-    void *where;
+
+    void  *where;
     size_t wherelen;
 
     /* Fill with a dummy address */
-    switch(family) {
+    switch (family) {
     case AF_INET:
-        where = &(sa.sin.sin_addr);
+        where    = &(sa.sin.sin_addr);
         wherelen = sizeof(sa.sin.sin_addr);
         break;
 #if OPENSSL_USE_IPV6
     case AF_INET6:
-        where = &(sa.sin6.sin6_addr);
+        where    = &(sa.sin6.sin6_addr);
         wherelen = sizeof(sa.sin6.sin6_addr);
         break;
 #endif
 #ifndef OPENSSL_NO_UNIX_SOCK
     case AF_UNIX:
-        where = &(sa.sunaddr.sun_path);
+        where    = &(sa.sunaddr.sun_path);
         /* BIO_ADDR_rawmake needs an extra byte for a NUL-terminator*/
         wherelen = sizeof(sa.sunaddr.sun_path) - 1;
         break;
@@ -81,8 +82,8 @@ static BIO_ADDR *make_dummy_addr(int family)
 static int bio_addr_is_eq(const BIO_ADDR *a, const BIO_ADDR *b)
 {
     unsigned char *adata = NULL, *bdata = NULL;
-    size_t alen, blen;
-    int ret = 0;
+    size_t         alen, blen;
+    int            ret = 0;
 
     /* True even if a and b are NULL */
     if (a == b)
@@ -112,18 +113,16 @@ static int bio_addr_is_eq(const BIO_ADDR *a, const BIO_ADDR *b)
         return 1;
 
     adata = OPENSSL_malloc(alen);
-    if (!TEST_ptr(adata)
-            || !BIO_ADDR_rawaddress(a, adata, &alen))
+    if (!TEST_ptr(adata) || !BIO_ADDR_rawaddress(a, adata, &alen))
         goto err;
 
     bdata = OPENSSL_malloc(blen);
-    if (!TEST_ptr(bdata)
-            || !BIO_ADDR_rawaddress(b, bdata, &blen))
+    if (!TEST_ptr(bdata) || !BIO_ADDR_rawaddress(b, bdata, &blen))
         goto err;
 
     ret = (memcmp(adata, bdata, alen) == 0);
 
- err:
+err:
     OPENSSL_free(adata);
     OPENSSL_free(bdata);
     return ret;
@@ -132,12 +131,12 @@ static int bio_addr_is_eq(const BIO_ADDR *a, const BIO_ADDR *b)
 static int test_bio_addr_copy_dup(int idx)
 {
     BIO_ADDR *src = NULL, *dst = NULL;
-    int ret = 0;
-    int docopy = idx & 1;
+    int       ret      = 0;
+    int       docopy   = idx & 1;
 
-    idx >>= 1;
+    idx              >>= 1;
 
-    src = make_dummy_addr(families[idx]);
+    src                = make_dummy_addr(families[idx]);
     if (!TEST_ptr(src))
         return 0;
 
@@ -158,7 +157,7 @@ static int test_bio_addr_copy_dup(int idx)
         goto err;
 
     ret = 1;
- err:
+err:
     BIO_ADDR_free(src);
     BIO_ADDR_free(dst);
     return ret;

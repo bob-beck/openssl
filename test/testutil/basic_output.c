@@ -15,8 +15,8 @@
 #include <openssl/bio.h>
 
 /* These are available for any test program */
-BIO *bio_out = NULL;
-BIO *bio_err = NULL;
+BIO        *bio_out = NULL;
+BIO        *bio_err = NULL;
 
 /* These are available for TAP output only (internally) */
 static BIO *tap_out = NULL;
@@ -29,7 +29,7 @@ typedef struct local_test_data_st {
 #if defined(OPENSSL_THREADS)
 static CRYPTO_THREAD_LOCAL local_test_data; /* (LOCAL_TEST_DATA *) */
 
-static CRYPTO_RWLOCK *io_lock = NULL;
+static CRYPTO_RWLOCK      *io_lock = NULL;
 #endif
 
 #if defined(OPENSSL_THREADS)
@@ -132,7 +132,7 @@ void test_open_streams(void)
 {
     int ok;
 
-    ok = init_local_test_data();
+    ok      = init_local_test_data();
 
     tap_out = BIO_new_fp(stdout, BIO_NOCLOSE | BIO_FP_TEXT);
     tap_err = BIO_new_fp(stderr, BIO_NOCLOSE | BIO_FP_TEXT);

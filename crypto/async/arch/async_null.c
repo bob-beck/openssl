@@ -16,14 +16,12 @@ int ASYNC_is_capable(void)
     return 0;
 }
 
-int ASYNC_set_mem_functions(ASYNC_stack_alloc_fn alloc_fn,
-                            ASYNC_stack_free_fn free_fn)
+int ASYNC_set_mem_functions(ASYNC_stack_alloc_fn alloc_fn, ASYNC_stack_free_fn free_fn)
 {
     return 0;
 }
 
-void ASYNC_get_mem_functions(ASYNC_stack_alloc_fn *alloc_fn,
-                             ASYNC_stack_free_fn *free_fn)
+void ASYNC_get_mem_functions(ASYNC_stack_alloc_fn *alloc_fn, ASYNC_stack_free_fn *free_fn)
 {
     if (alloc_fn != NULL)
         *alloc_fn = NULL;
@@ -35,4 +33,3 @@ void async_local_cleanup(void)
 {
 }
 #endif
-

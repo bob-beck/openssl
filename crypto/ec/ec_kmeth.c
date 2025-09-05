@@ -21,23 +21,25 @@
 #include <openssl/err.h>
 #include "ec_local.h"
 
+static const EC_KEY_METHOD  openssl_ec_key_method = {"OpenSSL EC_KEY method",
+                                                     0,
+                                                     0,
+                                                     0,
+                                                     0,
+                                                     0,
+                                                     0,
+                                                     0,
+                                                     ossl_ec_key_gen,
+                                                     ossl_ecdh_compute_key,
+                                                     ossl_ecdsa_sign,
+                                                     ossl_ecdsa_sign_setup,
+                                                     ossl_ecdsa_sign_sig,
+                                                     ossl_ecdsa_verify,
+                                                     ossl_ecdsa_verify_sig};
 
-static const EC_KEY_METHOD openssl_ec_key_method = {
-    "OpenSSL EC_KEY method",
-    0,
-    0,0,0,0,0,0,
-    ossl_ec_key_gen,
-    ossl_ecdh_compute_key,
-    ossl_ecdsa_sign,
-    ossl_ecdsa_sign_setup,
-    ossl_ecdsa_sign_sig,
-    ossl_ecdsa_verify,
-    ossl_ecdsa_verify_sig
-};
+static const EC_KEY_METHOD *default_ec_key_meth   = &openssl_ec_key_method;
 
-static const EC_KEY_METHOD *default_ec_key_meth = &openssl_ec_key_method;
-
-const EC_KEY_METHOD *EC_KEY_OpenSSL(void)
+const EC_KEY_METHOD        *EC_KEY_OpenSSL(void)
 {
     return &openssl_ec_key_method;
 }
@@ -78,8 +80,7 @@ int EC_KEY_set_method(EC_KEY *key, const EC_KEY_METHOD *meth)
     return 1;
 }
 
-EC_KEY *ossl_ec_key_new_method_int(OSSL_LIB_CTX *libctx, const char *propq,
-                                   ENGINE *engine)
+EC_KEY *ossl_ec_key_new_method_int(OSSL_LIB_CTX *libctx, const char *propq, ENGINE *engine)
 {
     EC_KEY *ret = OPENSSL_zalloc(sizeof(*ret));
 
@@ -117,7 +118,7 @@ EC_KEY *ossl_ec_key_new_method_int(OSSL_LIB_CTX *libctx, const char *propq,
     }
 #endif
 
-    ret->version = 1;
+    ret->version   = 1;
     ret->conv_form = POINT_CONVERSION_UNCOMPRESSED;
 
 /* No ex_data inside the FIPS provider */
@@ -134,7 +135,7 @@ EC_KEY *ossl_ec_key_new_method_int(OSSL_LIB_CTX *libctx, const char *propq,
     }
     return ret;
 
- err:
+err:
     EC_KEY_free(ret);
     return NULL;
 }
@@ -146,13 +147,14 @@ EC_KEY *EC_KEY_new_method(ENGINE *engine)
 }
 #endif
 
-int ECDH_compute_key(void *out, size_t outlen, const EC_POINT *pub_key,
-                     const EC_KEY *eckey,
-                     void *(*KDF) (const void *in, size_t inlen, void *out,
-                                   size_t *outlen))
+int ECDH_compute_key(void           *out,
+                     size_t          outlen,
+                     const EC_POINT *pub_key,
+                     const EC_KEY   *eckey,
+                     void *(*KDF)(const void *in, size_t inlen, void *out, size_t *outlen))
 {
     unsigned char *sec = NULL;
-    size_t seclen;
+    size_t         seclen;
     if (eckey->meth->compute_key == NULL) {
         ERR_raise(ERR_LIB_EC, EC_R_OPERATION_NOT_SUPPORTED);
         return 0;
@@ -197,64 +199,61 @@ void EC_KEY_METHOD_set_init(EC_KEY_METHOD *meth,
                             void (*finish)(EC_KEY *key),
                             int (*copy)(EC_KEY *dest, const EC_KEY *src),
                             int (*set_group)(EC_KEY *key, const EC_GROUP *grp),
-                            int (*set_private)(EC_KEY *key,
-                                               const BIGNUM *priv_key),
-                            int (*set_public)(EC_KEY *key,
-                                              const EC_POINT *pub_key))
+                            int (*set_private)(EC_KEY *key, const BIGNUM *priv_key),
+                            int (*set_public)(EC_KEY *key, const EC_POINT *pub_key))
 {
-    meth->init = init;
-    meth->finish = finish;
-    meth->copy = copy;
-    meth->set_group = set_group;
+    meth->init        = init;
+    meth->finish      = finish;
+    meth->copy        = copy;
+    meth->set_group   = set_group;
     meth->set_private = set_private;
-    meth->set_public = set_public;
+    meth->set_public  = set_public;
 }
 
-void EC_KEY_METHOD_set_keygen(EC_KEY_METHOD *meth,
-                              int (*keygen)(EC_KEY *key))
+void EC_KEY_METHOD_set_keygen(EC_KEY_METHOD *meth, int (*keygen)(EC_KEY *key))
 {
     meth->keygen = keygen;
 }
 
-void EC_KEY_METHOD_set_compute_key(EC_KEY_METHOD *meth,
-                                   int (*ckey)(unsigned char **psec,
-                                               size_t *pseclen,
-                                               const EC_POINT *pub_key,
-                                               const EC_KEY *ecdh))
+void EC_KEY_METHOD_set_compute_key(
+    EC_KEY_METHOD *meth,
+    int (*ckey)(unsigned char **psec, size_t *pseclen, const EC_POINT *pub_key, const EC_KEY *ecdh))
 {
     meth->compute_key = ckey;
 }
 
 void EC_KEY_METHOD_set_sign(EC_KEY_METHOD *meth,
-                            int (*sign)(int type, const unsigned char *dgst,
-                                        int dlen, unsigned char *sig,
-                                        unsigned int *siglen,
-                                        const BIGNUM *kinv, const BIGNUM *r,
-                                        EC_KEY *eckey),
-                            int (*sign_setup)(EC_KEY *eckey, BN_CTX *ctx_in,
-                                              BIGNUM **kinvp, BIGNUM **rp),
+                            int (*sign)(int                  type,
+                                        const unsigned char *dgst,
+                                        int                  dlen,
+                                        unsigned char       *sig,
+                                        unsigned int        *siglen,
+                                        const BIGNUM        *kinv,
+                                        const BIGNUM        *r,
+                                        EC_KEY              *eckey),
+                            int (*sign_setup)(EC_KEY *eckey, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp),
                             ECDSA_SIG *(*sign_sig)(const unsigned char *dgst,
-                                                   int dgst_len,
-                                                   const BIGNUM *in_kinv,
-                                                   const BIGNUM *in_r,
-                                                   EC_KEY *eckey))
+                                                   int                  dgst_len,
+                                                   const BIGNUM        *in_kinv,
+                                                   const BIGNUM        *in_r,
+                                                   EC_KEY              *eckey))
 {
-    meth->sign = sign;
+    meth->sign       = sign;
     meth->sign_setup = sign_setup;
-    meth->sign_sig = sign_sig;
+    meth->sign_sig   = sign_sig;
 }
 
-void EC_KEY_METHOD_set_verify(EC_KEY_METHOD *meth,
-                              int (*verify)(int type, const unsigned
-                                            char *dgst, int dgst_len,
-                                            const unsigned char *sigbuf,
-                                            int sig_len, EC_KEY *eckey),
-                              int (*verify_sig)(const unsigned char *dgst,
-                                                int dgst_len,
-                                                const ECDSA_SIG *sig,
-                                                EC_KEY *eckey))
+void EC_KEY_METHOD_set_verify(
+    EC_KEY_METHOD *meth,
+    int (*verify)(int                  type,
+                  const unsigned char *dgst,
+                  int                  dgst_len,
+                  const unsigned char *sigbuf,
+                  int                  sig_len,
+                  EC_KEY              *eckey),
+    int (*verify_sig)(const unsigned char *dgst, int dgst_len, const ECDSA_SIG *sig, EC_KEY *eckey))
 {
-    meth->verify = verify;
+    meth->verify     = verify;
     meth->verify_sig = verify_sig;
 }
 
@@ -262,12 +261,9 @@ void EC_KEY_METHOD_get_init(const EC_KEY_METHOD *meth,
                             int (**pinit)(EC_KEY *key),
                             void (**pfinish)(EC_KEY *key),
                             int (**pcopy)(EC_KEY *dest, const EC_KEY *src),
-                            int (**pset_group)(EC_KEY *key,
-                                               const EC_GROUP *grp),
-                            int (**pset_private)(EC_KEY *key,
-                                                 const BIGNUM *priv_key),
-                            int (**pset_public)(EC_KEY *key,
-                                                const EC_POINT *pub_key))
+                            int (**pset_group)(EC_KEY *key, const EC_GROUP *grp),
+                            int (**pset_private)(EC_KEY *key, const BIGNUM *priv_key),
+                            int (**pset_public)(EC_KEY *key, const EC_POINT *pub_key))
 {
     if (pinit != NULL)
         *pinit = meth->init;
@@ -283,36 +279,35 @@ void EC_KEY_METHOD_get_init(const EC_KEY_METHOD *meth,
         *pset_public = meth->set_public;
 }
 
-void EC_KEY_METHOD_get_keygen(const EC_KEY_METHOD *meth,
-                              int (**pkeygen)(EC_KEY *key))
+void EC_KEY_METHOD_get_keygen(const EC_KEY_METHOD *meth, int (**pkeygen)(EC_KEY *key))
 {
     if (pkeygen != NULL)
         *pkeygen = meth->keygen;
 }
 
-void EC_KEY_METHOD_get_compute_key(const EC_KEY_METHOD *meth,
-                                   int (**pck)(unsigned char **pout,
-                                               size_t *poutlen,
-                                               const EC_POINT *pub_key,
-                                               const EC_KEY *ecdh))
+void EC_KEY_METHOD_get_compute_key(
+    const EC_KEY_METHOD *meth,
+    int (**pck)(unsigned char **pout, size_t *poutlen, const EC_POINT *pub_key, const EC_KEY *ecdh))
 {
     if (pck != NULL)
         *pck = meth->compute_key;
 }
 
 void EC_KEY_METHOD_get_sign(const EC_KEY_METHOD *meth,
-                            int (**psign)(int type, const unsigned char *dgst,
-                                          int dlen, unsigned char *sig,
-                                          unsigned int *siglen,
-                                          const BIGNUM *kinv, const BIGNUM *r,
-                                          EC_KEY *eckey),
-                            int (**psign_setup)(EC_KEY *eckey, BN_CTX *ctx_in,
-                                                BIGNUM **kinvp, BIGNUM **rp),
+                            int (**psign)(int                  type,
+                                          const unsigned char *dgst,
+                                          int                  dlen,
+                                          unsigned char       *sig,
+                                          unsigned int        *siglen,
+                                          const BIGNUM        *kinv,
+                                          const BIGNUM        *r,
+                                          EC_KEY              *eckey),
+                            int (**psign_setup)(EC_KEY *eckey, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp),
                             ECDSA_SIG *(**psign_sig)(const unsigned char *dgst,
-                                                     int dgst_len,
-                                                     const BIGNUM *in_kinv,
-                                                     const BIGNUM *in_r,
-                                                     EC_KEY *eckey))
+                                                     int                  dgst_len,
+                                                     const BIGNUM        *in_kinv,
+                                                     const BIGNUM        *in_r,
+                                                     EC_KEY              *eckey))
 {
     if (psign != NULL)
         *psign = meth->sign;
@@ -322,15 +317,15 @@ void EC_KEY_METHOD_get_sign(const EC_KEY_METHOD *meth,
         *psign_sig = meth->sign_sig;
 }
 
-void EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
-                              int (**pverify)(int type, const unsigned
-                                              char *dgst, int dgst_len,
-                                              const unsigned char *sigbuf,
-                                              int sig_len, EC_KEY *eckey),
-                              int (**pverify_sig)(const unsigned char *dgst,
-                                                  int dgst_len,
-                                                  const ECDSA_SIG *sig,
-                                                  EC_KEY *eckey))
+void EC_KEY_METHOD_get_verify(
+    const EC_KEY_METHOD *meth,
+    int (**pverify)(int                  type,
+                    const unsigned char *dgst,
+                    int                  dgst_len,
+                    const unsigned char *sigbuf,
+                    int                  sig_len,
+                    EC_KEY              *eckey),
+    int (**pverify_sig)(const unsigned char *dgst, int dgst_len, const ECDSA_SIG *sig, EC_KEY *eckey))
 {
     if (pverify != NULL)
         *pverify = meth->verify;

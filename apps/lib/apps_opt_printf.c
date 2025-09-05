@@ -15,11 +15,10 @@
 int opt_printf_stderr(const char *fmt, ...)
 {
     va_list ap;
-    int ret;
+    int     ret;
 
     va_start(ap, fmt);
     ret = BIO_vprintf(bio_err, fmt, ap);
     va_end(ap);
     return ret;
 }
-

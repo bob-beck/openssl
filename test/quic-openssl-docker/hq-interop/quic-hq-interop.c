@@ -97,19 +97,17 @@ static BIO *session_bio = NULL;
  *       ensures that any resources allocated during the process are properly
  *       freed.
  */
-static BIO *create_socket_bio(const char *hostname, const char *port,
-                              BIO_ADDR **peer_addr)
+static BIO *create_socket_bio(const char *hostname, const char *port, BIO_ADDR **peer_addr)
 {
-    int sock = -1;
-    BIO_ADDRINFO *res;
+    int                 sock = -1;
+    BIO_ADDRINFO       *res;
     const BIO_ADDRINFO *ai = NULL;
-    BIO *bio;
+    BIO                *bio;
 
     /*
      * Lookup IP address info for the server.
      */
-    if (!BIO_lookup_ex(hostname, port, BIO_LOOKUP_CLIENT, AF_UNSPEC, SOCK_DGRAM,
-                       0, &res))
+    if (!BIO_lookup_ex(hostname, port, BIO_LOOKUP_CLIENT, AF_UNSPEC, SOCK_DGRAM, 0, &res))
         return NULL;
 
     /*
@@ -208,13 +206,13 @@ static BIO *create_socket_bio(const char *hostname, const char *port,
  */
 static void wait_for_activity(SSL *ssl)
 {
-    fd_set wfds, rfds;
-    int width, sock, isinfinite;
-    struct timeval tv;
+    fd_set          wfds, rfds;
+    int             width, sock, isinfinite;
+    struct timeval  tv;
     struct timeval *tvp = NULL;
 
     /* Get hold of the underlying file descriptor for the socket */
-    sock = SSL_get_fd(ssl);
+    sock                = SSL_get_fd(ssl);
 
     FD_ZERO(&wfds);
     FD_ZERO(&rfds);
@@ -325,8 +323,7 @@ static int handle_io_failure(SSL *ssl, int res)
          * information about it from SSL_get_verify_result().
          */
         if (SSL_get_verify_result(ssl) != X509_V_OK)
-            fprintf(stderr, "Verify error: %s\n",
-                    X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
+            fprintf(stderr, "Verify error: %s\n", X509_verify_cert_error_string(SSL_get_verify_result(ssl)));
         return -1;
 
     default:
@@ -363,7 +360,6 @@ static int session_cached = 0;
  */
 static int cache_new_session(struct ssl_st *ssl, SSL_SESSION *sess)
 {
-
     if (session_cached == 1)
         return 0;
 
@@ -397,21 +393,21 @@ static int cache_new_session(struct ssl_st *ssl, SSL_SESSION *sess)
  */
 static int setup_session_cache(SSL *ssl, SSL_CTX *ctx, const char *filename)
 {
-    SSL_SESSION *sess = NULL;
-    int rc = 0;
-    int new_cache = 0;
+    SSL_SESSION *sess      = NULL;
+    int          rc        = 0;
+    int          new_cache = 0;
 
-    /* 
-     * Because we cache sessions to a file in this client, we don't 
+    /*
+     * Because we cache sessions to a file in this client, we don't
      * actualy need to internally store sessions, because we restore them
      * from the file with SSL_set_session below, but we want to ensure
      * that caching is enabled so that the session cache callbacks get called
      * properly.  The documentation is a bit unclear under what conditions
      * the callback is made, so play it safe here, by enforcing enablement
      */
-    if (!SSL_CTX_set_session_cache_mode(ctx, SSL_SESS_CACHE_CLIENT |
-                                             SSL_SESS_CACHE_NO_INTERNAL_STORE |
-                                             SSL_SESS_CACHE_NO_AUTO_CLEAR))
+    if (!SSL_CTX_set_session_cache_mode(ctx,
+                                        SSL_SESS_CACHE_CLIENT | SSL_SESS_CACHE_NO_INTERNAL_STORE
+                                            | SSL_SESS_CACHE_NO_AUTO_CLEAR))
         return rc;
 
     /* open our cache file */
@@ -451,7 +447,7 @@ err:
  * of SSL_POLL_ITEM structures used for SSL polling operations. It is
  * initialized to NULL and will be populated as needed.
  */
-static SSL_POLL_ITEM *poll_list = NULL;
+static SSL_POLL_ITEM *poll_list      = NULL;
 
 /**
  * @brief Pointer to an array of BIO objects for output.
@@ -461,7 +457,7 @@ static SSL_POLL_ITEM *poll_list = NULL;
  * It is initialized to NULL and will be set when needed.  This array holds
  * the out bio's for all received data from GET requests
  */
-static BIO **outbiolist = NULL;
+static BIO          **outbiolist     = NULL;
 
 /**
  * @brief Pointer to an array of output names.
@@ -472,7 +468,7 @@ static BIO **outbiolist = NULL;
  * output files from http GET requests.  Indicies are correlated with the
  * corresponding outbiolist and poll_list arrays
  */
-static char **outnames = NULL;
+static char         **outnames       = NULL;
 
 /**
  * @brief Counter for the number of poll items.
@@ -480,7 +476,7 @@ static char **outnames = NULL;
  * This static variable holds the count of items in the poll_list. It is
  * initialized to 0 and updated as items are added or removed from the list.
  */
-static size_t poll_count = 0;
+static size_t         poll_count     = 0;
 
 /**
  * @brief Pointer to an array of request strings.
@@ -489,7 +485,7 @@ static size_t poll_count = 0;
  * of strings, representing requests. It is initialized to NULL and populated
  * as requests are added during execution.
  */
-static char **req_array = NULL;
+static char         **req_array      = NULL;
 
 /**
  * @brief Counter for the total number of requests.
@@ -497,7 +493,7 @@ static char **req_array = NULL;
  * This static variable tracks the total number of parsed from reqfile. It is
  * initialized to 0 and incremented as new requests are processed.
  */
-static size_t total_requests = 0;
+static size_t         total_requests = 0;
 
 /**
  * @brief Index for the current request in the request array.
@@ -506,7 +502,7 @@ static size_t total_requests = 0;
  * processed in the request array. It is initialized to 0 and updated as
  * requests are handled.
  */
-static size_t req_idx = 0;
+static size_t         req_idx        = 0;
 
 /**
  * @brief Builds and processes a set of SSL poll requests.
@@ -521,16 +517,16 @@ static size_t req_idx = 0;
  *
  * @return The number of poll requests successfully built, or 0 on error.
  */
-static size_t build_request_set(SSL *ssl)
+static size_t         build_request_set(SSL *ssl)
 {
-    size_t poll_idx;
-    char *req;
-    char outfilename[REQ_STRING_SZ];
-    char req_string[REQ_STRING_SZ];
-    SSL *new_stream;
-    size_t written;
+    size_t        poll_idx;
+    char         *req;
+    char          outfilename[REQ_STRING_SZ];
+    char          req_string[REQ_STRING_SZ];
+    SSL          *new_stream;
+    size_t        written;
     unsigned long error;
-    size_t retry_count;
+    size_t        retry_count;
 
     /*
      * Free any previous poll list
@@ -547,8 +543,8 @@ static size_t build_request_set(SSL *ssl)
     OPENSSL_free(outbiolist);
     OPENSSL_free(outnames);
     OPENSSL_free(poll_list);
-    outnames = NULL;
-    poll_list = NULL;
+    outnames   = NULL;
+    poll_list  = NULL;
     outbiolist = NULL;
 
     poll_count = 0;
@@ -562,20 +558,18 @@ static size_t build_request_set(SSL *ssl)
         req = req_array[req_idx];
         /* Up our poll count and set our poll_list index */
         poll_count++;
-        poll_idx = poll_count - 1;
+        poll_idx  = poll_count - 1;
 
         /*
          * Expand our poll_list, outbiolist, and outnames arrays
          */
-        poll_list = OPENSSL_realloc_array(poll_list,
-                                          poll_count, sizeof(SSL_POLL_ITEM));
+        poll_list = OPENSSL_realloc_array(poll_list, poll_count, sizeof(SSL_POLL_ITEM));
         if (poll_list == NULL) {
             fprintf(stderr, "Unable to realloc poll_list\n");
             goto err;
         }
 
-        outbiolist = OPENSSL_realloc_array(outbiolist,
-                                           poll_count, sizeof(BIO *));
+        outbiolist = OPENSSL_realloc_array(outbiolist, poll_count, sizeof(BIO *));
         if (outbiolist == NULL) {
             fprintf(stderr, "Unable to realloc outbiolist\n");
             goto err;
@@ -617,8 +611,7 @@ static size_t build_request_set(SSL *ssl)
             for (retry_count = 0; retry_count < 10; retry_count++) {
                 ERR_clear_error();
                 new_stream = SSL_new_stream(ssl, 0);
-                if (new_stream == NULL
-                    && (error = ERR_get_error()) != 0
+                if (new_stream == NULL && (error = ERR_get_error()) != 0
                     && ERR_GET_REASON(error) == SSL_R_STREAM_COUNT_LIMITED) {
                     /*
                      * Kick the SSL state machine in the hopes that
@@ -644,14 +637,16 @@ static size_t build_request_set(SSL *ssl)
         /*
          * Create a poll descriptor for this stream
          */
-        poll_list[poll_idx].desc = SSL_as_poll_descriptor(new_stream);
+        poll_list[poll_idx].desc    = SSL_as_poll_descriptor(new_stream);
         poll_list[poll_idx].revents = 0;
-        poll_list[poll_idx].events = SSL_POLL_EVENT_R;
+        poll_list[poll_idx].events  = SSL_POLL_EVENT_R;
 
         /* Write an HTTP GET request to the peer */
         while (!SSL_write_ex2(poll_list[poll_idx].desc.value.ssl,
-                              req_string, strlen(req_string),
-                              SSL_WRITE_FLAG_CONCLUDE, &written)) {
+                              req_string,
+                              strlen(req_string),
+                              SSL_WRITE_FLAG_CONCLUDE,
+                              &written)) {
             if (handle_io_failure(poll_list[poll_idx].desc.value.ssl, 0) == 1)
                 continue; /* Retry */
             fprintf(stderr, "Failed to write start of HTTP request\n");
@@ -669,7 +664,7 @@ err:
     }
     OPENSSL_free(poll_list);
     OPENSSL_free(outbiolist);
-    poll_list = NULL;
+    poll_list  = NULL;
     outbiolist = NULL;
     poll_count = 0;
     return poll_count;
@@ -698,19 +693,18 @@ static BIO_ADDR *peer_addr = NULL;
  *
  * @return Returns 0 on success, 1 on error.
  */
-static int setup_connection(char *hostname, char *port,
-                            SSL_CTX **ctx, SSL **ssl)
+static int       setup_connection(char *hostname, char *port, SSL_CTX **ctx, SSL **ssl)
 {
     unsigned char alpn[] = {10, 'h', 'q', '-', 'i', 'n', 't', 'e', 'r', 'o', 'p'};
-    int ret = 0;
-    BIO *bio = NULL;
+    int           ret    = 0;
+    BIO          *bio    = NULL;
 
     /*
      * Create an SSL_CTX which we can use to create SSL objects from. We
      * want an SSL_CTX for creating clients so we use
      * OSSL_QUIC_client_method() here.
      */
-    *ctx = SSL_CTX_new(OSSL_QUIC_client_method());
+    *ctx                 = SSL_CTX_new(OSSL_QUIC_client_method());
     if (*ctx == NULL) {
         fprintf(stderr, "Failed to create the SSL_CTX\n");
         goto end;
@@ -825,8 +819,8 @@ end:
     SSL_CTX_free(*ctx);
     SSL_free(*ssl);
     BIO_ADDR_free(peer_addr);
-    *ctx = NULL;
-    *ssl = NULL;
+    *ctx      = NULL;
+    *ssl      = NULL;
     peer_addr = NULL;
     return 0;
 }
@@ -857,26 +851,26 @@ end:
  */
 int main(int argc, char *argv[])
 {
-    SSL_CTX *ctx = NULL;
-    SSL *ssl = NULL;
-    BIO *req_bio = NULL;
-    int res = EXIT_FAILURE;
-    int ret;
-    size_t readbytes = 0;
-    char buf[160];
-    int eof = 0;
-    int argnext = 1;
-    char *reqfile = NULL;
-    char *reqnames = OPENSSL_zalloc(1025);
-    size_t read_offset = 0;
-    size_t bytes_read = 0;
-    size_t poll_idx = 0;
-    size_t poll_done = 0;
-    size_t result_count = 0;
+    SSL_CTX       *ctx     = NULL;
+    SSL           *ssl     = NULL;
+    BIO           *req_bio = NULL;
+    int            res     = EXIT_FAILURE;
+    int            ret;
+    size_t         readbytes = 0;
+    char           buf[160];
+    int            eof          = 0;
+    int            argnext      = 1;
+    char          *reqfile      = NULL;
+    char          *reqnames     = OPENSSL_zalloc(1025);
+    size_t         read_offset  = 0;
+    size_t         bytes_read   = 0;
+    size_t         poll_idx     = 0;
+    size_t         poll_done    = 0;
+    size_t         result_count = 0;
     struct timeval poll_timeout;
-    size_t this_poll_count = 0;
-    char *req = NULL;
-    char *hostname, *port;
+    size_t         this_poll_count = 0;
+    char          *req             = NULL;
+    char          *hostname, *port;
 
     if (argc < 4) {
         fprintf(stderr, "Usage: quic-hq-interop hostname port reqfile\n");
@@ -889,10 +883,10 @@ int main(int argc, char *argv[])
     }
 
     hostname = argv[argnext++];
-    port = argv[argnext++];
-    reqfile = argv[argnext];
+    port     = argv[argnext++];
+    reqfile  = argv[argnext];
 
-    req_bio = BIO_new_file(reqfile, "r");
+    req_bio  = BIO_new_file(reqfile, "r");
     if (req_bio == NULL) {
         fprintf(stderr, "Failed to open request file %s\n", reqfile);
         goto end;
@@ -905,7 +899,7 @@ int main(int argc, char *argv[])
             goto end;
         }
         read_offset += bytes_read;
-        reqnames = OPENSSL_realloc(reqnames, read_offset + REQ_STRING_SZ);
+        reqnames     = OPENSSL_realloc(reqnames, read_offset + REQ_STRING_SZ);
         if (reqnames == NULL) {
             fprintf(stderr, "Realloc failure\n");
             goto end;
@@ -922,12 +916,11 @@ int main(int argc, char *argv[])
 
     while (req != NULL) {
         total_requests++;
-        req_array = OPENSSL_realloc_array(req_array,
-                                          total_requests, sizeof(char *));
+        req_array = OPENSSL_realloc_array(req_array, total_requests, sizeof(char *));
         if (req_array == NULL)
             goto end;
         req_array[total_requests - 1] = req;
-        req = strtok(NULL, " ");
+        req                           = strtok(NULL, " ");
     }
 
     /* get a list of requests to poll */
@@ -937,11 +930,10 @@ int main(int argc, char *argv[])
      * Now poll all our descriptors for events
      */
     while (this_poll_count != 0 && poll_done < this_poll_count) {
-        result_count = 0;
-        poll_timeout.tv_sec = 0;
+        result_count         = 0;
+        poll_timeout.tv_sec  = 0;
         poll_timeout.tv_usec = 0;
-        if (!SSL_poll(poll_list, this_poll_count, sizeof(SSL_POLL_ITEM),
-                      &poll_timeout, 0, &result_count)) {
+        if (!SSL_poll(poll_list, this_poll_count, sizeof(SSL_POLL_ITEM), &poll_timeout, 0, &result_count)) {
             fprintf(stderr, "Failed to poll\n");
             goto end;
         }
@@ -968,13 +960,11 @@ int main(int argc, char *argv[])
                  * Get up to sizeof(buf) bytes of the response. We keep reading until
                  * the server closes the connection.
                  */
-                eof = 0;
+                eof                         = 0;
 
                 /* Read our data, and handle any errors/eof conditions */
-                if (!SSL_read_ex(poll_list[poll_idx].desc.value.ssl, buf,
-                                 sizeof(buf), &readbytes)) {
-                    switch (handle_io_failure(poll_list[poll_idx].desc.value.ssl,
-                                              0)) {
+                if (!SSL_read_ex(poll_list[poll_idx].desc.value.ssl, buf, sizeof(buf), &readbytes)) {
+                    switch (handle_io_failure(poll_list[poll_idx].desc.value.ssl, 0)) {
                     case 1:
                         eof = 0;
                         break; /* Retry on next poll */
@@ -1009,7 +999,7 @@ int main(int argc, char *argv[])
          */
         if (poll_done == this_poll_count) {
             this_poll_count = build_request_set(ssl);
-            poll_done = 0;
+            poll_done       = 0;
         }
     }
 
@@ -1025,7 +1015,7 @@ int main(int argc, char *argv[])
 
     /* Success! */
     res = EXIT_SUCCESS;
- end:
+end:
     /*
      * If something bad happened then we will dump the contents of the
      * OpenSSL error stack to stderr. There might be some useful diagnostic

@@ -17,18 +17,22 @@
 
 /* RSA's DESX */
 
-void DES_xcbc_encrypt(const unsigned char *in, unsigned char *out,
-                      long length, DES_key_schedule *schedule,
-                      DES_cblock *ivec, const_DES_cblock *inw,
-                      const_DES_cblock *outw, int enc)
+void DES_xcbc_encrypt(const unsigned char *in,
+                      unsigned char       *out,
+                      long                 length,
+                      DES_key_schedule    *schedule,
+                      DES_cblock          *ivec,
+                      const_DES_cblock    *inw,
+                      const_DES_cblock    *outw,
+                      int                  enc)
 {
-    register DES_LONG tin0, tin1;
-    register DES_LONG tout0, tout1, xor0, xor1;
-    register DES_LONG inW0, inW1, outW0, outW1;
+    register DES_LONG             tin0, tin1;
+    register DES_LONG             tout0, tout1, xor0, xor1;
+    register DES_LONG             inW0, inW1, outW0, outW1;
     register const unsigned char *in2;
-    register long l = length;
-    DES_LONG tin[2];
-    unsigned char *iv;
+    register long                 l = length;
+    DES_LONG                      tin[2];
+    unsigned char                *iv;
 
     in2 = &(*inw)[0];
     c2l(in2, inW0);
@@ -45,10 +49,10 @@ void DES_xcbc_encrypt(const unsigned char *in, unsigned char *out,
         for (l -= 8; l >= 0; l -= 8) {
             c2l(in, tin0);
             c2l(in, tin1);
-            tin0 ^= tout0 ^ inW0;
-            tin[0] = tin0;
-            tin1 ^= tout1 ^ inW1;
-            tin[1] = tin1;
+            tin0   ^= tout0 ^ inW0;
+            tin[0]  = tin0;
+            tin1   ^= tout1 ^ inW1;
+            tin[1]  = tin1;
             DES_encrypt1(tin, schedule, DES_ENCRYPT);
             tout0 = tin[0] ^ outW0;
             l2c(tout0, out);
@@ -57,10 +61,10 @@ void DES_xcbc_encrypt(const unsigned char *in, unsigned char *out,
         }
         if (l != -8) {
             c2ln(in, tin0, tin1, l + 8);
-            tin0 ^= tout0 ^ inW0;
-            tin[0] = tin0;
-            tin1 ^= tout1 ^ inW1;
-            tin[1] = tin1;
+            tin0   ^= tout0 ^ inW0;
+            tin[0]  = tin0;
+            tin1   ^= tout1 ^ inW1;
+            tin[1]  = tin1;
             DES_encrypt1(tin, schedule, DES_ENCRYPT);
             tout0 = tin[0] ^ outW0;
             l2c(tout0, out);

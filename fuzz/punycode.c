@@ -22,9 +22,9 @@ int FuzzerInitialize(int *argc, char ***argv)
 
 int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 {
-    char *b;
+    char        *b;
     unsigned int out[16], outlen = OSSL_NELEM(out);
-    char outc[16];
+    char         outc[16];
 
     b = OPENSSL_malloc(len + 1);
     if (b != NULL) {

@@ -26,8 +26,8 @@ int BN_sqr(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx)
 
 int bn_sqr_fixed_top(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx)
 {
-    int max, al;
-    int ret = 0;
+    int     max, al;
+    int     ret = 0;
     BIGNUM *tmp, *rr;
 
     bn_check_top(a);
@@ -40,12 +40,12 @@ int bn_sqr_fixed_top(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx)
     }
 
     BN_CTX_start(ctx);
-    rr = (a != r) ? r : BN_CTX_get(ctx);
+    rr  = (a != r) ? r : BN_CTX_get(ctx);
     tmp = BN_CTX_get(ctx);
     if (rr == NULL || tmp == NULL)
         goto err;
 
-    max = 2 * al;               /* Non-zero (from above) */
+    max = 2 * al; /* Non-zero (from above) */
     if (bn_wexpand(rr, max) == NULL)
         goto err;
 
@@ -91,14 +91,14 @@ int bn_sqr_fixed_top(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx)
 #endif
     }
 
-    rr->neg = 0;
-    rr->top = max;
+    rr->neg    = 0;
+    rr->top    = max;
     rr->flags |= BN_FLG_FIXED_TOP;
     if (r != rr && BN_copy(r, rr) == NULL)
         goto err;
 
     ret = 1;
- err:
+err:
     bn_check_top(rr);
     bn_check_top(tmp);
     BN_CTX_end(ctx);
@@ -108,28 +108,28 @@ int bn_sqr_fixed_top(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx)
 /* tmp must have 2*n words */
 void bn_sqr_normal(BN_ULONG *r, const BN_ULONG *a, int n, BN_ULONG *tmp)
 {
-    int i, j, max;
+    int             i, j, max;
     const BN_ULONG *ap;
-    BN_ULONG *rp;
+    BN_ULONG       *rp;
 
-    max = n * 2;
-    ap = a;
-    rp = r;
+    max   = n * 2;
+    ap    = a;
+    rp    = r;
     rp[0] = rp[max - 1] = 0;
     rp++;
     j = n;
 
     if (--j > 0) {
         ap++;
-        rp[j] = bn_mul_words(rp, ap, j, ap[-1]);
-        rp += 2;
+        rp[j]  = bn_mul_words(rp, ap, j, ap[-1]);
+        rp    += 2;
     }
 
     for (i = n - 2; i > 0; i--) {
         j--;
         ap++;
-        rp[j] = bn_mul_add_words(rp, ap, j, ap[-1]);
-        rp += 2;
+        rp[j]  = bn_mul_add_words(rp, ap, j, ap[-1]);
+        rp    += 2;
     }
 
     bn_add_words(r, r, r, max);
@@ -155,8 +155,8 @@ void bn_sqr_normal(BN_ULONG *r, const BN_ULONG *a, int n, BN_ULONG *tmp)
  */
 void bn_sqr_recursive(BN_ULONG *r, const BN_ULONG *a, int n2, BN_ULONG *t)
 {
-    int n = n2 / 2;
-    int zero, c1;
+    int      n = n2 / 2;
+    int      zero, c1;
     BN_ULONG ln, lo, *p;
 
     if (n2 == 4) {
@@ -179,7 +179,7 @@ void bn_sqr_recursive(BN_ULONG *r, const BN_ULONG *a, int n2, BN_ULONG *t)
         return;
     }
     /* r=(a[0]-a[1])*(a[1]-a[0]) */
-    c1 = bn_cmp_words(a, &(a[n]), n);
+    c1   = bn_cmp_words(a, &(a[n]), n);
     zero = 0;
     if (c1 > 0)
         bn_sub_words(t, a, &(a[n]), n);
@@ -204,7 +204,7 @@ void bn_sqr_recursive(BN_ULONG *r, const BN_ULONG *a, int n2, BN_ULONG *t)
      * r[32] holds (b[1]*b[1])
      */
 
-    c1 = (int)(bn_add_words(t, r, &(r[n2]), n2));
+    c1  = (int)(bn_add_words(t, r, &(r[n2]), n2));
 
     /* t[32] is negative */
     c1 -= (int)(bn_sub_words(&(t[n2]), t, &(t[n2]), n2));
@@ -217,7 +217,7 @@ void bn_sqr_recursive(BN_ULONG *r, const BN_ULONG *a, int n2, BN_ULONG *t)
      */
     c1 += (int)(bn_add_words(&(r[n]), &(r[n]), &(t[n2]), n2));
     if (c1) {
-        p = &(r[n + n2]);
+        p  = &(r[n + n2]);
         lo = *p;
         ln = (lo + c1) & BN_MASK2;
         *p = ln;

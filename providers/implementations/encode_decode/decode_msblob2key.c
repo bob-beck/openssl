@@ -20,54 +20,53 @@
 #include <openssl/core_object.h>
 #include <openssl/crypto.h>
 #include <openssl/params.h>
-#include <openssl/pem.h>         /* For public PVK functions */
+#include <openssl/pem.h> /* For public PVK functions */
 #include <openssl/x509.h>
 #include <openssl/err.h>
 #include "internal/passphrase.h"
-#include "crypto/pem.h"          /* For internal PVK and "blob" headers */
+#include "crypto/pem.h" /* For internal PVK and "blob" headers */
 #include "crypto/rsa.h"
 #include "prov/bio.h"
 #include "prov/implementations.h"
 #include "prov/endecoder_local.h"
 
-struct msblob2key_ctx_st;            /* Forward declaration */
-typedef void *b2i_of_void_fn(const unsigned char **in, unsigned int bitlen,
-                             int ispub);
-typedef void adjust_key_fn(void *, struct msblob2key_ctx_st *ctx);
-typedef void free_key_fn(void *);
-struct keytype_desc_st {
-    int type;                 /* EVP key type */
-    const char *name;         /* Keytype */
-    const OSSL_DISPATCH *fns; /* Keymgmt (to pilfer functions from) */
+struct msblob2key_ctx_st; /* Forward declaration */
+typedef void *b2i_of_void_fn(const unsigned char **in, unsigned int bitlen, int ispub);
+typedef void  adjust_key_fn(void *, struct msblob2key_ctx_st *ctx);
+typedef void  free_key_fn(void *);
 
-    b2i_of_void_fn *read_private_key;
-    b2i_of_void_fn *read_public_key;
-    adjust_key_fn *adjust_key;
-    free_key_fn *free_key;
+struct keytype_desc_st {
+    int                  type; /* EVP key type */
+    const char          *name; /* Keytype */
+    const OSSL_DISPATCH *fns;  /* Keymgmt (to pilfer functions from) */
+
+    b2i_of_void_fn      *read_private_key;
+    b2i_of_void_fn      *read_public_key;
+    adjust_key_fn       *adjust_key;
+    free_key_fn         *free_key;
 };
 
-static OSSL_FUNC_decoder_freectx_fn msblob2key_freectx;
-static OSSL_FUNC_decoder_decode_fn msblob2key_decode;
+static OSSL_FUNC_decoder_freectx_fn       msblob2key_freectx;
+static OSSL_FUNC_decoder_decode_fn        msblob2key_decode;
 static OSSL_FUNC_decoder_export_object_fn msblob2key_export_object;
 
 /*
  * Context used for DER to key decoding.
  */
 struct msblob2key_ctx_st {
-    PROV_CTX *provctx;
+    PROV_CTX                     *provctx;
     const struct keytype_desc_st *desc;
     /* The selection that is passed to msblob2key_decode() */
-    int selection;
+    int                           selection;
 };
 
-static struct msblob2key_ctx_st *
-msblob2key_newctx(void *provctx, const struct keytype_desc_st *desc)
+static struct msblob2key_ctx_st *msblob2key_newctx(void *provctx, const struct keytype_desc_st *desc)
 {
     struct msblob2key_ctx_st *ctx = OPENSSL_zalloc(sizeof(*ctx));
 
     if (ctx != NULL) {
         ctx->provctx = provctx;
-        ctx->desc = desc;
+        ctx->desc    = desc;
     }
     return ctx;
 }
@@ -84,26 +83,29 @@ static int msblob2key_does_selection(void *provctx, int selection)
     if (selection == 0)
         return 1;
 
-    if ((selection & (OSSL_KEYMGMT_SELECT_PRIVATE_KEY
-                      | OSSL_KEYMGMT_SELECT_PUBLIC_KEY))  != 0)
+    if ((selection & (OSSL_KEYMGMT_SELECT_PRIVATE_KEY | OSSL_KEYMGMT_SELECT_PUBLIC_KEY)) != 0)
         return 1;
 
     return 0;
 }
 
-static int msblob2key_decode(void *vctx, OSSL_CORE_BIO *cin, int selection,
-                             OSSL_CALLBACK *data_cb, void *data_cbarg,
-                             OSSL_PASSPHRASE_CALLBACK *pw_cb, void *pw_cbarg)
+static int msblob2key_decode(void                     *vctx,
+                             OSSL_CORE_BIO            *cin,
+                             int                       selection,
+                             OSSL_CALLBACK            *data_cb,
+                             void                     *data_cbarg,
+                             OSSL_PASSPHRASE_CALLBACK *pw_cb,
+                             void                     *pw_cbarg)
 {
     struct msblob2key_ctx_st *ctx = vctx;
-    BIO *in = ossl_bio_new_from_core_bio(ctx->provctx, cin);
-    const unsigned char *p;
-    unsigned char hdr_buf[16], *buf = NULL;
-    unsigned int bitlen, magic, length;
-    int isdss = -1;
-    int ispub = -1;
-    void *key = NULL;
-    int ok = 0;
+    BIO                      *in  = ossl_bio_new_from_core_bio(ctx->provctx, cin);
+    const unsigned char      *p;
+    unsigned char             hdr_buf[16], *buf = NULL;
+    unsigned int              bitlen, magic, length;
+    int                       isdss = -1;
+    int                       ispub = -1;
+    void                     *key   = NULL;
+    int                       ok    = 0;
 
     if (in == NULL)
         return 0;
@@ -113,17 +115,16 @@ static int msblob2key_decode(void *vctx, OSSL_CORE_BIO *cin, int selection,
         goto next;
     }
     ERR_set_mark();
-    p = hdr_buf;
+    p  = hdr_buf;
     ok = ossl_do_blob_header(&p, 16, &magic, &bitlen, &isdss, &ispub) > 0;
     ERR_pop_to_mark();
     if (!ok)
         goto next;
 
     ctx->selection = selection;
-    ok = 0;                      /* Assume that we fail */
+    ok             = 0; /* Assume that we fail */
 
-    if ((isdss && ctx->desc->type != EVP_PKEY_DSA)
-        || (!isdss && ctx->desc->type != EVP_PKEY_RSA))
+    if ((isdss && ctx->desc->type != EVP_PKEY_DSA) || (!isdss && ctx->desc->type != EVP_PKEY_RSA))
         goto next;
 
     length = ossl_blob_length(bitlen, isdss, ispub);
@@ -140,25 +141,21 @@ static int msblob2key_decode(void *vctx, OSSL_CORE_BIO *cin, int selection,
         goto next;
     }
 
-    if ((selection == 0
-         || (selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0)
-        && !ispub
+    if ((selection == 0 || (selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0) && !ispub
         && ctx->desc->read_private_key != NULL) {
         struct ossl_passphrase_data_st pwdata;
 
         memset(&pwdata, 0, sizeof(pwdata));
         if (!ossl_pw_set_ossl_passphrase_cb(&pwdata, pw_cb, pw_cbarg))
             goto end;
-        p = buf;
+        p   = buf;
         key = ctx->desc->read_private_key(&p, bitlen, ispub);
         if (selection != 0 && key == NULL)
             goto next;
     }
-    if (key == NULL && (selection == 0
-         || (selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0)
-        && ispub
+    if (key == NULL && (selection == 0 || (selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0) && ispub
         && ctx->desc->read_public_key != NULL) {
-        p = buf;
+        p   = buf;
         key = ctx->desc->read_public_key(&p, bitlen, ispub);
         if (selection != 0 && key == NULL)
             goto next;
@@ -167,7 +164,7 @@ static int msblob2key_decode(void *vctx, OSSL_CORE_BIO *cin, int selection,
     if (key != NULL && ctx->desc->adjust_key != NULL)
         ctx->desc->adjust_key(key, ctx);
 
- next:
+next:
     /*
      * Indicated that we successfully decoded something, or not at all.
      * Ending up "empty handed" is not an error.
@@ -182,27 +179,22 @@ static int msblob2key_decode(void *vctx, OSSL_CORE_BIO *cin, int selection,
     OPENSSL_free(buf);
     BIO_free(in);
     buf = NULL;
-    in = NULL;
+    in  = NULL;
 
     if (key != NULL) {
         OSSL_PARAM params[4];
-        int object_type = OSSL_OBJECT_PKEY;
+        int        object_type = OSSL_OBJECT_PKEY;
 
-        params[0] =
-            OSSL_PARAM_construct_int(OSSL_OBJECT_PARAM_TYPE, &object_type);
-        params[1] =
-            OSSL_PARAM_construct_utf8_string(OSSL_OBJECT_PARAM_DATA_TYPE,
-                                             (char *)ctx->desc->name, 0);
+        params[0]              = OSSL_PARAM_construct_int(OSSL_OBJECT_PARAM_TYPE, &object_type);
+        params[1] = OSSL_PARAM_construct_utf8_string(OSSL_OBJECT_PARAM_DATA_TYPE, (char *)ctx->desc->name, 0);
         /* The address of the key becomes the octet string */
-        params[2] =
-            OSSL_PARAM_construct_octet_string(OSSL_OBJECT_PARAM_REFERENCE,
-                                              &key, sizeof(key));
+        params[2] = OSSL_PARAM_construct_octet_string(OSSL_OBJECT_PARAM_REFERENCE, &key, sizeof(key));
         params[3] = OSSL_PARAM_construct_end();
 
-        ok = data_cb(params, data_cbarg);
+        ok        = data_cb(params, data_cbarg);
     }
 
- end:
+end:
     BIO_free(in);
     OPENSSL_free(buf);
     ctx->desc->free_key(key);
@@ -210,14 +202,14 @@ static int msblob2key_decode(void *vctx, OSSL_CORE_BIO *cin, int selection,
     return ok;
 }
 
-static int
-msblob2key_export_object(void *vctx,
-                         const void *reference, size_t reference_sz,
-                         OSSL_CALLBACK *export_cb, void *export_cbarg)
+static int msblob2key_export_object(void          *vctx,
+                                    const void    *reference,
+                                    size_t         reference_sz,
+                                    OSSL_CALLBACK *export_cb,
+                                    void          *export_cbarg)
 {
-    struct msblob2key_ctx_st *ctx = vctx;
-    OSSL_FUNC_keymgmt_export_fn *export =
-        ossl_prov_get_keymgmt_export(ctx->desc->fns);
+    struct msblob2key_ctx_st *ctx       = vctx;
+    OSSL_FUNC_keymgmt_export_fn *export = ossl_prov_get_keymgmt_export(ctx->desc->fns);
     void *keydata;
 
     if (reference_sz == sizeof(keydata) && export != NULL) {

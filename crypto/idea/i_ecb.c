@@ -23,8 +23,7 @@ const char *IDEA_options(void)
     return "idea(int)";
 }
 
-void IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
-                      IDEA_KEY_SCHEDULE *ks)
+void IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out, IDEA_KEY_SCHEDULE *ks)
 {
     unsigned long l0, l1, d[2];
 

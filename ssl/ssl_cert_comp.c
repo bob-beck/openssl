@@ -62,39 +62,36 @@ static OSSL_COMP_CERT *OSSL_COMP_CERT_new(unsigned char *data, size_t len, size_
 {
     OSSL_COMP_CERT *ret = NULL;
 
-    if (!ossl_comp_has_alg(alg)
-            || data == NULL
-            || (ret = OPENSSL_zalloc(sizeof(*ret))) == NULL
-            || !CRYPTO_NEW_REF(&ret->references, 1))
+    if (!ossl_comp_has_alg(alg) || data == NULL || (ret = OPENSSL_zalloc(sizeof(*ret))) == NULL
+        || !CRYPTO_NEW_REF(&ret->references, 1))
         goto err;
 
-    ret->data = data;
-    ret->len = len;
+    ret->data     = data;
+    ret->len      = len;
     ret->orig_len = orig_len;
-    ret->alg = alg;
+    ret->alg      = alg;
     return ret;
- err:
+err:
     ERR_raise(ERR_LIB_SSL, ERR_R_MALLOC_FAILURE);
     OPENSSL_free(data);
     OPENSSL_free(ret);
     return NULL;
 }
 
-__owur static OSSL_COMP_CERT *OSSL_COMP_CERT_from_compressed_data(unsigned char *data, size_t len,
-                                                                  size_t orig_len, int alg)
+__owur static OSSL_COMP_CERT *
+OSSL_COMP_CERT_from_compressed_data(unsigned char *data, size_t len, size_t orig_len, int alg)
 {
     return OSSL_COMP_CERT_new(OPENSSL_memdup(data, len), len, orig_len, alg);
 }
 
-__owur static OSSL_COMP_CERT *OSSL_COMP_CERT_from_uncompressed_data(unsigned char *data, size_t len,
-                                                                    int alg)
+__owur static OSSL_COMP_CERT *OSSL_COMP_CERT_from_uncompressed_data(unsigned char *data, size_t len, int alg)
 {
     OSSL_COMP_CERT *ret = NULL;
-    size_t max_length;
-    int comp_length;
-    COMP_METHOD *method;
-    unsigned char *comp_data = NULL;
-    COMP_CTX *comp_ctx = NULL;
+    size_t          max_length;
+    int             comp_length;
+    COMP_METHOD    *method;
+    unsigned char  *comp_data = NULL;
+    COMP_CTX       *comp_ctx  = NULL;
 
     switch (alg) {
     case TLSEXT_comp_cert_brotli:
@@ -110,21 +107,18 @@ __owur static OSSL_COMP_CERT *OSSL_COMP_CERT_from_uncompressed_data(unsigned cha
         goto err;
     }
 
-    if ((max_length = ossl_calculate_comp_expansion(alg, len)) == 0
-          || max_length > INT_MAX
-          || method == NULL
-          || (comp_ctx = COMP_CTX_new(method)) == NULL
-          || (comp_data = OPENSSL_zalloc(max_length)) == NULL)
+    if ((max_length = ossl_calculate_comp_expansion(alg, len)) == 0 || max_length > INT_MAX || method == NULL
+        || (comp_ctx = COMP_CTX_new(method)) == NULL || (comp_data = OPENSSL_zalloc(max_length)) == NULL)
         goto err;
 
     comp_length = COMP_compress_block(comp_ctx, comp_data, (int)max_length, data, (int)len);
     if (comp_length <= 0)
         goto err;
 
-    ret = OSSL_COMP_CERT_new(comp_data, comp_length, len, alg);
+    ret       = OSSL_COMP_CERT_new(comp_data, comp_length, len, alg);
     comp_data = NULL;
 
- err:
+err:
     OPENSSL_free(comp_data);
     COMP_CTX_free(comp_ctx);
     return ret;
@@ -147,6 +141,7 @@ void OSSL_COMP_CERT_free(OSSL_COMP_CERT *cc)
     CRYPTO_FREE_REF(&cc->references);
     OPENSSL_free(cc);
 }
+
 int OSSL_COMP_CERT_up_ref(OSSL_COMP_CERT *cc)
 {
     int i;
@@ -163,9 +158,9 @@ static int ssl_set_cert_comp_pref(int *prefs, int *algs, size_t len)
 {
     size_t j = 0;
     size_t i;
-    int found = 0;
-    int already_set[TLSEXT_comp_cert_limit];
-    int tmp_prefs[TLSEXT_comp_cert_limit];
+    int    found = 0;
+    int    already_set[TLSEXT_comp_cert_limit];
+    int    tmp_prefs[TLSEXT_comp_cert_limit];
 
     /* Note that |len| is the number of |algs| elements */
     /* clear all algorithms */
@@ -183,9 +178,9 @@ static int ssl_set_cert_comp_pref(int *prefs, int *algs, size_t len)
             /* Check for duplicate */
             if (already_set[algs[i]])
                 return 0;
-            tmp_prefs[j++] = algs[i];
+            tmp_prefs[j++]       = algs[i];
             already_set[algs[i]] = 1;
-            found = 1;
+            found                = 1;
         }
     }
     if (found)
@@ -196,14 +191,11 @@ static int ssl_set_cert_comp_pref(int *prefs, int *algs, size_t len)
 static size_t ssl_get_cert_to_compress(SSL *ssl, CERT_PKEY *cpk, unsigned char **data)
 {
     SSL_CONNECTION *sc = SSL_CONNECTION_FROM_SSL(ssl);
-    WPACKET tmppkt;
-    BUF_MEM buf = { 0 };
-    size_t ret = 0;
+    WPACKET         tmppkt;
+    BUF_MEM         buf = {0};
+    size_t          ret = 0;
 
-    if (sc == NULL
-            || cpk == NULL
-            || !sc->server
-            || !SSL_in_before(ssl))
+    if (sc == NULL || cpk == NULL || !sc->server || !SSL_in_before(ssl))
         return 0;
 
     /* Use the |tmppkt| for the to-be-compressed data */
@@ -222,7 +214,7 @@ static size_t ssl_get_cert_to_compress(SSL *ssl, CERT_PKEY *cpk, unsigned char *
         goto out;
     WPACKET_get_total_written(&tmppkt, &ret);
 
- out:
+out:
     WPACKET_cleanup(&tmppkt);
     if (ret != 0 && data != NULL)
         *data = (unsigned char *)buf.data;
@@ -233,13 +225,11 @@ static size_t ssl_get_cert_to_compress(SSL *ssl, CERT_PKEY *cpk, unsigned char *
 
 static int ssl_compress_one_cert(SSL *ssl, CERT_PKEY *cpk, int alg)
 {
-    unsigned char *cert_data = NULL;
+    unsigned char  *cert_data = NULL;
     OSSL_COMP_CERT *comp_cert = NULL;
-    size_t length;
+    size_t          length;
 
-    if (cpk == NULL
-            || alg == TLSEXT_comp_cert_none
-            || !ossl_comp_has_alg(alg))
+    if (cpk == NULL || alg == TLSEXT_comp_cert_none || !ossl_comp_has_alg(alg))
         return 0;
 
     if ((length = ssl_get_cert_to_compress(ssl, cpk, &cert_data)) == 0)
@@ -258,14 +248,12 @@ static int ssl_compress_one_cert(SSL *ssl, CERT_PKEY *cpk, int alg)
 static int ssl_compress_certs(SSL *ssl, CERT_PKEY *cpks, int alg_in)
 {
     SSL_CONNECTION *sc = SSL_CONNECTION_FROM_SSL(ssl);
-    int i;
-    int j;
-    int alg;
-    int count = 0;
+    int             i;
+    int             j;
+    int             alg;
+    int             count = 0;
 
-    if (sc == NULL
-            || cpks == NULL
-            || !ossl_comp_has_alg(alg_in))
+    if (sc == NULL || cpks == NULL || !ossl_comp_has_alg(alg_in))
         return 0;
 
     /* Look through the preferences to see what we have */
@@ -275,9 +263,7 @@ static int ssl_compress_certs(SSL *ssl, CERT_PKEY *cpks, int alg_in)
          * alg != 0 means compress for that algorithm if enabled
          */
         alg = sc->cert_comp_prefs[i];
-        if ((alg_in == 0 && alg != TLSEXT_comp_cert_none)
-                || (alg_in != 0 && alg == alg_in)) {
-
+        if ((alg_in == 0 && alg != TLSEXT_comp_cert_none) || (alg_in != 0 && alg == alg_in)) {
             for (j = 0; j < SSL_PKEY_NUM; j++) {
                 /* No cert, move on */
                 if (cpks[j].x509 == NULL)
@@ -299,22 +285,16 @@ static int ssl_compress_certs(SSL *ssl, CERT_PKEY *cpks, int alg_in)
     return (count > 0);
 }
 
-static size_t ssl_get_compressed_cert(SSL *ssl, CERT_PKEY *cpk, int alg, unsigned char **data,
-                                      size_t *orig_len)
+static size_t ssl_get_compressed_cert(SSL *ssl, CERT_PKEY *cpk, int alg, unsigned char **data, size_t *orig_len)
 {
-    SSL_CONNECTION *sc = SSL_CONNECTION_FROM_SSL(ssl);
-    size_t cert_len = 0;
-    size_t comp_len = 0;
-    unsigned char *cert_data = NULL;
+    SSL_CONNECTION *sc        = SSL_CONNECTION_FROM_SSL(ssl);
+    size_t          cert_len  = 0;
+    size_t          comp_len  = 0;
+    unsigned char  *cert_data = NULL;
     OSSL_COMP_CERT *comp_cert = NULL;
 
-    if (sc == NULL
-            || cpk == NULL
-            || data == NULL
-            || orig_len == NULL
-            || !sc->server
-            || !SSL_in_before(ssl)
-            || !ossl_comp_has_alg(alg))
+    if (sc == NULL || cpk == NULL || data == NULL || orig_len == NULL || !sc->server || !SSL_in_before(ssl)
+        || !ossl_comp_has_alg(alg))
         return 0;
 
     if ((cert_len = ssl_get_cert_to_compress(ssl, cpk, &cert_data)) == 0)
@@ -325,18 +305,17 @@ static size_t ssl_get_compressed_cert(SSL *ssl, CERT_PKEY *cpk, int alg, unsigne
     if (comp_cert == NULL)
         goto err;
 
-    comp_len = comp_cert->len;
-    *orig_len = comp_cert->orig_len;
-    *data = comp_cert->data;
+    comp_len        = comp_cert->len;
+    *orig_len       = comp_cert->orig_len;
+    *data           = comp_cert->data;
     comp_cert->data = NULL;
- err:
+err:
     OSSL_COMP_CERT_free(comp_cert);
     return comp_len;
 }
 
-static int ossl_set1_compressed_cert(CERT *cert, int algorithm,
-                                     unsigned char *comp_data, size_t comp_length,
-                                     size_t orig_length)
+static int
+ossl_set1_compressed_cert(CERT *cert, int algorithm, unsigned char *comp_data, size_t comp_length, size_t orig_length)
 {
     OSSL_COMP_CERT *comp_cert;
 
@@ -344,8 +323,7 @@ static int ossl_set1_compressed_cert(CERT *cert, int algorithm,
     if (cert == NULL || cert->key == NULL)
         return 0;
 
-    comp_cert = OSSL_COMP_CERT_from_compressed_data(comp_data, comp_length,
-                                                    orig_length, algorithm);
+    comp_cert = OSSL_COMP_CERT_from_compressed_data(comp_data, comp_length, orig_length, algorithm);
     if (comp_cert == NULL)
         return 0;
 
@@ -412,8 +390,8 @@ int SSL_CTX_compress_certs(SSL_CTX *ctx, int alg)
 size_t SSL_get1_compressed_cert(SSL *ssl, int alg, unsigned char **data, size_t *orig_len)
 {
 #ifndef OPENSSL_NO_COMP_ALG
-    SSL_CONNECTION *sc = SSL_CONNECTION_FROM_SSL(ssl);
-    CERT_PKEY *cpk = NULL;
+    SSL_CONNECTION *sc  = SSL_CONNECTION_FROM_SSL(ssl);
+    CERT_PKEY      *cpk = NULL;
 
     if (sc == NULL)
         return 0;
@@ -435,16 +413,19 @@ size_t SSL_CTX_get1_compressed_cert(SSL_CTX *ctx, int alg, unsigned char **data,
     size_t ret;
     SSL *new = SSL_new(ctx);
 
-    ret = ssl_get_compressed_cert(new, ctx->cert->key, alg, data, orig_len);
+    ret      = ssl_get_compressed_cert(new, ctx->cert->key, alg, data, orig_len);
     SSL_free(new);
     return ret;
 #else
-        return 0;
+    return 0;
 #endif
 }
 
-int SSL_CTX_set1_compressed_cert(SSL_CTX *ctx, int algorithm, unsigned char *comp_data,
-                                 size_t comp_length, size_t orig_length)
+int SSL_CTX_set1_compressed_cert(SSL_CTX       *ctx,
+                                 int            algorithm,
+                                 unsigned char *comp_data,
+                                 size_t         comp_length,
+                                 size_t         orig_length)
 {
 #ifndef OPENSSL_NO_COMP_ALG
     return ossl_set1_compressed_cert(ctx->cert, algorithm, comp_data, comp_length, orig_length);
@@ -453,8 +434,7 @@ int SSL_CTX_set1_compressed_cert(SSL_CTX *ctx, int algorithm, unsigned char *com
 #endif
 }
 
-int SSL_set1_compressed_cert(SSL *ssl, int algorithm, unsigned char *comp_data,
-                             size_t comp_length, size_t orig_length)
+int SSL_set1_compressed_cert(SSL *ssl, int algorithm, unsigned char *comp_data, size_t comp_length, size_t orig_length)
 {
 #ifndef OPENSSL_NO_COMP_ALG
     SSL_CONNECTION *sc = SSL_CONNECTION_FROM_SSL(ssl);

@@ -36,7 +36,7 @@ static int drbg_status(void)
     if (drbg == NULL)
         return 0;
 
-    return  EVP_RAND_get_state(drbg) == EVP_RAND_STATE_READY ? 1 : 0;
+    return EVP_RAND_get_state(drbg) == EVP_RAND_STATE_READY ? 1 : 0;
 }
 
 /* Implements the default OpenSSL RAND_bytes() method */
@@ -50,14 +50,7 @@ static int drbg_bytes(unsigned char *out, int count)
     return EVP_RAND_generate(drbg, out, count, 0, 0, NULL, 0);
 }
 
-RAND_METHOD ossl_rand_meth = {
-    drbg_seed,
-    drbg_bytes,
-    NULL,
-    drbg_add,
-    drbg_bytes,
-    drbg_status
-};
+RAND_METHOD  ossl_rand_meth = {drbg_seed, drbg_bytes, NULL, drbg_add, drbg_bytes, drbg_status};
 
 RAND_METHOD *RAND_OpenSSL(void)
 {

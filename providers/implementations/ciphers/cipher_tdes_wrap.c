@@ -27,15 +27,12 @@
 static OSSL_FUNC_cipher_update_fn tdes_wrap_update;
 static OSSL_FUNC_cipher_cipher_fn tdes_wrap_cipher;
 
-static const unsigned char wrap_iv[8] = {
-    0x4a, 0xdd, 0xa2, 0x2c, 0x79, 0xe8, 0x21, 0x05
-};
+static const unsigned char        wrap_iv[8] = {0x4a, 0xdd, 0xa2, 0x2c, 0x79, 0xe8, 0x21, 0x05};
 
-static int des_ede3_unwrap(PROV_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t inl)
+static int des_ede3_unwrap(PROV_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl)
 {
     unsigned char icv[8], iv[TDES_IVLEN], sha1tmp[SHA_DIGEST_LENGTH];
-    int rv = -1;
+    int           rv = -1;
 
     if (inl < 24)
         return -1;
@@ -65,7 +62,7 @@ static int des_ede3_unwrap(PROV_CIPHER_CTX *ctx, unsigned char *out,
     ctx->hw->cipher(ctx, out, out, inl - 16);
     ctx->hw->cipher(ctx, icv, icv, 8);
     if (ossl_sha1(out, inl - 16, sha1tmp) /* Work out hash of first portion */
-            && CRYPTO_memcmp(sha1tmp, icv, 8) == 0)
+        && CRYPTO_memcmp(sha1tmp, icv, 8) == 0)
         rv = (int)(inl - 16);
     OPENSSL_cleanse(icv, 8);
     OPENSSL_cleanse(sha1tmp, SHA_DIGEST_LENGTH);
@@ -77,13 +74,12 @@ static int des_ede3_unwrap(PROV_CIPHER_CTX *ctx, unsigned char *out,
     return rv;
 }
 
-static int des_ede3_wrap(PROV_CIPHER_CTX *ctx, unsigned char *out,
-                         const unsigned char *in, size_t inl)
+static int des_ede3_wrap(PROV_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl)
 {
     unsigned char sha1tmp[SHA_DIGEST_LENGTH];
-    size_t ivlen = TDES_IVLEN;
-    size_t icvlen = TDES_IVLEN;
-    size_t len = inl + ivlen + icvlen;
+    size_t        ivlen  = TDES_IVLEN;
+    size_t        icvlen = TDES_IVLEN;
+    size_t        len    = inl + ivlen + icvlen;
 
     if (len > INT_MAX)
         return 0;
@@ -109,8 +105,7 @@ static int des_ede3_wrap(PROV_CIPHER_CTX *ctx, unsigned char *out,
     return (int)len;
 }
 
-static int tdes_wrap_cipher_internal(PROV_CIPHER_CTX *ctx, unsigned char *out,
-                                     const unsigned char *in, size_t inl)
+static int tdes_wrap_cipher_internal(PROV_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl)
 {
     /*
      * Sanity check input length: we typically only wrap keys so EVP_MAXCHUNK
@@ -125,12 +120,11 @@ static int tdes_wrap_cipher_internal(PROV_CIPHER_CTX *ctx, unsigned char *out,
         return des_ede3_unwrap(ctx, out, in, inl);
 }
 
-static int tdes_wrap_cipher(void *vctx,
-                            unsigned char *out, size_t *outl, size_t outsize,
-                            const unsigned char *in, size_t inl)
+static int
+tdes_wrap_cipher(void *vctx, unsigned char *out, size_t *outl, size_t outsize, const unsigned char *in, size_t inl)
 {
     PROV_CIPHER_CTX *ctx = (PROV_CIPHER_CTX *)vctx;
-    int ret;
+    int              ret;
 
     *outl = 0;
     if (!ossl_prov_is_running())
@@ -149,9 +143,8 @@ static int tdes_wrap_cipher(void *vctx,
     return 1;
 }
 
-static int tdes_wrap_update(void *vctx, unsigned char *out, size_t *outl,
-                            size_t outsize, const unsigned char *in,
-                            size_t inl)
+static int
+tdes_wrap_update(void *vctx, unsigned char *out, size_t *outl, size_t outsize, const unsigned char *in, size_t inl)
 {
     *outl = 0;
     if (inl == 0)
@@ -168,8 +161,7 @@ static int tdes_wrap_update(void *vctx, unsigned char *out, size_t *outl,
     return 1;
 }
 
-
-# define IMPLEMENT_WRAP_CIPHER(flags, kbits, blkbits, ivbits)                  \
+#define IMPLEMENT_WRAP_CIPHER(flags, kbits, blkbits, ivbits)                  \
 static OSSL_FUNC_cipher_newctx_fn tdes_wrap_newctx;                            \
 static void *tdes_wrap_newctx(void *provctx)                                   \
 {                                                                              \
@@ -208,4 +200,4 @@ const OSSL_DISPATCH ossl_tdes_wrap_cbc_functions[] =                           \
 }
 
 /* ossl_tdes_wrap_cbc_functions */
-IMPLEMENT_WRAP_CIPHER(TDES_WRAP_FLAGS, 64*3, 64, 0);
+IMPLEMENT_WRAP_CIPHER(TDES_WRAP_FLAGS, 64 * 3, 64, 0);

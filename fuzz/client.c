@@ -36,7 +36,7 @@ static int idx;
 time_t time(time_t *t) TIME_IMPL(t)
 #endif
 
-int FuzzerInitialize(int *argc, char ***argv)
+    int FuzzerInitialize(int *argc, char ***argv)
 {
     STACK_OF(SSL_COMP) *comp_methods;
 
@@ -45,7 +45,7 @@ int FuzzerInitialize(int *argc, char ***argv)
     OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
     ERR_clear_error();
     CRYPTO_free_ex_index(0, -1);
-    idx = SSL_get_ex_data_X509_STORE_CTX_idx();
+    idx          = SSL_get_ex_data_X509_STORE_CTX_idx();
     comp_methods = SSL_COMP_get_compression_methods();
     if (comp_methods != NULL)
         sk_SSL_COMP_sort(comp_methods);
@@ -55,9 +55,9 @@ int FuzzerInitialize(int *argc, char ***argv)
 
 int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 {
-    SSL *client = NULL;
-    BIO *in;
-    BIO *out;
+    SSL     *client = NULL;
+    BIO     *in;
+    BIO     *out;
     SSL_CTX *ctx;
 
     if (len == 0 || len > INT_MAX)
@@ -94,7 +94,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
             }
         }
     }
- end:
+end:
     SSL_free(client);
     ERR_clear_error();
     SSL_CTX_free(ctx);

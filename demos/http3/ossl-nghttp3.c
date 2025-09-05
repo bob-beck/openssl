@@ -22,13 +22,13 @@ enum {
 #define BUF_SIZE    4096
 
 struct ossl_demo_h3_stream_st {
-    uint64_t            id;             /* QUIC stream ID */
-    SSL                 *s;             /* QUIC stream SSL object */
-    int                 done_recv_fin;  /* Received FIN */
-    void                *user_data;
+    uint64_t id;            /* QUIC stream ID */
+    SSL     *s;             /* QUIC stream SSL object */
+    int      done_recv_fin; /* Received FIN */
+    void    *user_data;
 
-    uint8_t             buf[BUF_SIZE];
-    size_t              buf_cur, buf_total;
+    uint8_t  buf[BUF_SIZE];
+    size_t   buf_cur, buf_total;
 };
 
 DEFINE_LHASH_OF_EX(OSSL_DEMO_H3_STREAM);
@@ -49,8 +49,10 @@ static unsigned long h3_stream_hash(const OSSL_DEMO_H3_STREAM *s)
 
 static int h3_stream_eq(const OSSL_DEMO_H3_STREAM *a, const OSSL_DEMO_H3_STREAM *b)
 {
-    if (a->id < b->id) return -1;
-    if (a->id > b->id) return 1;
+    if (a->id < b->id)
+        return -1;
+    if (a->id > b->id)
+        return 1;
     return 0;
 }
 
@@ -61,25 +63,25 @@ void *OSSL_DEMO_H3_STREAM_get_user_data(const OSSL_DEMO_H3_STREAM *s)
 
 struct ossl_demo_h3_conn_st {
     /* QUIC connection SSL object */
-    SSL                             *qconn;
+    SSL                           *qconn;
     /* BIO wrapping QCSO */
-    BIO                             *qconn_bio;
+    BIO                           *qconn_bio;
     /* HTTP/3 connection object */
-    nghttp3_conn                    *h3conn;
+    nghttp3_conn                  *h3conn;
     /* map of stream IDs to OSSL_DEMO_H3_STREAMs */
-    LHASH_OF(OSSL_DEMO_H3_STREAM)   *streams;
+    LHASH_OF(OSSL_DEMO_H3_STREAM) *streams;
     /* opaque user data pointer */
-    void                            *user_data;
+    void                          *user_data;
 
-    int                             pump_res;
-    size_t                          consumed_app_data;
+    int                            pump_res;
+    size_t                         consumed_app_data;
 
     /* Forwarding callbacks */
-    nghttp3_recv_data               recv_data_cb;
-    nghttp3_stream_close            stream_close_cb;
-    nghttp3_stop_sending            stop_sending_cb;
-    nghttp3_reset_stream            reset_stream_cb;
-    nghttp3_deferred_consume        deferred_consume_cb;
+    nghttp3_recv_data              recv_data_cb;
+    nghttp3_stream_close           stream_close_cb;
+    nghttp3_stop_sending           stop_sending_cb;
+    nghttp3_reset_stream           reset_stream_cb;
+    nghttp3_deferred_consume       deferred_consume_cb;
 };
 
 void OSSL_DEMO_H3_CONN_free(OSSL_DEMO_H3_CONN *conn)
@@ -98,7 +100,7 @@ void OSSL_DEMO_H3_CONN_free(OSSL_DEMO_H3_CONN *conn)
 static OSSL_DEMO_H3_STREAM *h3_conn_create_stream(OSSL_DEMO_H3_CONN *conn, int type)
 {
     OSSL_DEMO_H3_STREAM *s;
-    uint64_t flags = SSL_STREAM_FLAG_ADVANCE;
+    uint64_t             flags = SSL_STREAM_FLAG_ADVANCE;
 
     if ((s = OPENSSL_zalloc(sizeof(OSSL_DEMO_H3_STREAM))) == NULL)
         return NULL;
@@ -107,12 +109,11 @@ static OSSL_DEMO_H3_STREAM *h3_conn_create_stream(OSSL_DEMO_H3_CONN *conn, int t
         flags |= SSL_STREAM_FLAG_UNI;
 
     if ((s->s = SSL_new_stream(conn->qconn, flags)) == NULL) {
-        ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
-                       "could not create QUIC stream object");
+        ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR, "could not create QUIC stream object");
         goto err;
     }
 
-    s->id   = SSL_get_stream_id(s->s);
+    s->id = SSL_get_stream_id(s->s);
     lh_OSSL_DEMO_H3_STREAM_insert(conn->streams, s);
     return s;
 
@@ -128,8 +129,8 @@ static OSSL_DEMO_H3_STREAM *h3_conn_accept_stream(OSSL_DEMO_H3_CONN *conn, SSL *
     if ((s = OPENSSL_zalloc(sizeof(OSSL_DEMO_H3_STREAM))) == NULL)
         return NULL;
 
-    s->id   = SSL_get_stream_id(qstream);
-    s->s    = qstream;
+    s->id = SSL_get_stream_id(qstream);
+    s->s  = qstream;
     lh_OSSL_DEMO_H3_STREAM_insert(conn->streams, s);
     return s;
 }
@@ -143,65 +144,70 @@ static void h3_conn_remove_stream(OSSL_DEMO_H3_CONN *conn, OSSL_DEMO_H3_STREAM *
     h3_stream_free(s);
 }
 
-static int h3_conn_recv_data(nghttp3_conn *h3conn, int64_t stream_id,
-                             const uint8_t *data, size_t datalen,
-                             void *conn_user_data, void *stream_user_data)
+static int h3_conn_recv_data(nghttp3_conn  *h3conn,
+                             int64_t        stream_id,
+                             const uint8_t *data,
+                             size_t         datalen,
+                             void          *conn_user_data,
+                             void          *stream_user_data)
 {
-    OSSL_DEMO_H3_CONN *conn = conn_user_data;
+    OSSL_DEMO_H3_CONN *conn  = conn_user_data;
 
     conn->consumed_app_data += datalen;
     if (conn->recv_data_cb == NULL)
         return 0;
 
-    return conn->recv_data_cb(h3conn, stream_id, data, datalen,
-                              conn_user_data, stream_user_data);
+    return conn->recv_data_cb(h3conn, stream_id, data, datalen, conn_user_data, stream_user_data);
 }
 
-static int h3_conn_stream_close(nghttp3_conn *h3conn, int64_t stream_id,
-                                uint64_t app_error_code,
-                                void *conn_user_data, void *stream_user_data)
+static int h3_conn_stream_close(nghttp3_conn *h3conn,
+                                int64_t       stream_id,
+                                uint64_t      app_error_code,
+                                void         *conn_user_data,
+                                void         *stream_user_data)
 {
-    int ret = 0;
-    OSSL_DEMO_H3_CONN *conn = conn_user_data;
+    int                  ret    = 0;
+    OSSL_DEMO_H3_CONN   *conn   = conn_user_data;
     OSSL_DEMO_H3_STREAM *stream = stream_user_data;
 
     if (conn->stream_close_cb != NULL)
-        ret = conn->stream_close_cb(h3conn, stream_id, app_error_code,
-                                    conn_user_data, stream_user_data);
+        ret = conn->stream_close_cb(h3conn, stream_id, app_error_code, conn_user_data, stream_user_data);
 
     h3_conn_remove_stream(conn, stream);
     return ret;
 }
 
-static int h3_conn_stop_sending(nghttp3_conn *h3conn, int64_t stream_id,
-                                uint64_t app_error_code,
-                                void *conn_user_data, void *stream_user_data)
+static int h3_conn_stop_sending(nghttp3_conn *h3conn,
+                                int64_t       stream_id,
+                                uint64_t      app_error_code,
+                                void         *conn_user_data,
+                                void         *stream_user_data)
 {
-    int ret = 0;
-    OSSL_DEMO_H3_CONN *conn = conn_user_data;
+    int                  ret    = 0;
+    OSSL_DEMO_H3_CONN   *conn   = conn_user_data;
     OSSL_DEMO_H3_STREAM *stream = stream_user_data;
 
     if (conn->stop_sending_cb != NULL)
-        ret = conn->stop_sending_cb(h3conn, stream_id, app_error_code,
-                                    conn_user_data, stream_user_data);
+        ret = conn->stop_sending_cb(h3conn, stream_id, app_error_code, conn_user_data, stream_user_data);
 
     SSL_free(stream->s);
     stream->s = NULL;
     return ret;
 }
 
-static int h3_conn_reset_stream(nghttp3_conn *h3conn, int64_t stream_id,
-                                uint64_t app_error_code,
-                                void *conn_user_data, void *stream_user_data)
+static int h3_conn_reset_stream(nghttp3_conn *h3conn,
+                                int64_t       stream_id,
+                                uint64_t      app_error_code,
+                                void         *conn_user_data,
+                                void         *stream_user_data)
 {
-    int ret = 0;
-    OSSL_DEMO_H3_CONN *conn = conn_user_data;
-    OSSL_DEMO_H3_STREAM *stream = stream_user_data;
-    SSL_STREAM_RESET_ARGS args = {0};
+    int                   ret    = 0;
+    OSSL_DEMO_H3_CONN    *conn   = conn_user_data;
+    OSSL_DEMO_H3_STREAM  *stream = stream_user_data;
+    SSL_STREAM_RESET_ARGS args   = {0};
 
     if (conn->reset_stream_cb != NULL)
-        ret = conn->reset_stream_cb(h3conn, stream_id, app_error_code,
-                                   conn_user_data, stream_user_data);
+        ret = conn->reset_stream_cb(h3conn, stream_id, app_error_code, conn_user_data, stream_user_data);
 
     if (stream->s != NULL) {
         args.quic_error_code = app_error_code;
@@ -213,38 +219,38 @@ static int h3_conn_reset_stream(nghttp3_conn *h3conn, int64_t stream_id,
     return ret;
 }
 
-static int h3_conn_deferred_consume(nghttp3_conn *h3conn, int64_t stream_id,
-                                    size_t consumed,
-                                    void *conn_user_data, void *stream_user_data)
+static int h3_conn_deferred_consume(nghttp3_conn *h3conn,
+                                    int64_t       stream_id,
+                                    size_t        consumed,
+                                    void         *conn_user_data,
+                                    void         *stream_user_data)
 {
-    int ret = 0;
+    int                ret  = 0;
     OSSL_DEMO_H3_CONN *conn = conn_user_data;
 
     if (conn->deferred_consume_cb != NULL)
-        ret = conn->deferred_consume_cb(h3conn, stream_id, consumed,
-                                        conn_user_data, stream_user_data);
+        ret = conn->deferred_consume_cb(h3conn, stream_id, consumed, conn_user_data, stream_user_data);
 
     conn->consumed_app_data += consumed;
     return ret;
 }
 
-OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_conn(BIO *qconn_bio,
+OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_conn(BIO                     *qconn_bio,
                                                   const nghttp3_callbacks *callbacks,
-                                                  const nghttp3_settings *settings,
-                                                  void *user_data)
+                                                  const nghttp3_settings  *settings,
+                                                  void                    *user_data)
 {
-    int ec;
-    OSSL_DEMO_H3_CONN *conn;
-    OSSL_DEMO_H3_STREAM *s_ctl_send = NULL;
-    OSSL_DEMO_H3_STREAM *s_qpenc_send = NULL;
-    OSSL_DEMO_H3_STREAM *s_qpdec_send = NULL;
-    nghttp3_settings dsettings = {0};
-    nghttp3_callbacks intl_callbacks = {0};
-    static const unsigned char alpn[] = {2, 'h', '3'};
+    int                        ec;
+    OSSL_DEMO_H3_CONN         *conn;
+    OSSL_DEMO_H3_STREAM       *s_ctl_send     = NULL;
+    OSSL_DEMO_H3_STREAM       *s_qpenc_send   = NULL;
+    OSSL_DEMO_H3_STREAM       *s_qpdec_send   = NULL;
+    nghttp3_settings           dsettings      = {0};
+    nghttp3_callbacks          intl_callbacks = {0};
+    static const unsigned char alpn[]         = {2, 'h', '3'};
 
     if (qconn_bio == NULL) {
-        ERR_raise_data(ERR_LIB_USER, ERR_R_PASSED_NULL_PARAMETER,
-                       "QUIC connection BIO must be provided");
+        ERR_raise_data(ERR_LIB_USER, ERR_R_PASSED_NULL_PARAMETER, "QUIC connection BIO must be provided");
         return NULL;
     }
 
@@ -255,8 +261,7 @@ OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_conn(BIO *qconn_bio,
     conn->user_data = user_data;
 
     if (BIO_get_ssl(qconn_bio, &conn->qconn) == 0) {
-        ERR_raise_data(ERR_LIB_USER, ERR_R_PASSED_INVALID_ARGUMENT,
-                       "BIO must be an SSL BIO");
+        ERR_raise_data(ERR_LIB_USER, ERR_R_PASSED_INVALID_ARGUMENT, "BIO must be an SSL BIO");
         goto err;
     }
 
@@ -272,8 +277,7 @@ OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_conn(BIO *qconn_bio,
     if (SSL_in_before(conn->qconn))
         if (SSL_set_alpn_protos(conn->qconn, alpn, sizeof(alpn))) {
             /* SSL_set_alpn_protos returns 1 on failure */
-            ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
-                           "failed to configure ALPN");
+            ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR, "failed to configure ALPN");
             goto err;
         }
 
@@ -291,8 +295,7 @@ OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_conn(BIO *qconn_bio,
      * SSL_set_incoming_stream_policy(3)).
      */
     if (!SSL_set_default_stream_mode(conn->qconn, SSL_DEFAULT_STREAM_MODE_NONE)) {
-        ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
-                       "failed to configure default stream mode");
+        ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR, "failed to configure default stream mode");
         goto err;
     }
 
@@ -304,16 +307,13 @@ OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_conn(BIO *qconn_bio,
      * side, which we handle subsequently as they come in (see SSL_accept_stream
      * in the event handling code below).
      */
-    if ((s_ctl_send
-            = h3_conn_create_stream(conn, OSSL_DEMO_H3_STREAM_TYPE_CTRL_SEND)) == NULL)
+    if ((s_ctl_send = h3_conn_create_stream(conn, OSSL_DEMO_H3_STREAM_TYPE_CTRL_SEND)) == NULL)
         goto err;
 
-    if ((s_qpenc_send
-            = h3_conn_create_stream(conn, OSSL_DEMO_H3_STREAM_TYPE_QPACK_ENC_SEND)) == NULL)
+    if ((s_qpenc_send = h3_conn_create_stream(conn, OSSL_DEMO_H3_STREAM_TYPE_QPACK_ENC_SEND)) == NULL)
         goto err;
 
-    if ((s_qpdec_send
-            = h3_conn_create_stream(conn, OSSL_DEMO_H3_STREAM_TYPE_QPACK_DEC_SEND)) == NULL)
+    if ((s_qpdec_send = h3_conn_create_stream(conn, OSSL_DEMO_H3_STREAM_TYPE_QPACK_DEC_SEND)) == NULL)
         goto err;
 
     if (settings == NULL) {
@@ -328,11 +328,11 @@ OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_conn(BIO *qconn_bio,
      * We need to do some of our own processing when many of these events occur,
      * so we note the original callback functions and forward appropriately.
      */
-    conn->recv_data_cb          = intl_callbacks.recv_data;
-    conn->stream_close_cb       = intl_callbacks.stream_close;
-    conn->stop_sending_cb       = intl_callbacks.stop_sending;
-    conn->reset_stream_cb       = intl_callbacks.reset_stream;
-    conn->deferred_consume_cb   = intl_callbacks.deferred_consume;
+    conn->recv_data_cb              = intl_callbacks.recv_data;
+    conn->stream_close_cb           = intl_callbacks.stream_close;
+    conn->stop_sending_cb           = intl_callbacks.stop_sending;
+    conn->reset_stream_cb           = intl_callbacks.reset_stream;
+    conn->deferred_consume_cb       = intl_callbacks.deferred_consume;
 
     intl_callbacks.recv_data        = h3_conn_recv_data;
     intl_callbacks.stream_close     = h3_conn_stream_close;
@@ -341,12 +341,13 @@ OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_conn(BIO *qconn_bio,
     intl_callbacks.deferred_consume = h3_conn_deferred_consume;
 
     /* Create the HTTP/3 client state. */
-    ec = nghttp3_conn_client_new(&conn->h3conn, &intl_callbacks, settings,
-                                 NULL, conn);
+    ec                              = nghttp3_conn_client_new(&conn->h3conn, &intl_callbacks, settings, NULL, conn);
     if (ec < 0) {
-        ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
+        ERR_raise_data(ERR_LIB_USER,
+                       ERR_R_INTERNAL_ERROR,
                        "cannot create nghttp3 connection: %s (%d)",
-                       nghttp3_strerror(ec), ec);
+                       nghttp3_strerror(ec),
+                       ec);
         goto err;
     }
 
@@ -360,19 +361,21 @@ OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_conn(BIO *qconn_bio,
      */
     ec = nghttp3_conn_bind_control_stream(conn->h3conn, s_ctl_send->id);
     if (ec < 0) {
-        ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
+        ERR_raise_data(ERR_LIB_USER,
+                       ERR_R_INTERNAL_ERROR,
                        "cannot bind nghttp3 control stream: %s (%d)",
-                       nghttp3_strerror(ec), ec);
+                       nghttp3_strerror(ec),
+                       ec);
         goto err;
     }
 
-    ec = nghttp3_conn_bind_qpack_streams(conn->h3conn,
-                                         s_qpenc_send->id,
-                                         s_qpdec_send->id);
+    ec = nghttp3_conn_bind_qpack_streams(conn->h3conn, s_qpenc_send->id, s_qpdec_send->id);
     if (ec < 0) {
-        ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
+        ERR_raise_data(ERR_LIB_USER,
+                       ERR_R_INTERNAL_ERROR,
                        "cannot bind nghttp3 QPACK streams: %s (%d)",
-                       nghttp3_strerror(ec), ec);
+                       nghttp3_strerror(ec),
+                       ec);
         goto err;
     }
 
@@ -388,15 +391,16 @@ err:
     return NULL;
 }
 
-OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_addr(SSL_CTX *ctx, const char *addr,
+OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_addr(SSL_CTX                 *ctx,
+                                                  const char              *addr,
                                                   const nghttp3_callbacks *callbacks,
-                                                  const nghttp3_settings *settings,
-                                                  void *user_data)
+                                                  const nghttp3_settings  *settings,
+                                                  void                    *user_data)
 {
-    BIO *qconn_bio = NULL;
-    SSL *qconn = NULL;
-    OSSL_DEMO_H3_CONN *conn = NULL;
-    const char *bare_hostname;
+    BIO               *qconn_bio = NULL;
+    SSL               *qconn     = NULL;
+    OSSL_DEMO_H3_CONN *conn      = NULL;
+    const char        *bare_hostname;
 
     /* QUIC connection setup */
     if ((qconn_bio = BIO_new_ssl_connect(ctx)) == NULL)
@@ -425,8 +429,7 @@ OSSL_DEMO_H3_CONN *OSSL_DEMO_H3_CONN_new_for_addr(SSL_CTX *ctx, const char *addr
     if (!SSL_set_tlsext_host_name(qconn, bare_hostname))
         goto err;
 
-    conn = OSSL_DEMO_H3_CONN_new_for_conn(qconn_bio, callbacks,
-                                          settings, user_data);
+    conn = OSSL_DEMO_H3_CONN_new_for_conn(qconn_bio, callbacks, settings, user_data);
     if (conn == NULL)
         goto err;
 
@@ -455,10 +458,10 @@ SSL *OSSL_DEMO_H3_CONN_get0_connection(const OSSL_DEMO_H3_CONN *conn)
 /* Pumps received data to the HTTP/3 stack for a single stream. */
 static void h3_conn_pump_stream(OSSL_DEMO_H3_STREAM *s, void *conn_)
 {
-    int ec;
+    int                ec;
     OSSL_DEMO_H3_CONN *conn = conn_;
-    size_t num_bytes, consumed;
-    uint64_t aec;
+    size_t             num_bytes, consumed;
+    uint64_t           aec;
 
     if (!conn->pump_res)
         /*
@@ -491,27 +494,33 @@ static void h3_conn_pump_stream(OSSL_DEMO_H3_STREAM *s, void *conn_)
                 num_bytes = 0;
                 if (SSL_get_error(s->s, ec) == SSL_ERROR_ZERO_RETURN) {
                     /* Stream concluded normally. Pass FIN to HTTP/3 stack. */
-                    ec = nghttp3_conn_read_stream(conn->h3conn, s->id, NULL, 0,
+                    ec = nghttp3_conn_read_stream(conn->h3conn,
+                                                  s->id,
+                                                  NULL,
+                                                  0,
                                                   /*fin=*/1);
                     if (ec < 0) {
-                        ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
+                        ERR_raise_data(ERR_LIB_USER,
+                                       ERR_R_INTERNAL_ERROR,
                                        "cannot pass FIN to nghttp3: %s (%d)",
-                                       nghttp3_strerror(ec), ec);
+                                       nghttp3_strerror(ec),
+                                       ec);
                         goto err;
                     }
 
                     s->done_recv_fin = 1;
-                } else if (SSL_get_stream_read_state(s->s)
-                            == SSL_STREAM_STATE_RESET_REMOTE) {
+                } else if (SSL_get_stream_read_state(s->s) == SSL_STREAM_STATE_RESET_REMOTE) {
                     /* Stream was reset by peer. */
                     if (!SSL_get_stream_read_error_code(s->s, &aec))
                         goto err;
 
                     ec = nghttp3_conn_close_stream(conn->h3conn, s->id, aec);
                     if (ec < 0) {
-                        ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
+                        ERR_raise_data(ERR_LIB_USER,
+                                       ERR_R_INTERNAL_ERROR,
                                        "cannot mark stream as reset: %s (%d)",
-                                       nghttp3_strerror(ec), ec);
+                                       nghttp3_strerror(ec),
+                                       ec);
                         goto err;
                     }
 
@@ -522,8 +531,8 @@ static void h3_conn_pump_stream(OSSL_DEMO_H3_STREAM *s, void *conn_)
                 }
             }
 
-            s->buf_cur      = 0;
-            s->buf_total    = num_bytes;
+            s->buf_cur   = 0;
+            s->buf_total = num_bytes;
         }
 
         if (s->buf_cur == s->buf_total)
@@ -535,12 +544,13 @@ static void h3_conn_pump_stream(OSSL_DEMO_H3_STREAM *s, void *conn_)
          * has been received from the network.
          */
         assert(conn->consumed_app_data == 0);
-        ec = nghttp3_conn_read_stream(conn->h3conn, s->id, s->buf + s->buf_cur,
-                                      s->buf_total - s->buf_cur, /*fin=*/0);
+        ec = nghttp3_conn_read_stream(conn->h3conn, s->id, s->buf + s->buf_cur, s->buf_total - s->buf_cur, /*fin=*/0);
         if (ec < 0) {
-            ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
+            ERR_raise_data(ERR_LIB_USER,
+                           ERR_R_INTERNAL_ERROR,
                            "nghttp3 failed to process incoming data: %s (%d)",
-                           nghttp3_strerror(ec), ec);
+                           nghttp3_strerror(ec),
+                           ec);
             goto err;
         }
 
@@ -553,8 +563,8 @@ static void h3_conn_pump_stream(OSSL_DEMO_H3_STREAM *s, void *conn_)
          */
         consumed = ec + conn->consumed_app_data;
         assert(consumed <= s->buf_total - s->buf_cur);
-        s->buf_cur += consumed;
-        conn->consumed_app_data = 0;
+        s->buf_cur              += consumed;
+        conn->consumed_app_data  = 0;
     }
 
     return;
@@ -564,13 +574,13 @@ err:
 
 int OSSL_DEMO_H3_CONN_handle_events(OSSL_DEMO_H3_CONN *conn)
 {
-    int ec, fin;
-    size_t i, num_vecs, written, total_written, total_len;
-    int64_t stream_id;
-    uint64_t flags;
-    nghttp3_vec vecs[8] = {0};
+    int                 ec, fin;
+    size_t              i, num_vecs, written, total_written, total_len;
+    int64_t             stream_id;
+    uint64_t            flags;
+    nghttp3_vec         vecs[8] = {0};
     OSSL_DEMO_H3_STREAM key, *s;
-    SSL *snew;
+    SSL                *snew;
 
     if (conn == NULL)
         return 0;
@@ -607,29 +617,27 @@ int OSSL_DEMO_H3_CONN_handle_events(OSSL_DEMO_H3_CONN *conn)
          * nghttp3's 'perspective': this outputs pointers to data which nghttp3
          * wants to *write* to the network.
          */
-        ec = nghttp3_conn_writev_stream(conn->h3conn, &stream_id, &fin,
-                                        vecs, ARRAY_LEN(vecs));
+        ec = nghttp3_conn_writev_stream(conn->h3conn, &stream_id, &fin, vecs, ARRAY_LEN(vecs));
         if (ec < 0)
             return 0;
         if (ec == 0)
             break;
 
         /*
-	 * we let SSL_write_ex2(3) to conclude the stream for us (send FIN)
-	 * after all data are written.
+         * we let SSL_write_ex2(3) to conclude the stream for us (send FIN)
+         * after all data are written.
          */
-        flags = (fin == 0) ? 0 : SSL_WRITE_FLAG_CONCLUDE;
+        flags  = (fin == 0) ? 0 : SSL_WRITE_FLAG_CONCLUDE;
 
         /* For each of the vectors returned, pass it to OpenSSL QUIC. */
         key.id = stream_id;
         if ((s = lh_OSSL_DEMO_H3_STREAM_retrieve(conn->streams, &key)) == NULL) {
-            ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
-                           "no stream for ID %zd", stream_id);
+            ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR, "no stream for ID %zd", stream_id);
             return 0;
         }
 
-        num_vecs = ec;
-        total_len = nghttp3_vec_len(vecs, num_vecs);
+        num_vecs      = ec;
+        total_len     = nghttp3_vec_len(vecs, num_vecs);
         total_written = 0;
         for (i = 0; i < num_vecs; ++i) {
             if (vecs[i].len == 0)
@@ -647,8 +655,7 @@ int OSSL_DEMO_H3_CONN_handle_events(OSSL_DEMO_H3_CONN *conn)
                     written = 0;
                     nghttp3_conn_block_stream(conn->h3conn, stream_id);
                 } else {
-                    ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
-                                   "writing HTTP/3 data to network failed");
+                    ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR, "writing HTTP/3 data to network failed");
                     return 0;
                 }
             } else {
@@ -683,7 +690,6 @@ int OSSL_DEMO_H3_CONN_handle_events(OSSL_DEMO_H3_CONN *conn)
         }
 
         if (fin && total_written == total_len) {
-
             if (total_len == 0) {
                 /*
                  * As a special case, if nghttp3 requested to write a
@@ -706,17 +712,17 @@ int OSSL_DEMO_H3_CONN_handle_events(OSSL_DEMO_H3_CONN *conn)
     return 1;
 }
 
-int OSSL_DEMO_H3_CONN_submit_request(OSSL_DEMO_H3_CONN *conn,
-                                     const nghttp3_nv *nva, size_t nvlen,
+int OSSL_DEMO_H3_CONN_submit_request(OSSL_DEMO_H3_CONN         *conn,
+                                     const nghttp3_nv          *nva,
+                                     size_t                     nvlen,
                                      const nghttp3_data_reader *dr,
-                                     void *user_data)
+                                     void                      *user_data)
 {
-    int ec;
+    int                  ec;
     OSSL_DEMO_H3_STREAM *s_req = NULL;
 
     if (conn == NULL) {
-        ERR_raise_data(ERR_LIB_USER, ERR_R_PASSED_NULL_PARAMETER,
-                       "connection must be specified");
+        ERR_raise_data(ERR_LIB_USER, ERR_R_PASSED_NULL_PARAMETER, "connection must be specified");
         return 0;
     }
 
@@ -726,12 +732,13 @@ int OSSL_DEMO_H3_CONN_submit_request(OSSL_DEMO_H3_CONN *conn,
 
     s_req->user_data = user_data;
 
-    ec = nghttp3_conn_submit_request(conn->h3conn, s_req->id, nva, nvlen,
-                                     dr, s_req);
+    ec               = nghttp3_conn_submit_request(conn->h3conn, s_req->id, nva, nvlen, dr, s_req);
     if (ec < 0) {
-        ERR_raise_data(ERR_LIB_USER, ERR_R_INTERNAL_ERROR,
+        ERR_raise_data(ERR_LIB_USER,
+                       ERR_R_INTERNAL_ERROR,
                        "cannot submit HTTP/3 request: %s (%d)",
-                       nghttp3_strerror(ec), ec);
+                       nghttp3_strerror(ec),
+                       ec);
         goto err;
     }
 

@@ -11,19 +11,22 @@
  */
 #include "field.h"
 
-static const gf MODULUS = {
-    FIELD_LITERAL(0xffffffffffffffULL, 0xffffffffffffffULL, 0xffffffffffffffULL,
-                  0xffffffffffffffULL, 0xfffffffffffffeULL, 0xffffffffffffffULL,
-                  0xffffffffffffffULL, 0xffffffffffffffULL)
-};
+static const gf MODULUS = {FIELD_LITERAL(0xffffffffffffffULL,
+                                         0xffffffffffffffULL,
+                                         0xffffffffffffffULL,
+                                         0xffffffffffffffULL,
+                                         0xfffffffffffffeULL,
+                                         0xffffffffffffffULL,
+                                         0xffffffffffffffULL,
+                                         0xffffffffffffffULL)};
 
 /* Serialize to wire format. */
-void gf_serialize(uint8_t serial[SER_BYTES], const gf x, int with_hibit)
+void            gf_serialize(uint8_t serial[SER_BYTES], const gf x, int with_hibit)
 {
     unsigned int j = 0, fill = 0;
-    dword_t buffer = 0;
-    int i;
-    gf red;
+    dword_t      buffer = 0;
+    int          i;
+    gf           red;
 
     gf_copy(red, x);
     gf_strong_reduce(red);
@@ -32,13 +35,13 @@ void gf_serialize(uint8_t serial[SER_BYTES], const gf x, int with_hibit)
 
     for (i = 0; i < (with_hibit ? X_SER_BYTES : SER_BYTES); i++) {
         if (fill < 8 && j < NLIMBS) {
-            buffer |= ((dword_t) red->limb[LIMBPERM(j)]) << fill;
-            fill += LIMB_PLACE_VALUE(LIMBPERM(j));
+            buffer |= ((dword_t)red->limb[LIMBPERM(j)]) << fill;
+            fill   += LIMB_PLACE_VALUE(LIMBPERM(j));
             j++;
         }
-        serial[i] = (uint8_t)buffer;
-        fill -= 8;
-        buffer >>= 8;
+        serial[i]   = (uint8_t)buffer;
+        fill       -= 8;
+        buffer    >>= 8;
     }
 }
 
@@ -63,15 +66,14 @@ mask_t gf_lobit(const gf x)
 }
 
 /* Deserialize from wire format; return -1 on success and 0 on failure. */
-mask_t gf_deserialize(gf x, const uint8_t serial[SER_BYTES], int with_hibit,
-                      uint8_t hi_nmask)
+mask_t gf_deserialize(gf x, const uint8_t serial[SER_BYTES], int with_hibit, uint8_t hi_nmask)
 {
-    unsigned int j = 0, fill = 0;
-    dword_t buffer = 0;
-    dsword_t scarry = 0;
+    unsigned int   j = 0, fill = 0;
+    dword_t        buffer = 0;
+    dsword_t       scarry = 0;
     const unsigned nbytes = with_hibit ? X_SER_BYTES : SER_BYTES;
-    unsigned int i;
-    mask_t succ;
+    unsigned int   i;
+    mask_t         succ;
 
     for (i = 0; i < NLIMBS; i++) {
         while (fill < LIMB_PLACE_VALUE(LIMBPERM(i)) && j < nbytes) {
@@ -80,41 +82,38 @@ mask_t gf_deserialize(gf x, const uint8_t serial[SER_BYTES], int with_hibit,
             sj = serial[j];
             if (j == nbytes - 1)
                 sj &= ~hi_nmask;
-            buffer |= ((dword_t) sj) << fill;
-            fill += 8;
+            buffer |= ((dword_t)sj) << fill;
+            fill   += 8;
             j++;
         }
-        x->limb[LIMBPERM(i)] = (word_t)
-            ((i < NLIMBS - 1) ? buffer & LIMB_MASK(LIMBPERM(i)) : buffer);
-        fill -= LIMB_PLACE_VALUE(LIMBPERM(i));
-        buffer >>= LIMB_PLACE_VALUE(LIMBPERM(i));
-        scarry =
-            (scarry + x->limb[LIMBPERM(i)] -
-             MODULUS->limb[LIMBPERM(i)]) >> (8 * sizeof(word_t));
+        x->limb[LIMBPERM(i)]   = (word_t)((i < NLIMBS - 1) ? buffer & LIMB_MASK(LIMBPERM(i)) : buffer);
+        fill                  -= LIMB_PLACE_VALUE(LIMBPERM(i));
+        buffer               >>= LIMB_PLACE_VALUE(LIMBPERM(i));
+        scarry                 = (scarry + x->limb[LIMBPERM(i)] - MODULUS->limb[LIMBPERM(i)]) >> (8 * sizeof(word_t));
     }
-    succ = with_hibit ? 0 - (mask_t) 1 : ~gf_hibit(x);
+    succ = with_hibit ? 0 - (mask_t)1 : ~gf_hibit(x);
     return succ & word_is_zero((word_t)buffer) & ~word_is_zero((word_t)scarry);
 }
 
 /* Reduce to canonical form. */
 void gf_strong_reduce(gf a)
 {
-    dsword_t scarry;
-    word_t scarry_0;
-    dword_t carry = 0;
+    dsword_t     scarry;
+    word_t       scarry_0;
+    dword_t      carry = 0;
     unsigned int i;
 
     /* first, clear high */
-    gf_weak_reduce(a);          /* Determined to have negligible perf impact. */
+    gf_weak_reduce(a); /* Determined to have negligible perf impact. */
 
     /* now the total is less than 2p */
 
     /* compute total_value - p.  No need to reduce mod p. */
     scarry = 0;
     for (i = 0; i < NLIMBS; i++) {
-        scarry = scarry + a->limb[LIMBPERM(i)] - MODULUS->limb[LIMBPERM(i)];
-        a->limb[LIMBPERM(i)] = scarry & LIMB_MASK(LIMBPERM(i));
-        scarry >>= LIMB_PLACE_VALUE(LIMBPERM(i));
+        scarry                 = scarry + a->limb[LIMBPERM(i)] - MODULUS->limb[LIMBPERM(i)];
+        a->limb[LIMBPERM(i)]   = scarry & LIMB_MASK(LIMBPERM(i));
+        scarry               >>= LIMB_PLACE_VALUE(LIMBPERM(i));
     }
 
     /*
@@ -128,11 +127,9 @@ void gf_strong_reduce(gf a)
 
     /* add it back */
     for (i = 0; i < NLIMBS; i++) {
-        carry =
-            carry + a->limb[LIMBPERM(i)] +
-            (scarry_0 & MODULUS->limb[LIMBPERM(i)]);
-        a->limb[LIMBPERM(i)] = carry & LIMB_MASK(LIMBPERM(i));
-        carry >>= LIMB_PLACE_VALUE(LIMBPERM(i));
+        carry                  = carry + a->limb[LIMBPERM(i)] + (scarry_0 & MODULUS->limb[LIMBPERM(i)]);
+        a->limb[LIMBPERM(i)]   = carry & LIMB_MASK(LIMBPERM(i));
+        carry                >>= LIMB_PLACE_VALUE(LIMBPERM(i));
     }
 
     assert(carry < 2 && ((word_t)carry + scarry_0) == 0);
@@ -156,8 +153,8 @@ void gf_add(gf d, const gf a, const gf b)
 /* Compare a==b */
 mask_t gf_eq(const gf a, const gf b)
 {
-    gf c;
-    mask_t ret = 0;
+    gf           c;
+    mask_t       ret = 0;
     unsigned int i;
 
     gf_sub(c, a, b);

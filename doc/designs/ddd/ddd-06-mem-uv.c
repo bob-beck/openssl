@@ -6,13 +6,13 @@
 # include <sys/time.h>
 #endif
 
-typedef struct app_conn_st APP_CONN;
+typedef struct app_conn_st       APP_CONN;
 typedef struct upper_write_op_st UPPER_WRITE_OP;
 typedef struct lower_write_op_st LOWER_WRITE_OP;
 
-typedef void (app_connect_cb)(APP_CONN *conn, int status, void *arg);
-typedef void (app_write_cb)(APP_CONN *conn, int status, void *arg);
-typedef void (app_read_cb)(APP_CONN *conn, void *buf, size_t buf_len, void *arg);
+typedef void(app_connect_cb)(APP_CONN *conn, int status, void *arg);
+typedef void(app_write_cb)(APP_CONN *conn, int status, void *arg);
+typedef void(app_read_cb)(APP_CONN *conn, void *buf, size_t buf_len, void *arg);
 
 #ifdef USE_QUIC
 static void set_timer(APP_CONN *conn);
@@ -20,19 +20,19 @@ static void set_timer(APP_CONN *conn);
 static void tcp_connect_done(uv_connect_t *tcp_connect, int status);
 #endif
 static void net_connect_fail_close_done(uv_handle_t *handle);
-static int handshake_ssl(APP_CONN *conn);
+static int  handshake_ssl(APP_CONN *conn);
 static void flush_write_buf(APP_CONN *conn);
 static void set_rx(APP_CONN *conn);
-static int try_write(APP_CONN *conn, UPPER_WRITE_OP *op);
+static int  try_write(APP_CONN *conn, UPPER_WRITE_OP *op);
 static void handle_pending_writes(APP_CONN *conn);
-static int write_deferred(APP_CONN *conn, const void *buf, size_t buf_len, app_write_cb *cb, void *arg);
+static int  write_deferred(APP_CONN *conn, const void *buf, size_t buf_len, app_write_cb *cb, void *arg);
 static void teardown_continued(uv_handle_t *handle);
-static int setup_ssl(APP_CONN *conn, const char *hostname);
+static int  setup_ssl(APP_CONN *conn, const char *hostname);
 
 #ifdef USE_QUIC
 static inline int timeval_to_ms(const struct timeval *t)
 {
-    return t->tv_sec*1000 + t->tv_usec/1000;
+    return t->tv_sec * 1000 + t->tv_usec / 1000;
 }
 #endif
 
@@ -42,12 +42,12 @@ static inline int timeval_to_ms(const struct timeval *t)
  * it is in WANT_READ.
  */
 struct upper_write_op_st {
-    struct upper_write_op_st   *prev, *next;
-    const uint8_t              *buf;
-    size_t                      buf_len, written;
-    APP_CONN                   *conn;
-    app_write_cb               *cb;
-    void                       *cb_arg;
+    struct upper_write_op_st *prev, *next;
+    const uint8_t            *buf;
+    size_t                    buf_len, written;
+    APP_CONN                 *conn;
+    app_write_cb             *cb;
+    void                     *cb_arg;
 };
 
 /*
@@ -55,33 +55,33 @@ struct upper_write_op_st {
  */
 struct lower_write_op_st {
 #ifdef USE_QUIC
-    uv_udp_send_t   w;
+    uv_udp_send_t w;
 #else
-    uv_write_t      w;
+    uv_write_t w;
 #endif
-    uv_buf_t        b;
-    uint8_t        *buf;
-    APP_CONN       *conn;
+    uv_buf_t  b;
+    uint8_t  *buf;
+    APP_CONN *conn;
 };
 
 /*
  * Application connection object.
  */
 struct app_conn_st {
-    SSL_CTX        *ctx;
-    SSL            *ssl;
-    BIO            *net_bio;
+    SSL_CTX *ctx;
+    SSL     *ssl;
+    BIO     *net_bio;
 #ifdef USE_QUIC
-    uv_udp_t        udp;
-    uv_timer_t      timer;
+    uv_udp_t   udp;
+    uv_timer_t timer;
 #else
-    uv_stream_t    *stream;
-    uv_tcp_t        tcp;
-    uv_connect_t    tcp_connect;
+    uv_stream_t *stream;
+    uv_tcp_t     tcp;
+    uv_connect_t tcp_connect;
 #endif
-    app_connect_cb *app_connect_cb;   /* called once handshake is done */
+    app_connect_cb *app_connect_cb; /* called once handshake is done */
     void           *app_connect_arg;
-    app_read_cb    *app_read_cb;      /* application's on-RX callback */
+    app_read_cb    *app_read_cb; /* application's on-RX callback */
     void           *app_read_arg;
     const char     *hostname;
     char            init_handshake, done_handshake, closed;
@@ -128,14 +128,13 @@ SSL_CTX *create_ssl_ctx(void)
  * hostname is a string like "openssl.org" used for certificate validation.
  */
 
-APP_CONN *new_conn(SSL_CTX *ctx, const char *hostname,
-                   struct sockaddr *sa, socklen_t sa_len,
-                   app_connect_cb *cb, void *arg)
+APP_CONN *
+new_conn(SSL_CTX *ctx, const char *hostname, struct sockaddr *sa, socklen_t sa_len, app_connect_cb *cb, void *arg)
 {
-    int rc;
+    int       rc;
     APP_CONN *conn = NULL;
 
-    conn = calloc(1, sizeof(APP_CONN));
+    conn           = calloc(1, sizeof(APP_CONN));
     if (!conn)
         return NULL;
 
@@ -149,16 +148,16 @@ APP_CONN *new_conn(SSL_CTX *ctx, const char *hostname,
     uv_tcp_init(uv_default_loop(), &conn->tcp);
     conn->tcp.data = conn;
 
-    conn->stream            = (uv_stream_t *)&conn->tcp;
+    conn->stream   = (uv_stream_t *)&conn->tcp;
 #endif
 
-    conn->app_connect_cb    = cb;
-    conn->app_connect_arg   = arg;
+    conn->app_connect_cb  = cb;
+    conn->app_connect_arg = arg;
 #ifdef USE_QUIC
     rc = uv_udp_connect(&conn->udp, sa);
 #else
-    conn->tcp_connect.data  = conn;
-    rc = uv_tcp_connect(&conn->tcp_connect, &conn->tcp, sa, tcp_connect_done);
+    conn->tcp_connect.data = conn;
+    rc                     = uv_tcp_connect(&conn->tcp_connect, &conn->tcp, sa, tcp_connect_done);
 #endif
     if (rc < 0) {
 #ifdef USE_QUIC
@@ -169,8 +168,8 @@ APP_CONN *new_conn(SSL_CTX *ctx, const char *hostname,
         return NULL;
     }
 
-    conn->ctx       = ctx;
-    conn->hostname  = hostname;
+    conn->ctx      = ctx;
+    conn->hostname = hostname;
 
 #ifdef USE_QUIC
     rc = setup_ssl(conn, hostname);
@@ -274,13 +273,12 @@ static void dequeue_upper_write_op(APP_CONN *conn)
         conn->pending_upper_write_head = NULL;
         conn->pending_upper_write_tail = NULL;
     } else {
-        conn->pending_upper_write_head = conn->pending_upper_write_head->next;
+        conn->pending_upper_write_head       = conn->pending_upper_write_head->next;
         conn->pending_upper_write_head->prev = NULL;
     }
 }
 
-static void net_read_alloc(uv_handle_t *handle,
-                           size_t suggested_size, uv_buf_t *buf)
+static void net_read_alloc(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf)
 {
 #ifdef USE_QUIC
     if (suggested_size < 1472)
@@ -336,7 +334,7 @@ static void handle_pending_writes(APP_CONN *conn)
 
     do {
         UPPER_WRITE_OP *op = conn->pending_upper_write_head;
-        rc = try_write(conn, op);
+        rc                 = try_write(conn, op);
         if (rc <= 0)
             break;
 
@@ -348,13 +346,13 @@ static void handle_pending_writes(APP_CONN *conn)
 }
 
 #ifdef USE_QUIC
-static void net_read_done(uv_udp_t *stream, ssize_t nr, const uv_buf_t *buf,
-                          const struct sockaddr *addr, unsigned int flags)
+static void
+net_read_done(uv_udp_t *stream, ssize_t nr, const uv_buf_t *buf, const struct sockaddr *addr, unsigned int flags)
 #else
 static void net_read_done(uv_stream_t *stream, ssize_t nr, const uv_buf_t *buf)
 #endif
 {
-    int rc;
+    int       rc;
     APP_CONN *conn = (APP_CONN *)stream->data;
 
     if (nr < 0) {
@@ -393,7 +391,9 @@ static void set_rx(APP_CONN *conn)
     else
         uv_udp_recv_stop(&conn->udp);
 #else
-    if (!conn->closed && (conn->app_read_cb || (!conn->done_handshake && conn->init_handshake) || conn->pending_upper_write_head != NULL))
+    if (!conn->closed
+        && (conn->app_read_cb || (!conn->done_handshake && conn->init_handshake)
+            || conn->pending_upper_write_head != NULL))
         uv_read_start(conn->stream, net_read_alloc, net_read_done);
     else
         uv_read_stop(conn->stream);
@@ -406,8 +406,8 @@ static void net_write_done(uv_udp_send_t *req, int status)
 static void net_write_done(uv_write_t *req, int status)
 #endif
 {
-    LOWER_WRITE_OP *op = (LOWER_WRITE_OP *)req->data;
-    APP_CONN *conn = op->conn;
+    LOWER_WRITE_OP *op   = (LOWER_WRITE_OP *)req->data;
+    APP_CONN       *conn = op->conn;
 
     if (status < 0) {
         fprintf(stderr, "UV write failed %d\n", status);
@@ -422,9 +422,9 @@ static void net_write_done(uv_write_t *req, int status)
 
 static void flush_write_buf(APP_CONN *conn)
 {
-    int rc, rd;
+    int             rc, rd;
     LOWER_WRITE_OP *op;
-    uint8_t *buf;
+    uint8_t        *buf;
 
     buf = malloc(4096);
     if (!buf)
@@ -440,11 +440,11 @@ static void flush_write_buf(APP_CONN *conn)
     if (!op)
         return;
 
-    op->buf     = buf;
-    op->conn    = conn;
-    op->w.data  = op;
-    op->b.base  = (char *)buf;
-    op->b.len   = rd;
+    op->buf    = buf;
+    op->conn   = conn;
+    op->w.data = op;
+    op->b.base = (char *)buf;
+    op->b.len  = rd;
 
 #ifdef USE_QUIC
     rc = uv_udp_send(&op->w, &conn->udp, &op->b, 1, NULL, net_write_done);
@@ -473,7 +473,7 @@ static int handshake_ssl(APP_CONN *conn)
 
     conn->init_handshake = 1;
 
-    rc = SSL_do_handshake(conn->ssl);
+    rc                   = SSL_do_handshake(conn->ssl);
     if (rc > 0) {
         conn->done_handshake = 1;
         handshake_done_ssl(conn);
@@ -539,15 +539,15 @@ static int setup_ssl(APP_CONN *conn, const char *hostname)
     }
 #endif
 
-    conn->net_bio             = net_bio;
-    conn->ssl                 = ssl;
+    conn->net_bio = net_bio;
+    conn->ssl     = ssl;
     return handshake_ssl(conn);
 }
 
 #ifndef USE_QUIC
 static void tcp_connect_done(uv_connect_t *tcp_connect, int status)
 {
-    int rc;
+    int       rc;
     APP_CONN *conn = (APP_CONN *)tcp_connect->data;
 
     if (status < 0) {
@@ -587,7 +587,7 @@ static void timer_done(uv_timer_t *timer)
 static void set_timer(APP_CONN *conn)
 {
     struct timeval tv;
-    int ms, is_infinite;
+    int            ms, is_infinite;
 
     if (!SSL_get_event_timeout(conn->ssl, &tv, &is_infinite))
         return;
@@ -601,7 +601,7 @@ static void set_timer(APP_CONN *conn)
 
 static int try_write(APP_CONN *conn, UPPER_WRITE_OP *op)
 {
-    int rc, rcx;
+    int    rc, rcx;
     size_t written = op->written;
 
     while (written < op->buf_len) {
@@ -648,16 +648,16 @@ static int write_deferred(APP_CONN *conn, const void *buf, size_t buf_len, app_w
 
 static void teardown_continued(uv_handle_t *handle)
 {
-    APP_CONN *conn = (APP_CONN *)handle->data;
+    APP_CONN       *conn = (APP_CONN *)handle->data;
     UPPER_WRITE_OP *op, *next_op;
-    char *teardown_done = conn->teardown_done;
+    char           *teardown_done = conn->teardown_done;
 
 #ifdef USE_QUIC
     if (++*teardown_done < 2)
         return;
 #endif
 
-    for (op=conn->pending_upper_write_head; op; op=next_op) {
+    for (op = conn->pending_upper_write_head; op; op = next_op) {
         next_op = op->next;
         free(op);
     }
@@ -695,8 +695,8 @@ static void post_write_get(APP_CONN *conn, int status, void *arg)
     app_read_start(conn, post_read, NULL);
 }
 
-char tx_msg[300];
-int mlen;
+char        tx_msg[300];
+int         mlen;
 
 static void post_connect(APP_CONN *conn, int status, void *arg)
 {
@@ -717,9 +717,9 @@ static void post_connect(APP_CONN *conn, int status, void *arg)
 
 int main(int argc, char **argv)
 {
-    int rc = 1;
-    SSL_CTX *ctx = NULL;
-    APP_CONN *conn = NULL;
+    int             rc    = 1;
+    SSL_CTX        *ctx   = NULL;
+    APP_CONN       *conn  = NULL;
     struct addrinfo hints = {0}, *result = NULL;
 
     if (argc < 3) {
@@ -727,17 +727,16 @@ int main(int argc, char **argv)
         goto fail;
     }
 
-    mlen = snprintf(tx_msg, sizeof(tx_msg),
-                    "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
+    mlen = snprintf(tx_msg, sizeof(tx_msg), "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
 
-    ctx = create_ssl_ctx();
+    ctx  = create_ssl_ctx();
     if (!ctx)
         goto fail;
 
-    hints.ai_family     = AF_INET;
-    hints.ai_socktype   = SOCK_STREAM;
-    hints.ai_flags      = AI_PASSIVE;
-    rc = getaddrinfo(argv[1], argv[2], &hints, &result);
+    hints.ai_family   = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags    = AI_PASSIVE;
+    rc                = getaddrinfo(argv[1], argv[2], &hints, &result);
     if (rc < 0) {
         fprintf(stderr, "cannot resolve\n");
         goto fail;

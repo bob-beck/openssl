@@ -12,7 +12,8 @@
 #include "crypto/aes_platform.h"
 
 typedef struct prov_aes_ctx_st {
-    PROV_CIPHER_CTX base;      /* Must be first */
+    PROV_CIPHER_CTX base; /* Must be first */
+
     union {
         OSSL_UNION_ALIGN;
         AES_KEY ks;
@@ -25,6 +26,7 @@ typedef struct prov_aes_ctx_st {
         struct {
             union {
                 OSSL_UNION_ALIGN;
+
                 /*-
                  * KM-AES parameter block - begin
                  * (see z/Architecture Principles of Operation >= SA22-7832-06)
@@ -32,6 +34,7 @@ typedef struct prov_aes_ctx_st {
                 struct {
                     unsigned char k[32];
                 } km;
+
                 /* KM-AES parameter block - end */
                 /*-
                  * KMO-AES/KMF-AES parameter block - begin
@@ -41,8 +44,10 @@ typedef struct prov_aes_ctx_st {
                     unsigned char cv[16];
                     unsigned char k[32];
                 } kmo_kmf;
+
                 /* KMO-AES/KMF-AES parameter block - end */
             } param;
+
             unsigned int fc;
         } s390x;
 #endif /* defined(OPENSSL_CPUID_OBJ) && defined(__s390__) */

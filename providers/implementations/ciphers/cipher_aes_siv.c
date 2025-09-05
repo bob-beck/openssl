@@ -27,8 +27,7 @@
 
 static OSSL_FUNC_cipher_set_ctx_params_fn aes_siv_set_ctx_params;
 
-static void *aes_siv_newctx(void *provctx, size_t keybits, unsigned int mode,
-                            uint64_t flags)
+static void *aes_siv_newctx(void *provctx, size_t keybits, unsigned int mode, uint64_t flags)
 {
     PROV_AES_SIV_CTX *ctx;
 
@@ -38,9 +37,9 @@ static void *aes_siv_newctx(void *provctx, size_t keybits, unsigned int mode,
     ctx = OPENSSL_zalloc(sizeof(*ctx));
     if (ctx != NULL) {
         ctx->taglen = SIV_LEN;
-        ctx->mode = mode;
+        ctx->mode   = mode;
         ctx->keylen = keybits / 8;
-        ctx->hw = ossl_prov_cipher_hw_aes_siv(keybits);
+        ctx->hw     = ossl_prov_cipher_hw_aes_siv(keybits);
         ctx->libctx = PROV_LIBCTX_OF(provctx);
     }
     return ctx;
@@ -52,7 +51,7 @@ static void aes_siv_freectx(void *vctx)
 
     if (ctx != NULL) {
         ctx->hw->cleanup(ctx);
-        OPENSSL_clear_free(ctx,  sizeof(*ctx));
+        OPENSSL_clear_free(ctx, sizeof(*ctx));
     }
 }
 
@@ -74,9 +73,13 @@ static void *siv_dupctx(void *vctx)
     return ret;
 }
 
-static int siv_init(void *vctx, const unsigned char *key, size_t keylen,
-                    const unsigned char *iv, size_t ivlen,
-                    const OSSL_PARAM params[], int enc)
+static int siv_init(void                *vctx,
+                    const unsigned char *key,
+                    size_t               keylen,
+                    const unsigned char *iv,
+                    size_t               ivlen,
+                    const OSSL_PARAM     params[],
+                    int                  enc)
 {
     PROV_AES_SIV_CTX *ctx = (PROV_AES_SIV_CTX *)vctx;
 
@@ -96,22 +99,27 @@ static int siv_init(void *vctx, const unsigned char *key, size_t keylen,
     return aes_siv_set_ctx_params(ctx, params);
 }
 
-static int siv_einit(void *vctx, const unsigned char *key, size_t keylen,
-                     const unsigned char *iv, size_t ivlen,
-                     const OSSL_PARAM params[])
+static int siv_einit(void                *vctx,
+                     const unsigned char *key,
+                     size_t               keylen,
+                     const unsigned char *iv,
+                     size_t               ivlen,
+                     const OSSL_PARAM     params[])
 {
     return siv_init(vctx, key, keylen, iv, ivlen, params, 1);
 }
 
-static int siv_dinit(void *vctx, const unsigned char *key, size_t keylen,
-                     const unsigned char *iv, size_t ivlen,
-                     const OSSL_PARAM params[])
+static int siv_dinit(void                *vctx,
+                     const unsigned char *key,
+                     size_t               keylen,
+                     const unsigned char *iv,
+                     size_t               ivlen,
+                     const OSSL_PARAM     params[])
 {
     return siv_init(vctx, key, keylen, iv, ivlen, params, 0);
 }
 
-static int siv_cipher(void *vctx, unsigned char *out, size_t *outl,
-                      size_t outsize, const unsigned char *in, size_t inl)
+static int siv_cipher(void *vctx, unsigned char *out, size_t *outl, size_t outsize, const unsigned char *in, size_t inl)
 {
     PROV_AES_SIV_CTX *ctx = (PROV_AES_SIV_CTX *)vctx;
 
@@ -131,8 +139,7 @@ static int siv_cipher(void *vctx, unsigned char *out, size_t *outl,
     return 1;
 }
 
-static int siv_stream_final(void *vctx, unsigned char *out, size_t *outl,
-                            size_t outsize)
+static int siv_stream_final(void *vctx, unsigned char *out, size_t *outl, size_t outsize)
 {
     PROV_AES_SIV_CTX *ctx = (PROV_AES_SIV_CTX *)vctx;
 
@@ -149,15 +156,13 @@ static int siv_stream_final(void *vctx, unsigned char *out, size_t *outl,
 
 static int aes_siv_get_ctx_params(void *vctx, OSSL_PARAM params[])
 {
-    PROV_AES_SIV_CTX *ctx = (PROV_AES_SIV_CTX *)vctx;
-    SIV128_CONTEXT *sctx = &ctx->siv;
-    OSSL_PARAM *p;
+    PROV_AES_SIV_CTX *ctx  = (PROV_AES_SIV_CTX *)vctx;
+    SIV128_CONTEXT   *sctx = &ctx->siv;
+    OSSL_PARAM       *p;
 
     p = OSSL_PARAM_locate(params, OSSL_CIPHER_PARAM_AEAD_TAG);
     if (p != NULL && p->data_type == OSSL_PARAM_OCTET_STRING) {
-        if (!ctx->enc
-            || p->data_size != ctx->taglen
-            || !OSSL_PARAM_set_octet_string(p, &sctx->tag.byte, ctx->taglen)) {
+        if (!ctx->enc || p->data_size != ctx->taglen || !OSSL_PARAM_set_octet_string(p, &sctx->tag.byte, ctx->taglen)) {
             ERR_raise(ERR_LIB_PROV, PROV_R_FAILED_TO_SET_PARAMETER);
             return 0;
         }
@@ -179,10 +184,9 @@ static const OSSL_PARAM aes_siv_known_gettable_ctx_params[] = {
     OSSL_PARAM_size_t(OSSL_CIPHER_PARAM_KEYLEN, NULL),
     OSSL_PARAM_size_t(OSSL_CIPHER_PARAM_AEAD_TAGLEN, NULL),
     OSSL_PARAM_octet_string(OSSL_CIPHER_PARAM_AEAD_TAG, NULL, 0),
-    OSSL_PARAM_END
-};
-static const OSSL_PARAM *aes_siv_gettable_ctx_params(ossl_unused void *cctx,
-                                                     ossl_unused void *provctx)
+    OSSL_PARAM_END};
+
+static const OSSL_PARAM *aes_siv_gettable_ctx_params(ossl_unused void *cctx, ossl_unused void *provctx)
 {
     return aes_siv_known_gettable_ctx_params;
 }
@@ -191,7 +195,7 @@ static int aes_siv_set_ctx_params(void *vctx, const OSSL_PARAM params[])
 {
     PROV_AES_SIV_CTX *ctx = (PROV_AES_SIV_CTX *)vctx;
     const OSSL_PARAM *p;
-    unsigned int speed = 0;
+    unsigned int      speed = 0;
 
     if (ossl_param_is_empty(params))
         return 1;
@@ -200,8 +204,7 @@ static int aes_siv_set_ctx_params(void *vctx, const OSSL_PARAM params[])
     if (p != NULL) {
         if (ctx->enc)
             return 1;
-        if (p->data_type != OSSL_PARAM_OCTET_STRING
-            || !ctx->hw->settag(ctx, p->data, p->data_size)) {
+        if (p->data_type != OSSL_PARAM_OCTET_STRING || !ctx->hw->settag(ctx, p->data, p->data_size)) {
             ERR_raise(ERR_LIB_PROV, PROV_R_FAILED_TO_GET_PARAMETER);
             return 0;
         }
@@ -233,10 +236,9 @@ static const OSSL_PARAM aes_siv_known_settable_ctx_params[] = {
     OSSL_PARAM_size_t(OSSL_CIPHER_PARAM_KEYLEN, NULL),
     OSSL_PARAM_uint(OSSL_CIPHER_PARAM_SPEED, NULL),
     OSSL_PARAM_octet_string(OSSL_CIPHER_PARAM_AEAD_TAG, NULL, 0),
-    OSSL_PARAM_END
-};
-static const OSSL_PARAM *aes_siv_settable_ctx_params(ossl_unused void *cctx,
-                                                     ossl_unused void *provctx)
+    OSSL_PARAM_END};
+
+static const OSSL_PARAM *aes_siv_settable_ctx_params(ossl_unused void *cctx, ossl_unused void *provctx)
 {
     return aes_siv_known_settable_ctx_params;
 }

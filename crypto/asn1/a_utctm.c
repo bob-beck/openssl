@@ -34,14 +34,14 @@ int ASN1_UTCTIME_check(const ASN1_UTCTIME *d)
 int ASN1_UTCTIME_set_string(ASN1_UTCTIME *s, const char *str)
 {
     ASN1_UTCTIME t;
-    size_t len;
+    size_t       len;
 
     if ((len = strlen(str)) >= INT_MAX)
         return 0;
-    t.type = V_ASN1_UTCTIME;
+    t.type   = V_ASN1_UTCTIME;
     t.length = (int)len;
-    t.data = (unsigned char *)str;
-    t.flags = 0;
+    t.data   = (unsigned char *)str;
+    t.flags  = 0;
 
     if (!ASN1_UTCTIME_check(&t))
         return 0;
@@ -57,11 +57,10 @@ ASN1_UTCTIME *ASN1_UTCTIME_set(ASN1_UTCTIME *s, time_t t)
     return ASN1_UTCTIME_adj(s, t, 0, 0);
 }
 
-ASN1_UTCTIME *ASN1_UTCTIME_adj(ASN1_UTCTIME *s, time_t t,
-                               int offset_day, long offset_sec)
+ASN1_UTCTIME *ASN1_UTCTIME_adj(ASN1_UTCTIME *s, time_t t, int offset_day, long offset_sec)
 {
     struct tm *ts;
-    struct tm data;
+    struct tm  data;
 
     ts = OPENSSL_gmtime(&t, &data);
     if (ts == NULL)
@@ -78,7 +77,7 @@ ASN1_UTCTIME *ASN1_UTCTIME_adj(ASN1_UTCTIME *s, time_t t,
 int ASN1_UTCTIME_cmp_time_t(const ASN1_UTCTIME *s, time_t t)
 {
     struct tm stm, ttm;
-    int day, sec;
+    int       day, sec;
 
     if (!ossl_asn1_utctime_to_tm(&stm, s))
         return -2;

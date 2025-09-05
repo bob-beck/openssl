@@ -13,20 +13,20 @@
 
 int BN_bn2mpi(const BIGNUM *a, unsigned char *d)
 {
-    int bits;
-    int num = 0;
-    int ext = 0;
+    int  bits;
+    int  num = 0;
+    int  ext = 0;
     long l;
 
     bits = BN_num_bits(a);
-    num = (bits + 7) / 8;
+    num  = (bits + 7) / 8;
     if (bits > 0) {
         ext = ((bits & 0x07) == 0);
     }
     if (d == NULL)
         return (num + 4 + ext);
 
-    l = num + ext;
+    l    = num + ext;
     d[0] = (unsigned char)(l >> 24) & 0xff;
     d[1] = (unsigned char)(l >> 16) & 0xff;
     d[2] = (unsigned char)(l >> 8) & 0xff;
@@ -41,16 +41,15 @@ int BN_bn2mpi(const BIGNUM *a, unsigned char *d)
 
 BIGNUM *BN_mpi2bn(const unsigned char *d, int n, BIGNUM *ain)
 {
-    long len;
-    int neg = 0;
-    BIGNUM *a = NULL;
+    long    len;
+    int     neg = 0;
+    BIGNUM *a   = NULL;
 
     if (n < 4 || (d[0] & 0x80) != 0) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
         return NULL;
     }
-    len = ((long)d[0] << 24) | ((long)d[1] << 16) | ((int)d[2] << 8) | (int)
-        d[3];
+    len = ((long)d[0] << 24) | ((long)d[1] << 16) | ((int)d[2] << 8) | (int)d[3];
     if ((len + 4) != n) {
         ERR_raise(ERR_LIB_BN, BN_R_ENCODING_ERROR);
         return NULL;

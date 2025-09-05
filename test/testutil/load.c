@@ -18,12 +18,11 @@
 X509 *load_cert_pem(const char *file, OSSL_LIB_CTX *libctx)
 {
     X509 *cert = NULL;
-    BIO *bio = NULL;
+    BIO  *bio  = NULL;
 
     if (!TEST_ptr(file) || !TEST_ptr(bio = BIO_new(BIO_s_file())))
         return NULL;
-    if (TEST_int_gt(BIO_read_filename(bio, file), 0)
-            && TEST_ptr(cert = X509_new_ex(libctx, NULL)))
+    if (TEST_int_gt(BIO_read_filename(bio, file), 0) && TEST_ptr(cert = X509_new_ex(libctx, NULL)))
         (void)TEST_ptr(cert = PEM_read_bio_X509(bio, &cert, NULL, NULL));
 
     BIO_free(bio);
@@ -33,8 +32,8 @@ X509 *load_cert_pem(const char *file, OSSL_LIB_CTX *libctx)
 STACK_OF(X509) *load_certs_pem(const char *file)
 {
     STACK_OF(X509) *certs;
-    BIO *bio;
-    X509 *x;
+    BIO            *bio;
+    X509           *x;
 
     if (!TEST_ptr(file) || (bio = BIO_new_file(file, "r")) == NULL)
         return NULL;
@@ -69,15 +68,14 @@ STACK_OF(X509) *load_certs_pem(const char *file)
 EVP_PKEY *load_pkey_pem(const char *file, OSSL_LIB_CTX *libctx)
 {
     EVP_PKEY *key = NULL;
-    BIO *bio = NULL;
+    BIO      *bio = NULL;
 
     if (!TEST_ptr(file) || !TEST_ptr(bio = BIO_new(BIO_s_file())))
         return NULL;
     if (TEST_int_gt(BIO_read_filename(bio, file), 0)) {
         unsigned long err = ERR_peek_error();
 
-        if (TEST_ptr(key = PEM_read_bio_PrivateKey_ex(bio, NULL, NULL, NULL,
-                                                      libctx, NULL))
+        if (TEST_ptr(key = PEM_read_bio_PrivateKey_ex(bio, NULL, NULL, NULL, libctx, NULL))
             && err != ERR_peek_error()) {
             TEST_info("Spurious error from reading PEM");
             EVP_PKEY_free(key);
@@ -92,7 +90,7 @@ EVP_PKEY *load_pkey_pem(const char *file, OSSL_LIB_CTX *libctx)
 X509_REQ *load_csr_der(const char *file, OSSL_LIB_CTX *libctx)
 {
     X509_REQ *csr = NULL;
-    BIO *bio = NULL;
+    BIO      *bio = NULL;
 
     if (!TEST_ptr(file) || !TEST_ptr(bio = BIO_new_file(file, "rb")))
         return NULL;

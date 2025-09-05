@@ -17,9 +17,9 @@
 #define EXT_END(name) { TLSEXT_IDX_##name, TLSEXT_TYPE_out_of_range, #name }
 
 typedef struct {
-    size_t idx;
+    size_t       idx;
     unsigned int type;
-    char *name;
+    char        *name;
 } EXT_LIST;
 
 /* The order here does matter! */
@@ -74,27 +74,27 @@ static EXT_LIST ext_list[] = {
     EXT_ENTRY(certificate_authorities),
     EXT_ENTRY(padding),
     EXT_ENTRY(psk),
-    EXT_END(num_builtins)
-};
+    EXT_END(num_builtins)};
 
 static int test_extension_list(void)
 {
-    size_t n = OSSL_NELEM(ext_list);
-    size_t i;
+    size_t       n = OSSL_NELEM(ext_list);
+    size_t       i;
     unsigned int type;
-    int retval = 1;
+    int          retval = 1;
 
     for (i = 0; i < n; i++) {
         if (!TEST_size_t_eq(i, ext_list[i].idx)) {
             retval = 0;
-            TEST_error("TLSEXT_IDX_%s=%zd, found at=%zd\n",
-                       ext_list[i].name, ext_list[i].idx, i);
+            TEST_error("TLSEXT_IDX_%s=%zd, found at=%zd\n", ext_list[i].name, ext_list[i].idx, i);
         }
         type = ossl_get_extension_type(ext_list[i].idx);
         if (!TEST_uint_eq(type, ext_list[i].type)) {
             retval = 0;
             TEST_error("TLSEXT_IDX_%s=%zd expected=0x%05X got=0x%05X",
-                       ext_list[i].name, ext_list[i].idx, ext_list[i].type,
+                       ext_list[i].name,
+                       ext_list[i].idx,
+                       ext_list[i].type,
                        type);
         }
     }

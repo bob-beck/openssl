@@ -21,11 +21,11 @@
 #include "internal/sizes.h"
 #include "testutil.h"
 
-static char *config_file = NULL;
-static char *alg = "digest";
-static int use_default_ctx = 0;
-static char *fetch_property = NULL;
-static int expected_fetch_result = 1;
+static char *config_file           = NULL;
+static char *alg                   = "digest";
+static int   use_default_ctx       = 0;
+static char *fetch_property        = NULL;
+static int   expected_fetch_result = 1;
 
 typedef enum OPTION_choice {
     OPT_ERR = -1,
@@ -42,36 +42,31 @@ const OPTIONS *test_get_options(void)
 {
     static const OPTIONS test_options[] = {
         OPT_TEST_OPTIONS_WITH_EXTRA_USAGE("[provname...]\n"),
-        { "config", OPT_CONFIG_FILE, '<', "The configuration file to use for the libctx" },
-        { "type", OPT_ALG_FETCH_TYPE, 's', "The fetch type to test" },
-        { "property", OPT_FETCH_PROPERTY, 's', "The fetch property e.g. provider=fips" },
-        { "fetchfail", OPT_FETCH_FAILURE, '-', "fetch is expected to fail" },
-        { "defaultctx", OPT_USE_DEFAULTCTX, '-',
-          "Use the default context if this is set" },
-        { OPT_HELP_STR, 1, '-', "file\tProvider names to explicitly load\n" },
-        { NULL }
+        {"config", OPT_CONFIG_FILE, '<', "The configuration file to use for the libctx"},
+        {"type", OPT_ALG_FETCH_TYPE, 's', "The fetch type to test"},
+        {"property", OPT_FETCH_PROPERTY, 's', "The fetch property e.g. provider=fips"},
+        {"fetchfail", OPT_FETCH_FAILURE, '-', "fetch is expected to fail"},
+        {"defaultctx", OPT_USE_DEFAULTCTX, '-', "Use the default context if this is set"},
+        {OPT_HELP_STR, 1, '-', "file\tProvider names to explicitly load\n"},
+        {NULL}
     };
     return test_options;
 }
 
-static int calculate_digest(const EVP_MD *md, const char *msg, size_t len,
-                            const unsigned char *exptd)
+static int calculate_digest(const EVP_MD *md, const char *msg, size_t len, const unsigned char *exptd)
 {
     unsigned char out[SHA256_DIGEST_LENGTH];
-    EVP_MD_CTX *ctx;
-    int ret = 0;
+    EVP_MD_CTX   *ctx;
+    int           ret = 0;
 
-    if (!TEST_ptr(ctx = EVP_MD_CTX_new())
-            || !TEST_true(EVP_DigestInit_ex(ctx, md, NULL))
-            || !TEST_true(EVP_DigestUpdate(ctx, msg, len))
-            || !TEST_true(EVP_DigestFinal_ex(ctx, out, NULL))
-            || !TEST_mem_eq(out, SHA256_DIGEST_LENGTH, exptd,
-                            SHA256_DIGEST_LENGTH)
-            || !TEST_true(md == EVP_MD_CTX_get0_md(ctx)))
+    if (!TEST_ptr(ctx = EVP_MD_CTX_new()) || !TEST_true(EVP_DigestInit_ex(ctx, md, NULL))
+        || !TEST_true(EVP_DigestUpdate(ctx, msg, len)) || !TEST_true(EVP_DigestFinal_ex(ctx, out, NULL))
+        || !TEST_mem_eq(out, SHA256_DIGEST_LENGTH, exptd, SHA256_DIGEST_LENGTH)
+        || !TEST_true(md == EVP_MD_CTX_get0_md(ctx)))
         goto err;
 
     ret = 1;
- err:
+err:
     EVP_MD_CTX_free(ctx);
     return ret;
 }
@@ -79,8 +74,8 @@ static int calculate_digest(const EVP_MD *md, const char *msg, size_t len,
 static int load_providers(OSSL_LIB_CTX **libctx, OSSL_PROVIDER *prov[])
 {
     OSSL_LIB_CTX *ctx = NULL;
-    int ret = 0;
-    size_t i;
+    int           ret = 0;
+    size_t        i;
 
     ctx = OSSL_LIB_CTX_new();
     if (!TEST_ptr(ctx))
@@ -93,12 +88,12 @@ static int load_providers(OSSL_LIB_CTX **libctx, OSSL_PROVIDER *prov[])
 
     for (i = 0; i < test_get_argument_count(); ++i) {
         char *provname = test_get_argument(i);
-        prov[i] = OSSL_PROVIDER_load(ctx, provname);
+        prov[i]        = OSSL_PROVIDER_load(ctx, provname);
         if (!TEST_ptr(prov[i]))
             goto err;
     }
 
-    ret = 1;
+    ret     = 1;
     *libctx = ctx;
 err:
     if (ret == 0)
@@ -124,9 +119,9 @@ static void unload_providers(OSSL_LIB_CTX **libctx, OSSL_PROVIDER *prov[])
 static int test_legacy_provider_unloaded(void)
 {
     OSSL_LIB_CTX *ctx = NULL;
-    int rc = 0;
+    int           rc  = 0;
 
-    ctx = OSSL_LIB_CTX_new();
+    ctx               = OSSL_LIB_CTX_new();
     if (!TEST_ptr(ctx))
         goto err;
 
@@ -147,8 +142,7 @@ static X509_ALGOR *make_algor(int nid)
     X509_ALGOR *algor;
 
     if (!TEST_ptr(algor = X509_ALGOR_new())
-        || !TEST_true(X509_ALGOR_set0(algor, OBJ_nid2obj(nid),
-                                      V_ASN1_UNDEF, NULL))) {
+        || !TEST_true(X509_ALGOR_set0(algor, OBJ_nid2obj(nid), V_ASN1_UNDEF, NULL))) {
         X509_ALGOR_free(algor);
         return NULL;
     }
@@ -160,28 +154,24 @@ static X509_ALGOR *make_algor(int nid)
  */
 static int test_md(const EVP_MD *md)
 {
-    const char testmsg[] = "Hello world";
-    const unsigned char exptd[] = {
-      0x27, 0x51, 0x8b, 0xa9, 0x68, 0x30, 0x11, 0xf6, 0xb3, 0x96, 0x07, 0x2c,
-      0x05, 0xf6, 0x65, 0x6d, 0x04, 0xf5, 0xfb, 0xc3, 0x78, 0x7c, 0xf9, 0x24,
-      0x90, 0xec, 0x60, 0x6e, 0x50, 0x92, 0xe3, 0x26
-    };
+    const char          testmsg[] = "Hello world";
+    const unsigned char exptd[]   = {0x27, 0x51, 0x8b, 0xa9, 0x68, 0x30, 0x11, 0xf6, 0xb3, 0x96, 0x07,
+                                     0x2c, 0x05, 0xf6, 0x65, 0x6d, 0x04, 0xf5, 0xfb, 0xc3, 0x78, 0x7c,
+                                     0xf9, 0x24, 0x90, 0xec, 0x60, 0x6e, 0x50, 0x92, 0xe3, 0x26};
 
-    return TEST_ptr(md)
-        && TEST_true(EVP_MD_is_a(md, "SHA256"))
-        && TEST_true(calculate_digest(md, testmsg, sizeof(testmsg), exptd))
-        && TEST_int_eq(EVP_MD_get_size(md), SHA256_DIGEST_LENGTH)
-        && TEST_int_eq(EVP_MD_get_block_size(md), SHA256_CBLOCK);
+    return TEST_ptr(md) && TEST_true(EVP_MD_is_a(md, "SHA256"))
+           && TEST_true(calculate_digest(md, testmsg, sizeof(testmsg), exptd))
+           && TEST_int_eq(EVP_MD_get_size(md), SHA256_DIGEST_LENGTH)
+           && TEST_int_eq(EVP_MD_get_block_size(md), SHA256_CBLOCK);
 }
 
 static int test_implicit_EVP_MD_fetch(void)
 {
-    OSSL_LIB_CTX *ctx = NULL;
+    OSSL_LIB_CTX  *ctx     = NULL;
     OSSL_PROVIDER *prov[2] = {NULL, NULL};
-    int ret = 0;
+    int            ret     = 0;
 
-    ret = (use_default_ctx == 0 || load_providers(&ctx, prov))
-        && test_md(EVP_sha256());
+    ret                    = (use_default_ctx == 0 || load_providers(&ctx, prov)) && test_md(EVP_sha256());
 
     unload_providers(&ctx, prov);
     return ret;
@@ -189,10 +179,10 @@ static int test_implicit_EVP_MD_fetch(void)
 
 static int test_explicit_EVP_MD_fetch(const char *id)
 {
-    OSSL_LIB_CTX *ctx = NULL;
-    EVP_MD *md = NULL;
+    OSSL_LIB_CTX  *ctx     = NULL;
+    EVP_MD        *md      = NULL;
     OSSL_PROVIDER *prov[2] = {NULL, NULL};
-    int ret = 0;
+    int            ret     = 0;
 
     if (use_default_ctx == 0 && !load_providers(&ctx, prov))
         goto err;
@@ -213,7 +203,7 @@ static int test_explicit_EVP_MD_fetch(const char *id)
     }
     ret = 1;
 
- err:
+err:
     EVP_MD_free(md);
     unload_providers(&ctx, prov);
     return ret;
@@ -230,10 +220,10 @@ static int test_explicit_EVP_MD_fetch_by_name(void)
  */
 static int test_explicit_EVP_MD_fetch_by_X509_ALGOR(int idx)
 {
-    int ret = 0;
-    X509_ALGOR *algor = make_algor(NID_sha256);
+    int                ret   = 0;
+    X509_ALGOR        *algor = make_algor(NID_sha256);
     const ASN1_OBJECT *obj;
-    char id[OSSL_MAX_NAME_SIZE] = { 0 };
+    char               id[OSSL_MAX_NAME_SIZE] = {0};
 
     if (algor == NULL)
         return 0;
@@ -251,7 +241,7 @@ static int test_explicit_EVP_MD_fetch_by_X509_ALGOR(int idx)
     }
 
     ret = test_explicit_EVP_MD_fetch(id);
- end:
+end:
     X509_ALGOR_free(algor);
     return ret;
 }
@@ -259,23 +249,20 @@ static int test_explicit_EVP_MD_fetch_by_X509_ALGOR(int idx)
 /*
  * Test EVP_CIPHER_fetch()
  */
-static int encrypt_decrypt(const EVP_CIPHER *cipher, const unsigned char *msg,
-                           size_t len)
+static int encrypt_decrypt(const EVP_CIPHER *cipher, const unsigned char *msg, size_t len)
 {
-    int ret = 0, ctlen, ptlen;
+    int             ret = 0, ctlen, ptlen;
     EVP_CIPHER_CTX *ctx = NULL;
-    unsigned char key[128 / 8];
-    unsigned char ct[64], pt[64];
+    unsigned char   key[128 / 8];
+    unsigned char   ct[64], pt[64];
 
     memset(key, 0, sizeof(key));
-    if (!TEST_ptr(ctx = EVP_CIPHER_CTX_new())
-            || !TEST_true(EVP_CipherInit_ex(ctx, cipher, NULL, key, NULL, 1))
-            || !TEST_true(EVP_CipherUpdate(ctx, ct, &ctlen, msg, (int)len))
-            || !TEST_true(EVP_CipherFinal_ex(ctx, ct, &ctlen))
-            || !TEST_true(EVP_CipherInit_ex(ctx, cipher, NULL, key, NULL, 0))
-            || !TEST_true(EVP_CipherUpdate(ctx, pt, &ptlen, ct, ctlen))
-            || !TEST_true(EVP_CipherFinal_ex(ctx, pt, &ptlen))
-            || !TEST_mem_eq(pt, ptlen, msg, len))
+    if (!TEST_ptr(ctx = EVP_CIPHER_CTX_new()) || !TEST_true(EVP_CipherInit_ex(ctx, cipher, NULL, key, NULL, 1))
+        || !TEST_true(EVP_CipherUpdate(ctx, ct, &ctlen, msg, (int)len))
+        || !TEST_true(EVP_CipherFinal_ex(ctx, ct, &ctlen))
+        || !TEST_true(EVP_CipherInit_ex(ctx, cipher, NULL, key, NULL, 0))
+        || !TEST_true(EVP_CipherUpdate(ctx, pt, &ptlen, ct, ctlen)) || !TEST_true(EVP_CipherFinal_ex(ctx, pt, &ptlen))
+        || !TEST_mem_eq(pt, ptlen, msg, len))
         goto err;
 
     ret = 1;
@@ -288,18 +275,16 @@ static int test_cipher(const EVP_CIPHER *cipher)
 {
     const unsigned char testmsg[] = "Hello world";
 
-    return TEST_ptr(cipher)
-        && TEST_true(encrypt_decrypt(cipher, testmsg, sizeof(testmsg)));
+    return TEST_ptr(cipher) && TEST_true(encrypt_decrypt(cipher, testmsg, sizeof(testmsg)));
 }
 
 static int test_implicit_EVP_CIPHER_fetch(void)
 {
-    OSSL_LIB_CTX *ctx = NULL;
+    OSSL_LIB_CTX  *ctx     = NULL;
     OSSL_PROVIDER *prov[2] = {NULL, NULL};
-    int ret = 0;
+    int            ret     = 0;
 
-    ret = (use_default_ctx == 0 || load_providers(&ctx, prov))
-        && test_cipher(EVP_aes_128_cbc());
+    ret                    = (use_default_ctx == 0 || load_providers(&ctx, prov)) && test_cipher(EVP_aes_128_cbc());
 
     unload_providers(&ctx, prov);
     return ret;
@@ -307,10 +292,10 @@ static int test_implicit_EVP_CIPHER_fetch(void)
 
 static int test_explicit_EVP_CIPHER_fetch(const char *id)
 {
-    OSSL_LIB_CTX *ctx = NULL;
-    EVP_CIPHER *cipher = NULL;
+    OSSL_LIB_CTX  *ctx     = NULL;
+    EVP_CIPHER    *cipher  = NULL;
     OSSL_PROVIDER *prov[2] = {NULL, NULL};
-    int ret = 0;
+    int            ret     = 0;
 
     if (use_default_ctx == 0 && !load_providers(&ctx, prov))
         goto err;
@@ -346,10 +331,10 @@ static int test_explicit_EVP_CIPHER_fetch_by_name(void)
  */
 static int test_explicit_EVP_CIPHER_fetch_by_X509_ALGOR(int idx)
 {
-    int ret = 0;
-    X509_ALGOR *algor = make_algor(NID_aes_128_cbc);
+    int                ret   = 0;
+    X509_ALGOR        *algor = make_algor(NID_aes_128_cbc);
     const ASN1_OBJECT *obj;
-    char id[OSSL_MAX_NAME_SIZE] = { 0 };
+    char               id[OSSL_MAX_NAME_SIZE] = {0};
 
     if (algor == NULL)
         return 0;
@@ -367,7 +352,7 @@ static int test_explicit_EVP_CIPHER_fetch_by_X509_ALGOR(int idx)
     }
 
     ret = test_explicit_EVP_CIPHER_fetch(id);
- end:
+end:
     X509_ALGOR_free(algor);
     return ret;
 }
@@ -394,7 +379,7 @@ int setup_tests(void)
             use_default_ctx = 1;
             break;
         case OPT_TEST_CASES:
-           break;
+            break;
         default:
         case OPT_ERR:
             return 0;

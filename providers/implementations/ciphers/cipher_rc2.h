@@ -11,11 +11,13 @@
 #include "prov/ciphercommon.h"
 
 typedef struct prov_rc2_ctx_st {
-    PROV_CIPHER_CTX base;      /* Must be first */
+    PROV_CIPHER_CTX base; /* Must be first */
+
     union {
         OSSL_UNION_ALIGN;
         RC2_KEY ks;
     } ks;
+
     size_t key_bits;
 } PROV_RC2_CTX;
 

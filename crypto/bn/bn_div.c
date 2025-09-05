@@ -95,7 +95,7 @@ BN_ULONG bn_div_3_words(const BN_ULONG *m, BN_ULONG d1, BN_ULONG d0);
  * where it can and should be made constant-time. But if you want to test it,
  * just replace 0 with 1.
  */
-#  if BN_BITS2 == 64 && defined(__SIZEOF_INT128__) && __SIZEOF_INT128__==16
+#  if BN_BITS2 == 64 && defined(__SIZEOF_INT128__) && __SIZEOF_INT128__ == 16
 #   undef BN_ULLONG
 #   define BN_ULLONG uint128_t
 #   define BN_LLONG
@@ -103,6 +103,7 @@ BN_ULONG bn_div_3_words(const BN_ULONG *m, BN_ULONG d1, BN_ULONG d0);
 
 #  ifdef BN_LLONG
 #   define BN_DIV3W
+
 /*
  * Interface is somewhat quirky, |m| is pointer to most significant limb,
  * and less significant limb is referred at |m[-1]|. This means that caller
@@ -116,8 +117,8 @@ static BN_ULONG bn_div_3_words(const BN_ULONG *m, BN_ULONG d1, BN_ULONG d0)
 {
     BN_ULLONG R = ((BN_ULLONG)m[0] << BN_BITS2) | m[-1];
     BN_ULLONG D = ((BN_ULLONG)d0 << BN_BITS2) | d1;
-    BN_ULONG Q = 0, mask;
-    int i;
+    BN_ULONG  Q = 0, mask;
+    int       i;
 
     for (i = 0; i < BN_BITS2; i++) {
         Q <<= 1;
@@ -128,10 +129,10 @@ static BN_ULONG bn_div_3_words(const BN_ULONG *m, BN_ULONG d1, BN_ULONG d0)
         D >>= 1;
     }
 
-    mask = 0 - (Q >> (BN_BITS2 - 1));   /* does it overflow? */
+    mask   = 0 - (Q >> (BN_BITS2 - 1)); /* does it overflow? */
 
-    Q <<= 1;
-    Q |= (R >= D);
+    Q    <<= 1;
+    Q     |= (R >= D);
 
     return (Q | mask) & BN_MASK2;
 }
@@ -140,38 +141,37 @@ static BN_ULONG bn_div_3_words(const BN_ULONG *m, BN_ULONG d1, BN_ULONG d0)
 
 static int bn_left_align(BIGNUM *num)
 {
-    BN_ULONG *d = num->d, n, m, rmask;
-    int top = num->top;
-    int rshift = BN_num_bits_word(d[top - 1]), lshift, i;
+    BN_ULONG *d       = num->d, n, m, rmask;
+    int       top     = num->top;
+    int       rshift  = BN_num_bits_word(d[top - 1]), lshift, i;
 
-    lshift = BN_BITS2 - rshift;
-    rshift %= BN_BITS2;            /* say no to undefined behaviour */
-    rmask = (BN_ULONG)0 - rshift;  /* rmask = 0 - (rshift != 0) */
-    rmask |= rmask >> 8;
+    lshift            = BN_BITS2 - rshift;
+    rshift           %= BN_BITS2;             /* say no to undefined behaviour */
+    rmask             = (BN_ULONG)0 - rshift; /* rmask = 0 - (rshift != 0) */
+    rmask            |= rmask >> 8;
 
     for (i = 0, m = 0; i < top; i++) {
-        n = d[i];
+        n    = d[i];
         d[i] = ((n << lshift) | m) & BN_MASK2;
-        m = (n >> rshift) & rmask;
+        m    = (n >> rshift) & rmask;
     }
 
     return lshift;
 }
 
-# if !defined(OPENSSL_NO_ASM) && !defined(OPENSSL_NO_INLINE_ASM) \
-    && !defined(PEDANTIC) && !defined(BN_DIV3W)
-#  if defined(__GNUC__) && __GNUC__>=2
-#   if defined(__i386) || defined (__i386__)
-   /*-
-    * There were two reasons for implementing this template:
-    * - GNU C generates a call to a function (__udivdi3 to be exact)
-    *   in reply to ((((BN_ULLONG)n0)<<BN_BITS2)|n1)/d0 (I fail to
-    *   understand why...);
-    * - divl doesn't only calculate quotient, but also leaves
-    *   remainder in %edx which we can definitely use here:-)
-    */
+# if !defined(OPENSSL_NO_ASM) && !defined(OPENSSL_NO_INLINE_ASM) && !defined(PEDANTIC) && !defined(BN_DIV3W)
+#  if defined(__GNUC__) && __GNUC__ >= 2
+#   if defined(__i386) || defined(__i386__)
+/*-
+ * There were two reasons for implementing this template:
+ * - GNU C generates a call to a function (__udivdi3 to be exact)
+ *   in reply to ((((BN_ULLONG)n0)<<BN_BITS2)|n1)/d0 (I fail to
+ *   understand why...);
+ * - divl doesn't only calculate quotient, but also leaves
+ *   remainder in %edx which we can definitely use here:-)
+ */
 #    undef bn_div_words
-#    define bn_div_words(n0,n1,d0)                \
+#    define bn_div_words(n0, n1, d0)                \
         ({  asm volatile (                      \
                 "divl   %4"                     \
                 : "=a"(q), "=d"(rem)            \
@@ -181,11 +181,11 @@ static int bn_left_align(BIGNUM *num)
         })
 #    define REMAINDER_IS_ALREADY_CALCULATED
 #   elif defined(__x86_64) && defined(SIXTY_FOUR_BIT_LONG)
-   /*
-    * Same story here, but it's 128-bit by 64-bit division. Wow!
-    */
+/*
+ * Same story here, but it's 128-bit by 64-bit division. Wow!
+ */
 #    undef bn_div_words
-#    define bn_div_words(n0,n1,d0)                \
+#    define bn_div_words(n0, n1, d0)                \
         ({  asm volatile (                      \
                 "divq   %4"                     \
                 : "=a"(q), "=d"(rem)            \
@@ -194,9 +194,9 @@ static int bn_left_align(BIGNUM *num)
             q;                                  \
         })
 #    define REMAINDER_IS_ALREADY_CALCULATED
-#   endif                       /* __<cpu> */
-#  endif                        /* __GNUC__ */
-# endif                         /* OPENSSL_NO_ASM */
+#   endif /* __<cpu> */
+#  endif  /* __GNUC__ */
+# endif   /* OPENSSL_NO_ASM */
 
 /*-
  * BN_div computes  dv := num / divisor, rounding towards
@@ -206,8 +206,7 @@ static int bn_left_align(BIGNUM *num)
  *     rm->neg == num->neg                 (unless the remainder is zero)
  * If 'dv' or 'rm' is NULL, the respective value is not returned.
  */
-int BN_div(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num, const BIGNUM *divisor,
-           BN_CTX *ctx)
+int BN_div(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num, const BIGNUM *divisor, BN_CTX *ctx)
 {
     int ret;
 
@@ -261,14 +260,13 @@ int BN_div(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num, const BIGNUM *divisor,
  *       if so required, which shouldn't be a privacy problem, because
  *       divisor's length is considered public;
  */
-int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
-                     const BIGNUM *divisor, BN_CTX *ctx)
+int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num, const BIGNUM *divisor, BN_CTX *ctx)
 {
-    int norm_shift, i, j, loop;
-    BIGNUM *tmp, *snum, *sdiv, *res;
+    int       norm_shift, i, j, loop;
+    BIGNUM   *tmp, *snum, *sdiv, *res;
     BN_ULONG *resp, *wnum, *wnumtop;
-    BN_ULONG d0, d1;
-    int num_n, div_n, num_neg;
+    BN_ULONG  d0, d1;
+    int       num_n, div_n, num_neg;
 
     assert(divisor->top > 0 && divisor->d[divisor->top - 1] != 0);
 
@@ -278,8 +276,8 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
     bn_check_top(rm);
 
     BN_CTX_start(ctx);
-    res = (dv == NULL) ? BN_CTX_get(ctx) : dv;
-    tmp = BN_CTX_get(ctx);
+    res  = (dv == NULL) ? BN_CTX_get(ctx) : dv;
+    tmp  = BN_CTX_get(ctx);
     snum = BN_CTX_get(ctx);
     sdiv = BN_CTX_get(ctx);
     if (sdiv == NULL)
@@ -289,7 +287,7 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
     if (!BN_copy(sdiv, divisor))
         goto err;
     norm_shift = bn_left_align(sdiv);
-    sdiv->neg = 0;
+    sdiv->neg  = 0;
     /*
      * Note that bn_lshift_fixed_top's output is always one limb longer
      * than input, even when norm_shift is zero. This means that amount of
@@ -311,26 +309,26 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
         snum->top = num_n = div_n + 1;
     }
 
-    loop = num_n - div_n;
+    loop    = num_n - div_n;
     /*
      * Lets setup a 'window' into snum This is the part that corresponds to
      * the current 'area' being divided
      */
-    wnum = &(snum->d[loop]);
+    wnum    = &(snum->d[loop]);
     wnumtop = &(snum->d[num_n - 1]);
 
     /* Get the top 2 words of sdiv */
-    d0 = sdiv->d[div_n - 1];
-    d1 = (div_n == 1) ? 0 : sdiv->d[div_n - 2];
+    d0      = sdiv->d[div_n - 1];
+    d1      = (div_n == 1) ? 0 : sdiv->d[div_n - 2];
 
     /* Setup quotient */
     if (!bn_wexpand(res, loop))
         goto err;
-    num_neg = num->neg;
-    res->neg = (num_neg ^ divisor->neg);
-    res->top = loop;
+    num_neg     = num->neg;
+    res->neg    = (num_neg ^ divisor->neg);
+    res->top    = loop;
     res->flags |= BN_FLG_FIXED_TOP;
-    resp = &(res->d[loop]);
+    resp        = &(res->d[loop]);
 
     /* space for temp */
     if (!bn_wexpand(tmp, (div_n + 1)))
@@ -351,13 +349,13 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
         n1 = wnumtop[-1];
         if (n0 == d0)
             q = BN_MASK2;
-        else {                  /* n0 < d0 */
+        else { /* n0 < d0 */
             BN_ULONG n2 = (wnumtop == wnum) ? 0 : wnumtop[-2];
 #  ifdef BN_LLONG
             BN_ULLONG t2;
 
 #   if defined(BN_LLONG) && defined(BN_DIV2W) && !defined(bn_div_words)
-            q = (BN_ULONG)(((((BN_ULLONG) n0) << BN_BITS2) | n1) / d0);
+            q = (BN_ULONG)(((((BN_ULLONG)n0) << BN_BITS2) | n1) / d0);
 #   else
             q = bn_div_words(n0, n1, d0);
 #   endif
@@ -369,18 +367,18 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
              */
             rem = (n1 - q * d0) & BN_MASK2;
 #   endif
-            t2 = (BN_ULLONG) d1 *q;
+            t2 = (BN_ULLONG)d1 * q;
 
             for (;;) {
-                if (t2 <= ((((BN_ULLONG) rem) << BN_BITS2) | n2))
+                if (t2 <= ((((BN_ULLONG)rem) << BN_BITS2) | n2))
                     break;
                 q--;
                 rem += d0;
                 if (rem < d0)
-                    break;      /* don't let rem overflow */
+                    break; /* don't let rem overflow */
                 t2 -= d1;
             }
-#  else                         /* !BN_LLONG */
+#  else /* !BN_LLONG */
             BN_ULONG t2l, t2h;
 
             q = bn_div_words(n0, n1, d0);
@@ -398,8 +396,8 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
                 BN_ULONG ql, qh;
                 t2l = LBITS(d1);
                 t2h = HBITS(d1);
-                ql = LBITS(q);
-                qh = HBITS(q);
+                ql  = LBITS(q);
+                qh  = HBITS(q);
                 mul64(t2l, t2h, ql, qh); /* t2=(BN_ULLONG)d1*q; */
             }
 #   endif
@@ -410,24 +408,24 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
                 q--;
                 rem += d0;
                 if (rem < d0)
-                    break;      /* don't let rem overflow */
+                    break; /* don't let rem overflow */
                 if (t2l < d1)
                     t2h--;
                 t2l -= d1;
             }
-#  endif                        /* !BN_LLONG */
+#  endif /* !BN_LLONG */
         }
-# endif                         /* !BN_DIV3W */
+# endif  /* !BN_DIV3W */
 
-        l0 = bn_mul_words(tmp->d, sdiv->d, div_n, q);
+        l0            = bn_mul_words(tmp->d, sdiv->d, div_n, q);
         tmp->d[div_n] = l0;
         wnum--;
         /*
          * ignore top values of the bignums just sub the two BN_ULONG arrays
          * with bn_sub_words
          */
-        l0 = bn_sub_words(wnum, wnum, tmp->d, div_n + 1);
-        q -= l0;
+        l0  = bn_sub_words(wnum, wnum, tmp->d, div_n + 1);
+        q  -= l0;
         /*
          * Note: As we have considered only the leading two BN_ULONGs in
          * the calculation of q, sdiv * q might be greater than wnum (but
@@ -435,7 +433,7 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
          */
         for (l0 = 0 - l0, j = 0; j < div_n; j++)
             tmp->d[j] = sdiv->d[j] & l0;
-        l0 = bn_add_words(wnum, wnum, tmp->d, div_n);
+        l0          = bn_add_words(wnum, wnum, tmp->d, div_n);
         (*wnumtop) += l0;
         assert((*wnumtop) == 0);
 
@@ -443,8 +441,8 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
         *--resp = q;
     }
     /* snum holds remainder, it's as wide as divisor */
-    snum->neg = num_neg;
-    snum->top = div_n;
+    snum->neg    = num_neg;
+    snum->top    = div_n;
     snum->flags |= BN_FLG_FIXED_TOP;
 
     if (rm != NULL && bn_rshift_fixed_top(rm, snum, norm_shift) == 0)
@@ -452,7 +450,7 @@ int bn_div_fixed_top(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num,
 
     BN_CTX_end(ctx);
     return 1;
- err:
+err:
     bn_check_top(rm);
     BN_CTX_end(ctx);
     return 0;

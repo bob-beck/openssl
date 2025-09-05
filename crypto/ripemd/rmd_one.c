@@ -20,7 +20,7 @@
 
 unsigned char *RIPEMD160(const unsigned char *d, size_t n, unsigned char *md)
 {
-    RIPEMD160_CTX c;
+    RIPEMD160_CTX        c;
     static unsigned char m[RIPEMD160_DIGEST_LENGTH];
 
     if (md == NULL)

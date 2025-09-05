@@ -12,18 +12,18 @@
 #include "internal/cryptlib.h"
 #include "prov/bio.h"
 
-static OSSL_FUNC_BIO_new_file_fn *c_bio_new_file = NULL;
+static OSSL_FUNC_BIO_new_file_fn   *c_bio_new_file   = NULL;
 static OSSL_FUNC_BIO_new_membuf_fn *c_bio_new_membuf = NULL;
-static OSSL_FUNC_BIO_read_ex_fn *c_bio_read_ex = NULL;
-static OSSL_FUNC_BIO_write_ex_fn *c_bio_write_ex = NULL;
-static OSSL_FUNC_BIO_gets_fn *c_bio_gets = NULL;
-static OSSL_FUNC_BIO_puts_fn *c_bio_puts = NULL;
-static OSSL_FUNC_BIO_ctrl_fn *c_bio_ctrl = NULL;
-static OSSL_FUNC_BIO_up_ref_fn *c_bio_up_ref = NULL;
-static OSSL_FUNC_BIO_free_fn *c_bio_free = NULL;
-static OSSL_FUNC_BIO_vprintf_fn *c_bio_vprintf = NULL;
+static OSSL_FUNC_BIO_read_ex_fn    *c_bio_read_ex    = NULL;
+static OSSL_FUNC_BIO_write_ex_fn   *c_bio_write_ex   = NULL;
+static OSSL_FUNC_BIO_gets_fn       *c_bio_gets       = NULL;
+static OSSL_FUNC_BIO_puts_fn       *c_bio_puts       = NULL;
+static OSSL_FUNC_BIO_ctrl_fn       *c_bio_ctrl       = NULL;
+static OSSL_FUNC_BIO_up_ref_fn     *c_bio_up_ref     = NULL;
+static OSSL_FUNC_BIO_free_fn       *c_bio_free       = NULL;
+static OSSL_FUNC_BIO_vprintf_fn    *c_bio_vprintf    = NULL;
 
-int ossl_prov_bio_from_dispatch(const OSSL_DISPATCH *fns)
+int                                 ossl_prov_bio_from_dispatch(const OSSL_DISPATCH *fns)
 {
     for (; fns->function_id != 0; fns++) {
         switch (fns->function_id) {
@@ -87,16 +87,14 @@ OSSL_CORE_BIO *ossl_prov_bio_new_membuf(const char *filename, int len)
     return c_bio_new_membuf(filename, len);
 }
 
-int ossl_prov_bio_read_ex(OSSL_CORE_BIO *bio, void *data, size_t data_len,
-                          size_t *bytes_read)
+int ossl_prov_bio_read_ex(OSSL_CORE_BIO *bio, void *data, size_t data_len, size_t *bytes_read)
 {
     if (c_bio_read_ex == NULL)
         return 0;
     return c_bio_read_ex(bio, data, data_len, bytes_read);
 }
 
-int ossl_prov_bio_write_ex(OSSL_CORE_BIO *bio, const void *data, size_t data_len,
-                           size_t *written)
+int ossl_prov_bio_write_ex(OSSL_CORE_BIO *bio, const void *data, size_t data_len, size_t *written)
 {
     if (c_bio_write_ex == NULL)
         return 0;
@@ -148,7 +146,7 @@ int ossl_prov_bio_vprintf(OSSL_CORE_BIO *bio, const char *format, va_list ap)
 int ossl_prov_bio_printf(OSSL_CORE_BIO *bio, const char *format, ...)
 {
     va_list ap;
-    int ret;
+    int     ret;
 
     va_start(ap, format);
     ret = ossl_prov_bio_vprintf(bio, format, ap);
@@ -161,14 +159,12 @@ int ossl_prov_bio_printf(OSSL_CORE_BIO *bio, const char *format, ...)
 
 /* No direct BIO support in the FIPS module */
 
-static int bio_core_read_ex(BIO *bio, char *data, size_t data_len,
-                            size_t *bytes_read)
+static int bio_core_read_ex(BIO *bio, char *data, size_t data_len, size_t *bytes_read)
 {
     return ossl_prov_bio_read_ex(BIO_get_data(bio), data, data_len, bytes_read);
 }
 
-static int bio_core_write_ex(BIO *bio, const char *data, size_t data_len,
-                             size_t *written)
+static int bio_core_write_ex(BIO *bio, const char *data, size_t data_len, size_t *written)
 {
     return ossl_prov_bio_write_ex(BIO_get_data(bio), data, data_len, written);
 }
@@ -207,15 +203,11 @@ BIO_METHOD *ossl_bio_prov_init_bio_method(void)
 {
     BIO_METHOD *corebiometh = NULL;
 
-    corebiometh = BIO_meth_new(BIO_TYPE_CORE_TO_PROV, "BIO to Core filter");
-    if (corebiometh == NULL
-            || !BIO_meth_set_write_ex(corebiometh, bio_core_write_ex)
-            || !BIO_meth_set_read_ex(corebiometh, bio_core_read_ex)
-            || !BIO_meth_set_puts(corebiometh, bio_core_puts)
-            || !BIO_meth_set_gets(corebiometh, bio_core_gets)
-            || !BIO_meth_set_ctrl(corebiometh, bio_core_ctrl)
-            || !BIO_meth_set_create(corebiometh, bio_core_new)
-            || !BIO_meth_set_destroy(corebiometh, bio_core_free)) {
+    corebiometh             = BIO_meth_new(BIO_TYPE_CORE_TO_PROV, "BIO to Core filter");
+    if (corebiometh == NULL || !BIO_meth_set_write_ex(corebiometh, bio_core_write_ex)
+        || !BIO_meth_set_read_ex(corebiometh, bio_core_read_ex) || !BIO_meth_set_puts(corebiometh, bio_core_puts)
+        || !BIO_meth_set_gets(corebiometh, bio_core_gets) || !BIO_meth_set_ctrl(corebiometh, bio_core_ctrl)
+        || !BIO_meth_set_create(corebiometh, bio_core_new) || !BIO_meth_set_destroy(corebiometh, bio_core_free)) {
         BIO_meth_free(corebiometh);
         return NULL;
     }
@@ -225,7 +217,7 @@ BIO_METHOD *ossl_bio_prov_init_bio_method(void)
 
 BIO *ossl_bio_new_from_core_bio(PROV_CTX *provctx, OSSL_CORE_BIO *corebio)
 {
-    BIO *outbio;
+    BIO        *outbio;
     BIO_METHOD *corebiometh = ossl_prov_ctx_get0_core_bio_method(provctx);
 
     if (corebiometh == NULL)

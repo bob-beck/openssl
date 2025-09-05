@@ -28,13 +28,13 @@ static BIGNUM *b3;
 static BIGNUM *b4;
 static BIGNUM *b5;
 
-int FuzzerInitialize(int *argc, char ***argv)
+int            FuzzerInitialize(int *argc, char ***argv)
 {
-    b1 = BN_new();
-    b2 = BN_new();
-    b3 = BN_new();
-    b4 = BN_new();
-    b5 = BN_new();
+    b1  = BN_new();
+    b2  = BN_new();
+    b3  = BN_new();
+    b4  = BN_new();
+    b5  = BN_new();
     ctx = BN_CTX_new();
 
     OPENSSL_init_crypto(OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
@@ -45,10 +45,10 @@ int FuzzerInitialize(int *argc, char ***argv)
 
 int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 {
-    int success = 0;
+    int    success = 0;
     size_t l1 = 0, l2 = 0;
     /* s1 and s2 will be the signs for b1 and b2. */
-    int s1 = 0, s2 = 0;
+    int    s1 = 0, s2 = 0;
 
     /* limit the size of the input to avoid timeout */
     if (len > MAX_LEN)
@@ -84,11 +84,11 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     if (BN_is_zero(b1))
         success = BN_is_zero(b3) && BN_is_zero(b4);
     else if (BN_is_negative(b1))
-        success = (BN_is_negative(b3) != BN_is_negative(b2) || BN_is_zero(b3))
-            && (BN_is_negative(b4) || BN_is_zero(b4));
+        success =
+            (BN_is_negative(b3) != BN_is_negative(b2) || BN_is_zero(b3)) && (BN_is_negative(b4) || BN_is_zero(b4));
     else
-        success = (BN_is_negative(b3) == BN_is_negative(b2)  || BN_is_zero(b3))
-            && (!BN_is_negative(b4) || BN_is_zero(b4));
+        success =
+            (BN_is_negative(b3) == BN_is_negative(b2) || BN_is_zero(b3)) && (!BN_is_negative(b4) || BN_is_zero(b4));
     OPENSSL_assert(BN_mul(b5, b3, b2, ctx));
     OPENSSL_assert(BN_add(b5, b5, b4));
 
@@ -104,16 +104,18 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         putchar('\n');
         BN_print_fp(stdout, b5);
         putchar('\n');
-        printf("%d %d %d %d %d %d %d\n", BN_is_negative(b1),
+        printf("%d %d %d %d %d %d %d\n",
+               BN_is_negative(b1),
                BN_is_negative(b2),
-               BN_is_negative(b3), BN_is_negative(b4), BN_is_zero(b4),
-               BN_is_negative(b3) != BN_is_negative(b2)
-               && (BN_is_negative(b4) || BN_is_zero(b4)),
+               BN_is_negative(b3),
+               BN_is_negative(b4),
+               BN_is_zero(b4),
+               BN_is_negative(b3) != BN_is_negative(b2) && (BN_is_negative(b4) || BN_is_zero(b4)),
                BN_cmp(b5, b1));
         puts("----\n");
     }
 
- done:
+done:
     OPENSSL_assert(success);
     ERR_clear_error();
 

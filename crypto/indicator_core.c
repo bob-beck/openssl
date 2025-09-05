@@ -13,8 +13,7 @@
 #include "internal/cryptlib.h"
 #include "crypto/context.h"
 
-typedef struct indicator_cb_st
-{
+typedef struct indicator_cb_st {
     OSSL_INDICATOR_CALLBACK *cb;
 } INDICATOR_CB;
 
@@ -36,8 +35,7 @@ static INDICATOR_CB *get_indicator_callback(OSSL_LIB_CTX *libctx)
     return ossl_lib_ctx_get_data(libctx, OSSL_LIB_CTX_INDICATOR_CB_INDEX);
 }
 
-void OSSL_INDICATOR_set_callback(OSSL_LIB_CTX *libctx,
-                                 OSSL_INDICATOR_CALLBACK *cb)
+void OSSL_INDICATOR_set_callback(OSSL_LIB_CTX *libctx, OSSL_INDICATOR_CALLBACK *cb)
 {
     INDICATOR_CB *icb = get_indicator_callback(libctx);
 
@@ -45,8 +43,7 @@ void OSSL_INDICATOR_set_callback(OSSL_LIB_CTX *libctx,
         icb->cb = cb;
 }
 
-void OSSL_INDICATOR_get_callback(OSSL_LIB_CTX *libctx,
-                                 OSSL_INDICATOR_CALLBACK **cb)
+void OSSL_INDICATOR_get_callback(OSSL_LIB_CTX *libctx, OSSL_INDICATOR_CALLBACK **cb)
 {
     INDICATOR_CB *icb = get_indicator_callback(libctx);
 

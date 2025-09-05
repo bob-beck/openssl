@@ -20,8 +20,7 @@
  * q1, q2) from a parameter Xpi by checking successive odd integers.
  */
 
-static int bn_x931_derive_pi(BIGNUM *pi, const BIGNUM *Xpi, BN_CTX *ctx,
-                             BN_GENCB *cb)
+static int bn_x931_derive_pi(BIGNUM *pi, const BIGNUM *Xpi, BN_CTX *ctx, BN_GENCB *cb)
 {
     int i = 0, is_prime;
     if (!BN_copy(pi, Xpi))
@@ -50,12 +49,17 @@ static int bn_x931_derive_pi(BIGNUM *pi, const BIGNUM *Xpi, BN_CTX *ctx,
  * will be returned too: this is needed for testing.
  */
 
-int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
-                            const BIGNUM *Xp, const BIGNUM *Xp1,
-                            const BIGNUM *Xp2, const BIGNUM *e, BN_CTX *ctx,
-                            BN_GENCB *cb)
+int BN_X931_derive_prime_ex(BIGNUM       *p,
+                            BIGNUM       *p1,
+                            BIGNUM       *p2,
+                            const BIGNUM *Xp,
+                            const BIGNUM *Xp1,
+                            const BIGNUM *Xp2,
+                            const BIGNUM *e,
+                            BN_CTX       *ctx,
+                            BN_GENCB     *cb)
 {
-    int ret = 0;
+    int     ret = 0;
 
     BIGNUM *t, *p1p2, *pm1;
 
@@ -70,11 +74,11 @@ int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
     if (p2 == NULL)
         p2 = BN_CTX_get(ctx);
 
-    t = BN_CTX_get(ctx);
+    t    = BN_CTX_get(ctx);
 
     p1p2 = BN_CTX_get(ctx);
 
-    pm1 = BN_CTX_get(ctx);
+    pm1  = BN_CTX_get(ctx);
 
     if (pm1 == NULL)
         goto err;
@@ -147,7 +151,7 @@ int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
 
     ret = 1;
 
- err:
+err:
 
     BN_CTX_end(ctx);
 
@@ -162,7 +166,7 @@ int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
 int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
 {
     BIGNUM *t;
-    int i;
+    int     i;
     /*
      * Number of bits for each prime is of the form 512+128s for s = 0, 1,
      * ...
@@ -175,8 +179,7 @@ int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
      * - 1. By setting the top two bits we ensure that the lower bound is
      * exceeded.
      */
-    if (!BN_priv_rand_ex(Xp, nbits, BN_RAND_TOP_TWO, BN_RAND_BOTTOM_ANY, 0,
-                         ctx))
+    if (!BN_priv_rand_ex(Xp, nbits, BN_RAND_TOP_TWO, BN_RAND_BOTTOM_ANY, 0, ctx))
         return 0;
 
     BN_CTX_start(ctx);
@@ -185,8 +188,7 @@ int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
         goto err;
 
     for (i = 0; i < 1000; i++) {
-        if (!BN_priv_rand_ex(Xq, nbits, BN_RAND_TOP_TWO, BN_RAND_BOTTOM_ANY, 0,
-                             ctx))
+        if (!BN_priv_rand_ex(Xq, nbits, BN_RAND_TOP_TWO, BN_RAND_BOTTOM_ANY, 0, ctx))
             goto err;
 
         /* Check that |Xp - Xq| > 2^(nbits - 100) */
@@ -203,7 +205,7 @@ int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
 
     return 0;
 
- err:
+err:
     BN_CTX_end(ctx);
     return 0;
 }
@@ -216,10 +218,15 @@ int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
  * previous function and supplied as input.
  */
 
-int BN_X931_generate_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
-                              BIGNUM *Xp1, BIGNUM *Xp2,
+int BN_X931_generate_prime_ex(BIGNUM       *p,
+                              BIGNUM       *p1,
+                              BIGNUM       *p2,
+                              BIGNUM       *Xp1,
+                              BIGNUM       *Xp2,
                               const BIGNUM *Xp,
-                              const BIGNUM *e, BN_CTX *ctx, BN_GENCB *cb)
+                              const BIGNUM *e,
+                              BN_CTX       *ctx,
+                              BN_GENCB     *cb)
 {
     int ret = 0;
 
@@ -240,9 +247,8 @@ int BN_X931_generate_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
 
     ret = 1;
 
- error:
+error:
     BN_CTX_end(ctx);
 
     return ret;
-
 }

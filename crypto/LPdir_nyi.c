@@ -43,6 +43,7 @@
 struct LP_dir_context_st {
     void *dummy;
 };
+
 const char *LP_find_file(LP_DIR_CTX **ctx, const char *directory)
 {
     errno = EINVAL;

@@ -22,8 +22,12 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_MACOPT, OPT_BIN, OPT_IN, OPT_OUT,
-    OPT_CIPHER, OPT_DIGEST,
+    OPT_MACOPT,
+    OPT_BIN,
+    OPT_IN,
+    OPT_OUT,
+    OPT_CIPHER,
+    OPT_DIGEST,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
@@ -42,8 +46,7 @@ const OPTIONS mac_options[] = {
 
     OPT_SECTION("Output"),
     {"out", OPT_OUT, '>', "Output to filename rather than stdout"},
-    {"binary", OPT_BIN, '-',
-        "Output in binary format (default is hexadecimal)"},
+    {"binary", OPT_BIN, '-', "Output in binary format (default is hexadecimal)"},
 
     OPT_PROV_OPTIONS,
 
@@ -52,11 +55,10 @@ const OPTIONS mac_options[] = {
     {NULL}
 };
 
-static char *alloc_mac_algorithm_name(STACK_OF(OPENSSL_STRING) **optp,
-                                      const char *name, const char *arg)
+static char *alloc_mac_algorithm_name(STACK_OF(OPENSSL_STRING) **optp, const char *name, const char *arg)
 {
     size_t len = strlen(name) + strlen(arg) + 2;
-    char *res;
+    char  *res;
 
     if (*optp == NULL)
         *optp = sk_OPENSSL_STRING_new_null();
@@ -73,25 +75,25 @@ static char *alloc_mac_algorithm_name(STACK_OF(OPENSSL_STRING) **optp,
 
 int mac_main(int argc, char **argv)
 {
-    int ret = 1;
-    char *prog;
-    EVP_MAC *mac = NULL;
-    OPTION_CHOICE o;
-    EVP_MAC_CTX *ctx = NULL;
+    int                       ret = 1;
+    char                     *prog;
+    EVP_MAC                  *mac = NULL;
+    OPTION_CHOICE             o;
+    EVP_MAC_CTX              *ctx  = NULL;
     STACK_OF(OPENSSL_STRING) *opts = NULL;
-    unsigned char *buf = NULL;
-    size_t len;
-    int i;
-    BIO *in = NULL, *out = NULL;
-    const char *outfile = NULL;
-    const char *infile = NULL;
-    int out_bin = 0;
-    int inform = FORMAT_BINARY;
-    char *digest = NULL, *cipher = NULL;
-    OSSL_PARAM *params = NULL;
+    unsigned char            *buf  = NULL;
+    size_t                    len;
+    int                       i;
+    BIO                      *in = NULL, *out = NULL;
+    const char               *outfile = NULL;
+    const char               *infile  = NULL;
+    int                       out_bin = 0;
+    int                       inform  = FORMAT_BINARY;
+    char                     *digest = NULL, *cipher = NULL;
+    OSSL_PARAM               *params = NULL;
 
-    prog = opt_init(argc, argv, mac_options);
-    buf = app_malloc(BUFSIZE, "I/O buffer");
+    prog                             = opt_init(argc, argv, mac_options);
+    buf                              = app_malloc(BUFSIZE, "I/O buffer");
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         default:
@@ -141,7 +143,7 @@ opthelp:
         goto opthelp;
     argv = opt_rest();
 
-    mac = EVP_MAC_fetch(app_get0_libctx(), argv[0], app_get0_propq());
+    mac  = EVP_MAC_fetch(app_get0_libctx(), argv[0], app_get0_propq());
     if (mac == NULL) {
         BIO_printf(bio_err, "Invalid MAC name %s\n", argv[0]);
         goto opthelp;
@@ -154,8 +156,7 @@ opthelp:
     if (opts != NULL) {
         int ok = 1;
 
-        params = app_params_new_from_opts(opts,
-                                          EVP_MAC_settable_ctx_params(mac));
+        params = app_params_new_from_opts(opts, EVP_MAC_settable_ctx_params(mac));
         if (params == NULL)
             goto err;
 

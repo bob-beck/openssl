@@ -16,35 +16,35 @@
 #ifndef OPENSSL_NO_SOCK
 
 typedef struct bio_accept_st {
-    int state;
-    int accept_family;
-    int bind_mode;     /* Socket mode for BIO_listen */
-    int accepted_mode; /* Socket mode for BIO_accept (set on accepted sock) */
-    char *param_addr;
-    char *param_serv;
+    int                 state;
+    int                 accept_family;
+    int                 bind_mode;     /* Socket mode for BIO_listen */
+    int                 accepted_mode; /* Socket mode for BIO_accept (set on accepted sock) */
+    char               *param_addr;
+    char               *param_serv;
 
-    int accept_sock;
+    int                 accept_sock;
 
-    BIO_ADDRINFO *addr_first;
+    BIO_ADDRINFO       *addr_first;
     const BIO_ADDRINFO *addr_iter;
-    BIO_ADDR cache_accepting_addr;   /* Useful if we asked for port 0 */
-    char *cache_accepting_name, *cache_accepting_serv;
-    BIO_ADDR cache_peer_addr;
-    char *cache_peer_name, *cache_peer_serv;
+    BIO_ADDR            cache_accepting_addr; /* Useful if we asked for port 0 */
+    char               *cache_accepting_name, *cache_accepting_serv;
+    BIO_ADDR            cache_peer_addr;
+    char               *cache_peer_name, *cache_peer_serv;
 
-    BIO *bio_chain;
+    BIO                *bio_chain;
 } BIO_ACCEPT;
 
-static int acpt_write(BIO *h, const char *buf, int num);
-static int acpt_read(BIO *h, char *buf, int size);
-static int acpt_puts(BIO *h, const char *str);
-static long acpt_ctrl(BIO *h, int cmd, long arg1, void *arg2);
-static int acpt_new(BIO *h);
-static int acpt_free(BIO *data);
-static int acpt_state(BIO *b, BIO_ACCEPT *c);
-static void acpt_close_socket(BIO *data);
+static int         acpt_write(BIO *h, const char *buf, int num);
+static int         acpt_read(BIO *h, char *buf, int size);
+static int         acpt_puts(BIO *h, const char *str);
+static long        acpt_ctrl(BIO *h, int cmd, long arg1, void *arg2);
+static int         acpt_new(BIO *h);
+static int         acpt_free(BIO *data);
+static int         acpt_state(BIO *b, BIO_ACCEPT *c);
+static void        acpt_close_socket(BIO *data);
 static BIO_ACCEPT *BIO_ACCEPT_new(void);
-static void BIO_ACCEPT_free(BIO_ACCEPT *a);
+static void        BIO_ACCEPT_free(BIO_ACCEPT *a);
 
 # define ACPT_S_BEFORE                   1
 # define ACPT_S_GET_ADDR                 2
@@ -61,11 +61,11 @@ static const BIO_METHOD methods_acceptp = {
     bread_conv,
     acpt_read,
     acpt_puts,
-    NULL,                       /* connect_gets,         */
+    NULL, /* connect_gets,         */
     acpt_ctrl,
     acpt_new,
     acpt_free,
-    NULL,                       /* connect_callback_ctrl */
+    NULL, /* connect_callback_ctrl */
 };
 
 const BIO_METHOD *BIO_s_accept(void)
@@ -77,13 +77,13 @@ static int acpt_new(BIO *bi)
 {
     BIO_ACCEPT *ba;
 
-    bi->init = 0;
-    bi->num = (int)INVALID_SOCKET;
+    bi->init  = 0;
+    bi->num   = (int)INVALID_SOCKET;
     bi->flags = 0;
     if ((ba = BIO_ACCEPT_new()) == NULL)
         return 0;
-    bi->ptr = (char *)ba;
-    ba->state = ACPT_S_BEFORE;
+    bi->ptr      = (char *)ba;
+    ba->state    = ACPT_S_BEFORE;
     bi->shutdown = 1;
     return 1;
 }
@@ -95,7 +95,7 @@ static BIO_ACCEPT *BIO_ACCEPT_new(void)
     if ((ret = OPENSSL_zalloc(sizeof(*ret))) == NULL)
         return NULL;
     ret->accept_family = BIO_FAMILY_IPANY;
-    ret->accept_sock = (int)INVALID_SOCKET;
+    ret->accept_sock   = (int)INVALID_SOCKET;
     return ret;
 }
 
@@ -123,7 +123,7 @@ static void acpt_close_socket(BIO *bio)
         shutdown(c->accept_sock, 2);
         closesocket(c->accept_sock);
         c->accept_sock = (int)INVALID_SOCKET;
-        bio->num = (int)INVALID_SOCKET;
+        bio->num       = (int)INVALID_SOCKET;
     }
 }
 
@@ -138,9 +138,9 @@ static int acpt_free(BIO *a)
     if (a->shutdown) {
         acpt_close_socket(a);
         BIO_ACCEPT_free(data);
-        a->ptr = NULL;
+        a->ptr   = NULL;
         a->flags = 0;
-        a->init = 0;
+        a->init  = 0;
     }
     return 1;
 }
@@ -148,7 +148,7 @@ static int acpt_free(BIO *a)
 static int acpt_state(BIO *b, BIO_ACCEPT *c)
 {
     BIO *bio = NULL, *dbio;
-    int s = -1, ret = -1;
+    int  s = -1, ret = -1;
 
     for (;;) {
         switch (c->state) {
@@ -157,7 +157,8 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
                 ERR_raise_data(ERR_LIB_BIO,
                                BIO_R_NO_ACCEPT_ADDR_OR_SERVICE_SPECIFIED,
                                "hostname=%s, service=%s",
-                               c->param_addr, c->param_serv);
+                               c->param_addr,
+                               c->param_serv);
                 goto exit_loop;
             }
 
@@ -174,53 +175,52 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
             OPENSSL_free(c->cache_peer_serv);
             c->cache_peer_serv = NULL;
 
-            c->state = ACPT_S_GET_ADDR;
+            c->state           = ACPT_S_GET_ADDR;
             break;
 
-        case ACPT_S_GET_ADDR:
-            {
-                int family = AF_UNSPEC;
-                switch (c->accept_family) {
-                case BIO_FAMILY_IPV6:
-                    if (1) { /* This is a trick we use to avoid bit rot.
-                              * at least the "else" part will always be
-                              * compiled.
-                              */
-#if OPENSSL_USE_IPV6
-                        family = AF_INET6;
-                    } else {
-#endif
-                        ERR_raise(ERR_LIB_BIO, BIO_R_UNAVAILABLE_IP_FAMILY);
-                        goto exit_loop;
-                    }
-                    break;
-                case BIO_FAMILY_IPV4:
-                    family = AF_INET;
-                    break;
-                case BIO_FAMILY_IPANY:
-                    family = AF_UNSPEC;
-                    break;
-                default:
-                    ERR_raise(ERR_LIB_BIO, BIO_R_UNSUPPORTED_IP_FAMILY);
+        case ACPT_S_GET_ADDR: {
+            int family = AF_UNSPEC;
+            switch (c->accept_family) {
+            case BIO_FAMILY_IPV6:
+                if (1) { /* This is a trick we use to avoid bit rot.
+                          * at least the "else" part will always be
+                          * compiled.
+                          */
+# if OPENSSL_USE_IPV6
+                    family = AF_INET6;
+                } else {
+# endif
+                    ERR_raise(ERR_LIB_BIO, BIO_R_UNAVAILABLE_IP_FAMILY);
                     goto exit_loop;
                 }
-                if (BIO_lookup(c->param_addr, c->param_serv, BIO_LOOKUP_SERVER,
-                               family, SOCK_STREAM, &c->addr_first) == 0)
-                    goto exit_loop;
+                break;
+            case BIO_FAMILY_IPV4:
+                family = AF_INET;
+                break;
+            case BIO_FAMILY_IPANY:
+                family = AF_UNSPEC;
+                break;
+            default:
+                ERR_raise(ERR_LIB_BIO, BIO_R_UNSUPPORTED_IP_FAMILY);
+                goto exit_loop;
             }
+            if (BIO_lookup(c->param_addr, c->param_serv, BIO_LOOKUP_SERVER, family, SOCK_STREAM, &c->addr_first) == 0)
+                goto exit_loop;
+        }
             if (c->addr_first == NULL) {
                 ERR_raise(ERR_LIB_BIO, BIO_R_LOOKUP_RETURNED_NOTHING);
                 goto exit_loop;
             }
             c->addr_iter = c->addr_first;
-            c->state = ACPT_S_CREATE_SOCKET;
+            c->state     = ACPT_S_CREATE_SOCKET;
             break;
 
         case ACPT_S_CREATE_SOCKET:
             ERR_set_mark();
             s = BIO_socket(BIO_ADDRINFO_family(c->addr_iter),
                            BIO_ADDRINFO_socktype(c->addr_iter),
-                           BIO_ADDRINFO_protocol(c->addr_iter), 0);
+                           BIO_ADDRINFO_protocol(c->addr_iter),
+                           0);
             if (s == (int)INVALID_SOCKET) {
                 if ((c->addr_iter = BIO_ADDRINFO_next(c->addr_iter)) != NULL) {
                     /*
@@ -230,46 +230,42 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
                     break;
                 }
                 ERR_clear_last_mark();
-                ERR_raise_data(ERR_LIB_SYS, get_last_socket_error(),
+                ERR_raise_data(ERR_LIB_SYS,
+                               get_last_socket_error(),
                                "calling socket(%s, %s)",
-                                c->param_addr, c->param_serv);
+                               c->param_addr,
+                               c->param_serv);
                 ERR_raise(ERR_LIB_BIO, BIO_R_UNABLE_TO_CREATE_SOCKET);
                 goto exit_loop;
             }
             c->accept_sock = s;
-            b->num = s;
-            c->state = ACPT_S_LISTEN;
-            s = -1;
+            b->num         = s;
+            c->state       = ACPT_S_LISTEN;
+            s              = -1;
             break;
 
-        case ACPT_S_LISTEN:
-            {
-                if (!BIO_listen(c->accept_sock,
-                                BIO_ADDRINFO_address(c->addr_iter),
-                                c->bind_mode)) {
-                    BIO_closesocket(c->accept_sock);
-                    goto exit_loop;
-                }
+        case ACPT_S_LISTEN: {
+            if (!BIO_listen(c->accept_sock, BIO_ADDRINFO_address(c->addr_iter), c->bind_mode)) {
+                BIO_closesocket(c->accept_sock);
+                goto exit_loop;
             }
+        }
 
             {
                 union BIO_sock_info_u info;
 
                 info.addr = &c->cache_accepting_addr;
-                if (!BIO_sock_info(c->accept_sock, BIO_SOCK_INFO_ADDRESS,
-                                   &info)) {
+                if (!BIO_sock_info(c->accept_sock, BIO_SOCK_INFO_ADDRESS, &info)) {
                     BIO_closesocket(c->accept_sock);
                     goto exit_loop;
                 }
             }
 
-            c->cache_accepting_name =
-                BIO_ADDR_hostname_string(&c->cache_accepting_addr, 1);
-            c->cache_accepting_serv =
-                BIO_ADDR_service_string(&c->cache_accepting_addr, 1);
-            c->state = ACPT_S_ACCEPT;
-            s = -1;
-            ret = 1;
+            c->cache_accepting_name = BIO_ADDR_hostname_string(&c->cache_accepting_addr, 1);
+            c->cache_accepting_serv = BIO_ADDR_service_string(&c->cache_accepting_addr, 1);
+            c->state                = ACPT_S_ACCEPT;
+            s                       = -1;
+            ret                     = 1;
             goto end;
 
         case ACPT_S_ACCEPT:
@@ -285,8 +281,7 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
             OPENSSL_free(c->cache_peer_serv);
             c->cache_peer_serv = NULL;
 
-            s = BIO_accept_ex(c->accept_sock, &c->cache_peer_addr,
-                              c->accepted_mode);
+            s                  = BIO_accept_ex(c->accept_sock, &c->cache_peer_addr, c->accepted_mode);
 
             /* If the returned socket is invalid, this might still be
              * retryable
@@ -310,9 +305,9 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
                 goto exit_loop;
 
             BIO_set_callback_ex(bio, BIO_get_callback_ex(b));
-#ifndef OPENSSL_NO_DEPRECATED_3_0
+# ifndef OPENSSL_NO_DEPRECATED_3_0
             BIO_set_callback(bio, BIO_get_callback(b));
-#endif
+# endif
             BIO_set_callback_arg(bio, BIO_get_callback_arg(b));
             /*
              * If the accept BIO has an bio_chain, we dup it and put the new
@@ -328,13 +323,11 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
             if (BIO_push(b, bio) == NULL)
                 goto exit_loop;
 
-            c->cache_peer_name =
-                BIO_ADDR_hostname_string(&c->cache_peer_addr, 1);
-            c->cache_peer_serv =
-                BIO_ADDR_service_string(&c->cache_peer_addr, 1);
-            c->state = ACPT_S_OK;
-            bio = NULL;
-            ret = 1;
+            c->cache_peer_name = BIO_ADDR_hostname_string(&c->cache_peer_addr, 1);
+            c->cache_peer_serv = BIO_ADDR_service_string(&c->cache_peer_addr, 1);
+            c->state           = ACPT_S_OK;
+            bio                = NULL;
+            ret                = 1;
             goto end;
 
         case ACPT_S_OK:
@@ -351,18 +344,18 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
         }
     }
 
-  exit_loop:
+exit_loop:
     if (bio != NULL)
         BIO_free(bio);
     else if (s >= 0)
         BIO_closesocket(s);
- end:
+end:
     return ret;
 }
 
 static int acpt_read(BIO *b, char *out, int outl)
 {
-    int ret = 0;
+    int         ret = 0;
     BIO_ACCEPT *data;
 
     BIO_clear_retry_flags(b);
@@ -381,7 +374,7 @@ static int acpt_read(BIO *b, char *out, int outl)
 
 static int acpt_write(BIO *b, const char *in, int inl)
 {
-    int ret;
+    int         ret;
     BIO_ACCEPT *data;
 
     BIO_clear_retry_flags(b);
@@ -400,21 +393,21 @@ static int acpt_write(BIO *b, const char *in, int inl)
 
 static long acpt_ctrl(BIO *b, int cmd, long num, void *ptr)
 {
-    int *ip;
-    long ret = 1;
+    int        *ip;
+    long        ret = 1;
     BIO_ACCEPT *data;
-    char **pp;
+    char      **pp;
 
     data = (BIO_ACCEPT *)b->ptr;
 
     switch (cmd) {
     case BIO_CTRL_RESET:
-        ret = 0;
+        ret         = 0;
         data->state = ACPT_S_BEFORE;
         acpt_close_socket(b);
         BIO_ADDRINFO_free(data->addr_first);
         data->addr_first = NULL;
-        b->flags = 0;
+        b->flags         = 0;
         break;
     case BIO_C_DO_STATE_MACHINE:
         /* use this one to start the connection */
@@ -430,10 +423,7 @@ static long acpt_ctrl(BIO *b, int cmd, long num, void *ptr)
                  */
                 OPENSSL_free(data->param_addr);
                 data->param_addr = NULL;
-                ret = BIO_parse_hostserv(ptr,
-                                         &data->param_addr,
-                                         &data->param_serv,
-                                         BIO_PARSE_PRIO_SERV);
+                ret              = BIO_parse_hostserv(ptr, &data->param_addr, &data->param_serv, BIO_PARSE_PRIO_SERV);
                 if (hold_serv != data->param_serv)
                     OPENSSL_free(hold_serv);
                 b->init = 1;
@@ -468,11 +458,11 @@ static long acpt_ctrl(BIO *b, int cmd, long num, void *ptr)
             data->accepted_mode &= ~BIO_SOCK_NONBLOCK;
         break;
     case BIO_C_SET_FD:
-        b->num = *((int *)ptr);
+        b->num            = *((int *)ptr);
         data->accept_sock = b->num;
-        data->state = ACPT_S_ACCEPT;
-        b->shutdown = (int)num;
-        b->init = 1;
+        data->state       = ACPT_S_ACCEPT;
+        b->shutdown       = (int)num;
+        b->init           = 1;
         break;
     case BIO_C_GET_FD:
         if (b->init) {
@@ -486,24 +476,24 @@ static long acpt_ctrl(BIO *b, int cmd, long num, void *ptr)
     case BIO_C_GET_ACCEPT:
         if (b->init) {
             if (num == 0 && ptr != NULL) {
-                pp = (char **)ptr;
+                pp  = (char **)ptr;
                 *pp = data->cache_accepting_name;
             } else if (num == 1 && ptr != NULL) {
-                pp = (char **)ptr;
+                pp  = (char **)ptr;
                 *pp = data->cache_accepting_serv;
             } else if (num == 2 && ptr != NULL) {
-                pp = (char **)ptr;
+                pp  = (char **)ptr;
                 *pp = data->cache_peer_name;
             } else if (num == 3 && ptr != NULL) {
-                pp = (char **)ptr;
+                pp  = (char **)ptr;
                 *pp = data->cache_peer_serv;
             } else if (num == 4) {
                 switch (BIO_ADDRINFO_family(data->addr_iter)) {
-#if OPENSSL_USE_IPV6
+# if OPENSSL_USE_IPV6
                 case AF_INET6:
                     ret = BIO_FAMILY_IPV6;
                     break;
-#endif
+# endif
                 case AF_INET:
                     ret = BIO_FAMILY_IPV4;
                     break;
@@ -554,7 +544,7 @@ static long acpt_ctrl(BIO *b, int cmd, long num, void *ptr)
 
 static int acpt_puts(BIO *bp, const char *str)
 {
-    int ret;
+    int    ret;
     size_t n = strlen(str);
 
     if (n > INT_MAX)

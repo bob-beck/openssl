@@ -14,15 +14,15 @@
 #include "internal/common.h" /* for HAS_PREFIX */
 #include "internal/packet.h" /* for WPACKET */
 
-static const unsigned int base = 36;
-static const unsigned int tmin = 1;
-static const unsigned int tmax = 26;
-static const unsigned int skew = 38;
-static const unsigned int damp = 700;
+static const unsigned int base         = 36;
+static const unsigned int tmin         = 1;
+static const unsigned int tmax         = 26;
+static const unsigned int skew         = 38;
+static const unsigned int damp         = 700;
 static const unsigned int initial_bias = 72;
-static const unsigned int initial_n = 0x80;
-static const unsigned int maxint = 0xFFFFFFFF;
-static const char delimiter = '-';
+static const unsigned int initial_n    = 0x80;
+static const unsigned int maxint       = 0xFFFFFFFF;
+static const char         delimiter    = '-';
 
 #define LABEL_BUF_SIZE 512
 
@@ -41,17 +41,16 @@ static const char delimiter = '-';
  *  return k + (((base - tmin + 1) * delta) div (delta + skew))
  */
 
-static int adapt(unsigned int delta, unsigned int numpoints,
-                 unsigned int firsttime)
+static int adapt(unsigned int delta, unsigned int numpoints, unsigned int firsttime)
 {
     unsigned int k = 0;
 
-    delta = (firsttime) ? delta / damp : delta / 2;
-    delta = delta + delta / numpoints;
+    delta          = (firsttime) ? delta / damp : delta / 2;
+    delta          = delta + delta / numpoints;
 
     while (delta > ((base - tmin) * tmax) / 2) {
         delta = delta / (base - tmin);
-        k = k + base;
+        k     = k + base;
     }
 
     return k + (((base - tmin + 1) * delta) / (delta + skew));
@@ -116,16 +115,15 @@ static ossl_inline int digit_decoded(const unsigned char a)
  *  end
  */
 
-int ossl_punycode_decode(const char *pEncoded, const size_t enc_len,
-                         unsigned int *pDecoded, unsigned int *pout_length)
+int ossl_punycode_decode(const char *pEncoded, const size_t enc_len, unsigned int *pDecoded, unsigned int *pout_length)
 {
-    unsigned int n = initial_n;
-    unsigned int i = 0;
-    unsigned int bias = initial_bias;
+    unsigned int n            = initial_n;
+    unsigned int i            = 0;
+    unsigned int bias         = initial_bias;
     unsigned int processed_in = 0;
-    unsigned int written_out = 0;
-    unsigned int max_out = *pout_length;
-    unsigned int basic_count = 0;
+    unsigned int written_out  = 0;
+    unsigned int max_out      = *pout_length;
+    unsigned int basic_count  = 0;
     unsigned int loop;
 
     if (enc_len >= UINT_MAX)
@@ -151,9 +149,9 @@ int ossl_punycode_decode(const char *pEncoded, const size_t enc_len,
 
     for (loop = processed_in; loop < (unsigned int)enc_len;) {
         unsigned int oldi = i;
-        unsigned int w = 1;
+        unsigned int w    = 1;
         unsigned int k, t;
-        int digit;
+        int          digit;
 
         for (k = base;; k += base) {
             if (loop >= enc_len)
@@ -181,14 +179,13 @@ int ossl_punycode_decode(const char *pEncoded, const size_t enc_len,
         bias = adapt(i - oldi, written_out + 1, (oldi == 0));
         if (i / (written_out + 1) > maxint - n)
             return 0;
-        n = n + i / (written_out + 1);
+        n  = n + i / (written_out + 1);
         i %= (written_out + 1);
 
         if (written_out >= max_out)
             return 0;
 
-        memmove(pDecoded + i + 1, pDecoded + i,
-                (written_out - i) * sizeof(*pDecoded));
+        memmove(pDecoded + i + 1, pDecoded + i, (written_out - i) * sizeof(*pDecoded));
         pDecoded[i] = n;
         i++;
         written_out++;
@@ -256,11 +253,11 @@ int ossl_a2ulabel(const char *in, char *out, size_t outlen)
      * If it does not start with xn--,    it becomes U-label as is.
      * Otherwise we try to decode it.
      */
-    const char *inptr = in;
-    int result = 1;
+    const char  *inptr  = in;
+    int          result = 1;
     unsigned int i;
-    unsigned int buf[LABEL_BUF_SIZE];      /* It's a hostname */
-    WPACKET pkt;
+    unsigned int buf[LABEL_BUF_SIZE]; /* It's a hostname */
+    WPACKET      pkt;
 
     /* Internal API, so should not fail */
     if (!ossl_assert(out != NULL))
@@ -270,8 +267,8 @@ int ossl_a2ulabel(const char *in, char *out, size_t outlen)
         return -1;
 
     while (1) {
-        char *tmpptr = strchr(inptr, '.');
-        size_t delta = tmpptr != NULL ? (size_t)(tmpptr - inptr) : strlen(inptr);
+        char  *tmpptr = strchr(inptr, '.');
+        size_t delta  = tmpptr != NULL ? (size_t)(tmpptr - inptr) : strlen(inptr);
 
         if (!HAS_PREFIX(inptr, "xn--")) {
             if (!WPACKET_memcpy(&pkt, inptr, delta))
@@ -286,7 +283,7 @@ int ossl_a2ulabel(const char *in, char *out, size_t outlen)
 
             for (i = 0; i < bufsize; i++) {
                 unsigned char seed[6];
-                size_t utfsize = codepoint2utf8(seed, buf[i]);
+                size_t        utfsize = codepoint2utf8(seed, buf[i]);
 
                 if (utfsize == 0) {
                     result = -1;
@@ -309,7 +306,7 @@ int ossl_a2ulabel(const char *in, char *out, size_t outlen)
 
     if (!WPACKET_put_bytes_u8(&pkt, '\0'))
         result = 0;
- end:
+end:
     WPACKET_cleanup(&pkt);
     return result;
 }

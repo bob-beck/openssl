@@ -47,8 +47,8 @@ int ossl_config_int(const OPENSSL_INIT_SETTINGS *settings)
 {
     int ret = 0;
 #if defined(OPENSSL_INIT_DEBUG) || !defined(OPENSSL_SYS_UEFI)
-    const char *filename;
-    const char *appname;
+    const char   *filename;
+    const char   *appname;
     unsigned long flags;
 #endif
 
@@ -57,18 +57,16 @@ int ossl_config_int(const OPENSSL_INIT_SETTINGS *settings)
 
 #if defined(OPENSSL_INIT_DEBUG) || !defined(OPENSSL_SYS_UEFI)
     filename = settings ? settings->filename : NULL;
-    appname = settings ? settings->appname : NULL;
-    flags = settings ? settings->flags : DEFAULT_CONF_MFLAGS;
+    appname  = settings ? settings->appname : NULL;
+    flags    = settings ? settings->flags : DEFAULT_CONF_MFLAGS;
 #endif
 
 #ifdef OPENSSL_INIT_DEBUG
-    fprintf(stderr, "OPENSSL_INIT: ossl_config_int(%s, %s, %lu)\n",
-            filename, appname, flags);
+    fprintf(stderr, "OPENSSL_INIT: ossl_config_int(%s, %s, %lu)\n", filename, appname, flags);
 #endif
 
 #ifndef OPENSSL_SYS_UEFI
-    ret = CONF_modules_load_file_ex(OSSL_LIB_CTX_get0_global_default(),
-                                    filename, appname, flags);
+    ret = CONF_modules_load_file_ex(OSSL_LIB_CTX_get0_global_default(), filename, appname, flags);
 #else
     ret = 1;
 #endif

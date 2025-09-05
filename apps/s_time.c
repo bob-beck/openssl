@@ -15,40 +15,58 @@
 
 #ifndef OPENSSL_NO_SOCK
 
-#include "apps.h"
-#include "progs.h"
-#include <openssl/x509.h>
-#include <openssl/ssl.h>
-#include <openssl/pem.h>
-#include "s_apps.h"
-#include <openssl/err.h>
-#include "internal/sockets.h"
-#if !defined(OPENSSL_SYS_MSDOS)
-# include <unistd.h>
-#endif
+# include "apps.h"
+# include "progs.h"
+# include <openssl/x509.h>
+# include <openssl/ssl.h>
+# include <openssl/pem.h>
+# include "s_apps.h"
+# include <openssl/err.h>
+# include "internal/sockets.h"
+# if !defined(OPENSSL_SYS_MSDOS)
+#  include <unistd.h>
+# endif
 
-#define SSL_CONNECT_NAME        "localhost:4433"
+# define SSL_CONNECT_NAME        "localhost:4433"
 
-#define SECONDS 30
-#define SECONDSSTR "30"
+# define SECONDS 30
+# define SECONDSSTR "30"
 
-static SSL *doConnection(SSL *scon, const char *host, SSL_CTX *ctx);
+static SSL         *doConnection(SSL *scon, const char *host, SSL_CTX *ctx);
 
 /*
  * Define a HTTP get command globally.
  * Also define the size of the command, this is two bytes less than
  * the size of the string because the %s is replaced by the URL.
  */
-static const char fmt_http_get_cmd[] = "GET %s HTTP/1.0\r\n\r\n";
+static const char   fmt_http_get_cmd[]    = "GET %s HTTP/1.0\r\n\r\n";
 static const size_t fmt_http_get_cmd_size = sizeof(fmt_http_get_cmd) - 2;
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_CONNECT, OPT_CIPHER, OPT_CIPHERSUITES, OPT_CERT, OPT_NAMEOPT, OPT_KEY,
-    OPT_CAPATH, OPT_CAFILE, OPT_CASTORE,
-    OPT_NOCAPATH, OPT_NOCAFILE, OPT_NOCASTORE,
-    OPT_NEW, OPT_REUSE, OPT_BUGS, OPT_VERIFY, OPT_TIME, OPT_SSL3,
-    OPT_WWW, OPT_TLS1, OPT_TLS1_1, OPT_TLS1_2, OPT_TLS1_3,
+    OPT_CONNECT,
+    OPT_CIPHER,
+    OPT_CIPHERSUITES,
+    OPT_CERT,
+    OPT_NAMEOPT,
+    OPT_KEY,
+    OPT_CAPATH,
+    OPT_CAFILE,
+    OPT_CASTORE,
+    OPT_NOCAPATH,
+    OPT_NOCAFILE,
+    OPT_NOCASTORE,
+    OPT_NEW,
+    OPT_REUSE,
+    OPT_BUGS,
+    OPT_VERIFY,
+    OPT_TIME,
+    OPT_SSL3,
+    OPT_WWW,
+    OPT_TLS1,
+    OPT_TLS1_1,
+    OPT_TLS1_2,
+    OPT_TLS1_3,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
@@ -57,31 +75,28 @@ const OPTIONS s_time_options[] = {
     {"help", OPT_HELP, '-', "Display this summary"},
 
     OPT_SECTION("Connection"),
-    {"connect", OPT_CONNECT, 's',
-     "Where to connect as post:port (default is " SSL_CONNECT_NAME ")"},
+    {"connect", OPT_CONNECT, 's', "Where to connect as post:port (default is " SSL_CONNECT_NAME ")"},
     {"new", OPT_NEW, '-', "Just time new connections"},
     {"reuse", OPT_REUSE, '-', "Just time connection reuse"},
     {"bugs", OPT_BUGS, '-', "Turn on SSL bug compatibility"},
     {"cipher", OPT_CIPHER, 's', "TLSv1.2 and below cipher list to be used"},
-    {"ciphersuites", OPT_CIPHERSUITES, 's',
-     "Specify TLSv1.3 ciphersuites to be used"},
-#ifndef OPENSSL_NO_SSL3
+    {"ciphersuites", OPT_CIPHERSUITES, 's', "Specify TLSv1.3 ciphersuites to be used"},
+# ifndef OPENSSL_NO_SSL3
     {"ssl3", OPT_SSL3, '-', "Just use SSLv3"},
-#endif
-#ifndef OPENSSL_NO_TLS1
+# endif
+# ifndef OPENSSL_NO_TLS1
     {"tls1", OPT_TLS1, '-', "Just use TLSv1.0"},
-#endif
-#ifndef OPENSSL_NO_TLS1_1
+# endif
+# ifndef OPENSSL_NO_TLS1_1
     {"tls1_1", OPT_TLS1_1, '-', "Just use TLSv1.1"},
-#endif
-#ifndef OPENSSL_NO_TLS1_2
+# endif
+# ifndef OPENSSL_NO_TLS1_2
     {"tls1_2", OPT_TLS1_2, '-', "Just use TLSv1.2"},
-#endif
-#ifndef OPENSSL_NO_TLS1_3
+# endif
+# ifndef OPENSSL_NO_TLS1_3
     {"tls1_3", OPT_TLS1_3, '-', "Just use TLSv1.3"},
-#endif
-    {"verify", OPT_VERIFY, 'p',
-     "Turn on peer certificate verification, set depth"},
+# endif
+    {"verify", OPT_VERIFY, 'p', "Turn on peer certificate verification, set depth"},
     {"time", OPT_TIME, 'p', "Seconds to collect data, default " SECONDSSTR},
     {"www", OPT_WWW, 's', "Fetch specified page from the site"},
 
@@ -93,19 +108,16 @@ const OPTIONS s_time_options[] = {
     {"CAfile", OPT_CAFILE, '<', "PEM format file of CA's"},
     {"CApath", OPT_CAPATH, '/', "PEM format directory of CA's"},
     {"CAstore", OPT_CASTORE, ':', "URI to store of CA's"},
-    {"no-CAfile", OPT_NOCAFILE, '-',
-     "Do not load the default certificates file"},
-    {"no-CApath", OPT_NOCAPATH, '-',
-     "Do not load certificates from the default certificates directory"},
-    {"no-CAstore", OPT_NOCASTORE, '-',
-     "Do not load certificates from the default certificates store URI"},
+    {"no-CAfile", OPT_NOCAFILE, '-', "Do not load the default certificates file"},
+    {"no-CApath", OPT_NOCAPATH, '-', "Do not load certificates from the default certificates directory"},
+    {"no-CAstore", OPT_NOCASTORE, '-', "Do not load certificates from the default certificates store URI"},
 
     OPT_PROV_OPTIONS,
     {NULL}
 };
 
-#define START   0
-#define STOP    1
+# define START   0
+# define STOP    1
 
 static double tm_Time_F(int s)
 {
@@ -114,21 +126,21 @@ static double tm_Time_F(int s)
 
 int s_time_main(int argc, char **argv)
 {
-    char buf[1024 * 8];
-    SSL *scon = NULL;
-    SSL_CTX *ctx = NULL;
-    const SSL_METHOD *meth = NULL;
-    char *CApath = NULL, *CAfile = NULL, *CAstore = NULL;
-    char *cipher = NULL, *ciphersuites = NULL;
-    char *www_path = NULL;
-    char *host = SSL_CONNECT_NAME, *certfile = NULL, *keyfile = NULL, *prog;
-    double totalTime = 0.0;
-    int noCApath = 0, noCAfile = 0, noCAstore = 0;
-    int maxtime = SECONDS, nConn = 0, perform = 3, ret = 1, i, st_bugs = 0;
-    long bytes_read = 0, finishtime = 0;
-    OPTION_CHOICE o;
-    int min_version = 0, max_version = 0, ver, buf_len, fd;
-    size_t buf_size;
+    char              buf[1024 * 8];
+    SSL              *scon   = NULL;
+    SSL_CTX          *ctx    = NULL;
+    const SSL_METHOD *meth   = NULL;
+    char             *CApath = NULL, *CAfile = NULL, *CAstore = NULL;
+    char             *cipher = NULL, *ciphersuites = NULL;
+    char             *www_path = NULL;
+    char             *host = SSL_CONNECT_NAME, *certfile = NULL, *keyfile = NULL, *prog;
+    double            totalTime = 0.0;
+    int               noCApath = 0, noCAfile = 0, noCAstore = 0;
+    int               maxtime = SECONDS, nConn = 0, perform = 3, ret = 1, i, st_bugs = 0;
+    long              bytes_read = 0, finishtime = 0;
+    OPTION_CHOICE     o;
+    int               min_version = 0, max_version = 0, ver, buf_len, fd;
+    size_t            buf_size;
 
     meth = TLS_client_method();
 
@@ -137,7 +149,7 @@ int s_time_main(int argc, char **argv)
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -155,8 +167,7 @@ int s_time_main(int argc, char **argv)
             break;
         case OPT_VERIFY:
             verify_args.depth = opt_int_arg();
-            BIO_printf(bio_err, "%s: verify depth is %d\n",
-                       prog, verify_args.depth);
+            BIO_printf(bio_err, "%s: verify depth is %d\n", prog, verify_args.depth);
             break;
         case OPT_CERT:
             certfile = opt_arg();
@@ -258,8 +269,7 @@ int s_time_main(int argc, char **argv)
     if (!set_cert_stuff(ctx, certfile, keyfile))
         goto end;
 
-    if (!ctx_set_verify_locations(ctx, CAfile, noCAfile, CApath, noCApath,
-                                  CAstore, noCAstore)) {
+    if (!ctx_set_verify_locations(ctx, CAfile, noCAfile, CApath, noCApath, CAstore, noCAstore)) {
         ERR_print_errors(bio_err);
         goto end;
     }
@@ -280,8 +290,7 @@ int s_time_main(int argc, char **argv)
             goto end;
 
         if (www_path != NULL) {
-            buf_len = BIO_snprintf(buf, sizeof(buf), fmt_http_get_cmd,
-                                   www_path);
+            buf_len = BIO_snprintf(buf, sizeof(buf), fmt_http_get_cmd, www_path);
             if (buf_len <= 0 || SSL_write(scon, buf, buf_len) <= 0)
                 goto end;
             while ((i = SSL_read(scon, buf, sizeof(buf))) > 0)
@@ -310,19 +319,21 @@ int s_time_main(int argc, char **argv)
     }
     totalTime += tm_Time_F(STOP); /* Add the time for this iteration */
 
-    printf
-        ("\n\n%d connections in %.2fs; %.2f connections/user sec, bytes read %ld\n",
-         nConn, totalTime, ((double)nConn / totalTime), bytes_read);
-    printf
-        ("%d connections in %ld real seconds, %ld bytes read per connection\n",
-         nConn, (long)time(NULL) - finishtime + maxtime,
-         nConn > 0 ? bytes_read / nConn : 0l);
+    printf("\n\n%d connections in %.2fs; %.2f connections/user sec, bytes read %ld\n",
+           nConn,
+           totalTime,
+           ((double)nConn / totalTime),
+           bytes_read);
+    printf("%d connections in %ld real seconds, %ld bytes read per connection\n",
+           nConn,
+           (long)time(NULL) - finishtime + maxtime,
+           nConn > 0 ? bytes_read / nConn : 0l);
 
     /*
      * Now loop and time connections using the same session id over and over
      */
 
- next:
+next:
     if (!(perform & 2)) {
         ret = 0;
         goto end;
@@ -346,8 +357,8 @@ int s_time_main(int argc, char **argv)
     if ((fd = SSL_get_fd(scon)) >= 0)
         BIO_closesocket(fd);
 
-    nConn = 0;
-    totalTime = 0.0;
+    nConn      = 0;
+    totalTime  = 0.0;
 
     finishtime = (long)time(NULL) + maxtime;
 
@@ -363,8 +374,7 @@ int s_time_main(int argc, char **argv)
             goto end;
 
         if (www_path != NULL) {
-            buf_len = BIO_snprintf(buf, sizeof(buf), fmt_http_get_cmd,
-                                   www_path);
+            buf_len = BIO_snprintf(buf, sizeof(buf), fmt_http_get_cmd, www_path);
             if (buf_len <= 0 || SSL_write(scon, buf, buf_len) <= 0)
                 goto end;
             while ((i = SSL_read(scon, buf, sizeof(buf))) > 0)
@@ -391,19 +401,21 @@ int s_time_main(int argc, char **argv)
     }
     totalTime += tm_Time_F(STOP); /* Add the time for this iteration */
 
-    printf
-        ("\n\n%d connections in %.2fs; %.2f connections/user sec, bytes read %ld\n",
-         nConn, totalTime, ((double)nConn / totalTime), bytes_read);
+    printf("\n\n%d connections in %.2fs; %.2f connections/user sec, bytes read %ld\n",
+           nConn,
+           totalTime,
+           ((double)nConn / totalTime),
+           bytes_read);
     if (nConn > 0)
-        printf
-            ("%d connections in %ld real seconds, %ld bytes read per connection\n",
-             nConn, (long)time(NULL) - finishtime + maxtime, bytes_read / nConn);
+        printf("%d connections in %ld real seconds, %ld bytes read per connection\n",
+               nConn,
+               (long)time(NULL) - finishtime + maxtime,
+               bytes_read / nConn);
     else
-        printf("0 connections in %ld real seconds\n",
-               (long)time(NULL) - finishtime + maxtime);
+        printf("0 connections in %ld real seconds\n", (long)time(NULL) - finishtime + maxtime);
     ret = 0;
 
- end:
+end:
     SSL_free(scon);
     SSL_CTX_free(ctx);
     return ret;
@@ -416,13 +428,12 @@ static SSL *doConnection(SSL *scon, const char *host, SSL_CTX *ctx)
 {
     BIO *conn;
     SSL *serverCon;
-    int i;
+    int  i;
 
     if ((conn = BIO_new(BIO_s_connect())) == NULL)
         return NULL;
 
-    if (BIO_set_conn_hostname(conn, host) <= 0
-            || BIO_set_conn_mode(conn, BIO_SOCK_NODELAY) <= 0) {
+    if (BIO_set_conn_hostname(conn, host) <= 0 || BIO_set_conn_mode(conn, BIO_SOCK_NODELAY) <= 0) {
         BIO_free(conn);
         return NULL;
     }
@@ -445,8 +456,7 @@ static SSL *doConnection(SSL *scon, const char *host, SSL_CTX *ctx)
     if (i <= 0) {
         BIO_printf(bio_err, "ERROR\n");
         if (verify_args.error != X509_V_OK)
-            BIO_printf(bio_err, "verify error:%s\n",
-                       X509_verify_cert_error_string(verify_args.error));
+            BIO_printf(bio_err, "verify error:%s\n", X509_verify_cert_error_string(verify_args.error));
         else
             ERR_print_errors(bio_err);
         if (scon == NULL)
@@ -454,19 +464,18 @@ static SSL *doConnection(SSL *scon, const char *host, SSL_CTX *ctx)
         return NULL;
     }
 
-#if defined(SOL_SOCKET) && defined(SO_LINGER)
+# if defined(SOL_SOCKET) && defined(SO_LINGER)
     {
         struct linger no_linger;
-        int fd;
+        int           fd;
 
         no_linger.l_onoff  = 1;
         no_linger.l_linger = 0;
-        fd = SSL_get_fd(serverCon);
+        fd                 = SSL_get_fd(serverCon);
         if (fd >= 0)
-            (void)setsockopt(fd, SOL_SOCKET, SO_LINGER, (char*)&no_linger,
-                             sizeof(no_linger));
+            (void)setsockopt(fd, SOL_SOCKET, SO_LINGER, (char *)&no_linger, sizeof(no_linger));
     }
-#endif
+# endif
 
     return serverCon;
 }

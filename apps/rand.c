@@ -20,8 +20,12 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_OUT, OPT_ENGINE, OPT_BASE64, OPT_HEX,
-    OPT_R_ENUM, OPT_PROV_ENUM
+    OPT_OUT,
+    OPT_ENGINE,
+    OPT_BASE64,
+    OPT_HEX,
+    OPT_R_ENUM,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS rand_options[] = {
@@ -48,22 +52,22 @@ const OPTIONS rand_options[] = {
 
 int rand_main(int argc, char **argv)
 {
-    ENGINE *e = NULL;
-    BIO *out = NULL;
-    char *outfile = NULL, *prog;
+    ENGINE       *e       = NULL;
+    BIO          *out     = NULL;
+    char         *outfile = NULL, *prog;
     OPTION_CHOICE o;
-    int format = FORMAT_BINARY, r, i, ret = 1;
-    size_t buflen = (1 << 16); /* max rand chunk size is 2^16 bytes */
-    long num = -1;
-    uint64_t scaled_num = 0;
-    uint8_t *buf = NULL;
+    int           format = FORMAT_BINARY, r, i, ret = 1;
+    size_t        buflen     = (1 << 16); /* max rand chunk size is 2^16 bytes */
+    long          num        = -1;
+    uint64_t      scaled_num = 0;
+    uint8_t      *buf        = NULL;
 
-    prog = opt_init(argc, argv, rand_options);
+    prog                     = opt_init(argc, argv, rand_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -98,7 +102,7 @@ int rand_main(int argc, char **argv)
     argv = opt_rest();
     if (argc == 1) {
         int factoridx = 0;
-        int shift = 0;
+        int shift     = 0;
 
         /*
          * special case for requesting the max allowed
@@ -124,7 +128,7 @@ int rand_main(int argc, char **argv)
              */
             while (argv[0][factoridx]) {
                 if (!isdigit((int)(argv[0][factoridx]))) {
-                    switch(argv[0][factoridx]) {
+                    switch (argv[0][factoridx]) {
                     case 'K':
                         shift = 10;
                         break;
@@ -138,8 +142,7 @@ int rand_main(int argc, char **argv)
                         shift = 40;
                         break;
                     default:
-                        BIO_printf(bio_err, "Invalid size suffix %s\n",
-                                   &argv[0][factoridx]);
+                        BIO_printf(bio_err, "Invalid size suffix %s\n", &argv[0][factoridx]);
                         goto opthelp;
                     }
                     break;
@@ -148,8 +151,7 @@ int rand_main(int argc, char **argv)
             }
 
             if (shift != 0 && strlen(&argv[0][factoridx]) != 1) {
-                BIO_printf(bio_err, "Invalid size suffix %s\n",
-                           &argv[0][factoridx]);
+                BIO_printf(bio_err, "Invalid size suffix %s\n", &argv[0][factoridx]);
                 goto opthelp;
             }
         }
@@ -163,8 +165,7 @@ int rand_main(int argc, char **argv)
         if (shift != 0) {
             /* check for overflow */
             if ((UINT64_MAX >> shift) < (size_t)num) {
-                BIO_printf(bio_err, "%lu bytes with suffix overflows\n",
-                           num);
+                BIO_printf(bio_err, "%lu bytes with suffix overflows\n", num);
                 goto opthelp;
             }
             scaled_num = num << shift;
@@ -199,7 +200,7 @@ int rand_main(int argc, char **argv)
         int chunk;
 
         chunk = scaled_num > buflen ? (int)buflen : (int)scaled_num;
-        r = RAND_bytes_ex(app_get0_libctx(), buf, chunk, 0);
+        r     = RAND_bytes_ex(app_get0_libctx(), buf, chunk, 0);
         if (r <= 0)
             goto end;
         if (format != FORMAT_TEXT) {
@@ -219,7 +220,7 @@ int rand_main(int argc, char **argv)
 
     ret = 0;
 
- end:
+end:
     if (ret != 0)
         ERR_print_errors(bio_err);
     OPENSSL_free(buf);

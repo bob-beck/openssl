@@ -31,30 +31,27 @@
 /* Got the value MIT uses via brute force :-) 2/10/90 eay */
 #define NOISE   ((DES_LONG)83653421L)
 
-DES_LONG DES_quad_cksum(const unsigned char *input, DES_cblock output[],
-                        long length, int out_count, DES_cblock *seed)
+DES_LONG DES_quad_cksum(const unsigned char *input, DES_cblock output[], long length, int out_count, DES_cblock *seed)
 {
-    DES_LONG z0, z1, t0, t1;
-    int i;
-    long l;
+    DES_LONG             z0, z1, t0, t1;
+    int                  i;
+    long                 l;
     const unsigned char *cp;
-    DES_LONG *lp;
+    DES_LONG            *lp;
 
     if (out_count < 1)
         out_count = 1;
     lp = (DES_LONG *)&(output[0])[0];
 
-    z0 = Q_B0((*seed)[0]) | Q_B1((*seed)[1]) | Q_B2((*seed)[2]) |
-        Q_B3((*seed)[3]);
-    z1 = Q_B0((*seed)[4]) | Q_B1((*seed)[5]) | Q_B2((*seed)[6]) |
-        Q_B3((*seed)[7]);
+    z0 = Q_B0((*seed)[0]) | Q_B1((*seed)[1]) | Q_B2((*seed)[2]) | Q_B3((*seed)[3]);
+    z1 = Q_B0((*seed)[4]) | Q_B1((*seed)[5]) | Q_B2((*seed)[6]) | Q_B3((*seed)[7]);
 
     for (i = 0; ((i < 4) && (i < out_count)); i++) {
         cp = input;
-        l = length;
+        l  = length;
         while (l > 0) {
             if (l > 1) {
-                t0 = (DES_LONG)(*(cp++));
+                t0  = (DES_LONG)(*(cp++));
                 t0 |= (DES_LONG)Q_B1(*(cp++));
                 l--;
             } else
@@ -63,12 +60,10 @@ DES_LONG DES_quad_cksum(const unsigned char *input, DES_cblock output[],
             /* add */
             t0 += z0;
             t0 &= 0xffffffffL;
-            t1 = z1;
+            t1  = z1;
             /* square, well sort of square */
-            z0 = ((((t0 * t0) & 0xffffffffL) + ((t1 * t1) & 0xffffffffL))
-                  & 0xffffffffL) % 0x7fffffffL;
-            z1 = ((t0 * ((t1 + NOISE) & 0xffffffffL)) & 0xffffffffL) %
-                0x7fffffffL;
+            z0  = ((((t0 * t0) & 0xffffffffL) + ((t1 * t1) & 0xffffffffL)) & 0xffffffffL) % 0x7fffffffL;
+            z1  = ((t0 * ((t1 + NOISE) & 0xffffffffL)) & 0xffffffffL) % 0x7fffffffL;
         }
         if (lp != NULL) {
             /*

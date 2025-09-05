@@ -20,9 +20,20 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_INFORM, OPT_IN, OPT_OUT, OPT_INDENT, OPT_NOOUT,
-    OPT_OID, OPT_OFFSET, OPT_LENGTH, OPT_DUMP, OPT_DLIMIT,
-    OPT_STRPARSE, OPT_GENSTR, OPT_GENCONF, OPT_STRICTPEM,
+    OPT_INFORM,
+    OPT_IN,
+    OPT_OUT,
+    OPT_INDENT,
+    OPT_NOOUT,
+    OPT_OID,
+    OPT_OFFSET,
+    OPT_LENGTH,
+    OPT_DUMP,
+    OPT_DLIMIT,
+    OPT_STRPARSE,
+    OPT_GENSTR,
+    OPT_GENCONF,
+    OPT_STRICTPEM,
     OPT_ITEM
 } OPTION_CHOICE;
 
@@ -38,46 +49,43 @@ const OPTIONS asn1parse_options[] = {
     {"noout", OPT_NOOUT, 0, "do not produce any output"},
     {"offset", OPT_OFFSET, 'p', "offset into file"},
     {"length", OPT_LENGTH, 'p', "length of section in file"},
-    {"strparse", OPT_STRPARSE, 'p',
-     "offset; a series of these can be used to 'dig'"},
+    {"strparse", OPT_STRPARSE, 'p', "offset; a series of these can be used to 'dig'"},
     {OPT_MORE_STR, 0, 0, "into multiple ASN1 blob wrappings"},
     {"genstr", OPT_GENSTR, 's', "string to generate ASN1 structure from"},
     {"genconf", OPT_GENCONF, 's', "file to generate ASN1 structure from"},
-    {"strictpem", OPT_STRICTPEM, 0,
-     "equivalent to '-inform pem' (obsolete)"},
+    {"strictpem", OPT_STRICTPEM, 0, "equivalent to '-inform pem' (obsolete)"},
     {"item", OPT_ITEM, 's', "item to parse and print"},
     {OPT_MORE_STR, 0, 0, "(-inform  will be ignored)"},
 
     OPT_SECTION("Formatting"),
     {"i", OPT_INDENT, 0, "indents the output"},
     {"dump", OPT_DUMP, 0, "unknown data in hex form"},
-    {"dlimit", OPT_DLIMIT, 'p',
-     "dump the first arg bytes of unknown data in hex form"},
+    {"dlimit", OPT_DLIMIT, 'p', "dump the first arg bytes of unknown data in hex form"},
     {NULL}
 };
 
 static int do_generate(char *genstr, const char *genconf, BUF_MEM *buf);
 
-int asn1parse_main(int argc, char **argv)
+int        asn1parse_main(int argc, char **argv)
 {
-    ASN1_TYPE *at = NULL;
-    BIO *in = NULL, *b64 = NULL, *derout = NULL;
-    BUF_MEM *buf = NULL;
-    STACK_OF(OPENSSL_STRING) *osk = NULL;
-    char *genstr = NULL, *genconf = NULL;
-    char *infile = NULL, *oidfile = NULL, *derfile = NULL;
-    unsigned char *str = NULL;
-    char *name = NULL, *header = NULL, *prog;
-    const unsigned char *ctmpbuf;
-    int indent = 0, noout = 0, dump = 0, informat = FORMAT_PEM;
-    int offset = 0, ret = 1, i, j;
-    long num, tmplen;
-    unsigned char *tmpbuf;
-    unsigned int length = 0;
-    OPTION_CHOICE o;
-    const ASN1_ITEM *it = NULL;
+    ASN1_TYPE                *at = NULL;
+    BIO                      *in = NULL, *b64 = NULL, *derout = NULL;
+    BUF_MEM                  *buf    = NULL;
+    STACK_OF(OPENSSL_STRING) *osk    = NULL;
+    char                     *genstr = NULL, *genconf = NULL;
+    char                     *infile = NULL, *oidfile = NULL, *derfile = NULL;
+    unsigned char            *str  = NULL;
+    char                     *name = NULL, *header = NULL, *prog;
+    const unsigned char      *ctmpbuf;
+    int                       indent = 0, noout = 0, dump = 0, informat = FORMAT_PEM;
+    int                       offset = 0, ret = 1, i, j;
+    long                      num, tmplen;
+    unsigned char            *tmpbuf;
+    unsigned int              length = 0;
+    OPTION_CHOICE             o;
+    const ASN1_ITEM          *it = NULL;
 
-    prog = opt_init(argc, argv, asn1parse_options);
+    prog                         = opt_init(argc, argv, asn1parse_options);
 
     if ((osk = sk_OPENSSL_STRING_new_null()) == NULL) {
         BIO_printf(bio_err, "%s: Memory allocation failure\n", prog);
@@ -88,7 +96,7 @@ int asn1parse_main(int argc, char **argv)
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -185,11 +193,11 @@ int asn1parse_main(int argc, char **argv)
             ERR_print_errors(bio_err);
             goto end;
         }
-        buf->data = (char *)str;
+        buf->data   = (char *)str;
         buf->length = buf->max = num;
     } else {
         if (!BUF_MEM_grow(buf, BUFSIZ * 8))
-            goto end;           /* Pre-allocate :-) */
+            goto end; /* Pre-allocate :-) */
 
         if (genstr || genconf) {
             num = do_generate(genstr, genconf, buf);
@@ -198,7 +206,6 @@ int asn1parse_main(int argc, char **argv)
                 goto end;
             }
         } else {
-
             if (informat == FORMAT_BASE64) {
                 BIO *tmp;
 
@@ -206,7 +213,7 @@ int asn1parse_main(int argc, char **argv)
                     goto end;
                 BIO_push(b64, in);
                 tmp = in;
-                in = b64;
+                in  = b64;
                 b64 = tmp;
             }
 
@@ -224,7 +231,6 @@ int asn1parse_main(int argc, char **argv)
             }
         }
         str = (unsigned char *)buf->data;
-
     }
 
     /* If any structs to parse go through in sequence */
@@ -234,18 +240,17 @@ int asn1parse_main(int argc, char **argv)
         tmplen = num;
         for (i = 0; i < sk_OPENSSL_STRING_num(osk); i++) {
             ASN1_TYPE *atmp;
-            int typ;
+            int        typ;
             j = strtol(sk_OPENSSL_STRING_value(osk, i), NULL, 0);
             if (j <= 0 || j >= tmplen) {
-                BIO_printf(bio_err, "'%s' is out of range\n",
-                           sk_OPENSSL_STRING_value(osk, i));
+                BIO_printf(bio_err, "'%s' is out of range\n", sk_OPENSSL_STRING_value(osk, i));
                 continue;
             }
-            tmpbuf += j;
-            tmplen -= j;
-            atmp = at;
-            ctmpbuf = tmpbuf;
-            at = d2i_ASN1_TYPE(NULL, &ctmpbuf, tmplen);
+            tmpbuf  += j;
+            tmplen  -= j;
+            atmp     = at;
+            ctmpbuf  = tmpbuf;
+            at       = d2i_ASN1_TYPE(NULL, &ctmpbuf, tmplen);
             ASN1_TYPE_free(atmp);
             if (!at) {
                 BIO_printf(bio_err, "Error parsing structure\n");
@@ -253,9 +258,7 @@ int asn1parse_main(int argc, char **argv)
                 goto end;
             }
             typ = ASN1_TYPE_get(at);
-            if ((typ == V_ASN1_OBJECT)
-                || (typ == V_ASN1_BOOLEAN)
-                || (typ == V_ASN1_NULL)) {
+            if ((typ == V_ASN1_OBJECT) || (typ == V_ASN1_BOOLEAN) || (typ == V_ASN1_NULL)) {
                 BIO_printf(bio_err, "Can't parse %s type\n", ASN1_tag2str(typ));
                 ERR_print_errors(bio_err);
                 goto end;
@@ -304,7 +307,7 @@ int asn1parse_main(int argc, char **argv)
         }
     }
     ret = 0;
- end:
+end:
     BIO_free(derout);
     BIO_free(in);
     BIO_free(b64);
@@ -320,10 +323,10 @@ int asn1parse_main(int argc, char **argv)
 
 static int do_generate(char *genstr, const char *genconf, BUF_MEM *buf)
 {
-    CONF *cnf = NULL;
-    int len;
+    CONF          *cnf = NULL;
+    int            len;
     unsigned char *p;
-    ASN1_TYPE *atyp = NULL;
+    ASN1_TYPE     *atyp = NULL;
 
     if (genconf != NULL) {
         if ((cnf = app_load_config(genconf)) == NULL)
@@ -358,7 +361,7 @@ static int do_generate(char *genstr, const char *genconf, BUF_MEM *buf)
     ASN1_TYPE_free(atyp);
     return len;
 
- err:
+err:
     NCONF_free(cnf);
     ASN1_TYPE_free(atyp);
     return -1;

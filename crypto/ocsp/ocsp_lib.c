@@ -19,35 +19,34 @@
 
 /* Convert a certificate and its issuer to an OCSP_CERTID */
 
-OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
-                             const X509 *issuer)
+OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject, const X509 *issuer)
 {
-    const X509_NAME *iname;
+    const X509_NAME    *iname;
     const ASN1_INTEGER *serial;
-    ASN1_BIT_STRING *ikey;
+    ASN1_BIT_STRING    *ikey;
 
     if (!dgst)
         dgst = EVP_sha1();
     if (subject) {
-        iname = X509_get_issuer_name(subject);
+        iname  = X509_get_issuer_name(subject);
         serial = X509_get0_serialNumber(subject);
     } else {
-        iname = X509_get_subject_name(issuer);
+        iname  = X509_get_subject_name(issuer);
         serial = NULL;
     }
     ikey = X509_get0_pubkey_bitstr(issuer);
     return OCSP_cert_id_new(dgst, iname, ikey, serial);
 }
 
-OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
-                              const X509_NAME *issuerName,
+OCSP_CERTID *OCSP_cert_id_new(const EVP_MD          *dgst,
+                              const X509_NAME       *issuerName,
                               const ASN1_BIT_STRING *issuerKey,
-                              const ASN1_INTEGER *serialNumber)
+                              const ASN1_INTEGER    *serialNumber)
 {
-    int nid;
-    unsigned int i;
-    X509_ALGOR *alg;
-    OCSP_CERTID *cid = NULL;
+    int           nid;
+    unsigned int  i;
+    X509_ALGOR   *alg;
+    OCSP_CERTID  *cid = NULL;
     unsigned char md[EVP_MAX_MD_SIZE];
 
     if ((cid = OCSP_CERTID_new()) == NULL)
@@ -82,9 +81,9 @@ OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
             goto err;
     }
     return cid;
- digerr:
+digerr:
     ERR_raise(ERR_LIB_OCSP, OCSP_R_DIGEST_ERR);
- err:
+err:
     OCSP_CERTID_free(cid);
     return NULL;
 }

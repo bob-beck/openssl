@@ -41,7 +41,7 @@
  *    the number of pointers in a tree node;
  *    a bit mask to quickly extract an index and
  *    the maximum depth of the tree structure.
-  */
+ */
 #define SA_BLOCK_MAX            (1 << OPENSSL_SA_BLOCK_BITS)
 #define SA_BLOCK_MASK           (SA_BLOCK_MAX - 1)
 #define SA_BLOCK_MAX_LEVELS     (((int)sizeof(ossl_uintmax_t) * 8 \
@@ -49,10 +49,10 @@
                                  / OPENSSL_SA_BLOCK_BITS)
 
 struct sparse_array_st {
-    int levels;
+    int            levels;
     ossl_uintmax_t top;
-    size_t nelem;
-    void **nodes;
+    size_t         nelem;
+    void         **nodes;
 };
 
 OPENSSL_SA *ossl_sa_new(void)
@@ -62,19 +62,19 @@ OPENSSL_SA *ossl_sa_new(void)
     return res;
 }
 
-static void sa_doall(const OPENSSL_SA *sa, void (*node)(void **),
-                     void (*leaf)(ossl_uintmax_t, void *, void *), void *arg)
+static void
+sa_doall(const OPENSSL_SA *sa, void (*node)(void **), void (*leaf)(ossl_uintmax_t, void *, void *), void *arg)
 {
-    int i[SA_BLOCK_MAX_LEVELS];
-    void *nodes[SA_BLOCK_MAX_LEVELS];
+    int            i[SA_BLOCK_MAX_LEVELS];
+    void          *nodes[SA_BLOCK_MAX_LEVELS];
     ossl_uintmax_t idx = 0;
-    int l = 0;
+    int            l   = 0;
 
-    i[0] = 0;
-    nodes[0] = sa->nodes;
+    i[0]               = 0;
+    nodes[0]           = sa->nodes;
     while (l >= 0) {
-        const int n = i[l];
-        void ** const p = nodes[l];
+        const int    n = i[l];
+        void **const p = nodes[l];
 
         if (n >= SA_BLOCK_MAX) {
             if (p != NULL && node != NULL)
@@ -86,9 +86,9 @@ static void sa_doall(const OPENSSL_SA *sa, void (*node)(void **),
             if (p != NULL && p[n] != NULL) {
                 idx = (idx & ~SA_BLOCK_MASK) | n;
                 if (l < sa->levels - 1) {
-                    i[++l] = 0;
-                    nodes[l] = p[n];
-                    idx <<= OPENSSL_SA_BLOCK_BITS;
+                    i[++l]     = 0;
+                    nodes[l]   = p[n];
+                    idx      <<= OPENSSL_SA_BLOCK_BITS;
                 } else if (leaf != NULL) {
                     (*leaf)(idx, p[n], arg);
                 }
@@ -140,9 +140,7 @@ void ossl_sa_doall(const OPENSSL_SA *sa, void (*leaf)(ossl_uintmax_t, void *))
         sa_doall(sa, NULL, &trampoline, &tramp);
 }
 
-void ossl_sa_doall_arg(const OPENSSL_SA *sa,
-                          void (*leaf)(ossl_uintmax_t, void *, void *),
-                          void *arg)
+void ossl_sa_doall_arg(const OPENSSL_SA *sa, void (*leaf)(ossl_uintmax_t, void *, void *), void *arg)
 {
     if (sa != NULL)
         sa_doall(sa, NULL, leaf, arg);
@@ -155,7 +153,7 @@ size_t ossl_sa_num(const OPENSSL_SA *sa)
 
 void *ossl_sa_get(const OPENSSL_SA *sa, ossl_uintmax_t n)
 {
-    int level;
+    int    level;
     void **p, *r = NULL;
 
     if (sa == NULL || sa->nelem == 0)
@@ -164,8 +162,7 @@ void *ossl_sa_get(const OPENSSL_SA *sa, ossl_uintmax_t n)
     if (n <= sa->top) {
         p = sa->nodes;
         for (level = sa->levels - 1; p != NULL && level > 0; level--)
-            p = (void **)p[(n >> (OPENSSL_SA_BLOCK_BITS * level))
-                           & SA_BLOCK_MASK];
+            p = (void **)p[(n >> (OPENSSL_SA_BLOCK_BITS * level)) & SA_BLOCK_MASK];
         r = p == NULL ? NULL : p[n & SA_BLOCK_MASK];
     }
     return r;
@@ -178,9 +175,9 @@ static ossl_inline void **alloc_node(void)
 
 int ossl_sa_set(OPENSSL_SA *sa, ossl_uintmax_t posn, void *val)
 {
-    int i, level = 1;
+    int            i, level = 1;
     ossl_uintmax_t n = posn;
-    void **p;
+    void         **p;
 
     if (sa == NULL)
         return 0;
@@ -189,11 +186,11 @@ int ossl_sa_set(OPENSSL_SA *sa, ossl_uintmax_t posn, void *val)
         if ((n >>= OPENSSL_SA_BLOCK_BITS) == 0)
             break;
 
-    for (;sa->levels < level; sa->levels++) {
+    for (; sa->levels < level; sa->levels++) {
         p = alloc_node();
         if (p == NULL)
             return 0;
-        p[0] = sa->nodes;
+        p[0]      = sa->nodes;
         sa->nodes = p;
     }
     if (sa->top < posn)

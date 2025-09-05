@@ -8,15 +8,15 @@
  */
 
 #ifndef OSSL_INTERNAL_PRIORITY_QUEUE_H
-# define OSSL_INTERNAL_PRIORITY_QUEUE_H
-# pragma once
+#define OSSL_INTERNAL_PRIORITY_QUEUE_H
+#pragma once
 
-# include <stdlib.h>
-# include <openssl/e_os2.h>
+#include <stdlib.h>
+#include <openssl/e_os2.h>
 
-# define PRIORITY_QUEUE_OF(type) OSSL_PRIORITY_QUEUE_ ## type
+#define PRIORITY_QUEUE_OF(type) OSSL_PRIORITY_QUEUE_ ## type
 
-# define DEFINE_PRIORITY_QUEUE_OF_INTERNAL(type, ctype)                     \
+#define DEFINE_PRIORITY_QUEUE_OF_INTERNAL(type, ctype)                     \
     typedef struct ossl_priority_queue_st_ ## type PRIORITY_QUEUE_OF(type); \
     static ossl_unused ossl_inline PRIORITY_QUEUE_OF(type) *                \
     ossl_pqueue_##type##_new(int (*compare)(const ctype *, const ctype *))  \
@@ -69,20 +69,20 @@
     }                                                                       \
     struct ossl_priority_queue_st_ ## type
 
-# define DEFINE_PRIORITY_QUEUE_OF(type) \
+#define DEFINE_PRIORITY_QUEUE_OF(type) \
     DEFINE_PRIORITY_QUEUE_OF_INTERNAL(type, type)
 
 typedef struct ossl_pqueue_st OSSL_PQUEUE;
 
-OSSL_PQUEUE *ossl_pqueue_new(int (*compare)(const void *, const void *));
-void ossl_pqueue_free(OSSL_PQUEUE *pq);
-void ossl_pqueue_pop_free(OSSL_PQUEUE *pq, void (*freefunc)(void *));
-int ossl_pqueue_reserve(OSSL_PQUEUE *pq, size_t n);
+OSSL_PQUEUE                  *ossl_pqueue_new(int (*compare)(const void *, const void *));
+void                          ossl_pqueue_free(OSSL_PQUEUE *pq);
+void                          ossl_pqueue_pop_free(OSSL_PQUEUE *pq, void (*freefunc)(void *));
+int                           ossl_pqueue_reserve(OSSL_PQUEUE *pq, size_t n);
 
-size_t ossl_pqueue_num(const OSSL_PQUEUE *pq);
-int ossl_pqueue_push(OSSL_PQUEUE *pq, void *data, size_t *elem);
-void *ossl_pqueue_peek(const OSSL_PQUEUE *pq);
-void *ossl_pqueue_pop(OSSL_PQUEUE *pq);
-void *ossl_pqueue_remove(OSSL_PQUEUE *pq, size_t elem);
+size_t                        ossl_pqueue_num(const OSSL_PQUEUE *pq);
+int                           ossl_pqueue_push(OSSL_PQUEUE *pq, void *data, size_t *elem);
+void                         *ossl_pqueue_peek(const OSSL_PQUEUE *pq);
+void                         *ossl_pqueue_pop(OSSL_PQUEUE *pq);
+void                         *ossl_pqueue_remove(OSSL_PQUEUE *pq, size_t elem);
 
 #endif

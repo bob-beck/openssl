@@ -26,7 +26,7 @@
 #  define alloca _alloca
 # endif
 
-# if defined(_WIN32_WINNT) && _WIN32_WINNT>=0x0333
+# if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0333
 #  ifdef OPENSSL_SYS_WIN_CORE
 
 int OPENSSL_isservice(void)
@@ -38,18 +38,17 @@ int OPENSSL_isservice(void)
 int OPENSSL_isservice(void)
 {
     HWINSTA h;
-    DWORD len;
-    WCHAR *name;
+    DWORD   len;
+    WCHAR  *name;
+
     static union {
-        void *p;
+        void   *p;
         FARPROC f;
-    } _OPENSSL_isservice = {
-        NULL
-    };
+    } _OPENSSL_isservice = {NULL};
 
     if (_OPENSSL_isservice.p == NULL) {
-        HANDLE mod = GetModuleHandle(NULL);
-        FARPROC f = NULL;
+        HANDLE  mod = GetModuleHandle(NULL);
+        FARPROC f   = NULL;
 
         if (mod != NULL)
             f = GetProcAddress(mod, "_OPENSSL_isservice");
@@ -66,18 +65,17 @@ int OPENSSL_isservice(void)
     if (h == NULL)
         return -1;
 
-    if (GetUserObjectInformationW(h, UOI_NAME, NULL, 0, &len) ||
-        GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+    if (GetUserObjectInformationW(h, UOI_NAME, NULL, 0, &len) || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
         return -1;
 
     if (len > 512)
-        return -1;              /* paranoia */
-    len++, len &= ~1;           /* paranoia */
+        return -1;    /* paranoia */
+    len++, len &= ~1; /* paranoia */
     name = (WCHAR *)alloca(len + sizeof(WCHAR));
     if (!GetUserObjectInformationW(h, UOI_NAME, name, len, &len))
         return -1;
 
-    len++, len &= ~1;           /* paranoia */
+    len++, len &= ~1;                  /* paranoia */
     name[len / sizeof(WCHAR)] = L'\0'; /* paranoia */
 #   if 1
     /*
@@ -105,8 +103,8 @@ int OPENSSL_isservice(void)
 
 void OPENSSL_showfatal(const char *fmta, ...)
 {
-    va_list ap;
-    TCHAR buf[256];
+    va_list      ap;
+    TCHAR        buf[256];
     const TCHAR *fmt;
     /*
      * First check if it's a console application, in which case the
@@ -117,15 +115,14 @@ void OPENSSL_showfatal(const char *fmta, ...)
 # ifdef STD_ERROR_HANDLE
     HANDLE h;
 
-    if ((h = GetStdHandle(STD_ERROR_HANDLE)) != NULL &&
-        GetFileType(h) != FILE_TYPE_UNKNOWN) {
+    if ((h = GetStdHandle(STD_ERROR_HANDLE)) != NULL && GetFileType(h) != FILE_TYPE_UNKNOWN) {
         /* must be console application */
-        int len;
+        int   len;
         DWORD out;
 
         va_start(ap, fmta);
         len = _vsnprintf((char *)buf, sizeof(buf), fmta, ap);
-        WriteFile(h, buf, len < 0 ? sizeof(buf) : (DWORD) len, &out, NULL);
+        WriteFile(h, buf, len < 0 ? sizeof(buf) : (DWORD)len, &out, NULL);
         va_end(ap);
         return;
     }
@@ -135,7 +132,7 @@ void OPENSSL_showfatal(const char *fmta, ...)
         fmt = (const TCHAR *)fmta;
     else
         do {
-            int keepgoing;
+            int    keepgoing;
             size_t len_0 = strlen(fmta) + 1, i;
             WCHAR *fmtw;
 
@@ -191,17 +188,17 @@ void OPENSSL_showfatal(const char *fmta, ...)
     buf[OSSL_NELEM(buf) - 1] = _T('\0');
     va_end(ap);
 
-# if defined(_WIN32_WINNT) && _WIN32_WINNT>=0x0333
+# if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0333
 #  ifdef OPENSSL_SYS_WIN_CORE
     /* ONECORE is always NONGUI and NT >= 0x0601 */
 #   if !defined(NDEBUG)
-        /*
-        * We are in a situation where we tried to report a critical
-        * error and this failed for some reason. As a last resort,
-        * in debug builds, send output to the debugger or any other
-        * tool like DebugView which can monitor the output.
-        */
-        OutputDebugString(buf);
+    /*
+     * We are in a situation where we tried to report a critical
+     * error and this failed for some reason. As a last resort,
+     * in debug builds, send output to the debugger or any other
+     * tool like DebugView which can monitor the output.
+     */
+    OutputDebugString(buf);
 #   endif
 #  else
     /* this -------------v--- guards NT-specific calls */
@@ -211,8 +208,7 @@ void OPENSSL_showfatal(const char *fmta, ...)
         if (hEventLog != NULL) {
             const TCHAR *pmsg = buf;
 
-            if (!ReportEvent(hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL,
-                             1, 0, &pmsg, NULL)) {
+            if (!ReportEvent(hEventLog, EVENTLOG_ERROR_TYPE, 0, 0, NULL, 1, 0, &pmsg, NULL)) {
 #   if !defined(NDEBUG)
                 /*
                  * We are in a situation where we tried to report a critical
@@ -237,13 +233,13 @@ void OPENSSL_showfatal(const char *fmta, ...)
 #else
 void OPENSSL_showfatal(const char *fmta, ...)
 {
-#ifndef OPENSSL_NO_STDIO
+# ifndef OPENSSL_NO_STDIO
     va_list ap;
 
     va_start(ap, fmta);
     vfprintf(stderr, fmta, ap);
     va_end(ap);
-#endif
+# endif
 }
 
 int OPENSSL_isservice(void)
@@ -254,8 +250,7 @@ int OPENSSL_isservice(void)
 
 void OPENSSL_die(const char *message, const char *file, int line)
 {
-    OPENSSL_showfatal("%s:%d: OpenSSL internal error: %s\n",
-                      file, line, message);
+    OPENSSL_showfatal("%s:%d: OpenSSL internal error: %s\n", file, line, message);
 #if !defined(_WIN32) || defined(OPENSSL_SYS_UEFI)
     abort();
 #else
@@ -278,5 +273,8 @@ void OPENSSL_die(const char *message, const char *file, int line)
 # define OPENSSL_VPROC_STRING_(x)    x##_CRYPTO
 # define OPENSSL_VPROC_STRING(x)     OPENSSL_VPROC_STRING_(x)
 # define OPENSSL_VPROC_FUNC          OPENSSL_VPROC_STRING(OPENSSL_VPROC)
-void OPENSSL_VPROC_FUNC(void) {}
+
+void OPENSSL_VPROC_FUNC(void)
+{
+}
 #endif /* __TANDEM */

@@ -14,18 +14,22 @@
 #include "../record_local.h"
 #include "recmethod_local.h"
 
-static int ssl3_set_crypto_state(OSSL_RECORD_LAYER *rl, int level,
-                                 unsigned char *key, size_t keylen,
-                                 unsigned char *iv, size_t ivlen,
-                                 unsigned char *mackey, size_t mackeylen,
-                                 const EVP_CIPHER *ciph,
-                                 size_t taglen,
-                                 int mactype,
-                                 const EVP_MD *md,
-                                 COMP_METHOD *comp)
+static int ssl3_set_crypto_state(OSSL_RECORD_LAYER *rl,
+                                 int                level,
+                                 unsigned char     *key,
+                                 size_t             keylen,
+                                 unsigned char     *iv,
+                                 size_t             ivlen,
+                                 unsigned char     *mackey,
+                                 size_t             mackeylen,
+                                 const EVP_CIPHER  *ciph,
+                                 size_t             taglen,
+                                 int                mactype,
+                                 const EVP_MD      *md,
+                                 COMP_METHOD       *comp)
 {
     EVP_CIPHER_CTX *ciph_ctx;
-    int enc = (rl->direction == OSSL_RECORD_DIRECTION_WRITE) ? 1 : 0;
+    int             enc = (rl->direction == OSSL_RECORD_DIRECTION_WRITE) ? 1 : 0;
 
     if (md == NULL) {
         ERR_raise(ERR_LIB_SSL, ERR_R_INTERNAL_ERROR);
@@ -36,7 +40,7 @@ static int ssl3_set_crypto_state(OSSL_RECORD_LAYER *rl, int level,
         ERR_raise(ERR_LIB_SSL, ERR_R_INTERNAL_ERROR);
         return OSSL_RECORD_RETURN_FATAL;
     }
-    ciph_ctx = rl->enc_ctx;
+    ciph_ctx   = rl->enc_ctx;
 
     rl->md_ctx = EVP_MD_CTX_new();
     if (rl->md_ctx == NULL) {
@@ -69,7 +73,7 @@ static int ssl3_set_crypto_state(OSSL_RECORD_LAYER *rl, int level,
      * different to that in ciph if we have an ENGINE in use
      */
     if (EVP_CIPHER_get0_provider(EVP_CIPHER_CTX_get0_cipher(ciph_ctx)) != NULL
-            && !ossl_set_tls_provider_parameters(rl, ciph_ctx, ciph, md)) {
+        && !ossl_set_tls_provider_parameters(rl, ciph_ctx, ciph, md)) {
         /* ERR_raise already called */
         return OSSL_RECORD_RETURN_FATAL;
     }
@@ -92,16 +96,15 @@ static int ssl3_set_crypto_state(OSSL_RECORD_LAYER *rl, int level,
  *    0: if the record is publicly invalid, or an internal error
  *    1: Success or Mac-then-encrypt decryption failed (MAC will be randomised)
  */
-static int ssl3_cipher(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *inrecs,
-                       size_t n_recs, int sending, SSL_MAC_BUF *mac,
-                       size_t macsize)
+static int
+ssl3_cipher(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *inrecs, size_t n_recs, int sending, SSL_MAC_BUF *mac, size_t macsize)
 {
-    TLS_RL_RECORD *rec;
-    EVP_CIPHER_CTX *ds;
-    size_t l, i;
-    size_t bs;
+    TLS_RL_RECORD    *rec;
+    EVP_CIPHER_CTX   *ds;
+    size_t            l, i;
+    size_t            bs;
     const EVP_CIPHER *enc;
-    int provided;
+    int               provided;
 
     rec = inrecs;
     /*
@@ -116,8 +119,8 @@ static int ssl3_cipher(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *inrecs,
 
     provided = (EVP_CIPHER_get0_provider(enc) != NULL);
 
-    l = rec->length;
-    bs = EVP_CIPHER_CTX_get_block_size(ds);
+    l        = rec->length;
+    bs       = EVP_CIPHER_CTX_get_block_size(ds);
 
     if (bs == 0)
         return 0;
@@ -129,7 +132,7 @@ static int ssl3_cipher(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *inrecs,
          * We only do this for legacy ciphers. Provided ciphers add the
          * padding on the provider side.
          */
-        i = bs - (l % bs);
+        i  = bs - (l % bs);
 
         /* we need to add 'i-1' padding bytes */
         l += i;
@@ -138,8 +141,8 @@ static int ssl3_cipher(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *inrecs,
          * padding length.
          */
         memset(&rec->input[rec->length], 0, i);
-        rec->length += i;
-        rec->input[l - 1] = (unsigned char)(i - 1);
+        rec->length       += i;
+        rec->input[l - 1]  = (unsigned char)(i - 1);
     }
 
     if (!sending) {
@@ -153,8 +156,7 @@ static int ssl3_cipher(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *inrecs,
     if (provided) {
         int outlen;
 
-        if (!EVP_CipherUpdate(ds, rec->data, &outlen, rec->input,
-                              (unsigned int)l))
+        if (!EVP_CipherUpdate(ds, rec->data, &outlen, rec->input, (unsigned int)l))
             return 0;
         rec->length = outlen;
 
@@ -165,10 +167,8 @@ static int ssl3_cipher(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *inrecs,
             /* Get the MAC */
             mac->alloced = 0;
 
-            *p++ = OSSL_PARAM_construct_octet_ptr(OSSL_CIPHER_PARAM_TLS_MAC,
-                                                  (void **)&mac->mac,
-                                                  macsize);
-            *p = OSSL_PARAM_construct_end();
+            *p++         = OSSL_PARAM_construct_octet_ptr(OSSL_CIPHER_PARAM_TLS_MAC, (void **)&mac->mac, macsize);
+            *p           = OSSL_PARAM_construct_end();
 
             if (!EVP_CIPHER_CTX_get_params(ds, params)) {
                 /* Shouldn't normally happen */
@@ -185,57 +185,47 @@ static int ssl3_cipher(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *inrecs,
 
         if (!sending)
             return ssl3_cbc_remove_padding_and_mac(&rec->length,
-                                        rec->orig_len,
-                                        rec->data,
-                                        (mac != NULL) ? &mac->mac : NULL,
-                                        (mac != NULL) ? &mac->alloced : NULL,
-                                        bs,
-                                        macsize,
-                                        rl->libctx);
+                                                   rec->orig_len,
+                                                   rec->data,
+                                                   (mac != NULL) ? &mac->mac : NULL,
+                                                   (mac != NULL) ? &mac->alloced : NULL,
+                                                   bs,
+                                                   macsize,
+                                                   rl->libctx);
     }
 
     return 1;
 }
 
-static const unsigned char ssl3_pad_1[48] = {
-    0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36,
-    0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36,
-    0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36,
-    0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36,
-    0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36,
-    0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36
-};
+static const unsigned char ssl3_pad_1[48] = {0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36,
+                                             0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36,
+                                             0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36,
+                                             0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36, 0x36};
 
-static const unsigned char ssl3_pad_2[48] = {
-    0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c,
-    0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c,
-    0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c,
-    0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c,
-    0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c,
-    0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c
-};
+static const unsigned char ssl3_pad_2[48] = {0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c,
+                                             0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c,
+                                             0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c,
+                                             0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c, 0x5c};
 
-static int ssl3_mac(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *rec, unsigned char *md,
-                    int sending)
+static int                 ssl3_mac(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *rec, unsigned char *md, int sending)
 {
-    unsigned char *mac_sec, *seq = rl->sequence;
+    unsigned char    *mac_sec, *seq = rl->sequence;
     const EVP_MD_CTX *hash;
-    unsigned char *p, rec_char;
-    size_t md_size;
-    size_t npad;
-    int t;
+    unsigned char    *p, rec_char;
+    size_t            md_size;
+    size_t            npad;
+    int               t;
 
     mac_sec = &(rl->mac_secret[0]);
-    hash = rl->md_ctx;
+    hash    = rl->md_ctx;
 
-    t = EVP_MD_CTX_get_size(hash);
+    t       = EVP_MD_CTX_get_size(hash);
     if (t <= 0)
         return 0;
     md_size = t;
-    npad = (48 / md_size) * md_size;
+    npad    = (48 / md_size) * md_size;
 
-    if (!sending
-        && EVP_CIPHER_CTX_get_mode(rl->enc_ctx) == EVP_CIPH_CBC_MODE
+    if (!sending && EVP_CIPHER_CTX_get_mode(rl->enc_ctx) == EVP_CIPH_CBC_MODE
         && ssl3_cbc_record_digest_supported(hash)) {
 #ifdef OPENSSL_NO_DEPRECATED_3_0
         return 0;
@@ -255,48 +245,48 @@ static int ssl3_mac(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *rec, unsigned char *md
          * total size.
          */
         unsigned char header[75];
-        size_t j = 0;
+        size_t        j = 0;
         memcpy(header + j, mac_sec, md_size);
         j += md_size;
         memcpy(header + j, ssl3_pad_1, npad);
         j += npad;
         memcpy(header + j, seq, 8);
-        j += 8;
-        header[j++] = rec->type;
-        header[j++] = (unsigned char)(rec->length >> 8);
-        header[j++] = (unsigned char)(rec->length & 0xff);
+        j           += 8;
+        header[j++]  = rec->type;
+        header[j++]  = (unsigned char)(rec->length >> 8);
+        header[j++]  = (unsigned char)(rec->length & 0xff);
 
         /* Final param == is SSLv3 */
         if (ssl3_cbc_digest_record(EVP_MD_CTX_get0_md(hash),
-                                   md, &md_size,
-                                   header, rec->input,
-                                   rec->length, rec->orig_len,
-                                   mac_sec, md_size, 1) <= 0)
+                                   md,
+                                   &md_size,
+                                   header,
+                                   rec->input,
+                                   rec->length,
+                                   rec->orig_len,
+                                   mac_sec,
+                                   md_size,
+                                   1)
+            <= 0)
             return 0;
 #endif
     } else {
         unsigned int md_size_u;
         /* Chop the digest off the end :-) */
-        EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
+        EVP_MD_CTX  *md_ctx = EVP_MD_CTX_new();
 
         if (md_ctx == NULL)
             return 0;
 
         rec_char = rec->type;
-        p = md;
+        p        = md;
         s2n(rec->length, p);
-        if (EVP_MD_CTX_copy_ex(md_ctx, hash) <= 0
-            || EVP_DigestUpdate(md_ctx, mac_sec, md_size) <= 0
-            || EVP_DigestUpdate(md_ctx, ssl3_pad_1, npad) <= 0
-            || EVP_DigestUpdate(md_ctx, seq, 8) <= 0
-            || EVP_DigestUpdate(md_ctx, &rec_char, 1) <= 0
-            || EVP_DigestUpdate(md_ctx, md, 2) <= 0
-            || EVP_DigestUpdate(md_ctx, rec->input, rec->length) <= 0
-            || EVP_DigestFinal_ex(md_ctx, md, NULL) <= 0
-            || EVP_MD_CTX_copy_ex(md_ctx, hash) <= 0
-            || EVP_DigestUpdate(md_ctx, mac_sec, md_size) <= 0
-            || EVP_DigestUpdate(md_ctx, ssl3_pad_2, npad) <= 0
-            || EVP_DigestUpdate(md_ctx, md, md_size) <= 0
+        if (EVP_MD_CTX_copy_ex(md_ctx, hash) <= 0 || EVP_DigestUpdate(md_ctx, mac_sec, md_size) <= 0
+            || EVP_DigestUpdate(md_ctx, ssl3_pad_1, npad) <= 0 || EVP_DigestUpdate(md_ctx, seq, 8) <= 0
+            || EVP_DigestUpdate(md_ctx, &rec_char, 1) <= 0 || EVP_DigestUpdate(md_ctx, md, 2) <= 0
+            || EVP_DigestUpdate(md_ctx, rec->input, rec->length) <= 0 || EVP_DigestFinal_ex(md_ctx, md, NULL) <= 0
+            || EVP_MD_CTX_copy_ex(md_ctx, hash) <= 0 || EVP_DigestUpdate(md_ctx, mac_sec, md_size) <= 0
+            || EVP_DigestUpdate(md_ctx, ssl3_pad_2, npad) <= 0 || EVP_DigestUpdate(md_ctx, md, md_size) <= 0
             || EVP_DigestFinal_ex(md_ctx, md, &md_size_u) <= 0) {
             EVP_MD_CTX_free(md_ctx);
             return 0;
@@ -311,24 +301,22 @@ static int ssl3_mac(OSSL_RECORD_LAYER *rl, TLS_RL_RECORD *rec, unsigned char *md
     return 1;
 }
 
-const struct record_functions_st ssl_3_0_funcs = {
-    ssl3_set_crypto_state,
-    ssl3_cipher,
-    ssl3_mac,
-    tls_default_set_protocol_version,
-    tls_default_read_n,
-    tls_get_more_records,
-    tls_default_validate_record_header,
-    tls_default_post_process_record,
-    tls_get_max_records_default,
-    tls_write_records_default,
-    /* These 2 functions are defined in tls1_meth.c */
-    tls1_allocate_write_buffers,
-    tls1_initialise_write_packets,
-    NULL,
-    tls_prepare_record_header_default,
-    NULL,
-    tls_prepare_for_encryption_default,
-    tls_post_encryption_processing_default,
-    NULL
-};
+const struct record_functions_st ssl_3_0_funcs = {ssl3_set_crypto_state,
+                                                  ssl3_cipher,
+                                                  ssl3_mac,
+                                                  tls_default_set_protocol_version,
+                                                  tls_default_read_n,
+                                                  tls_get_more_records,
+                                                  tls_default_validate_record_header,
+                                                  tls_default_post_process_record,
+                                                  tls_get_max_records_default,
+                                                  tls_write_records_default,
+                                                  /* These 2 functions are defined in tls1_meth.c */
+                                                  tls1_allocate_write_buffers,
+                                                  tls1_initialise_write_packets,
+                                                  NULL,
+                                                  tls_prepare_record_header_default,
+                                                  NULL,
+                                                  tls_prepare_for_encryption_default,
+                                                  tls_post_encryption_processing_default,
+                                                  NULL};

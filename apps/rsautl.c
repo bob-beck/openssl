@@ -27,11 +27,27 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_ENGINE, OPT_IN, OPT_OUT, OPT_ASN1PARSE, OPT_HEXDUMP,
-    OPT_RSA_RAW, OPT_OAEP, OPT_PKCS, OPT_X931,
-    OPT_SIGN, OPT_VERIFY, OPT_REV, OPT_ENCRYPT, OPT_DECRYPT,
-    OPT_PUBIN, OPT_CERTIN, OPT_INKEY, OPT_PASSIN, OPT_KEYFORM,
-    OPT_R_ENUM, OPT_PROV_ENUM
+    OPT_ENGINE,
+    OPT_IN,
+    OPT_OUT,
+    OPT_ASN1PARSE,
+    OPT_HEXDUMP,
+    OPT_RSA_RAW,
+    OPT_OAEP,
+    OPT_PKCS,
+    OPT_X931,
+    OPT_SIGN,
+    OPT_VERIFY,
+    OPT_REV,
+    OPT_ENCRYPT,
+    OPT_DECRYPT,
+    OPT_PUBIN,
+    OPT_CERTIN,
+    OPT_INKEY,
+    OPT_PASSIN,
+    OPT_KEYFORM,
+    OPT_R_ENUM,
+    OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS rsautl_options[] = {
@@ -60,8 +76,7 @@ const OPTIONS rsautl_options[] = {
     {"pkcs", OPT_PKCS, '-', "Use PKCS#1 v1.5 padding (default)"},
     {"x931", OPT_X931, '-', "Use ANSI X9.31 padding"},
     {"oaep", OPT_OAEP, '-', "Use PKCS#1 OAEP"},
-    {"asn1parse", OPT_ASN1PARSE, '-',
-     "Run output through asn1parse; useful with -verify"},
+    {"asn1parse", OPT_ASN1PARSE, '-', "Run output through asn1parse; useful with -verify"},
     {"hexdump", OPT_HEXDUMP, '-', "Hex dump output"},
 
     OPT_R_OPTIONS,
@@ -71,26 +86,26 @@ const OPTIONS rsautl_options[] = {
 
 int rsautl_main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL;
-    ENGINE *e = NULL;
-    EVP_PKEY *pkey = NULL;
-    EVP_PKEY_CTX *ctx = NULL;
-    X509 *x;
-    char *infile = NULL, *outfile = NULL, *keyfile = NULL;
-    char *passinarg = NULL, *passin = NULL, *prog;
-    char rsa_mode = RSA_VERIFY, key_type = KEY_PRIVKEY;
+    BIO           *in = NULL, *out = NULL;
+    ENGINE        *e    = NULL;
+    EVP_PKEY      *pkey = NULL;
+    EVP_PKEY_CTX  *ctx  = NULL;
+    X509          *x;
+    char          *infile = NULL, *outfile = NULL, *keyfile = NULL;
+    char          *passinarg = NULL, *passin = NULL, *prog;
+    char           rsa_mode = RSA_VERIFY, key_type = KEY_PRIVKEY;
     unsigned char *rsa_in = NULL, *rsa_out = NULL, pad = RSA_PKCS1_PADDING;
-    size_t rsa_inlen, rsa_outlen = 0;
-    int keyformat = FORMAT_UNDEF, keysize, ret = 1, rv;
-    int hexdump = 0, asn1parse = 0, need_priv = 0, rev = 0;
-    OPTION_CHOICE o;
+    size_t         rsa_inlen, rsa_outlen = 0;
+    int            keyformat = FORMAT_UNDEF, keysize, ret = 1, rv;
+    int            hexdump = 0, asn1parse = 0, need_priv = 0, rev = 0;
+    OPTION_CHOICE  o;
 
     prog = opt_init(argc, argv, rsautl_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -129,7 +144,7 @@ int rsautl_main(int argc, char **argv)
             pad = RSA_X931_PADDING;
             break;
         case OPT_SIGN:
-            rsa_mode = RSA_SIGN;
+            rsa_mode  = RSA_SIGN;
             need_priv = 1;
             break;
         case OPT_VERIFY:
@@ -142,7 +157,7 @@ int rsautl_main(int argc, char **argv)
             rsa_mode = RSA_ENCRYPT;
             break;
         case OPT_DECRYPT:
-            rsa_mode = RSA_DECRYPT;
+            rsa_mode  = RSA_DECRYPT;
             need_priv = 1;
             break;
         case OPT_PUBIN:
@@ -213,26 +228,26 @@ int rsautl_main(int argc, char **argv)
     if (out == NULL)
         goto end;
 
-    keysize = EVP_PKEY_get_size(pkey);
+    keysize    = EVP_PKEY_get_size(pkey);
 
-    rsa_in = app_malloc(keysize * 2, "hold rsa key");
-    rsa_out = app_malloc(keysize, "output rsa key");
+    rsa_in     = app_malloc(keysize * 2, "hold rsa key");
+    rsa_out    = app_malloc(keysize, "output rsa key");
     rsa_outlen = keysize;
 
     /* Read the input data */
-    rv = BIO_read(in, rsa_in, keysize * 2);
+    rv         = BIO_read(in, rsa_in, keysize * 2);
     if (rv < 0) {
         BIO_printf(bio_err, "Error reading input Data\n");
         goto end;
     }
     rsa_inlen = rv;
     if (rev) {
-        size_t i;
+        size_t        i;
         unsigned char ctmp;
 
         for (i = 0; i < rsa_inlen / 2; i++) {
-            ctmp = rsa_in[i];
-            rsa_in[i] = rsa_in[rsa_inlen - 1 - i];
+            ctmp                      = rsa_in[i];
+            rsa_in[i]                 = rsa_in[rsa_inlen - 1 - i];
             rsa_in[rsa_inlen - 1 - i] = ctmp;
         }
     }
@@ -242,25 +257,20 @@ int rsautl_main(int argc, char **argv)
 
     switch (rsa_mode) {
     case RSA_VERIFY:
-        rv = EVP_PKEY_verify_recover_init(ctx) > 0
-            && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
-            && EVP_PKEY_verify_recover(ctx, rsa_out, &rsa_outlen,
-                                       rsa_in, rsa_inlen) > 0;
+        rv = EVP_PKEY_verify_recover_init(ctx) > 0 && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
+             && EVP_PKEY_verify_recover(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
         break;
     case RSA_SIGN:
-        rv = EVP_PKEY_sign_init(ctx) > 0
-            && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
-            && EVP_PKEY_sign(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
+        rv = EVP_PKEY_sign_init(ctx) > 0 && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
+             && EVP_PKEY_sign(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
         break;
     case RSA_ENCRYPT:
-        rv = EVP_PKEY_encrypt_init(ctx) > 0
-            && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
-            && EVP_PKEY_encrypt(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
+        rv = EVP_PKEY_encrypt_init(ctx) > 0 && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
+             && EVP_PKEY_encrypt(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
         break;
     case RSA_DECRYPT:
-        rv = EVP_PKEY_decrypt_init(ctx) > 0
-            && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
-            && EVP_PKEY_decrypt(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
+        rv = EVP_PKEY_decrypt_init(ctx) > 0 && EVP_PKEY_CTX_set_rsa_padding(ctx, pad) > 0
+             && EVP_PKEY_decrypt(ctx, rsa_out, &rsa_outlen, rsa_in, rsa_inlen) > 0;
         break;
     }
 
@@ -279,7 +289,7 @@ int rsautl_main(int argc, char **argv)
     } else {
         BIO_write(out, rsa_out, (int)rsa_outlen);
     }
- end:
+end:
     EVP_PKEY_CTX_free(ctx);
     EVP_PKEY_free(pkey);
     release_engine(e);

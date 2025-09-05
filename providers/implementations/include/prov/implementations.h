@@ -235,7 +235,7 @@ extern const OSSL_DISPATCH ossl_des_cfb64_functions[];
 extern const OSSL_DISPATCH ossl_des_cfb1_functions[];
 extern const OSSL_DISPATCH ossl_des_cfb8_functions[];
 # endif /* FIPS_MODULE */
-#endif /* OPENSSL_NO_DES */
+#endif  /* OPENSSL_NO_DES */
 
 #ifndef OPENSSL_NO_RC4
 extern const OSSL_DISPATCH ossl_rc440_functions[];
@@ -243,14 +243,13 @@ extern const OSSL_DISPATCH ossl_rc4128_functions[];
 # ifndef OPENSSL_NO_MD5
 extern const OSSL_DISPATCH ossl_rc4_hmac_ossl_md5_functions[];
 # endif /* OPENSSL_NO_MD5 */
-#endif /* OPENSSL_NO_RC4 */
+#endif  /* OPENSSL_NO_RC4 */
 #ifndef OPENSSL_NO_CHACHA
 extern const OSSL_DISPATCH ossl_chacha20_functions[];
 # ifndef OPENSSL_NO_POLY1305
 extern const OSSL_DISPATCH ossl_chacha20_ossl_poly1305_functions[];
 # endif /* OPENSSL_NO_POLY1305 */
-#endif /* OPENSSL_NO_CHACHA */
-
+#endif  /* OPENSSL_NO_CHACHA */
 
 #ifndef OPENSSL_NO_SIV
 extern const OSSL_DISPATCH ossl_aes128siv_functions[];

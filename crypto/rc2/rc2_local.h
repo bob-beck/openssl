@@ -8,14 +8,14 @@
  */
 
 #undef c2l
-#define c2l(c,l)        (l =((unsigned long)(*((c)++)))    , \
+#define c2l(c, l)        (l =((unsigned long)(*((c)++)))    , \
                          l|=((unsigned long)(*((c)++)))<< 8L, \
                          l|=((unsigned long)(*((c)++)))<<16L, \
                          l|=((unsigned long)(*((c)++)))<<24L)
 
 /* NOTE - c is not incremented as per c2l */
 #undef c2ln
-#define c2ln(c,l1,l2,n) { \
+#define c2ln(c, l1, l2, n) { \
                         c+=n; \
                         l1=l2=0; \
                         switch (n) { \
@@ -38,14 +38,14 @@
                         }
 
 #undef l2c
-#define l2c(l,c)        (*((c)++)=(unsigned char)(((l)     )&0xff), \
+#define l2c(l, c)        (*((c)++)=(unsigned char)(((l)     )&0xff), \
                          *((c)++)=(unsigned char)(((l)>> 8L)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>16L)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>24L)&0xff))
 
 /* NOTE - c is not incremented as per l2c */
 #undef l2cn
-#define l2cn(l1,l2,c,n) { \
+#define l2cn(l1, l2, c, n) { \
                         c+=n; \
                         switch (n) { \
                         case 8: *(--(c))=(unsigned char)(((l2)>>24L)&0xff); \
@@ -65,4 +65,3 @@
                         case 1: *(--(c))=(unsigned char)(((l1)     )&0xff); \
                                 } \
                         }
-

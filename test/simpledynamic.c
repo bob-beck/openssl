@@ -8,8 +8,8 @@
  */
 
 #include <string.h>
-#include <stdlib.h>              /* For NULL */
-#include <openssl/macros.h>      /* For NON_EMPTY_TRANSLATION_UNIT */
+#include <stdlib.h>         /* For NULL */
+#include <openssl/macros.h> /* For NON_EMPTY_TRANSLATION_UNIT */
 #include <openssl/e_os2.h>
 #include "simpledynamic.h"
 
@@ -18,10 +18,10 @@
 int sd_load(const char *filename, SD *lib, int type)
 {
     int dl_flags = type;
-#ifdef _AIX
+# ifdef _AIX
     if (filename[strlen(filename) - 1] == ')')
         dl_flags |= RTLD_MEMBER;
-#endif
+# endif
     *lib = dlopen(filename, dl_flags);
     return *lib == NULL ? 0 : 1;
 }
@@ -66,8 +66,7 @@ const char *sd_error(void)
     static char buffer[255];
 
     buffer[0] = '\0';
-    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0,
-                   buffer, sizeof(buffer), NULL);
+    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0, buffer, sizeof(buffer), NULL);
     return buffer;
 }
 

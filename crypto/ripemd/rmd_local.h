@@ -32,7 +32,7 @@ void ripemd160_block_data_order(RIPEMD160_CTX *c, const void *p, size_t num);
 #define HASH_UPDATE             RIPEMD160_Update
 #define HASH_TRANSFORM          RIPEMD160_Transform
 #define HASH_FINAL              RIPEMD160_Final
-#define HASH_MAKE_STRING(c,s)   do {    \
+#define HASH_MAKE_STRING(c, s)   do {    \
         unsigned long ll;               \
         ll=(c)->A; (void)HOST_l2c(ll,(s));      \
         ll=(c)->B; (void)HOST_l2c(ll,(s));      \
@@ -47,11 +47,11 @@ void ripemd160_block_data_order(RIPEMD160_CTX *c, const void *p, size_t num);
 /*
  * Transformed F2 and F4 are courtesy of Wei Dai
  */
-#define F1(x,y,z)       ((x) ^ (y) ^ (z))
-#define F2(x,y,z)       ((((y) ^ (z)) & (x)) ^ (z))
-#define F3(x,y,z)       (((~(y)) | (x)) ^ (z))
-#define F4(x,y,z)       ((((x) ^ (y)) & (z)) ^ (y))
-#define F5(x,y,z)       (((~(z)) | (y)) ^ (x))
+#define F1(x, y, z)       ((x) ^ (y) ^ (z))
+#define F2(x, y, z)       ((((y) ^ (z)) & (x)) ^ (z))
+#define F3(x, y, z)       (((~(y)) | (x)) ^ (z))
+#define F4(x, y, z)       ((((x) ^ (y)) & (z)) ^ (y))
+#define F5(x, y, z)       (((~(z)) | (y)) ^ (x))
 
 #define RIPEMD160_A     0x67452301L
 #define RIPEMD160_B     0xEFCDAB89L
@@ -61,27 +61,27 @@ void ripemd160_block_data_order(RIPEMD160_CTX *c, const void *p, size_t num);
 
 #include "rmdconst.h"
 
-#define RIP1(a,b,c,d,e,w,s) { \
+#define RIP1(a, b, c, d, e, w, s) { \
         a+=F1(b,c,d)+X(w); \
         a=ROTATE(a,s)+e; \
         c=ROTATE(c,10); }
 
-#define RIP2(a,b,c,d,e,w,s,K) { \
+#define RIP2(a, b, c, d, e, w, s, K) { \
         a+=F2(b,c,d)+X(w)+K; \
         a=ROTATE(a,s)+e; \
         c=ROTATE(c,10); }
 
-#define RIP3(a,b,c,d,e,w,s,K) { \
+#define RIP3(a, b, c, d, e, w, s, K) { \
         a+=F3(b,c,d)+X(w)+K; \
         a=ROTATE(a,s)+e; \
         c=ROTATE(c,10); }
 
-#define RIP4(a,b,c,d,e,w,s,K) { \
+#define RIP4(a, b, c, d, e, w, s, K) { \
         a+=F4(b,c,d)+X(w)+K; \
         a=ROTATE(a,s)+e; \
         c=ROTATE(c,10); }
 
-#define RIP5(a,b,c,d,e,w,s,K) { \
+#define RIP5(a, b, c, d, e, w, s, K) { \
         a+=F5(b,c,d)+X(w)+K; \
         a=ROTATE(a,s)+e; \
         c=ROTATE(c,10); }

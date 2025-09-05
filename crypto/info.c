@@ -34,11 +34,11 @@
 #endif
 
 /* extern declaration to avoid warning */
-extern char ossl_cpu_info_str[];
+extern char  ossl_cpu_info_str[];
 
-static char *seed_sources = NULL;
+static char *seed_sources                        = NULL;
 
-char ossl_cpu_info_str[CPU_INFO_STR_LEN] = "";
+char         ossl_cpu_info_str[CPU_INFO_STR_LEN] = "";
 #define CPUINFO_PREFIX "CPUINFO: "
 
 static CRYPTO_ONCE init_info = CRYPTO_ONCE_STATIC_INIT;
@@ -46,86 +46,98 @@ static CRYPTO_ONCE init_info = CRYPTO_ONCE_STATIC_INIT;
 DEFINE_RUN_ONCE_STATIC(init_info_strings)
 {
 #if defined(OPENSSL_CPUID_OBJ)
-# if defined(__i386)   || defined(__i386__)   || defined(_M_IX86) || \
-     defined(__x86_64) || defined(__x86_64__) || \
-     defined(_M_AMD64) || defined(_M_X64)
+# if defined(__i386) || defined(__i386__) || defined(_M_IX86) || defined(__x86_64) || defined(__x86_64__) \
+     || defined(_M_AMD64) || defined(_M_X64)
     const char *env;
 
-    BIO_snprintf(ossl_cpu_info_str, sizeof(ossl_cpu_info_str),
+    BIO_snprintf(ossl_cpu_info_str,
+                 sizeof(ossl_cpu_info_str),
                  CPUINFO_PREFIX "OPENSSL_ia32cap=0x%.16llx:0x%.16llx:0x%.16llx:0x%.16llx:0x%.16llx",
-                 (unsigned long long)OPENSSL_ia32cap_P[0] |
-                 (unsigned long long)OPENSSL_ia32cap_P[1] << 32,
-                 (unsigned long long)OPENSSL_ia32cap_P[2] |
-                 (unsigned long long)OPENSSL_ia32cap_P[3] << 32,
-                 (unsigned long long)OPENSSL_ia32cap_P[4] |
-                 (unsigned long long)OPENSSL_ia32cap_P[5] << 32,
-                 (unsigned long long)OPENSSL_ia32cap_P[6] |
-                 (unsigned long long)OPENSSL_ia32cap_P[7] << 32,
-                 (unsigned long long)OPENSSL_ia32cap_P[8] |
-                 (unsigned long long)OPENSSL_ia32cap_P[9] << 32);
+                 (unsigned long long)OPENSSL_ia32cap_P[0] | (unsigned long long)OPENSSL_ia32cap_P[1] << 32,
+                 (unsigned long long)OPENSSL_ia32cap_P[2] | (unsigned long long)OPENSSL_ia32cap_P[3] << 32,
+                 (unsigned long long)OPENSSL_ia32cap_P[4] | (unsigned long long)OPENSSL_ia32cap_P[5] << 32,
+                 (unsigned long long)OPENSSL_ia32cap_P[6] | (unsigned long long)OPENSSL_ia32cap_P[7] << 32,
+                 (unsigned long long)OPENSSL_ia32cap_P[8] | (unsigned long long)OPENSSL_ia32cap_P[9] << 32);
 
     if ((env = getenv("OPENSSL_ia32cap")) != NULL)
         BIO_snprintf(ossl_cpu_info_str + strlen(ossl_cpu_info_str),
                      sizeof(ossl_cpu_info_str) - strlen(ossl_cpu_info_str),
-                     " env:%s", env);
+                     " env:%s",
+                     env);
 # elif defined(__arm__) || defined(__arm) || defined(__aarch64__)
     const char *env;
 
-    BIO_snprintf(ossl_cpu_info_str, sizeof(ossl_cpu_info_str),
-                 CPUINFO_PREFIX "OPENSSL_armcap=0x%x", OPENSSL_armcap_P);
+    BIO_snprintf(ossl_cpu_info_str, sizeof(ossl_cpu_info_str), CPUINFO_PREFIX "OPENSSL_armcap=0x%x", OPENSSL_armcap_P);
     if ((env = getenv("OPENSSL_armcap")) != NULL)
         BIO_snprintf(ossl_cpu_info_str + strlen(ossl_cpu_info_str),
                      sizeof(ossl_cpu_info_str) - strlen(ossl_cpu_info_str),
-                     " env:%s", env);
+                     " env:%s",
+                     env);
 # elif defined(__s390__) || defined(__s390x__)
     const char *env;
 
-    BIO_snprintf(ossl_cpu_info_str, sizeof(ossl_cpu_info_str),
+    BIO_snprintf(ossl_cpu_info_str,
+                 sizeof(ossl_cpu_info_str),
                  CPUINFO_PREFIX "OPENSSL_s390xcap="
-                 "stfle:0x%llx:0x%llx:0x%llx:0x%llx:"
-                 "kimd:0x%llx:0x%llx:"
-                 "klmd:0x%llx:0x%llx:"
-                 "km:0x%llx:0x%llx:"
-                 "kmc:0x%llx:0x%llx:"
-                 "kmac:0x%llx:0x%llx:"
-                 "kmctr:0x%llx:0x%llx:"
-                 "kmo:0x%llx:0x%llx:"
-                 "kmf:0x%llx:0x%llx:"
-                 "prno:0x%llx:0x%llx:"
-                 "kma:0x%llx:0x%llx:"
-                 "pcc:0x%llx:0x%llx:"
-                 "kdsa:0x%llx:0x%llx",
-                 OPENSSL_s390xcap_P.stfle[0], OPENSSL_s390xcap_P.stfle[1],
-                 OPENSSL_s390xcap_P.stfle[2], OPENSSL_s390xcap_P.stfle[3],
-                 OPENSSL_s390xcap_P.kimd[0], OPENSSL_s390xcap_P.kimd[1],
-                 OPENSSL_s390xcap_P.klmd[0], OPENSSL_s390xcap_P.klmd[1],
-                 OPENSSL_s390xcap_P.km[0], OPENSSL_s390xcap_P.km[1],
-                 OPENSSL_s390xcap_P.kmc[0], OPENSSL_s390xcap_P.kmc[1],
-                 OPENSSL_s390xcap_P.kmac[0], OPENSSL_s390xcap_P.kmac[1],
-                 OPENSSL_s390xcap_P.kmctr[0], OPENSSL_s390xcap_P.kmctr[1],
-                 OPENSSL_s390xcap_P.kmo[0], OPENSSL_s390xcap_P.kmo[1],
-                 OPENSSL_s390xcap_P.kmf[0], OPENSSL_s390xcap_P.kmf[1],
-                 OPENSSL_s390xcap_P.prno[0], OPENSSL_s390xcap_P.prno[1],
-                 OPENSSL_s390xcap_P.kma[0], OPENSSL_s390xcap_P.kma[1],
-                 OPENSSL_s390xcap_P.pcc[0], OPENSSL_s390xcap_P.pcc[1],
-                 OPENSSL_s390xcap_P.kdsa[0], OPENSSL_s390xcap_P.kdsa[1]);
+                                "stfle:0x%llx:0x%llx:0x%llx:0x%llx:"
+                                "kimd:0x%llx:0x%llx:"
+                                "klmd:0x%llx:0x%llx:"
+                                "km:0x%llx:0x%llx:"
+                                "kmc:0x%llx:0x%llx:"
+                                "kmac:0x%llx:0x%llx:"
+                                "kmctr:0x%llx:0x%llx:"
+                                "kmo:0x%llx:0x%llx:"
+                                "kmf:0x%llx:0x%llx:"
+                                "prno:0x%llx:0x%llx:"
+                                "kma:0x%llx:0x%llx:"
+                                "pcc:0x%llx:0x%llx:"
+                                "kdsa:0x%llx:0x%llx",
+                 OPENSSL_s390xcap_P.stfle[0],
+                 OPENSSL_s390xcap_P.stfle[1],
+                 OPENSSL_s390xcap_P.stfle[2],
+                 OPENSSL_s390xcap_P.stfle[3],
+                 OPENSSL_s390xcap_P.kimd[0],
+                 OPENSSL_s390xcap_P.kimd[1],
+                 OPENSSL_s390xcap_P.klmd[0],
+                 OPENSSL_s390xcap_P.klmd[1],
+                 OPENSSL_s390xcap_P.km[0],
+                 OPENSSL_s390xcap_P.km[1],
+                 OPENSSL_s390xcap_P.kmc[0],
+                 OPENSSL_s390xcap_P.kmc[1],
+                 OPENSSL_s390xcap_P.kmac[0],
+                 OPENSSL_s390xcap_P.kmac[1],
+                 OPENSSL_s390xcap_P.kmctr[0],
+                 OPENSSL_s390xcap_P.kmctr[1],
+                 OPENSSL_s390xcap_P.kmo[0],
+                 OPENSSL_s390xcap_P.kmo[1],
+                 OPENSSL_s390xcap_P.kmf[0],
+                 OPENSSL_s390xcap_P.kmf[1],
+                 OPENSSL_s390xcap_P.prno[0],
+                 OPENSSL_s390xcap_P.prno[1],
+                 OPENSSL_s390xcap_P.kma[0],
+                 OPENSSL_s390xcap_P.kma[1],
+                 OPENSSL_s390xcap_P.pcc[0],
+                 OPENSSL_s390xcap_P.pcc[1],
+                 OPENSSL_s390xcap_P.kdsa[0],
+                 OPENSSL_s390xcap_P.kdsa[1]);
     if ((env = getenv("OPENSSL_s390xcap")) != NULL)
         BIO_snprintf(ossl_cpu_info_str + strlen(ossl_cpu_info_str),
                      sizeof(ossl_cpu_info_str) - strlen(ossl_cpu_info_str),
-                     " env:%s", env);
+                     " env:%s",
+                     env);
 # elif defined(__riscv)
     const char *env;
-    char sep = '=';
+    char        sep = '=';
 
-    BIO_snprintf(ossl_cpu_info_str, sizeof(ossl_cpu_info_str),
-                 CPUINFO_PREFIX "OPENSSL_riscvcap");
+    BIO_snprintf(ossl_cpu_info_str, sizeof(ossl_cpu_info_str), CPUINFO_PREFIX "OPENSSL_riscvcap");
     for (size_t i = 0; i < kRISCVNumCaps; ++i) {
-        if (OPENSSL_riscvcap_P[RISCV_capabilities[i].index]
-                & (1 << RISCV_capabilities[i].bit_offset)) {
+        if (OPENSSL_riscvcap_P[RISCV_capabilities[i].index] & (1 << RISCV_capabilities[i].bit_offset)) {
             /* Match, display the name */
             BIO_snprintf(ossl_cpu_info_str + strlen(ossl_cpu_info_str),
                          sizeof(ossl_cpu_info_str) - strlen(ossl_cpu_info_str),
-                         "%c%s", sep, RISCV_capabilities[i].name);
+                         "%c%s",
+                         sep,
+                         RISCV_capabilities[i].name);
             /* Only the first sep is '=' */
             sep = '_';
         }
@@ -134,12 +146,14 @@ DEFINE_RUN_ONCE_STATIC(init_info_strings)
     if (sep == '=') {
         BIO_snprintf(ossl_cpu_info_str + strlen(ossl_cpu_info_str),
                      sizeof(ossl_cpu_info_str) - strlen(ossl_cpu_info_str),
-                     "%c", sep);
+                     "%c",
+                     sep);
     }
     if ((env = getenv("OPENSSL_riscvcap")) != NULL)
         BIO_snprintf(ossl_cpu_info_str + strlen(ossl_cpu_info_str),
                      sizeof(ossl_cpu_info_str) - strlen(ossl_cpu_info_str),
-                     " env:%s", env);
+                     " env:%s",
+                     env);
 # endif
 #endif
 
@@ -231,14 +245,13 @@ const char *OPENSSL_info(int t)
         return "\\";
 #elif defined(__VMS)
         return "";
-#else  /* Assume POSIX */
+#else /* Assume POSIX */
         return "/";
 #endif
-    case OPENSSL_INFO_LIST_SEPARATOR:
-        {
-            static const char list_sep[] = { LIST_SEPARATOR_CHAR, '\0' };
-            return list_sep;
-        }
+    case OPENSSL_INFO_LIST_SEPARATOR: {
+        static const char list_sep[] = {LIST_SEPARATOR_CHAR, '\0'};
+        return list_sep;
+    }
     case OPENSSL_INFO_SEED_SOURCE:
         return seed_sources;
     case OPENSSL_INFO_CPU_SETTINGS:

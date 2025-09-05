@@ -17,10 +17,10 @@
 
 int main(int argc, char **argv)
 {
-    FILE *fp;
+    FILE     *fp;
     EVP_PKEY *pkey;
-    X509 *cert;
-    PKCS12 *p12;
+    X509     *cert;
+    PKCS12   *p12;
     if (argc != 5) {
         fprintf(stderr, "Usage: pkwrite infile password name p12file\n");
         exit(EXIT_FAILURE);

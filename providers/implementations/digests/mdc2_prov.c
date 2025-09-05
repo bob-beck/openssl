@@ -22,16 +22,13 @@
 #include "prov/digestcommon.h"
 #include "prov/implementations.h"
 
-static OSSL_FUNC_digest_set_ctx_params_fn mdc2_set_ctx_params;
+static OSSL_FUNC_digest_set_ctx_params_fn      mdc2_set_ctx_params;
 static OSSL_FUNC_digest_settable_ctx_params_fn mdc2_settable_ctx_params;
 
-static const OSSL_PARAM known_mdc2_settable_ctx_params[] = {
-    OSSL_PARAM_uint(OSSL_DIGEST_PARAM_PAD_TYPE, NULL),
-    OSSL_PARAM_END
-};
+static const OSSL_PARAM  known_mdc2_settable_ctx_params[] = {OSSL_PARAM_uint(OSSL_DIGEST_PARAM_PAD_TYPE, NULL),
+                                                             OSSL_PARAM_END};
 
-static const OSSL_PARAM *mdc2_settable_ctx_params(ossl_unused void *ctx,
-                                                  ossl_unused void *provctx)
+static const OSSL_PARAM *mdc2_settable_ctx_params(ossl_unused void *ctx, ossl_unused void *provctx)
 {
     return known_mdc2_settable_ctx_params;
 }
@@ -39,7 +36,7 @@ static const OSSL_PARAM *mdc2_settable_ctx_params(ossl_unused void *ctx,
 static int mdc2_set_ctx_params(void *vctx, const OSSL_PARAM params[])
 {
     const OSSL_PARAM *p;
-    MDC2_CTX *ctx = (MDC2_CTX *)vctx;
+    MDC2_CTX         *ctx = (MDC2_CTX *)vctx;
 
     if (ctx == NULL)
         return 0;
@@ -55,7 +52,13 @@ static int mdc2_set_ctx_params(void *vctx, const OSSL_PARAM params[])
 }
 
 /* ossl_mdc2_functions */
-IMPLEMENT_digest_functions_with_settable_ctx(
-    mdc2, MDC2_CTX, MDC2_BLOCK, MDC2_DIGEST_LENGTH, 0,
-    MDC2_Init, MDC2_Update, MDC2_Final,
-    mdc2_settable_ctx_params, mdc2_set_ctx_params)
+IMPLEMENT_digest_functions_with_settable_ctx(mdc2,
+                                             MDC2_CTX,
+                                             MDC2_BLOCK,
+                                             MDC2_DIGEST_LENGTH,
+                                             0,
+                                             MDC2_Init,
+                                             MDC2_Update,
+                                             MDC2_Final,
+                                             mdc2_settable_ctx_params,
+                                             mdc2_set_ctx_params)

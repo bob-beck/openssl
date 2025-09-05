@@ -12,10 +12,10 @@
 
 static int test_time_to_timeval(void)
 {
-    OSSL_TIME a;
+    OSSL_TIME      a;
     struct timeval tv;
 
-    a = ossl_time_zero();
+    a  = ossl_time_zero();
 
     tv = ossl_time_to_timeval(a);
     if (!TEST_long_eq(tv.tv_sec, 0) || !TEST_long_eq(tv.tv_usec, 0))
@@ -26,39 +26,39 @@ static int test_time_to_timeval(void)
         return 0;
 
     /* We should round up nano secs to the next usec */
-    a = ossl_ticks2time(1);
+    a  = ossl_ticks2time(1);
     tv = ossl_time_to_timeval(a);
     if (!TEST_long_eq(tv.tv_sec, 0) || !TEST_long_eq(tv.tv_usec, 1))
         return 0;
-    a = ossl_ticks2time(999);
+    a  = ossl_ticks2time(999);
     tv = ossl_time_to_timeval(a);
     if (!TEST_long_eq(tv.tv_sec, 0) || !TEST_long_eq(tv.tv_usec, 1))
         return 0;
-    a = ossl_ticks2time(1000);
+    a  = ossl_ticks2time(1000);
     tv = ossl_time_to_timeval(a);
     if (!TEST_long_eq(tv.tv_sec, 0) || !TEST_long_eq(tv.tv_usec, 1))
         return 0;
-    a = ossl_ticks2time(1001);
+    a  = ossl_ticks2time(1001);
     tv = ossl_time_to_timeval(a);
     if (!TEST_long_eq(tv.tv_sec, 0) || !TEST_long_eq(tv.tv_usec, 2))
         return 0;
-    a = ossl_ticks2time(999000);
+    a  = ossl_ticks2time(999000);
     tv = ossl_time_to_timeval(a);
     if (!TEST_long_eq(tv.tv_sec, 0) || !TEST_long_eq(tv.tv_usec, 999))
         return 0;
-    a = ossl_ticks2time(999999001);
+    a  = ossl_ticks2time(999999001);
     tv = ossl_time_to_timeval(a);
     if (!TEST_long_eq(tv.tv_sec, 1) || !TEST_long_eq(tv.tv_usec, 0))
         return 0;
-    a = ossl_ticks2time(999999999);
+    a  = ossl_ticks2time(999999999);
     tv = ossl_time_to_timeval(a);
     if (!TEST_long_eq(tv.tv_sec, 1) || !TEST_long_eq(tv.tv_usec, 0))
         return 0;
-    a = ossl_ticks2time(1000000000);
+    a  = ossl_ticks2time(1000000000);
     tv = ossl_time_to_timeval(a);
     if (!TEST_long_eq(tv.tv_sec, 1) || !TEST_long_eq(tv.tv_usec, 0))
         return 0;
-    a = ossl_ticks2time(1000000001);
+    a  = ossl_ticks2time(1000000001);
     tv = ossl_time_to_timeval(a);
     if (!TEST_long_eq(tv.tv_sec, 1) || !TEST_long_eq(tv.tv_usec, 1))
         return 0;

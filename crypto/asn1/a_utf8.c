@@ -28,8 +28,8 @@
 int UTF8_getc(const unsigned char *str, int len, unsigned long *val)
 {
     const unsigned char *p;
-    unsigned long value;
-    int ret;
+    unsigned long        value;
+    int                  ret;
     if (len <= 0)
         return 0;
     p = str;
@@ -37,13 +37,13 @@ int UTF8_getc(const unsigned char *str, int len, unsigned long *val)
     /* Check syntax and work out the encoded value (if correct) */
     if ((*p & 0x80) == 0) {
         value = *p++ & 0x7f;
-        ret = 1;
+        ret   = 1;
     } else if ((*p & 0xe0) == 0xc0) {
         if (len < 2)
             return -1;
         if ((p[1] & 0xc0) != 0x80)
             return -3;
-        value = (*p++ & 0x1f) << 6;
+        value  = (*p++ & 0x1f) << 6;
         value |= *p++ & 0x3f;
         if (value < 0x80)
             return -4;
@@ -51,10 +51,9 @@ int UTF8_getc(const unsigned char *str, int len, unsigned long *val)
     } else if ((*p & 0xf0) == 0xe0) {
         if (len < 3)
             return -1;
-        if (((p[1] & 0xc0) != 0x80)
-            || ((p[2] & 0xc0) != 0x80))
+        if (((p[1] & 0xc0) != 0x80) || ((p[2] & 0xc0) != 0x80))
             return -3;
-        value = (*p++ & 0xf) << 12;
+        value  = (*p++ & 0xf) << 12;
         value |= (*p++ & 0x3f) << 6;
         value |= *p++ & 0x3f;
         if (value < 0x800)
@@ -65,11 +64,9 @@ int UTF8_getc(const unsigned char *str, int len, unsigned long *val)
     } else if ((*p & 0xf8) == 0xf0) {
         if (len < 4)
             return -1;
-        if (((p[1] & 0xc0) != 0x80)
-            || ((p[2] & 0xc0) != 0x80)
-            || ((p[3] & 0xc0) != 0x80))
+        if (((p[1] & 0xc0) != 0x80) || ((p[2] & 0xc0) != 0x80) || ((p[3] & 0xc0) != 0x80))
             return -3;
-        value = ((unsigned long)(*p++ & 0x7)) << 18;
+        value  = ((unsigned long)(*p++ & 0x7)) << 18;
         value |= (*p++ & 0x3f) << 12;
         value |= (*p++ & 0x3f) << 6;
         value |= *p++ & 0x3f;
@@ -93,7 +90,7 @@ int UTF8_getc(const unsigned char *str, int len, unsigned long *val)
 int UTF8_putc(unsigned char *str, int len, unsigned long value)
 {
     if (!str)
-        len = 4;                /* Maximum we will need */
+        len = 4; /* Maximum we will need */
     else if (len <= 0)
         return -1;
     if (value < 0x80) {
@@ -106,7 +103,7 @@ int UTF8_putc(unsigned char *str, int len, unsigned long value)
             return -1;
         if (str) {
             *str++ = (unsigned char)(((value >> 6) & 0x1f) | 0xc0);
-            *str = (unsigned char)((value & 0x3f) | 0x80);
+            *str   = (unsigned char)((value & 0x3f) | 0x80);
         }
         return 2;
     }
@@ -118,7 +115,7 @@ int UTF8_putc(unsigned char *str, int len, unsigned long value)
         if (str) {
             *str++ = (unsigned char)(((value >> 12) & 0xf) | 0xe0);
             *str++ = (unsigned char)(((value >> 6) & 0x3f) | 0x80);
-            *str = (unsigned char)((value & 0x3f) | 0x80);
+            *str   = (unsigned char)((value & 0x3f) | 0x80);
         }
         return 3;
     }
@@ -129,7 +126,7 @@ int UTF8_putc(unsigned char *str, int len, unsigned long value)
             *str++ = (unsigned char)(((value >> 18) & 0x7) | 0xf0);
             *str++ = (unsigned char)(((value >> 12) & 0x3f) | 0x80);
             *str++ = (unsigned char)(((value >> 6) & 0x3f) | 0x80);
-            *str = (unsigned char)((value & 0x3f) | 0x80);
+            *str   = (unsigned char)((value & 0x3f) | 0x80);
         }
         return 4;
     }

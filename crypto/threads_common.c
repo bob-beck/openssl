@@ -123,7 +123,7 @@ DEFINE_SPARSE_ARRAY_OF(CTX_TABLE_ENTRY);
  *
  */
 typedef struct master_key_entry {
-    SPARSE_ARRAY_OF(CTX_TABLE_ENTRY) *ctx_table;
+    SPARSE_ARRAY_OF(CTX_TABLE_ENTRY) * ctx_table;
 } MASTER_KEY_ENTRY;
 
 /**
@@ -142,14 +142,14 @@ static CRYPTO_THREAD_LOCAL master_key;
  * in CRYPTO_THREAD_clean_for_fips, as the uninitialized key
  * will return garbage data
  */
-static uint8_t master_key_init = 0;
+static uint8_t             master_key_init = 0;
 
 /**
  * @brief gate variable to do one time init of the master key
  *
  * Run once gate for doing one-time initialization
  */
-static CRYPTO_ONCE master_once = CRYPTO_ONCE_STATIC_INIT;
+static CRYPTO_ONCE         master_once     = CRYPTO_ONCE_STATIC_INIT;
 
 /**
  * @brief Cleans up all context-specific entries for a given key ID.
@@ -169,7 +169,7 @@ static CRYPTO_ONCE master_once = CRYPTO_ONCE_STATIC_INIT;
  * @param arg
  *        Unused parameter.
  */
-static void clean_master_key_id(MASTER_KEY_ENTRY *entry)
+static void                clean_master_key_id(MASTER_KEY_ENTRY *entry)
 {
     ossl_sa_CTX_TABLE_ENTRY_free(entry->ctx_table);
 }
@@ -190,7 +190,7 @@ static void clean_master_key_id(MASTER_KEY_ENTRY *entry)
 static void clean_master_key(void *data)
 {
     MASTER_KEY_ENTRY *mkey = data;
-    int i;
+    int               i;
 
     for (i = 0; i < CRYPTO_THREAD_LOCAL_KEY_MAX; i++) {
         if (mkey[i].ctx_table != NULL)
@@ -255,7 +255,7 @@ static void init_master_key(void)
 void *CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id, OSSL_LIB_CTX *ctx)
 {
     MASTER_KEY_ENTRY *mkey;
-    CTX_TABLE_ENTRY ctxd;
+    CTX_TABLE_ENTRY   ctxd;
 
     ctx = (ctx == CRYPTO_THREAD_NO_CONTEXT) ? NULL : ossl_lib_ctx_get_concrete(ctx);
     /*
@@ -330,8 +330,7 @@ void *CRYPTO_THREAD_get_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id, OSSL_LIB_CTX *ct
  *
  * @return 1 on success, or 0 if allocation or initialization fails.
  */
-int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
-                               OSSL_LIB_CTX *ctx, void *data)
+int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id, OSSL_LIB_CTX *ctx, void *data)
 {
     MASTER_KEY_ENTRY *mkey;
 
@@ -355,8 +354,7 @@ int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
         /*
          * we didn't find one, but that's ok, just initialize it now
          */
-        mkey = OPENSSL_calloc(CRYPTO_THREAD_LOCAL_KEY_MAX,
-                              sizeof(MASTER_KEY_ENTRY));
+        mkey = OPENSSL_calloc(CRYPTO_THREAD_LOCAL_KEY_MAX, sizeof(MASTER_KEY_ENTRY));
         if (mkey == NULL)
             return 0;
         /*
@@ -372,7 +370,6 @@ int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
      * Find the entry that we are looking for using our id index
      */
     if (mkey[id].ctx_table == NULL) {
-
         /*
          * Didn't find it, that's ok, just add it now
          */
@@ -388,8 +385,7 @@ int CRYPTO_THREAD_set_local_ex(CRYPTO_THREAD_LOCAL_KEY_ID id,
      *
      * Assign to the entry in the table so that we can find it later
      */
-    return ossl_sa_CTX_TABLE_ENTRY_set(mkey[id].ctx_table,
-                                       (uintptr_t)ctx, data);
+    return ossl_sa_CTX_TABLE_ENTRY_set(mkey[id].ctx_table, (uintptr_t)ctx, data);
 }
 
 #ifdef FIPS_MODULE

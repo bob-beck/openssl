@@ -34,7 +34,7 @@ int valid_asn1_encoding(const OSSL_CMP_MSG *msg)
  */
 int STACK_OF_X509_cmp(const STACK_OF(X509) *sk1, const STACK_OF(X509) *sk2)
 {
-    int i, res;
+    int   i, res;
     X509 *a, *b;
 
     if (sk1 == sk2)
@@ -74,8 +74,7 @@ int STACK_OF_X509_push1(STACK_OF(X509) *sk, X509 *cert)
     return res;
 }
 
-int print_to_bio_out(const char *func, const char *file, int line,
-                     OSSL_CMP_severity level, const char *msg)
+int print_to_bio_out(const char *func, const char *file, int line, OSSL_CMP_severity level, const char *msg)
 {
     return OSSL_CMP_print_to_bio(bio_out, func, file, line, level, msg);
 }

@@ -40,9 +40,7 @@ void ossl_prov_ctx_set0_core_bio_method(PROV_CTX *ctx, BIO_METHOD *corebiometh)
         ctx->corebiometh = corebiometh;
 }
 
-void
-ossl_prov_ctx_set0_core_get_params(PROV_CTX *ctx,
-                                   OSSL_FUNC_core_get_params_fn *c_get_params)
+void ossl_prov_ctx_set0_core_get_params(PROV_CTX *ctx, OSSL_FUNC_core_get_params_fn *c_get_params)
 {
     if (ctx != NULL)
         ctx->core_get_params = c_get_params;
@@ -76,27 +74,22 @@ OSSL_FUNC_core_get_params_fn *ossl_prov_ctx_get0_core_get_params(PROV_CTX *ctx)
     return ctx->core_get_params;
 }
 
-const char *
-ossl_prov_ctx_get_param(PROV_CTX *ctx, const char *name, const char *defval)
+const char *ossl_prov_ctx_get_param(PROV_CTX *ctx, const char *name, const char *defval)
 {
-    char *val = NULL;
-    OSSL_PARAM param[2] = { OSSL_PARAM_END, OSSL_PARAM_END };
+    char      *val      = NULL;
+    OSSL_PARAM param[2] = {OSSL_PARAM_END, OSSL_PARAM_END};
 
-    if (ctx == NULL
-        || ctx->handle == NULL
-        || ctx->core_get_params == NULL)
+    if (ctx == NULL || ctx->handle == NULL || ctx->core_get_params == NULL)
         return defval;
 
-    param[0].key = (char *) name;
-    param[0].data_type = OSSL_PARAM_UTF8_PTR;
-    param[0].data = (void *) &val;
-    param[0].data_size = sizeof(val);
+    param[0].key         = (char *)name;
+    param[0].data_type   = OSSL_PARAM_UTF8_PTR;
+    param[0].data        = (void *)&val;
+    param[0].data_size   = sizeof(val);
     param[0].return_size = OSSL_PARAM_UNMODIFIED;
 
     /* Errors are ignored, returning the default value */
-    if (ctx->core_get_params(ctx->handle, param)
-        && OSSL_PARAM_modified(param)
-        && val != NULL)
+    if (ctx->core_get_params(ctx->handle, param) && OSSL_PARAM_modified(param) && val != NULL)
         return val;
     return defval;
 }
@@ -106,15 +99,11 @@ int ossl_prov_ctx_get_bool_param(PROV_CTX *ctx, const char *name, int defval)
     const char *val = ossl_prov_ctx_get_param(ctx, name, NULL);
 
     if (val != NULL) {
-        if ((strcmp(val, "1") == 0)
-            || (OPENSSL_strcasecmp(val, "yes") == 0)
-            || (OPENSSL_strcasecmp(val, "true") == 0)
+        if ((strcmp(val, "1") == 0) || (OPENSSL_strcasecmp(val, "yes") == 0) || (OPENSSL_strcasecmp(val, "true") == 0)
             || (OPENSSL_strcasecmp(val, "on") == 0))
             return 1;
-        else if ((strcmp(val, "0") == 0)
-                 || (OPENSSL_strcasecmp(val, "no") == 0)
-                 || (OPENSSL_strcasecmp(val, "false") == 0)
-                 || (OPENSSL_strcasecmp(val, "off") == 0))
+        else if ((strcmp(val, "0") == 0) || (OPENSSL_strcasecmp(val, "no") == 0)
+                 || (OPENSSL_strcasecmp(val, "false") == 0) || (OPENSSL_strcasecmp(val, "off") == 0))
             return 0;
     }
     return defval;

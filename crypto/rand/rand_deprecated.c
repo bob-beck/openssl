@@ -15,7 +15,7 @@
 # include <windows.h>
 # if OPENSSL_API_COMPAT < 0x10100000L
 
-# define DEPRECATED_RAND_FUNCTIONS_DEFINED
+#  define DEPRECATED_RAND_FUNCTIONS_DEFINED
 
 int RAND_event(UINT iMsg, WPARAM wParam, LPARAM lParam)
 {

@@ -15,7 +15,7 @@
 
 static OSSL_FUNC_cipher_freectx_fn sm4_ccm_freectx;
 
-static void *sm4_ccm_newctx(void *provctx, size_t keybits)
+static void                       *sm4_ccm_newctx(void *provctx, size_t keybits)
 {
     PROV_SM4_CCM_CTX *ctx;
 
@@ -30,7 +30,7 @@ static void *sm4_ccm_newctx(void *provctx, size_t keybits)
 
 static void *sm4_ccm_dupctx(void *provctx)
 {
-    PROV_SM4_CCM_CTX *ctx = provctx;
+    PROV_SM4_CCM_CTX *ctx  = provctx;
     PROV_SM4_CCM_CTX *dctx = NULL;
 
     if (ctx == NULL)
@@ -47,7 +47,7 @@ static void sm4_ccm_freectx(void *vctx)
 {
     PROV_SM4_CCM_CTX *ctx = (PROV_SM4_CCM_CTX *)vctx;
 
-    OPENSSL_clear_free(ctx,  sizeof(*ctx));
+    OPENSSL_clear_free(ctx, sizeof(*ctx));
 }
 
 /* sm4128ccm functions */

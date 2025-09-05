@@ -31,7 +31,7 @@ static int ocsp_certid_print(BIO *bp, OCSP_CERTID *a, int indent)
 }
 
 typedef struct {
-    long t;
+    long        t;
     const char *m;
 } OCSP_TBLSTR;
 
@@ -49,12 +49,12 @@ static const char *do_table2string(long s, const OCSP_TBLSTR *ts, size_t len)
 const char *OCSP_response_status_str(long s)
 {
     static const OCSP_TBLSTR rstat_tbl[] = {
-        {OCSP_RESPONSE_STATUS_SUCCESSFUL, "successful"},
+        {OCSP_RESPONSE_STATUS_SUCCESSFUL,       "successful"      },
         {OCSP_RESPONSE_STATUS_MALFORMEDREQUEST, "malformedrequest"},
-        {OCSP_RESPONSE_STATUS_INTERNALERROR, "internalerror"},
-        {OCSP_RESPONSE_STATUS_TRYLATER, "trylater"},
-        {OCSP_RESPONSE_STATUS_SIGREQUIRED, "sigrequired"},
-        {OCSP_RESPONSE_STATUS_UNAUTHORIZED, "unauthorized"}
+        {OCSP_RESPONSE_STATUS_INTERNALERROR,    "internalerror"   },
+        {OCSP_RESPONSE_STATUS_TRYLATER,         "trylater"        },
+        {OCSP_RESPONSE_STATUS_SIGREQUIRED,      "sigrequired"     },
+        {OCSP_RESPONSE_STATUS_UNAUTHORIZED,     "unauthorized"    }
     };
     return table2string(s, rstat_tbl);
 }
@@ -62,7 +62,7 @@ const char *OCSP_response_status_str(long s)
 const char *OCSP_cert_status_str(long s)
 {
     static const OCSP_TBLSTR cstat_tbl[] = {
-        {V_OCSP_CERTSTATUS_GOOD, "good"},
+        {V_OCSP_CERTSTATUS_GOOD,    "good"   },
         {V_OCSP_CERTSTATUS_REVOKED, "revoked"},
         {V_OCSP_CERTSTATUS_UNKNOWN, "unknown"}
     };
@@ -72,27 +72,27 @@ const char *OCSP_cert_status_str(long s)
 const char *OCSP_crl_reason_str(long s)
 {
     static const OCSP_TBLSTR reason_tbl[] = {
-        {OCSP_REVOKED_STATUS_UNSPECIFIED, "unspecified"},
-        {OCSP_REVOKED_STATUS_KEYCOMPROMISE, "keyCompromise"},
-        {OCSP_REVOKED_STATUS_CACOMPROMISE, "cACompromise"},
-        {OCSP_REVOKED_STATUS_AFFILIATIONCHANGED, "affiliationChanged"},
-        {OCSP_REVOKED_STATUS_SUPERSEDED, "superseded"},
+        {OCSP_REVOKED_STATUS_UNSPECIFIED,          "unspecified"         },
+        {OCSP_REVOKED_STATUS_KEYCOMPROMISE,        "keyCompromise"       },
+        {OCSP_REVOKED_STATUS_CACOMPROMISE,         "cACompromise"        },
+        {OCSP_REVOKED_STATUS_AFFILIATIONCHANGED,   "affiliationChanged"  },
+        {OCSP_REVOKED_STATUS_SUPERSEDED,           "superseded"          },
         {OCSP_REVOKED_STATUS_CESSATIONOFOPERATION, "cessationOfOperation"},
-        {OCSP_REVOKED_STATUS_CERTIFICATEHOLD, "certificateHold"},
-        {OCSP_REVOKED_STATUS_REMOVEFROMCRL, "removeFromCRL"},
-        {OCSP_REVOKED_STATUS_PRIVILEGEWITHDRAWN, "privilegeWithdrawn"},
-        {OCSP_REVOKED_STATUS_AACOMPROMISE, "aACompromise"}
+        {OCSP_REVOKED_STATUS_CERTIFICATEHOLD,      "certificateHold"     },
+        {OCSP_REVOKED_STATUS_REMOVEFROMCRL,        "removeFromCRL"       },
+        {OCSP_REVOKED_STATUS_PRIVILEGEWITHDRAWN,   "privilegeWithdrawn"  },
+        {OCSP_REVOKED_STATUS_AACOMPROMISE,         "aACompromise"        }
     };
     return table2string(s, reason_tbl);
 }
 
 int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
 {
-    int i;
-    long l;
-    OCSP_CERTID *cid = NULL;
-    OCSP_ONEREQ *one = NULL;
-    OCSP_REQINFO *inf = &o->tbsRequest;
+    int             i;
+    long            l;
+    OCSP_CERTID    *cid = NULL;
+    OCSP_ONEREQ    *one = NULL;
+    OCSP_REQINFO   *inf = &o->tbsRequest;
     OCSP_SIGNATURE *sig = o->optionalSignature;
 
     if (BIO_write(bp, "OCSP Request Data:\n", 19) <= 0)
@@ -111,13 +111,10 @@ int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
         one = sk_OCSP_ONEREQ_value(inf->requestList, i);
         cid = one->reqCert;
         ocsp_certid_print(bp, cid, 8);
-        if (!X509V3_extensions_print(bp,
-                                     "Request Single Extensions",
-                                     one->singleRequestExtensions, flags, 8))
+        if (!X509V3_extensions_print(bp, "Request Single Extensions", one->singleRequestExtensions, flags, 8))
             goto err;
     }
-    if (!X509V3_extensions_print(bp, "Request Extensions",
-                                 inf->requestExtensions, flags, 4))
+    if (!X509V3_extensions_print(bp, "Request Extensions", inf->requestExtensions, flags, 4))
         goto err;
     if (sig) {
         X509_signature_print(bp, &sig->signatureAlgorithm, sig->signature);
@@ -127,28 +124,27 @@ int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
         }
     }
     return 1;
- err:
+err:
     return 0;
 }
 
 int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
 {
-    int i, ret = 0;
-    long l;
-    OCSP_CERTID *cid = NULL;
-    OCSP_BASICRESP *br = NULL;
-    OCSP_RESPID *rid = NULL;
-    OCSP_RESPDATA *rd = NULL;
-    OCSP_CERTSTATUS *cst = NULL;
-    OCSP_REVOKEDINFO *rev = NULL;
-    OCSP_SINGLERESP *single = NULL;
-    OCSP_RESPBYTES *rb = o->responseBytes;
+    int               i, ret = 0;
+    long              l;
+    OCSP_CERTID      *cid    = NULL;
+    OCSP_BASICRESP   *br     = NULL;
+    OCSP_RESPID      *rid    = NULL;
+    OCSP_RESPDATA    *rd     = NULL;
+    OCSP_CERTSTATUS  *cst    = NULL;
+    OCSP_REVOKEDINFO *rev    = NULL;
+    OCSP_SINGLERESP  *single = NULL;
+    OCSP_RESPBYTES   *rb     = o->responseBytes;
 
     if (BIO_puts(bp, "OCSP Response Data:\n") <= 0)
         goto err;
     l = ASN1_ENUMERATED_get(o->responseStatus);
-    if (BIO_printf(bp, "    OCSP Response Status: %s (0x%lx)\n",
-                   OCSP_response_status_str(l), l) <= 0)
+    if (BIO_printf(bp, "    OCSP Response Status: %s (0x%lx)\n", OCSP_response_status_str(l), l) <= 0)
         goto err;
     if (rb == NULL)
         return 1;
@@ -164,7 +160,7 @@ int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
     if ((br = OCSP_response_get1_basic(o)) == NULL)
         goto err;
     rd = &br->tbsResponseData;
-    l = ASN1_INTEGER_get(rd->version);
+    l  = ASN1_INTEGER_get(rd->version);
     if (BIO_printf(bp, "\n    Version: %lu (0x%lx)\n", l + 1, l) <= 0)
         goto err;
     if (BIO_puts(bp, "    Responder Id: ") <= 0)
@@ -190,12 +186,11 @@ int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
         if (!sk_OCSP_SINGLERESP_value(rd->responses, i))
             continue;
         single = sk_OCSP_SINGLERESP_value(rd->responses, i);
-        cid = single->certId;
+        cid    = single->certId;
         if (ocsp_certid_print(bp, cid, 4) <= 0)
             goto err;
         cst = single->certStatus;
-        if (BIO_printf(bp, "    Cert Status: %s",
-                       OCSP_cert_status_str(cst->type)) <= 0)
+        if (BIO_printf(bp, "    Cert Status: %s", OCSP_cert_status_str(cst->type)) <= 0)
             goto err;
         if (cst->type == V_OCSP_CERTSTATUS_REVOKED) {
             rev = cst->value.revoked;
@@ -205,9 +200,7 @@ int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
                 goto err;
             if (rev->revocationReason) {
                 l = ASN1_ENUMERATED_get(rev->revocationReason);
-                if (BIO_printf(bp,
-                               "\n    Revocation Reason: %s (0x%lx)",
-                               OCSP_crl_reason_str(l), l) <= 0)
+                if (BIO_printf(bp, "\n    Revocation Reason: %s (0x%lx)", OCSP_crl_reason_str(l), l) <= 0)
                     goto err;
             }
         }
@@ -223,15 +216,12 @@ int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
         }
         if (BIO_write(bp, "\n", 1) <= 0)
             goto err;
-        if (!X509V3_extensions_print(bp,
-                                     "Response Single Extensions",
-                                     single->singleExtensions, flags, 8))
+        if (!X509V3_extensions_print(bp, "Response Single Extensions", single->singleExtensions, flags, 8))
             goto err;
         if (BIO_write(bp, "\n", 1) <= 0)
             goto err;
     }
-    if (!X509V3_extensions_print(bp, "Response Extensions",
-                                 rd->responseExtensions, flags, 4))
+    if (!X509V3_extensions_print(bp, "Response Extensions", rd->responseExtensions, flags, 4))
         goto err;
     if (X509_signature_print(bp, &br->signatureAlgorithm, br->signature) <= 0)
         goto err;
@@ -242,7 +232,7 @@ int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
     }
 
     ret = 1;
- err:
+err:
     OCSP_BASICRESP_free(br);
     return ret;
 }

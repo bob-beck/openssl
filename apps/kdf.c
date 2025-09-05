@@ -19,8 +19,13 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_KDFOPT, OPT_BIN, OPT_KEYLEN, OPT_OUT,
-    OPT_CIPHER, OPT_DIGEST, OPT_MAC,
+    OPT_KDFOPT,
+    OPT_BIN,
+    OPT_KEYLEN,
+    OPT_OUT,
+    OPT_CIPHER,
+    OPT_DIGEST,
+    OPT_MAC,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
@@ -38,8 +43,7 @@ const OPTIONS kdf_options[] = {
 
     OPT_SECTION("Output"),
     {"out", OPT_OUT, '>', "Output to filename rather than stdout"},
-    {"binary", OPT_BIN, '-',
-        "Output in binary format (default is hexadecimal)"},
+    {"binary", OPT_BIN, '-', "Output in binary format (default is hexadecimal)"},
 
     OPT_PROV_OPTIONS,
 
@@ -48,11 +52,10 @@ const OPTIONS kdf_options[] = {
     {NULL}
 };
 
-static char *alloc_kdf_algorithm_name(STACK_OF(OPENSSL_STRING) **optp,
-                                      const char *name, const char *arg)
+static char *alloc_kdf_algorithm_name(STACK_OF(OPENSSL_STRING) **optp, const char *name, const char *arg)
 {
     size_t len = strlen(name) + strlen(arg) + 2;
-    char *res;
+    char  *res;
 
     if (*optp == NULL)
         *optp = sk_OPENSSL_STRING_new_null();
@@ -69,17 +72,17 @@ static char *alloc_kdf_algorithm_name(STACK_OF(OPENSSL_STRING) **optp,
 
 int kdf_main(int argc, char **argv)
 {
-    int ret = 1, out_bin = 0;
-    OPTION_CHOICE o;
+    int                       ret = 1, out_bin = 0;
+    OPTION_CHOICE             o;
     STACK_OF(OPENSSL_STRING) *opts = NULL;
-    char *prog, *hexout = NULL;
-    const char *outfile = NULL;
-    unsigned char *dkm_bytes = NULL;
-    int dkm_len = 0;
-    BIO *out = NULL;
-    EVP_KDF *kdf = NULL;
-    EVP_KDF_CTX *ctx = NULL;
-    char *digest = NULL, *cipher = NULL, *mac = NULL;
+    char                     *prog, *hexout = NULL;
+    const char               *outfile   = NULL;
+    unsigned char            *dkm_bytes = NULL;
+    int                       dkm_len   = 0;
+    BIO                      *out       = NULL;
+    EVP_KDF                  *kdf       = NULL;
+    EVP_KDF_CTX              *ctx       = NULL;
+    char                     *digest = NULL, *cipher = NULL, *mac = NULL;
 
     prog = opt_init(argc, argv, kdf_options);
     while ((o = opt_next()) != OPT_EOF) {
@@ -138,8 +141,7 @@ opthelp:
     if (argc != 1)
         goto opthelp;
 
-    if ((kdf = EVP_KDF_fetch(app_get0_libctx(), argv[0],
-                             app_get0_propq())) == NULL) {
+    if ((kdf = EVP_KDF_fetch(app_get0_libctx(), argv[0], app_get0_propq())) == NULL) {
         BIO_printf(bio_err, "Invalid KDF name %s\n", argv[0]);
         goto opthelp;
     }
@@ -149,9 +151,8 @@ opthelp:
         goto err;
 
     if (opts != NULL) {
-        int ok = 1;
-        OSSL_PARAM *params =
-            app_params_new_from_opts(opts, EVP_KDF_settable_ctx_params(kdf));
+        int         ok     = 1;
+        OSSL_PARAM *params = app_params_new_from_opts(opts, EVP_KDF_settable_ctx_params(kdf));
 
         if (params == NULL)
             goto err;

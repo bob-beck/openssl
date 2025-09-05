@@ -35,9 +35,11 @@ OCSP_CERTID *OCSP_onereq_get0_id(OCSP_ONEREQ *one)
     return one->reqCert;
 }
 
-int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
+int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash,
+                      ASN1_OBJECT       **pmd,
                       ASN1_OCTET_STRING **pikeyHash,
-                      ASN1_INTEGER **pserial, OCSP_CERTID *cid)
+                      ASN1_INTEGER      **pserial,
+                      OCSP_CERTID        *cid)
 {
     if (!cid)
         return 0;
@@ -73,29 +75,28 @@ OCSP_RESPONSE *OCSP_response_create(int status, OCSP_BASICRESP *bs)
     if ((rsp->responseBytes = OCSP_RESPBYTES_new()) == NULL)
         goto err;
     rsp->responseBytes->responseType = OBJ_nid2obj(NID_id_pkix_OCSP_basic);
-    if (!ASN1_item_pack
-        (bs, ASN1_ITEM_rptr(OCSP_BASICRESP), &rsp->responseBytes->response))
-         goto err;
+    if (!ASN1_item_pack(bs, ASN1_ITEM_rptr(OCSP_BASICRESP), &rsp->responseBytes->response))
+        goto err;
     return rsp;
- err:
+err:
     OCSP_RESPONSE_free(rsp);
     return NULL;
 }
 
 OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
-                                        OCSP_CERTID *cid,
-                                        int status, int reason,
-                                        ASN1_TIME *revtime,
-                                        ASN1_TIME *thisupd,
-                                        ASN1_TIME *nextupd)
+                                        OCSP_CERTID    *cid,
+                                        int             status,
+                                        int             reason,
+                                        ASN1_TIME      *revtime,
+                                        ASN1_TIME      *thisupd,
+                                        ASN1_TIME      *nextupd)
 {
-    OCSP_SINGLERESP *single = NULL;
-    OCSP_CERTSTATUS *cs;
+    OCSP_SINGLERESP  *single = NULL;
+    OCSP_CERTSTATUS  *cs;
     OCSP_REVOKEDINFO *ri;
 
     if (rsp->tbsResponseData.responses == NULL
-        && (rsp->tbsResponseData.responses
-                = sk_OCSP_SINGLERESP_new_null()) == NULL)
+        && (rsp->tbsResponseData.responses = sk_OCSP_SINGLERESP_new_null()) == NULL)
         goto err;
 
     if ((single = OCSP_SINGLERESP_new()) == NULL)
@@ -103,8 +104,7 @@ OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
 
     if (!ASN1_TIME_to_generalizedtime(thisupd, &single->thisUpdate))
         goto err;
-    if (nextupd &&
-        !ASN1_TIME_to_generalizedtime(nextupd, &single->nextUpdate))
+    if (nextupd && !ASN1_TIME_to_generalizedtime(nextupd, &single->nextUpdate))
         goto err;
 
     OCSP_CERTID_free(single->certId);
@@ -143,12 +143,11 @@ OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
 
     default:
         goto err;
-
     }
     if (!(sk_OCSP_SINGLERESP_push(rsp->tbsResponseData.responses, single)))
         goto err;
     return single;
- err:
+err:
     OCSP_SINGLERESP_free(single);
     return NULL;
 }
@@ -164,12 +163,10 @@ int OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert)
  * set the responderID to the subject name in the signer's certificate, and
  * include one or more optional certificates in the response.
  */
-int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
-                    X509 *signer, EVP_MD_CTX *ctx,
-                    STACK_OF(X509) *certs, unsigned long flags)
+int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp, X509 *signer, EVP_MD_CTX *ctx, STACK_OF(X509) *certs, unsigned long flags)
 {
     OCSP_RESPID *rid;
-    EVP_PKEY *pkey;
+    EVP_PKEY    *pkey;
 
     if (ctx == NULL || EVP_MD_CTX_get_pkey_ctx(ctx) == NULL) {
         ERR_raise(ERR_LIB_OCSP, OCSP_R_NO_SIGNER_KEY);
@@ -183,8 +180,7 @@ int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
     }
 
     if (!(flags & OCSP_NOCERTS)) {
-        if (!OCSP_basic_add1_cert(brsp, signer)
-            || !X509_add_certs(brsp->certs, certs, X509_ADD_FLAG_UP_REF))
+        if (!OCSP_basic_add1_cert(brsp, signer) || !X509_add_certs(brsp->certs, certs, X509_ADD_FLAG_UP_REF))
             goto err;
     }
 
@@ -196,8 +192,7 @@ int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
         goto err;
     }
 
-    if (!(flags & OCSP_NOTIME) &&
-        !X509_gmtime_adj(brsp->tbsResponseData.producedAt, 0))
+    if (!(flags & OCSP_NOTIME) && !X509_gmtime_adj(brsp->tbsResponseData.producedAt, 0))
         goto err;
 
     /*
@@ -208,23 +203,25 @@ int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
         goto err;
 
     return 1;
- err:
+err:
     return 0;
 }
 
 int OCSP_basic_sign(OCSP_BASICRESP *brsp,
-                    X509 *signer, EVP_PKEY *key, const EVP_MD *dgst,
-                    STACK_OF(X509) *certs, unsigned long flags)
+                    X509           *signer,
+                    EVP_PKEY       *key,
+                    const EVP_MD   *dgst,
+                    STACK_OF(X509) *certs,
+                    unsigned long   flags)
 {
-    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    EVP_MD_CTX   *ctx   = EVP_MD_CTX_new();
     EVP_PKEY_CTX *pkctx = NULL;
-    int i;
+    int           i;
 
     if (ctx == NULL)
         return 0;
 
-    if (!EVP_DigestSignInit_ex(ctx, &pkctx, EVP_MD_get0_name(dgst),
-                               signer->libctx, signer->propq, key, NULL)) {
+    if (!EVP_DigestSignInit_ex(ctx, &pkctx, EVP_MD_get0_name(dgst), signer->libctx, signer->propq, key, NULL)) {
         EVP_MD_CTX_free(ctx);
         return 0;
     }
@@ -243,13 +240,12 @@ int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
     return 1;
 }
 
-int OCSP_RESPID_set_by_key_ex(OCSP_RESPID *respid, X509 *cert,
-                              OSSL_LIB_CTX *libctx, const char *propq)
+int OCSP_RESPID_set_by_key_ex(OCSP_RESPID *respid, X509 *cert, OSSL_LIB_CTX *libctx, const char *propq)
 {
     ASN1_OCTET_STRING *byKey = NULL;
-    unsigned char md[SHA_DIGEST_LENGTH];
-    EVP_MD *sha1 = EVP_MD_fetch(libctx, "SHA1", propq);
-    int ret = 0;
+    unsigned char      md[SHA_DIGEST_LENGTH];
+    EVP_MD            *sha1 = EVP_MD_fetch(libctx, "SHA1", propq);
+    int                ret  = 0;
 
     if (sha1 == NULL)
         return 0;
@@ -267,11 +263,11 @@ int OCSP_RESPID_set_by_key_ex(OCSP_RESPID *respid, X509 *cert,
         goto err;
     }
 
-    respid->type = V_OCSP_RESPID_KEY;
+    respid->type        = V_OCSP_RESPID_KEY;
     respid->value.byKey = byKey;
 
-    ret = 1;
- err:
+    ret                 = 1;
+err:
     EVP_MD_free(sha1);
     return ret;
 }
@@ -283,11 +279,10 @@ int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
     return OCSP_RESPID_set_by_key_ex(respid, cert, cert->libctx, cert->propq);
 }
 
-int OCSP_RESPID_match_ex(OCSP_RESPID *respid, X509 *cert, OSSL_LIB_CTX *libctx,
-                         const char *propq)
+int OCSP_RESPID_match_ex(OCSP_RESPID *respid, X509 *cert, OSSL_LIB_CTX *libctx, const char *propq)
 {
     EVP_MD *sha1 = NULL;
-    int ret = 0;
+    int     ret  = 0;
 
     if (respid->type == V_OCSP_RESPID_KEY) {
         unsigned char md[SHA_DIGEST_LENGTH];
@@ -304,17 +299,15 @@ int OCSP_RESPID_match_ex(OCSP_RESPID *respid, X509 *cert, OSSL_LIB_CTX *libctx,
             goto err;
 
         ret = (ASN1_STRING_length(respid->value.byKey) == SHA_DIGEST_LENGTH)
-              && (memcmp(ASN1_STRING_get0_data(respid->value.byKey), md,
-                         SHA_DIGEST_LENGTH) == 0);
+              && (memcmp(ASN1_STRING_get0_data(respid->value.byKey), md, SHA_DIGEST_LENGTH) == 0);
     } else if (respid->type == V_OCSP_RESPID_NAME) {
         if (respid->value.byName == NULL)
             return 0;
 
-        return X509_NAME_cmp(respid->value.byName,
-                             X509_get_subject_name(cert)) == 0;
+        return X509_NAME_cmp(respid->value.byName, X509_get_subject_name(cert)) == 0;
     }
 
- err:
+err:
     EVP_MD_free(sha1);
     return ret;
 }

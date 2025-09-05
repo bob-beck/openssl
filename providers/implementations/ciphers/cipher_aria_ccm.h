@@ -13,10 +13,11 @@
 
 typedef struct prov_aria_ccm_ctx_st {
     PROV_CCM_CTX base; /* Must be first */
+
     union {
         OSSL_UNION_ALIGN;
         ARIA_KEY ks;
-    } ks;                       /* ARIA key schedule to use */
+    } ks; /* ARIA key schedule to use */
 } PROV_ARIA_CCM_CTX;
 
 const PROV_CCM_HW *ossl_prov_aria_hw_ccm(size_t keylen);

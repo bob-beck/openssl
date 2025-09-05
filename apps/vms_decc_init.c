@@ -7,8 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#if defined( __VMS) && !defined( OPENSSL_NO_DECC_INIT) && \
- defined( __DECC) && !defined( __VAX) && (__CRTL_VER >= 70301000)
+#if defined(__VMS) && !defined(OPENSSL_NO_DECC_INIT) && defined(__DECC) && !defined(__VAX) && (__CRTL_VER >= 70301000)
 # define USE_DECC_INIT 1
 #endif
 
@@ -35,7 +34,7 @@ int decc_init_done = -1;
 
 typedef struct {
     char *name;
-    int value;
+    int   value;
 } decc_feat_t;
 
 /*
@@ -45,7 +44,7 @@ typedef struct {
 
 decc_feat_t decc_feat_array[] = {
     /* Preserve command-line case with SET PROCESS/PARSE_STYLE=EXTENDED */
-    {"DECC$ARGV_PARSE_STYLE", 1},
+    {"DECC$ARGV_PARSE_STYLE",  1},
 
     /* Preserve case for file names on ODS5 disks. */
     {"DECC$EFS_CASE_PRESERVE", 1},
@@ -54,25 +53,24 @@ decc_feat_t decc_feat_array[] = {
      * Enable multiple dots (and most characters) in ODS5 file names, while
      * preserving VMS-ness of ";version".
      */
-    {"DECC$EFS_CHARSET", 1},
+    {"DECC$EFS_CHARSET",       1},
 
     /* List terminator. */
-    {(char *)NULL, 0}
+    {(char *)NULL,             0}
 };
-
 
 /* LIB$INITIALIZE initialization function. */
 
 static void decc_init(void)
 {
     char *openssl_debug_decc_init;
-    int verbose = 0;
-    int feat_index;
-    int feat_value;
-    int feat_value_max;
-    int feat_value_min;
-    int i;
-    int sts;
+    int   verbose = 0;
+    int   feat_index;
+    int   feat_value;
+    int   feat_value_max;
+    int   feat_value_min;
+    int   i;
+    int   sts;
 
     /* Get debug option. */
     openssl_debug_decc_init = getenv("OPENSSL_DEBUG_DECC_INIT");
@@ -93,22 +91,22 @@ static void decc_init(void)
         feat_index = decc$feature_get_index(decc_feat_array[i].name);
         if (feat_index >= 0) {
             /* Valid item.  Collect its properties. */
-            feat_value = decc$feature_get_value(feat_index, 1);
+            feat_value     = decc$feature_get_value(feat_index, 1);
             feat_value_min = decc$feature_get_value(feat_index, 2);
             feat_value_max = decc$feature_get_value(feat_index, 3);
 
             /* Check the validity of our desired value. */
-            if ((decc_feat_array[i].value >= feat_value_min) &&
-                (decc_feat_array[i].value <= feat_value_max)) {
+            if ((decc_feat_array[i].value >= feat_value_min) && (decc_feat_array[i].value <= feat_value_max)) {
                 /* Valid value.  Set it if necessary. */
                 if (feat_value != decc_feat_array[i].value) {
-                    sts = decc$feature_set_value(feat_index,
-                                                 1, decc_feat_array[i].value);
+                    sts = decc$feature_set_value(feat_index, 1, decc_feat_array[i].value);
 
                     if (verbose > 1) {
-                        fprintf(stderr, " %s = %d, sts = %d.\n",
+                        fprintf(stderr,
+                                " %s = %d, sts = %d.\n",
                                 decc_feat_array[i].name,
-                                decc_feat_array[i].value, sts);
+                                decc_feat_array[i].value,
+                                sts);
                     }
                 }
             } else {
@@ -116,13 +114,13 @@ static void decc_init(void)
                 fprintf(stderr,
                         " INVALID DECC$FEATURE VALUE, %d: %d <= %s <= %d.\n",
                         feat_value,
-                        feat_value_min, decc_feat_array[i].name,
+                        feat_value_min,
+                        decc_feat_array[i].name,
                         feat_value_max);
             }
         } else {
             /* Invalid DECC feature name. */
-            fprintf(stderr,
-                    " UNKNOWN DECC$FEATURE: %s.\n", decc_feat_array[i].name);
+            fprintf(stderr, " UNKNOWN DECC$FEATURE: %s.\n", decc_feat_array[i].name);
         }
     }
 
@@ -148,10 +146,10 @@ static void decc_init(void)
 # endif
 
 # pragma extern_model strict_refdef "LIB$INITIALIZ" PSECT_ALIGN, nopic, nowrt
-const int spare[8] = { 0 };
+const int spare[8] = {0};
 
 # pragma extern_model strict_refdef "LIB$INITIALIZE" PSECT_ALIGN, nopic, nowrt
-void (*const x_decc_init) () = decc_init;
+void (*const x_decc_init)() = decc_init;
 
 # pragma extern_model restore
 
@@ -168,9 +166,9 @@ int dmy_lib$initialize = (int)LIB$INITIALIZE;
 
 # pragma standard
 
-#else                           /* def USE_DECC_INIT */
+#else /* def USE_DECC_INIT */
 
 /* Dummy code to avoid a %CC-W-EMPTYFILE complaint. */
 int decc_init_dummy(void);
 
-#endif                          /* def USE_DECC_INIT */
+#endif /* def USE_DECC_INIT */

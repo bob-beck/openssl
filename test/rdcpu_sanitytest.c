@@ -13,9 +13,9 @@
 #include "testutil.h"
 #include "internal/cryptlib.h"
 
-#if (defined(__i386)   || defined(__i386__)   || defined(_M_IX86) || \
-     defined(__x86_64) || defined(__x86_64__) || \
-     defined(_M_AMD64) || defined (_M_X64)) && defined(OPENSSL_CPUID_OBJ)
+#if (defined(__i386) || defined(__i386__) || defined(_M_IX86) || defined(__x86_64) || defined(__x86_64__) \
+     || defined(_M_AMD64) || defined(_M_X64))                                                             \
+    && defined(OPENSSL_CPUID_OBJ)
 # define IS_X_86 1
 size_t OPENSSL_ia32_rdrand_bytes(unsigned char *buf, size_t len);
 size_t OPENSSL_ia32_rdseed_bytes(unsigned char *buf, size_t len);
@@ -35,17 +35,20 @@ size_t OPENSSL_rndrrs_bytes(unsigned char *buf, size_t len);
 
 #if (IS_X_86 || IS_AARCH_64)
 static int sanity_check_bytes(size_t (*rng)(unsigned char *, size_t),
-    int rounds, int min_failures, int max_retries, int max_zero_words)
+                              int rounds,
+                              int min_failures,
+                              int max_retries,
+                              int max_zero_words)
 {
-    int testresult = 0;
+    int           testresult = 0;
     unsigned char prior[31] = {0}, buf[31] = {0}, check[7];
-    int failures = 0, zero_words = 0;
+    int           failures = 0, zero_words = 0;
 
-    int i;
+    int           i;
     for (i = 0; i < rounds; i++) {
         size_t generated = 0;
 
-        int retry;
+        int    retry;
         for (retry = 0; retry < max_retries; retry++) {
             generated = rng(buf, sizeof(buf));
             if (generated == sizeof(buf))
@@ -60,7 +63,7 @@ static int sanity_check_bytes(size_t (*rng)(unsigned char *, size_t),
          */
         size_t j;
         for (j = 0; j < sizeof(buf) - 1; j++) {
-            if (buf[j] == 0 && buf[j+1] == 0) {
+            if (buf[j] == 0 && buf[j + 1] == 0) {
                 zero_words++;
             }
         }

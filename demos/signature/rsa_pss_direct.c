@@ -24,7 +24,7 @@
 static const unsigned char test_digest[32] = {0};
 
 /* A property query used for selecting algorithm implementations. */
-static const char *propq = NULL;
+static const char         *propq           = NULL;
 
 /*
  * This function demonstrates RSA signing of a SHA-256 digest using the PSS
@@ -35,20 +35,19 @@ static const char *propq = NULL;
  * For more information, see RFC 8017 section 9.1. The digest passed in
  * (test_digest above) corresponds to the 'mHash' value.
  */
-static int sign(OSSL_LIB_CTX *libctx, unsigned char **sig, size_t *sig_len)
+static int                 sign(OSSL_LIB_CTX *libctx, unsigned char **sig, size_t *sig_len)
 {
-    int ret = 0;
-    EVP_PKEY *pkey = NULL;
-    EVP_PKEY_CTX *ctx = NULL;
-    EVP_MD *md = NULL;
+    int                  ret       = 0;
+    EVP_PKEY            *pkey      = NULL;
+    EVP_PKEY_CTX        *ctx       = NULL;
+    EVP_MD              *md        = NULL;
     const unsigned char *ppriv_key = NULL;
 
-    *sig = NULL;
+    *sig                           = NULL;
 
     /* Load DER-encoded RSA private key. */
-    ppriv_key = rsa_priv_key;
-    pkey = d2i_PrivateKey_ex(EVP_PKEY_RSA, NULL, &ppriv_key,
-                             sizeof(rsa_priv_key), libctx, propq);
+    ppriv_key                      = rsa_priv_key;
+    pkey = d2i_PrivateKey_ex(EVP_PKEY_RSA, NULL, &ppriv_key, sizeof(rsa_priv_key), libctx, propq);
     if (pkey == NULL) {
         fprintf(stderr, "Failed to load private key\n");
         goto end;
@@ -85,8 +84,7 @@ static int sign(OSSL_LIB_CTX *libctx, unsigned char **sig, size_t *sig_len)
     }
 
     /* Determine length of signature. */
-    if (EVP_PKEY_sign(ctx, NULL, sig_len,
-                      test_digest, sizeof(test_digest)) == 0) {
+    if (EVP_PKEY_sign(ctx, NULL, sig_len, test_digest, sizeof(test_digest)) == 0) {
         fprintf(stderr, "Failed to get signature length\n");
         goto end;
     }
@@ -99,8 +97,7 @@ static int sign(OSSL_LIB_CTX *libctx, unsigned char **sig, size_t *sig_len)
     }
 
     /* Generate signature. */
-    if (EVP_PKEY_sign(ctx, *sig, sig_len,
-                      test_digest, sizeof(test_digest)) != 1) {
+    if (EVP_PKEY_sign(ctx, *sig, sig_len, test_digest, sizeof(test_digest)) != 1) {
         fprintf(stderr, "Failed to sign\n");
         goto end;
     }
@@ -123,15 +120,15 @@ end:
  */
 static int verify(OSSL_LIB_CTX *libctx, const unsigned char *sig, size_t sig_len)
 {
-    int ret = 0;
+    int                  ret      = 0;
     const unsigned char *ppub_key = NULL;
-    EVP_PKEY *pkey = NULL;
-    EVP_PKEY_CTX *ctx = NULL;
-    EVP_MD *md = NULL;
+    EVP_PKEY            *pkey     = NULL;
+    EVP_PKEY_CTX        *ctx      = NULL;
+    EVP_MD              *md       = NULL;
 
     /* Load DER-encoded RSA public key. */
-    ppub_key = rsa_pub_key;
-    pkey = d2i_PublicKey(EVP_PKEY_RSA, NULL, &ppub_key, sizeof(rsa_pub_key));
+    ppub_key                      = rsa_pub_key;
+    pkey                          = d2i_PublicKey(EVP_PKEY_RSA, NULL, &ppub_key, sizeof(rsa_pub_key));
     if (pkey == NULL) {
         fprintf(stderr, "Failed to load public key\n");
         goto end;
@@ -168,9 +165,9 @@ static int verify(OSSL_LIB_CTX *libctx, const unsigned char *sig, size_t sig_len
     }
 
     /* Verify signature. */
-    if (EVP_PKEY_verify(ctx, sig, sig_len,
-                        test_digest, sizeof(test_digest)) == 0) {
-        fprintf(stderr, "Failed to verify signature; "
+    if (EVP_PKEY_verify(ctx, sig, sig_len, test_digest, sizeof(test_digest)) == 0) {
+        fprintf(stderr,
+                "Failed to verify signature; "
                 "signature may be invalid\n");
         goto end;
     }
@@ -185,10 +182,10 @@ end:
 
 int main(int argc, char **argv)
 {
-    int ret = EXIT_FAILURE;
-    OSSL_LIB_CTX *libctx = NULL;
-    unsigned char *sig = NULL;
-    size_t sig_len = 0;
+    int            ret     = EXIT_FAILURE;
+    OSSL_LIB_CTX  *libctx  = NULL;
+    unsigned char *sig     = NULL;
+    size_t         sig_len = 0;
 
     if (sign(libctx, &sig, &sig_len) == 0)
         goto end;

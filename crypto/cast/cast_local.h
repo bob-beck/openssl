@@ -12,7 +12,7 @@
 #endif
 
 /* NOTE - c is not incremented as per n2l */
-#define n2ln(c,l1,l2,n) { \
+#define n2ln(c, l1, l2, n) { \
                         c+=n; \
                         l1=l2=0; \
                         switch (n) { \
@@ -35,7 +35,7 @@
                         }
 
 /* NOTE - c is not incremented as per l2n */
-#define l2nn(l1,l2,c,n) { \
+#define l2nn(l1, l2, c, n) { \
                         c+=n; \
                         switch (n) { \
                         case 8: *(--(c))=(unsigned char)(((l2)    )&0xff); \
@@ -57,21 +57,21 @@
                         }
 
 #undef n2l
-#define n2l(c,l)        (l =((unsigned long)(*((c)++)))<<24L, \
+#define n2l(c, l)        (l =((unsigned long)(*((c)++)))<<24L, \
                          l|=((unsigned long)(*((c)++)))<<16L, \
                          l|=((unsigned long)(*((c)++)))<< 8L, \
                          l|=((unsigned long)(*((c)++))))
 
 #undef l2n
-#define l2n(l,c)        (*((c)++)=(unsigned char)(((l)>>24L)&0xff), \
+#define l2n(l, c)        (*((c)++)=(unsigned char)(((l)>>24L)&0xff), \
                          *((c)++)=(unsigned char)(((l)>>16L)&0xff), \
                          *((c)++)=(unsigned char)(((l)>> 8L)&0xff), \
                          *((c)++)=(unsigned char)(((l)     )&0xff))
 
 #if defined(OPENSSL_SYS_WIN32) && defined(_MSC_VER)
-# define ROTL(a,n)     (_lrotl(a,n))
+# define ROTL(a, n)     (_lrotl(a,n))
 #else
-# define ROTL(a,n)     ((((a)<<(n))&0xffffffffL)|((a)>>((32-(n))&31)))
+# define ROTL(a, n)     ((((a)<<(n))&0xffffffffL)|((a)>>((32-(n))&31)))
 #endif
 
 #define C_M    0x3fc
@@ -82,7 +82,7 @@
 
 /* The rotate has an extra 16 added to it to help the x86 asm */
 #if defined(CAST_PTR)
-# define E_CAST(n,key,L,R,OP1,OP2,OP3) \
+# define E_CAST(n, key, L, R, OP1, OP2, OP3) \
         { \
         int i; \
         t=(key[n*2] OP1 R)&0xffffffffL; \
@@ -98,7 +98,7 @@
                         CAST_S_table3+((t>>C_1)&C_M)))&0xffffffffL; \
         }
 #elif defined(CAST_PTR2)
-# define E_CAST(n,key,L,R,OP1,OP2,OP3) \
+# define E_CAST(n, key, L, R, OP1, OP2, OP3) \
         { \
         int i; \
         CAST_LONG u,v,w; \
@@ -120,7 +120,7 @@
         L^=(t&0xffffffff); \
         }
 #else
-# define E_CAST(n,key,L,R,OP1,OP2,OP3) \
+# define E_CAST(n, key, L, R, OP1, OP2, OP3) \
         { \
         CAST_LONG a,b,c,d; \
         t=(key[n*2] OP1 R)&0xffffffff; \

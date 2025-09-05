@@ -52,7 +52,7 @@ typedef struct tls_enable ktls_crypto_info_t;
  * FreeBSD does not require any additional steps to enable KTLS before
  * setting keys.
  */
-static ossl_inline int ktls_enable(int fd)
+static ossl_inline int    ktls_enable(int fd)
 {
     return 1;
 }
@@ -70,11 +70,9 @@ static ossl_inline int ktls_enable(int fd)
 static ossl_inline int ktls_start(int fd, ktls_crypto_info_t *tls_en, int is_tx)
 {
     if (is_tx)
-        return setsockopt(fd, IPPROTO_TCP, TCP_TXTLS_ENABLE,
-                          tls_en, sizeof(*tls_en)) ? 0 : 1;
+        return setsockopt(fd, IPPROTO_TCP, TCP_TXTLS_ENABLE, tls_en, sizeof(*tls_en)) ? 0 : 1;
 #   ifndef OPENSSL_NO_KTLS_RX
-    return setsockopt(fd, IPPROTO_TCP, TCP_RXTLS_ENABLE, tls_en,
-                      sizeof(*tls_en)) ? 0 : 1;
+    return setsockopt(fd, IPPROTO_TCP, TCP_RXTLS_ENABLE, tls_en, sizeof(*tls_en)) ? 0 : 1;
 #   else
     return 0;
 #   endif
@@ -93,28 +91,27 @@ static ossl_inline int ktls_enable_tx_zerocopy_sendfile(int fd)
  * the entire record is pushed to TCP. It is impossible to send a partial
  * record using this control message.
  */
-static ossl_inline int ktls_send_ctrl_message(int fd, unsigned char record_type,
-                                              const void *data, size_t length)
+static ossl_inline int ktls_send_ctrl_message(int fd, unsigned char record_type, const void *data, size_t length)
 {
-    struct msghdr msg = { 0 };
-    int cmsg_len = sizeof(record_type);
+    struct msghdr   msg      = {0};
+    int             cmsg_len = sizeof(record_type);
     struct cmsghdr *cmsg;
-    char buf[CMSG_SPACE(cmsg_len)];
-    struct iovec msg_iov;   /* Vector of data to send/receive into */
+    char            buf[CMSG_SPACE(cmsg_len)];
+    struct iovec    msg_iov; /* Vector of data to send/receive into */
 
-    msg.msg_control = buf;
-    msg.msg_controllen = sizeof(buf);
-    cmsg = CMSG_FIRSTHDR(&msg);
-    cmsg->cmsg_level = IPPROTO_TCP;
-    cmsg->cmsg_type = TLS_SET_RECORD_TYPE;
-    cmsg->cmsg_len = CMSG_LEN(cmsg_len);
+    msg.msg_control                     = buf;
+    msg.msg_controllen                  = sizeof(buf);
+    cmsg                                = CMSG_FIRSTHDR(&msg);
+    cmsg->cmsg_level                    = IPPROTO_TCP;
+    cmsg->cmsg_type                     = TLS_SET_RECORD_TYPE;
+    cmsg->cmsg_len                      = CMSG_LEN(cmsg_len);
     *((unsigned char *)CMSG_DATA(cmsg)) = record_type;
-    msg.msg_controllen = cmsg->cmsg_len;
+    msg.msg_controllen                  = cmsg->cmsg_len;
 
-    msg_iov.iov_base = (void *)data;
-    msg_iov.iov_len = length;
-    msg.msg_iov = &msg_iov;
-    msg.msg_iovlen = 1;
+    msg_iov.iov_base                    = (void *)data;
+    msg_iov.iov_len                     = length;
+    msg.msg_iov                         = &msg_iov;
+    msg.msg_iovlen                      = 1;
 
     return sendmsg(fd, &msg, 0);
 }
@@ -137,30 +134,30 @@ static ossl_inline int ktls_read_record(int fd, void *data, size_t length)
  */
 static ossl_inline int ktls_read_record(int fd, void *data, size_t length)
 {
-    struct msghdr msg = { 0 };
-    int cmsg_len = sizeof(struct tls_get_record);
+    struct msghdr          msg      = {0};
+    int                    cmsg_len = sizeof(struct tls_get_record);
     struct tls_get_record *tgr;
-    struct cmsghdr *cmsg;
-    char buf[CMSG_SPACE(cmsg_len)];
-    struct iovec msg_iov;   /* Vector of data to send/receive into */
-    int ret;
-    unsigned char *p = data;
-    const size_t prepend_length = SSL3_RT_HEADER_LENGTH;
+    struct cmsghdr        *cmsg;
+    char                   buf[CMSG_SPACE(cmsg_len)];
+    struct iovec           msg_iov; /* Vector of data to send/receive into */
+    int                    ret;
+    unsigned char         *p              = data;
+    const size_t           prepend_length = SSL3_RT_HEADER_LENGTH;
 
     if (length <= prepend_length) {
         errno = EINVAL;
         return -1;
     }
 
-    msg.msg_control = buf;
+    msg.msg_control    = buf;
     msg.msg_controllen = sizeof(buf);
 
-    msg_iov.iov_base = p + prepend_length;
-    msg_iov.iov_len = length - prepend_length;
-    msg.msg_iov = &msg_iov;
-    msg.msg_iovlen = 1;
+    msg_iov.iov_base   = p + prepend_length;
+    msg_iov.iov_len    = length - prepend_length;
+    msg.msg_iov        = &msg_iov;
+    msg.msg_iovlen     = 1;
 
-    ret = recvmsg(fd, &msg, 0);
+    ret                = recvmsg(fd, &msg, 0);
     if (ret <= 0)
         return ret;
 
@@ -175,16 +172,15 @@ static ossl_inline int ktls_read_record(int fd, void *data, size_t length)
     }
 
     cmsg = CMSG_FIRSTHDR(&msg);
-    if (cmsg->cmsg_level != IPPROTO_TCP || cmsg->cmsg_type != TLS_GET_RECORD
-        || cmsg->cmsg_len != CMSG_LEN(cmsg_len)) {
+    if (cmsg->cmsg_level != IPPROTO_TCP || cmsg->cmsg_type != TLS_GET_RECORD || cmsg->cmsg_len != CMSG_LEN(cmsg_len)) {
         errno = EBADMSG;
         return -1;
     }
 
-    tgr = (struct tls_get_record *)CMSG_DATA(cmsg);
-    p[0] = tgr->tls_type;
-    p[1] = tgr->tls_vmajor;
-    p[2] = tgr->tls_vminor;
+    tgr                  = (struct tls_get_record *)CMSG_DATA(cmsg);
+    p[0]                 = tgr->tls_type;
+    p[1]                 = tgr->tls_vmajor;
+    p[2]                 = tgr->tls_vminor;
     *(uint16_t *)(p + 3) = htons(ret);
 
     return ret + prepend_length;
@@ -196,11 +192,10 @@ static ossl_inline int ktls_read_record(int fd, void *data, size_t length)
  * KTLS enables the sendfile system call to send data from a file over
  * TLS.
  */
-static ossl_inline ossl_ssize_t ktls_sendfile(int s, int fd, off_t off,
-                                              size_t size, int flags)
+static ossl_inline ossl_ssize_t ktls_sendfile(int s, int fd, off_t off, size_t size, int flags)
 {
     off_t sbytes = 0;
-    int ret;
+    int   ret;
 
     ret = sendfile(fd, s, off, size, NULL, &sbytes, flags);
     if (ret == -1 && sbytes == 0)
@@ -208,7 +203,7 @@ static ossl_inline ossl_ssize_t ktls_sendfile(int s, int fd, off_t off,
     return sbytes;
 }
 
-#  endif                         /* __FreeBSD__ */
+#  endif /* __FreeBSD__ */
 
 #  if defined(OPENSSL_SYS_LINUX)
 
@@ -275,6 +270,7 @@ struct tls_crypto_info_all {
         struct tls12_crypto_info_chacha20_poly1305 chacha20poly1305;
 #   endif
     };
+
     size_t tls_crypto_info_len;
 };
 
@@ -286,7 +282,7 @@ typedef struct tls_crypto_info_all ktls_crypto_info_t;
  * processing of SOL_TLS socket options. All other functionality remains the
  * same.
  */
-static ossl_inline int ktls_enable(int fd)
+static ossl_inline int             ktls_enable(int fd)
 {
     return setsockopt(fd, SOL_TCP, TCP_ULP, "tls", sizeof("tls")) ? 0 : 1;
 }
@@ -299,23 +295,20 @@ static ossl_inline int ktls_enable(int fd)
  * If successful, then data received using this socket will be decrypted,
  * authenticated and decapsulated using the crypto_info provided here.
  */
-static ossl_inline int ktls_start(int fd, ktls_crypto_info_t *crypto_info,
-                                  int is_tx)
+static ossl_inline int ktls_start(int fd, ktls_crypto_info_t *crypto_info, int is_tx)
 {
-    return setsockopt(fd, SOL_TLS, is_tx ? TLS_TX : TLS_RX,
-                      crypto_info, crypto_info->tls_crypto_info_len) ? 0 : 1;
+    return setsockopt(fd, SOL_TLS, is_tx ? TLS_TX : TLS_RX, crypto_info, crypto_info->tls_crypto_info_len) ? 0 : 1;
 }
 
 static ossl_inline int ktls_enable_tx_zerocopy_sendfile(int fd)
 {
-#ifndef OPENSSL_NO_KTLS_ZC_TX
+#   ifndef OPENSSL_NO_KTLS_ZC_TX
     int enable = 1;
 
-    return setsockopt(fd, SOL_TLS, TLS_TX_ZEROCOPY_RO,
-                      &enable, sizeof(enable)) ? 0 : 1;
-#else
+    return setsockopt(fd, SOL_TLS, TLS_TX_ZEROCOPY_RO, &enable, sizeof(enable)) ? 0 : 1;
+#   else
     return 0;
-#endif
+#   endif
 }
 
 /*
@@ -325,32 +318,32 @@ static ossl_inline int ktls_enable_tx_zerocopy_sendfile(int fd)
  * the entire record is pushed to TCP. It is impossible to send a partial
  * record using this control message.
  */
-static ossl_inline int ktls_send_ctrl_message(int fd, unsigned char record_type,
-                                              const void *data, size_t length)
+static ossl_inline int ktls_send_ctrl_message(int fd, unsigned char record_type, const void *data, size_t length)
 {
-    struct msghdr msg;
-    int cmsg_len = sizeof(record_type);
+    struct msghdr   msg;
+    int             cmsg_len = sizeof(record_type);
     struct cmsghdr *cmsg;
+
     union {
         struct cmsghdr hdr;
-        char buf[CMSG_SPACE(sizeof(unsigned char))];
+        char           buf[CMSG_SPACE(sizeof(unsigned char))];
     } cmsgbuf;
-    struct iovec msg_iov;       /* Vector of data to send/receive into */
+    struct iovec msg_iov; /* Vector of data to send/receive into */
 
     memset(&msg, 0, sizeof(msg));
-    msg.msg_control = cmsgbuf.buf;
-    msg.msg_controllen = sizeof(cmsgbuf.buf);
-    cmsg = CMSG_FIRSTHDR(&msg);
-    cmsg->cmsg_level = SOL_TLS;
-    cmsg->cmsg_type = TLS_SET_RECORD_TYPE;
-    cmsg->cmsg_len = CMSG_LEN(cmsg_len);
+    msg.msg_control                     = cmsgbuf.buf;
+    msg.msg_controllen                  = sizeof(cmsgbuf.buf);
+    cmsg                                = CMSG_FIRSTHDR(&msg);
+    cmsg->cmsg_level                    = SOL_TLS;
+    cmsg->cmsg_type                     = TLS_SET_RECORD_TYPE;
+    cmsg->cmsg_len                      = CMSG_LEN(cmsg_len);
     *((unsigned char *)CMSG_DATA(cmsg)) = record_type;
-    msg.msg_controllen = cmsg->cmsg_len;
+    msg.msg_controllen                  = cmsg->cmsg_len;
 
-    msg_iov.iov_base = (void *)data;
-    msg_iov.iov_len = length;
-    msg.msg_iov = &msg_iov;
-    msg.msg_iovlen = 1;
+    msg_iov.iov_base                    = (void *)data;
+    msg_iov.iov_len                     = length;
+    msg.msg_iov                         = &msg_iov;
+    msg.msg_iovlen                      = 1;
 
     return sendmsg(fd, &msg, 0);
 }
@@ -365,7 +358,6 @@ static ossl_inline ossl_ssize_t ktls_sendfile(int s, int fd, off_t off, size_t s
 }
 
 #   ifdef OPENSSL_NO_KTLS_RX
-
 
 static ossl_inline int ktls_read_record(int fd, void *data, size_t length)
 {
@@ -382,16 +374,17 @@ static ossl_inline int ktls_read_record(int fd, void *data, size_t length)
  */
 static ossl_inline int ktls_read_record(int fd, void *data, size_t length)
 {
-    struct msghdr msg;
+    struct msghdr   msg;
     struct cmsghdr *cmsg;
+
     union {
         struct cmsghdr hdr;
-        char buf[CMSG_SPACE(sizeof(unsigned char))];
+        char           buf[CMSG_SPACE(sizeof(unsigned char))];
     } cmsgbuf;
-    struct iovec msg_iov;
-    int ret;
-    unsigned char *p = data;
-    const size_t prepend_length = SSL3_RT_HEADER_LENGTH;
+    struct iovec   msg_iov;
+    int            ret;
+    unsigned char *p              = data;
+    const size_t   prepend_length = SSL3_RT_HEADER_LENGTH;
 
     if (length < prepend_length + EVP_GCM_TLS_TAG_LEN) {
         errno = EINVAL;
@@ -399,28 +392,28 @@ static ossl_inline int ktls_read_record(int fd, void *data, size_t length)
     }
 
     memset(&msg, 0, sizeof(msg));
-    msg.msg_control = cmsgbuf.buf;
+    msg.msg_control    = cmsgbuf.buf;
     msg.msg_controllen = sizeof(cmsgbuf.buf);
 
-    msg_iov.iov_base = p + prepend_length;
-    msg_iov.iov_len = length - prepend_length - EVP_GCM_TLS_TAG_LEN;
-    msg.msg_iov = &msg_iov;
-    msg.msg_iovlen = 1;
+    msg_iov.iov_base   = p + prepend_length;
+    msg_iov.iov_len    = length - prepend_length - EVP_GCM_TLS_TAG_LEN;
+    msg.msg_iov        = &msg_iov;
+    msg.msg_iovlen     = 1;
 
-    ret = recvmsg(fd, &msg, 0);
+    ret                = recvmsg(fd, &msg, 0);
     if (ret < 0)
         return ret;
 
     if (msg.msg_controllen > 0) {
         cmsg = CMSG_FIRSTHDR(&msg);
         if (cmsg->cmsg_type == TLS_GET_RECORD_TYPE) {
-            p[0] = *((unsigned char *)CMSG_DATA(cmsg));
-            p[1] = TLS1_2_VERSION_MAJOR;
-            p[2] = TLS1_2_VERSION_MINOR;
+            p[0]  = *((unsigned char *)CMSG_DATA(cmsg));
+            p[1]  = TLS1_2_VERSION_MAJOR;
+            p[2]  = TLS1_2_VERSION_MINOR;
             /* returned length is limited to msg_iov.iov_len above */
-            p[3] = (ret >> 8) & 0xff;
-            p[4] = ret & 0xff;
-            ret += prepend_length;
+            p[3]  = (ret >> 8) & 0xff;
+            p[4]  = ret & 0xff;
+            ret  += prepend_length;
         }
     }
 
@@ -430,5 +423,5 @@ static ossl_inline int ktls_read_record(int fd, void *data, size_t length)
 #   endif /* OPENSSL_NO_KTLS_RX */
 
 #  endif /* OPENSSL_SYS_LINUX */
-# endif /* OPENSSL_NO_KTLS */
-#endif /* HEADER_INTERNAL_KTLS */
+# endif  /* OPENSSL_NO_KTLS */
+#endif   /* HEADER_INTERNAL_KTLS */

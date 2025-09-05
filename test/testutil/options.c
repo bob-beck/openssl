@@ -12,17 +12,16 @@
 #include "tu_local.h"
 #include "output.h"
 
+static int used[100] = {0};
 
-static int used[100] = { 0 };
-
-int test_skip_common_options(void)
+int        test_skip_common_options(void)
 {
     OPTION_CHOICE_DEFAULT o;
 
     while ((o = (OPTION_CHOICE_DEFAULT)opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_TEST_CASES:
-           break;
+            break;
         default:
         case OPT_ERR:
             return 0;
@@ -49,9 +48,9 @@ char *test_get_argument(size_t n)
 
 void opt_check_usage(void)
 {
-    int i;
+    int    i;
     char **argv = opt_rest();
-    int n, arg_count = opt_num_rest();
+    int    n, arg_count = opt_num_rest();
 
     if (arg_count > (int)OSSL_NELEM(used))
         n = (int)OSSL_NELEM(used);
@@ -59,8 +58,7 @@ void opt_check_usage(void)
         n = arg_count;
     for (i = 0; i < n; i++) {
         if (used[i] == 0)
-            test_printf_stderr("Warning ignored command-line argument %d: %s\n",
-                               i, argv[i]);
+            test_printf_stderr("Warning ignored command-line argument %d: %s\n", i, argv[i]);
     }
     if (i < arg_count)
         test_printf_stderr("Warning arguments %d and later unchecked\n", i);
@@ -69,11 +67,10 @@ void opt_check_usage(void)
 int opt_printf_stderr(const char *fmt, ...)
 {
     va_list ap;
-    int ret;
+    int     ret;
 
     va_start(ap, fmt);
     ret = test_vprintf_stderr(fmt, ap);
     va_end(ap);
     return ret;
 }
-

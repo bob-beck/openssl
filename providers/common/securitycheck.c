@@ -41,17 +41,13 @@ int ossl_rsa_key_op_get_protect(const RSA *rsa, int operation, int *outprotect)
     case EVP_PKEY_OP_VERIFYRECOVER:
     case EVP_PKEY_OP_DECAPSULATE:
     case EVP_PKEY_OP_DECRYPT:
-        if (RSA_test_flags(rsa,
-                           RSA_FLAG_TYPE_MASK) == RSA_FLAG_TYPE_RSASSAPSS) {
-            ERR_raise_data(ERR_LIB_PROV,
-                           PROV_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE,
-                           "operation: %d", operation);
+        if (RSA_test_flags(rsa, RSA_FLAG_TYPE_MASK) == RSA_FLAG_TYPE_RSASSAPSS) {
+            ERR_raise_data(ERR_LIB_PROV, PROV_R_OPERATION_NOT_SUPPORTED_FOR_THIS_KEYTYPE, "operation: %d", operation);
             return 0;
         }
         break;
     default:
-        ERR_raise_data(ERR_LIB_PROV, ERR_R_INTERNAL_ERROR,
-                       "invalid operation: %d", operation);
+        ERR_raise_data(ERR_LIB_PROV, ERR_R_INTERNAL_ERROR, "invalid operation: %d", operation);
         return 0;
     }
     *outprotect = protect;
@@ -92,7 +88,7 @@ int ossl_mac_check_key_size(size_t keylen)
 int ossl_ec_check_curve_allowed(const EC_GROUP *group)
 {
     const char *curve_name;
-    int nid = EC_GROUP_get_curve_name(group);
+    int         nid = EC_GROUP_get_curve_name(group);
 
     /* Explicit curves are not FIPS approved */
     if (nid == NID_undef)
@@ -147,7 +143,7 @@ int ossl_ec_check_security_strength(const EC_GROUP *group, int protect)
  */
 int ossl_dsa_check_key(const DSA *dsa, int sign)
 {
-    size_t L, N;
+    size_t        L, N;
     const BIGNUM *p, *q;
 
     if (dsa == NULL)
@@ -178,10 +174,10 @@ int ossl_dsa_check_key(const DSA *dsa, int sign)
             return 1;
     }
 
-     /* Valid sizes for both sign and verify */
-    if (L == 2048 && (N == 224 || N == 256))    /* 112 bits */
+    /* Valid sizes for both sign and verify */
+    if (L == 2048 && (N == 224 || N == 256)) /* 112 bits */
         return 1;
-    return (L == 3072 && N == 256);             /* 128 bits */
+    return (L == 3072 && N == 256); /* 128 bits */
 }
 #endif /* OPENSSL_NO_DSA */
 
@@ -194,7 +190,7 @@ int ossl_dsa_check_key(const DSA *dsa, int sign)
  */
 int ossl_dh_check_key(const DH *dh)
 {
-    size_t L, N;
+    size_t        L, N;
     const BIGNUM *p, *q;
 
     if (dh == NULL)

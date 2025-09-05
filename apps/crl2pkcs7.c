@@ -23,7 +23,12 @@ static int add_certs_from_file(STACK_OF(X509) *stack, char *certfile);
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_INFORM, OPT_OUTFORM, OPT_IN, OPT_OUT, OPT_NOCRL, OPT_CERTFILE,
+    OPT_INFORM,
+    OPT_OUTFORM,
+    OPT_IN,
+    OPT_OUT,
+    OPT_NOCRL,
+    OPT_CERTFILE,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
@@ -35,8 +40,7 @@ const OPTIONS crl2pkcs7_options[] = {
     {"in", OPT_IN, '<', "Input file"},
     {"inform", OPT_INFORM, 'F', "Input format - DER or PEM"},
     {"nocrl", OPT_NOCRL, '-', "No crl to load, just certs from '-certfile'"},
-    {"certfile", OPT_CERTFILE, '<',
-     "File of chain of certs to a trusted CA; can be repeated"},
+    {"certfile", OPT_CERTFILE, '<', "File of chain of certs to a trusted CA; can be repeated"},
 
     OPT_SECTION("Output"),
     {"out", OPT_OUT, '>', "Output file"},
@@ -48,24 +52,23 @@ const OPTIONS crl2pkcs7_options[] = {
 
 int crl2pkcs7_main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL;
-    PKCS7 *p7 = NULL;
-    PKCS7_SIGNED *p7s = NULL;
-    STACK_OF(OPENSSL_STRING) *certflst = NULL;
-    STACK_OF(X509) *cert_stack = NULL;
-    STACK_OF(X509_CRL) *crl_stack = NULL;
-    X509_CRL *crl = NULL;
-    char *infile = NULL, *outfile = NULL, *prog, *certfile;
-    int i = 0, informat = FORMAT_PEM, outformat = FORMAT_PEM, ret = 1, nocrl =
-        0;
-    OPTION_CHOICE o;
+    BIO                      *in = NULL, *out = NULL;
+    PKCS7                    *p7         = NULL;
+    PKCS7_SIGNED             *p7s        = NULL;
+    STACK_OF(OPENSSL_STRING) *certflst   = NULL;
+    STACK_OF(X509)           *cert_stack = NULL;
+    STACK_OF(X509_CRL)       *crl_stack  = NULL;
+    X509_CRL                 *crl        = NULL;
+    char                     *infile = NULL, *outfile = NULL, *prog, *certfile;
+    int                       i = 0, informat = FORMAT_PEM, outformat = FORMAT_PEM, ret = 1, nocrl = 0;
+    OPTION_CHOICE             o;
 
     prog = opt_init(argc, argv, crl2pkcs7_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -90,8 +93,7 @@ int crl2pkcs7_main(int argc, char **argv)
             nocrl = 1;
             break;
         case OPT_CERTFILE:
-            if ((certflst == NULL)
-                && (certflst = sk_OPENSSL_STRING_new_null()) == NULL)
+            if ((certflst == NULL) && (certflst = sk_OPENSSL_STRING_new_null()) == NULL)
                 goto end;
             if (!sk_OPENSSL_STRING_push(certflst, opt_arg()))
                 goto end;
@@ -127,8 +129,8 @@ int crl2pkcs7_main(int argc, char **argv)
         goto end;
     if ((p7s = PKCS7_SIGNED_new()) == NULL)
         goto end;
-    p7->type = OBJ_nid2obj(NID_pkcs7_signed);
-    p7->d.sign = p7s;
+    p7->type            = OBJ_nid2obj(NID_pkcs7_signed);
+    p7->d.sign          = p7s;
     p7s->contents->type = OBJ_nid2obj(NID_pkcs7_data);
 
     if (!ASN1_INTEGER_set(p7s->version, 1))
@@ -141,7 +143,7 @@ int crl2pkcs7_main(int argc, char **argv)
 
         if (!sk_X509_CRL_push(crl_stack, crl))
             goto end;
-        crl = NULL;             /* now part of p7 for OPENSSL_freeing */
+        crl = NULL; /* now part of p7 for OPENSSL_freeing */
     }
 
     if (certflst != NULL) {
@@ -173,7 +175,7 @@ int crl2pkcs7_main(int argc, char **argv)
         goto end;
     }
     ret = 0;
- end:
+end:
     sk_OPENSSL_STRING_free(certflst);
     BIO_free(in);
     BIO_free_all(out);
@@ -195,11 +197,11 @@ int crl2pkcs7_main(int argc, char **argv)
  */
 static int add_certs_from_file(STACK_OF(X509) *stack, char *certfile)
 {
-    BIO *in = NULL;
-    int count = 0;
-    int ret = -1;
-    STACK_OF(X509_INFO) *sk = NULL;
-    X509_INFO *xi;
+    BIO                 *in    = NULL;
+    int                  count = 0;
+    int                  ret   = -1;
+    STACK_OF(X509_INFO) *sk    = NULL;
+    X509_INFO           *xi;
 
     in = BIO_new_file(certfile, "r");
     if (in == NULL) {
@@ -229,7 +231,7 @@ static int add_certs_from_file(STACK_OF(X509) *stack, char *certfile)
     }
 
     ret = count;
- end:
+end:
     /* never need to OPENSSL_free x */
     BIO_free(in);
     sk_X509_INFO_free(sk);

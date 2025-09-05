@@ -10,9 +10,9 @@
 #include "apps.h"
 
 static OSSL_LIB_CTX *app_libctx = NULL;
-static const char *app_propq = NULL;
+static const char   *app_propq  = NULL;
 
-int app_set_propq(const char *arg)
+int                  app_set_propq(const char *arg)
 {
     app_propq = arg;
     return 1;
@@ -45,4 +45,3 @@ OSSL_LIB_CTX *app_create_libctx(void)
         opt_printf_stderr("Failed to create library context\n");
     return app_libctx;
 }
-

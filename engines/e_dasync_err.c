@@ -20,7 +20,7 @@ static ERR_STRING_DATA DASYNC_str_reasons[] = {
 
 #endif
 
-static int lib_code = 0;
+static int lib_code     = 0;
 static int error_loaded = 0;
 
 static int ERR_load_DASYNC_strings(void)

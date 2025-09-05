@@ -17,13 +17,13 @@
 
 static void aes_siv_cleanup(void *vctx);
 
-static int aes_siv_initkey(void *vctx, const unsigned char *key, size_t keylen)
+static int  aes_siv_initkey(void *vctx, const unsigned char *key, size_t keylen)
 {
-    PROV_AES_SIV_CTX *ctx = (PROV_AES_SIV_CTX *)vctx;
-    SIV128_CONTEXT *sctx = &ctx->siv;
-    size_t klen  = keylen / 2;
-    OSSL_LIB_CTX *libctx = ctx->libctx;
-    const char *propq = NULL;
+    PROV_AES_SIV_CTX *ctx    = (PROV_AES_SIV_CTX *)vctx;
+    SIV128_CONTEXT   *sctx   = &ctx->siv;
+    size_t            klen   = keylen / 2;
+    OSSL_LIB_CTX     *libctx = ctx->libctx;
+    const char       *propq  = NULL;
 
     EVP_CIPHER_free(ctx->cbc);
     EVP_CIPHER_free(ctx->ctr);
@@ -52,13 +52,12 @@ static int aes_siv_initkey(void *vctx, const unsigned char *key, size_t keylen)
      * klen is the length of the underlying cipher, not the input key,
      * which should be twice as long
      */
-    return ossl_siv128_init(sctx, key, (int)klen, ctx->cbc, ctx->ctr, libctx,
-                              propq);
+    return ossl_siv128_init(sctx, key, (int)klen, ctx->cbc, ctx->ctr, libctx, propq);
 }
 
 static int aes_siv_dupctx(void *in_vctx, void *out_vctx)
 {
-    PROV_AES_SIV_CTX *in = (PROV_AES_SIV_CTX *)in_vctx;
+    PROV_AES_SIV_CTX *in  = (PROV_AES_SIV_CTX *)in_vctx;
     PROV_AES_SIV_CTX *out = (PROV_AES_SIV_CTX *)out_vctx;
 
     if (in->cbc != NULL && !EVP_CIPHER_up_ref(in->cbc))
@@ -68,10 +67,10 @@ static int aes_siv_dupctx(void *in_vctx, void *out_vctx)
         return 0;
     }
 
-    *out = *in;
-    out->siv.cipher_ctx = NULL;
+    *out                  = *in;
+    out->siv.cipher_ctx   = NULL;
     out->siv.mac_ctx_init = NULL;
-    out->siv.mac = NULL;
+    out->siv.mac          = NULL;
     if (!ossl_siv128_copy_ctx(&out->siv, &in->siv))
         return 0;
 
@@ -80,35 +79,34 @@ static int aes_siv_dupctx(void *in_vctx, void *out_vctx)
 
 static int aes_siv_settag(void *vctx, const unsigned char *tag, size_t tagl)
 {
-    PROV_AES_SIV_CTX *ctx = (PROV_AES_SIV_CTX *)vctx;
-    SIV128_CONTEXT *sctx = &ctx->siv;
+    PROV_AES_SIV_CTX *ctx  = (PROV_AES_SIV_CTX *)vctx;
+    SIV128_CONTEXT   *sctx = &ctx->siv;
 
     return ossl_siv128_set_tag(sctx, tag, tagl);
 }
 
 static void aes_siv_setspeed(void *vctx, int speed)
 {
-    PROV_AES_SIV_CTX *ctx = (PROV_AES_SIV_CTX *)vctx;
-    SIV128_CONTEXT *sctx = &ctx->siv;
+    PROV_AES_SIV_CTX *ctx  = (PROV_AES_SIV_CTX *)vctx;
+    SIV128_CONTEXT   *sctx = &ctx->siv;
 
     ossl_siv128_speed(sctx, (int)speed);
 }
 
 static void aes_siv_cleanup(void *vctx)
 {
-    PROV_AES_SIV_CTX *ctx = (PROV_AES_SIV_CTX *)vctx;
-    SIV128_CONTEXT *sctx = &ctx->siv;
+    PROV_AES_SIV_CTX *ctx  = (PROV_AES_SIV_CTX *)vctx;
+    SIV128_CONTEXT   *sctx = &ctx->siv;
 
     ossl_siv128_cleanup(sctx);
     EVP_CIPHER_free(ctx->cbc);
     EVP_CIPHER_free(ctx->ctr);
 }
 
-static int aes_siv_cipher(void *vctx, unsigned char *out,
-                          const unsigned char *in, size_t len)
+static int aes_siv_cipher(void *vctx, unsigned char *out, const unsigned char *in, size_t len)
 {
-    PROV_AES_SIV_CTX *ctx = (PROV_AES_SIV_CTX *)vctx;
-    SIV128_CONTEXT *sctx = &ctx->siv;
+    PROV_AES_SIV_CTX *ctx  = (PROV_AES_SIV_CTX *)vctx;
+    SIV128_CONTEXT   *sctx = &ctx->siv;
 
     /* EncryptFinal or DecryptFinal */
     if (in == NULL)

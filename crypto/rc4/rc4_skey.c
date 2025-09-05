@@ -35,17 +35,17 @@ const char *RC4_options(void)
 
 void RC4_set_key(RC4_KEY *key, int len, const unsigned char *data)
 {
-    register RC4_INT tmp;
-    register int id1, id2;
+    register RC4_INT  tmp;
+    register int      id1, id2;
     register RC4_INT *d;
-    unsigned int i;
+    unsigned int      i;
 
-    d = &(key->data[0]);
+    d      = &(key->data[0]);
     key->x = 0;
     key->y = 0;
     id1 = id2 = 0;
 
-#define SK_LOOP(d,n) { \
+#define SK_LOOP(d, n) { \
                 tmp=d[(n)]; \
                 id2 = (data[id1] + tmp + id2) & 0xff; \
                 if (++id1 == len) id1=0; \

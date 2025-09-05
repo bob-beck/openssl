@@ -28,9 +28,9 @@ typedef enum sct_signature_type_t {
  */
 static int sct_ctx_update(EVP_MD_CTX *ctx, const SCT_CTX *sctx, const SCT *sct)
 {
-    unsigned char tmpbuf[12];
+    unsigned char  tmpbuf[12];
     unsigned char *p, *der;
-    size_t derlen;
+    size_t         derlen;
     /*+
      * digitally-signed struct {
      *   (1 byte) Version sct_version;
@@ -49,7 +49,7 @@ static int sct_ctx_update(EVP_MD_CTX *ctx, const SCT_CTX *sctx, const SCT *sct)
     if (sct->entry_type == CT_LOG_ENTRY_TYPE_PRECERT && sctx->ihash == NULL)
         return 0;
 
-    p = tmpbuf;
+    p    = tmpbuf;
     *p++ = sct->version;
     *p++ = SIGNATURE_TYPE_CERT_TIMESTAMP;
     l2n8(sct->timestamp, p);
@@ -59,12 +59,12 @@ static int sct_ctx_update(EVP_MD_CTX *ctx, const SCT_CTX *sctx, const SCT *sct)
         return 0;
 
     if (sct->entry_type == CT_LOG_ENTRY_TYPE_X509) {
-        der = sctx->certder;
+        der    = sctx->certder;
         derlen = sctx->certderlen;
     } else {
         if (!EVP_DigestUpdate(ctx, sctx->ihash, sctx->ihashlen))
             return 0;
-        der = sctx->preder;
+        der    = sctx->preder;
         derlen = sctx->prederlen;
     }
 
@@ -96,11 +96,10 @@ static int sct_ctx_update(EVP_MD_CTX *ctx, const SCT_CTX *sctx, const SCT *sct)
 int SCT_CTX_verify(const SCT_CTX *sctx, const SCT *sct)
 {
     EVP_MD_CTX *ctx = NULL;
-    int ret = 0;
+    int         ret = 0;
 
-    if (!SCT_is_complete(sct) || sctx->pkey == NULL ||
-        sct->entry_type == CT_LOG_ENTRY_TYPE_NOT_SET ||
-        (sct->entry_type == CT_LOG_ENTRY_TYPE_PRECERT && sctx->ihash == NULL)) {
+    if (!SCT_is_complete(sct) || sctx->pkey == NULL || sct->entry_type == CT_LOG_ENTRY_TYPE_NOT_SET
+        || (sct->entry_type == CT_LOG_ENTRY_TYPE_PRECERT && sctx->ihash == NULL)) {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_NOT_SET);
         return 0;
     }
@@ -108,8 +107,7 @@ int SCT_CTX_verify(const SCT_CTX *sctx, const SCT *sct)
         ERR_raise(ERR_LIB_CT, CT_R_SCT_UNSUPPORTED_VERSION);
         return 0;
     }
-    if (sct->log_id_len != sctx->pkeyhashlen ||
-        memcmp(sct->log_id, sctx->pkeyhash, sctx->pkeyhashlen) != 0) {
+    if (sct->log_id_len != sctx->pkeyhashlen || memcmp(sct->log_id, sctx->pkeyhash, sctx->pkeyhashlen) != 0) {
         ERR_raise(ERR_LIB_CT, CT_R_SCT_LOG_ID_MISMATCH);
         return 0;
     }
@@ -122,8 +120,7 @@ int SCT_CTX_verify(const SCT_CTX *sctx, const SCT *sct)
     if (ctx == NULL)
         goto end;
 
-    if (!EVP_DigestVerifyInit_ex(ctx, NULL, "SHA2-256", sctx->libctx,
-                                 sctx->propq, sctx->pkey, NULL))
+    if (!EVP_DigestVerifyInit_ex(ctx, NULL, "SHA2-256", sctx->libctx, sctx->propq, sctx->pkey, NULL))
         goto end;
 
     if (!sct_ctx_update(ctx, sctx, sct))

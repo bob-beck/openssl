@@ -49,32 +49,17 @@
  * of size 'felem_size'. tmp_felems needs to point to a temporary array of
  * 'num'+1 field elements for storage of intermediate values.
  */
-void
-ossl_ec_GFp_nistp_points_make_affine_internal(size_t num, void *point_array,
-                                              size_t felem_size,
-                                              void *tmp_felems,
-                                              void (*felem_one) (void *out),
-                                              int (*felem_is_zero) (const void
-                                                                    *in),
-                                              void (*felem_assign) (void *out,
-                                                                    const void
-                                                                    *in),
-                                              void (*felem_square) (void *out,
-                                                                    const void
-                                                                    *in),
-                                              void (*felem_mul) (void *out,
-                                                                 const void
-                                                                 *in1,
-                                                                 const void
-                                                                 *in2),
-                                              void (*felem_inv) (void *out,
-                                                                 const void
-                                                                 *in),
-                                              void (*felem_contract) (void
-                                                                      *out,
-                                                                      const
-                                                                      void
-                                                                      *in))
+void ossl_ec_GFp_nistp_points_make_affine_internal(size_t num,
+                                                   void  *point_array,
+                                                   size_t felem_size,
+                                                   void  *tmp_felems,
+                                                   void (*felem_one)(void *out),
+                                                   int (*felem_is_zero)(const void *in),
+                                                   void (*felem_assign)(void *out, const void *in),
+                                                   void (*felem_square)(void *out, const void *in),
+                                                   void (*felem_mul)(void *out, const void *in1, const void *in2),
+                                                   void (*felem_inv)(void *out, const void *in),
+                                                   void (*felem_contract)(void *out, const void *in))
 {
     int i = 0;
 
@@ -120,10 +105,10 @@ ossl_ec_GFp_nistp_points_make_affine_internal(size_t num, void *point_array,
             /*
              * Convert point (X, Y, Z) into affine form (X/(Z^2), Y/(Z^3), 1)
              */
-            felem_square(Z(i), tmp_felem(num)); /* 1/(Z^2) */
-            felem_mul(X(i), X(i), Z(i)); /* X/(Z^2) */
+            felem_square(Z(i), tmp_felem(num));    /* 1/(Z^2) */
+            felem_mul(X(i), X(i), Z(i));           /* X/(Z^2) */
             felem_mul(Z(i), Z(i), tmp_felem(num)); /* 1/(Z^3) */
-            felem_mul(Y(i), Y(i), Z(i)); /* Y/(Z^3) */
+            felem_mul(Y(i), Y(i), Z(i));           /* Y/(Z^3) */
             felem_contract(X(i), X(i));
             felem_contract(Y(i), Y(i));
             felem_one(Z(i));
@@ -210,17 +195,16 @@ ossl_ec_GFp_nistp_points_make_affine_internal(size_t num, void *point_array,
  * b_-1, has to be b_4 b_3 b_2 b_1 b_0 0.
  *
  */
-void ossl_ec_GFp_nistp_recode_scalar_bits(unsigned char *sign,
-                                          unsigned char *digit, unsigned char in)
+void ossl_ec_GFp_nistp_recode_scalar_bits(unsigned char *sign, unsigned char *digit, unsigned char in)
 {
     unsigned char s, d;
 
-    s = ~((in >> 5) - 1);       /* sets all bits to MSB(in), 'in' seen as
-                                 * 6-bit value */
-    d = (1 << 6) - in - 1;
-    d = (d & s) | (in & ~s);
-    d = (d >> 1) + (d & 1);
+    s      = ~((in >> 5) - 1); /* sets all bits to MSB(in), 'in' seen as
+                                * 6-bit value */
+    d      = (1 << 6) - in - 1;
+    d      = (d & s) | (in & ~s);
+    d      = (d >> 1) + (d & 1);
 
-    *sign = s & 1;
+    *sign  = s & 1;
     *digit = d;
 }

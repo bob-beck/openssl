@@ -48,8 +48,8 @@ SSL_CTX *create_ssl_ctx(void)
  */
 BIO *new_conn(SSL_CTX *ctx, const char *hostname)
 {
-    BIO *out;
-    SSL *ssl = NULL;
+    BIO        *out;
+    SSL        *ssl = NULL;
     const char *bare_hostname;
 #ifdef USE_QUIC
     static const unsigned char alpn[] = {5, 'd', 'u', 'm', 'm', 'y'};
@@ -138,10 +138,10 @@ void teardown_ctx(SSL_CTX *ctx)
 int main(int argc, char **argv)
 {
     static char msg[384], host_port[300];
-    SSL_CTX *ctx = NULL;
-    BIO *b = NULL;
-    char buf[2048];
-    int l, mlen, res = 1;
+    SSL_CTX    *ctx = NULL;
+    BIO        *b   = NULL;
+    char        buf[2048];
+    int         l, mlen, res = 1;
 
     if (argc < 3) {
         fprintf(stderr, "usage: %s host port\n", argv[0]);
@@ -149,10 +149,9 @@ int main(int argc, char **argv)
     }
 
     snprintf(host_port, sizeof(host_port), "%s:%s", argv[1], argv[2]);
-    mlen = snprintf(msg, sizeof(msg),
-                    "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
+    mlen = snprintf(msg, sizeof(msg), "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
 
-    ctx = create_ssl_ctx();
+    ctx  = create_ssl_ctx();
     if (ctx == NULL) {
         fprintf(stderr, "could not create context\n");
         goto fail;

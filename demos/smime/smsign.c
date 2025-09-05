@@ -14,18 +14,18 @@
 
 int main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL, *tbio = NULL;
-    X509 *scert = NULL;
-    EVP_PKEY *skey = NULL;
-    PKCS7 *p7 = NULL;
-    int ret = EXIT_FAILURE;
+    BIO      *in = NULL, *out = NULL, *tbio = NULL;
+    X509     *scert = NULL;
+    EVP_PKEY *skey  = NULL;
+    PKCS7    *p7    = NULL;
+    int       ret   = EXIT_FAILURE;
 
     /*
      * For simple S/MIME signing use PKCS7_DETACHED.
      * for streaming detached set PKCS7_DETACHED|PKCS7_STREAM for streaming
      * non-detached set PKCS7_STREAM
      */
-    int flags = PKCS7_DETACHED | PKCS7_STREAM;
+    int       flags = PKCS7_DETACHED | PKCS7_STREAM;
 
     OpenSSL_add_all_algorithms();
     ERR_load_crypto_strings();
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
     printf("Success\n");
 
     ret = EXIT_SUCCESS;
- err:
+err:
     if (ret != EXIT_SUCCESS) {
         fprintf(stderr, "Error Signing Data\n");
         ERR_print_errors_fp(stderr);

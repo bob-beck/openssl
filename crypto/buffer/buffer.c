@@ -70,7 +70,7 @@ static char *sec_alloc_realloc(BUF_MEM *str, size_t len)
 
 size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
 {
-    char *ret;
+    char  *ret;
     size_t n;
 
     if (str->length >= len) {
@@ -97,7 +97,7 @@ size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
         len = 0;
     } else {
         str->data = ret;
-        str->max = n;
+        str->max  = n;
         memset(&str->data[str->length], 0, len - str->length);
         str->length = len;
     }
@@ -106,7 +106,7 @@ size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
 
 size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
 {
-    char *ret;
+    char  *ret;
     size_t n;
 
     if (str->length >= len) {
@@ -134,7 +134,7 @@ size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
         len = 0;
     } else {
         str->data = ret;
-        str->max = n;
+        str->max  = n;
         memset(&str->data[str->length], 0, len - str->length);
         str->length = len;
     }
@@ -150,11 +150,11 @@ void BUF_reverse(unsigned char *out, const unsigned char *in, size_t size)
             *out-- = *in++;
     } else {
         unsigned char *q;
-        char c;
+        char           c;
         q = out + size - 1;
         for (i = 0; i < size / 2; i++) {
-            c = *q;
-            *q-- = *out;
+            c      = *q;
+            *q--   = *out;
             *out++ = c;
         }
     }

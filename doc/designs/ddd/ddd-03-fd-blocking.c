@@ -136,31 +136,30 @@ void teardown_ctx(SSL_CTX *ctx)
 
 int main(int argc, char **argv)
 {
-    int rc, fd = -1, l, mlen, res = 1;
-    static char msg[300];
+    int             rc, fd = -1, l, mlen, res = 1;
+    static char     msg[300];
     struct addrinfo hints = {0}, *result = NULL;
-    SSL *ssl = NULL;
-    SSL_CTX *ctx = NULL;
-    char buf[2048];
+    SSL            *ssl = NULL;
+    SSL_CTX        *ctx = NULL;
+    char            buf[2048];
 
     if (argc < 3) {
         fprintf(stderr, "usage: %s host port\n", argv[0]);
         goto fail;
     }
 
-    mlen = snprintf(msg, sizeof(msg),
-                    "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
+    mlen = snprintf(msg, sizeof(msg), "GET / HTTP/1.0\r\nHost: %s\r\n\r\n", argv[1]);
 
-    ctx = create_ssl_ctx();
+    ctx  = create_ssl_ctx();
     if (ctx == NULL) {
         fprintf(stderr, "cannot create context\n");
         goto fail;
     }
 
-    hints.ai_family     = AF_INET;
-    hints.ai_socktype   = SOCK_STREAM;
-    hints.ai_flags      = AI_PASSIVE;
-    rc = getaddrinfo(argv[1], argv[2], &hints, &result);
+    hints.ai_family   = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags    = AI_PASSIVE;
+    rc                = getaddrinfo(argv[1], argv[2], &hints, &result);
     if (rc < 0) {
         fprintf(stderr, "cannot resolve\n");
         goto fail;

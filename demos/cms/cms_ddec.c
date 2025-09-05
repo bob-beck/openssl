@@ -17,11 +17,11 @@
 
 int main(int argc, char **argv)
 {
-    BIO *in = NULL, *out = NULL, *tbio = NULL, *dcont = NULL;
-    X509 *rcert = NULL;
-    EVP_PKEY *rkey = NULL;
-    CMS_ContentInfo *cms = NULL;
-    int ret = EXIT_FAILURE;
+    BIO             *in = NULL, *out = NULL, *tbio = NULL, *dcont = NULL;
+    X509            *rcert = NULL;
+    EVP_PKEY        *rkey  = NULL;
+    CMS_ContentInfo *cms   = NULL;
+    int              ret   = EXIT_FAILURE;
 
     OpenSSL_add_all_algorithms();
     ERR_load_crypto_strings();
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
     ret = EXIT_SUCCESS;
 
- err:
+err:
 
     if (ret != EXIT_SUCCESS) {
         fprintf(stderr, "Error Decrypting Data\n");

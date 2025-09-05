@@ -30,19 +30,19 @@
 
 struct bss_sock_st {
     BIO_ADDR tfo_peer;
-    int tfo_first;
-#ifndef OPENSSL_NO_KTLS
+    int      tfo_first;
+# ifndef OPENSSL_NO_KTLS
     unsigned char ktls_record_type;
-#endif
+# endif
 };
 
-static int sock_write(BIO *h, const char *buf, int num);
-static int sock_read(BIO *h, char *buf, int size);
-static int sock_puts(BIO *h, const char *str);
-static long sock_ctrl(BIO *h, int cmd, long arg1, void *arg2);
-static int sock_new(BIO *h);
-static int sock_free(BIO *data);
-int BIO_sock_should_retry(int s);
+static int              sock_write(BIO *h, const char *buf, int num);
+static int              sock_read(BIO *h, char *buf, int size);
+static int              sock_puts(BIO *h, const char *str);
+static long             sock_ctrl(BIO *h, int cmd, long arg1, void *arg2);
+static int              sock_new(BIO *h);
+static int              sock_free(BIO *data);
+int                     BIO_sock_should_retry(int s);
 
 static const BIO_METHOD methods_sockp = {
     BIO_TYPE_SOCKET,
@@ -52,11 +52,11 @@ static const BIO_METHOD methods_sockp = {
     bread_conv,
     sock_read,
     sock_puts,
-    NULL,                       /* sock_gets,         */
+    NULL, /* sock_gets,         */
     sock_ctrl,
     sock_new,
     sock_free,
-    NULL,                       /* sock_callback_ctrl */
+    NULL, /* sock_callback_ctrl */
 };
 
 const BIO_METHOD *BIO_s_socket(void)
@@ -88,10 +88,10 @@ BIO *BIO_new_socket(int fd, int close_flag)
 
 static int sock_new(BIO *bi)
 {
-    bi->init = 0;
-    bi->num = 0;
+    bi->init  = 0;
+    bi->num   = 0;
     bi->flags = 0;
-    bi->ptr = OPENSSL_zalloc(sizeof(struct bss_sock_st));
+    bi->ptr   = OPENSSL_zalloc(sizeof(struct bss_sock_st));
     if (bi->ptr == NULL)
         return 0;
     return 1;
@@ -105,7 +105,7 @@ static int sock_free(BIO *a)
         if (a->init) {
             BIO_closesocket(a->num);
         }
-        a->init = 0;
+        a->init  = 0;
         a->flags = 0;
     }
     OPENSSL_free(a->ptr);
@@ -147,7 +147,7 @@ static int sock_write(BIO *b, const char *in, int inl)
 # ifndef OPENSSL_NO_KTLS
     if (BIO_should_ktls_ctrl_msg_flag(b)) {
         unsigned char record_type = data->ktls_record_type;
-        ret = ktls_send_ctrl_message(b->num, record_type, in, inl);
+        ret                       = ktls_send_ctrl_message(b->num, record_type, in, inl);
         if (ret >= 0) {
             ret = inl;
             BIO_clear_ktls_ctrl_msg_flag(b);
@@ -155,12 +155,11 @@ static int sock_write(BIO *b, const char *in, int inl)
     } else
 # endif
 # if defined(OSSL_TFO_SENDTO)
-    if (data->tfo_first) {
-        struct bss_sock_st *data = (struct bss_sock_st *)b->ptr;
-        socklen_t peerlen = BIO_ADDR_sockaddr_size(&data->tfo_peer);
+        if (data->tfo_first) {
+        struct bss_sock_st *data    = (struct bss_sock_st *)b->ptr;
+        socklen_t           peerlen = BIO_ADDR_sockaddr_size(&data->tfo_peer);
 
-        ret = sendto(b->num, in, inl, OSSL_TFO_SENDTO,
-                     BIO_ADDR_sockaddr(&data->tfo_peer), peerlen);
+        ret             = sendto(b->num, in, inl, OSSL_TFO_SENDTO, BIO_ADDR_sockaddr(&data->tfo_peer), peerlen);
         data->tfo_first = 0;
     } else
 # endif
@@ -175,8 +174,8 @@ static int sock_write(BIO *b, const char *in, int inl)
 
 static long sock_ctrl(BIO *b, int cmd, long num, void *ptr)
 {
-    long ret = 1;
-    int *ip;
+    long                ret = 1;
+    int                *ip;
     struct bss_sock_st *data = (struct bss_sock_st *)b->ptr;
 # ifndef OPENSSL_NO_KTLS
     ktls_crypto_info_t *crypto_info;
@@ -190,9 +189,9 @@ static long sock_ctrl(BIO *b, int cmd, long num, void *ptr)
                 BIO_closesocket(b->num);
             b->flags = 0;
         }
-        b->num = *((int *)ptr);
-        b->shutdown = (int)num;
-        b->init = 1;
+        b->num          = *((int *)ptr);
+        b->shutdown     = (int)num;
+        b->init         = 1;
         data->tfo_first = 0;
         memset(&data->tfo_peer, 0, sizeof(data->tfo_peer));
         break;
@@ -216,23 +215,21 @@ static long sock_ctrl(BIO *b, int cmd, long num, void *ptr)
         ret = 1;
         break;
     case BIO_CTRL_GET_RPOLL_DESCRIPTOR:
-    case BIO_CTRL_GET_WPOLL_DESCRIPTOR:
-        {
-            BIO_POLL_DESCRIPTOR *pd = ptr;
+    case BIO_CTRL_GET_WPOLL_DESCRIPTOR: {
+        BIO_POLL_DESCRIPTOR *pd = ptr;
 
-            if (!b->init) {
-                ret = 0;
-                break;
-            }
-
-            pd->type        = BIO_POLL_DESCRIPTOR_TYPE_SOCK_FD;
-            pd->value.fd    = b->num;
+        if (!b->init) {
+            ret = 0;
+            break;
         }
-        break;
+
+        pd->type     = BIO_POLL_DESCRIPTOR_TYPE_SOCK_FD;
+        pd->value.fd = b->num;
+    } break;
 # ifndef OPENSSL_NO_KTLS
     case BIO_CTRL_SET_KTLS:
         crypto_info = (ktls_crypto_info_t *)ptr;
-        ret = ktls_start(b->num, crypto_info, num);
+        ret         = ktls_start(b->num, crypto_info, num);
         if (ret)
             BIO_set_ktls_flag(b, num);
         break;
@@ -243,7 +240,7 @@ static long sock_ctrl(BIO *b, int cmd, long num, void *ptr)
     case BIO_CTRL_SET_KTLS_TX_SEND_CTRL_MSG:
         BIO_set_ktls_ctrl_msg_flag(b);
         data->ktls_record_type = (unsigned char)num;
-        ret = 0;
+        ret                    = 0;
         break;
     case BIO_CTRL_CLEAR_KTLS_TX_CTRL_MSG:
         BIO_clear_ktls_ctrl_msg_flag(b);
@@ -262,15 +259,14 @@ static long sock_ctrl(BIO *b, int cmd, long num, void *ptr)
         if (ptr != NULL && num == 2) {
             const char **pptr = (const char **)ptr;
 
-            *pptr = (const char *)&data->tfo_peer;
+            *pptr             = (const char *)&data->tfo_peer;
         } else {
             ret = 0;
         }
         break;
     case BIO_C_SET_CONNECT:
         if (ptr != NULL && num == 2) {
-            ret = BIO_ADDR_make(&data->tfo_peer,
-                                BIO_ADDR_sockaddr((const BIO_ADDR *)ptr));
+            ret = BIO_ADDR_make(&data->tfo_peer, BIO_ADDR_sockaddr((const BIO_ADDR *)ptr));
             if (ret)
                 data->tfo_first = 1;
         } else {
@@ -286,7 +282,7 @@ static long sock_ctrl(BIO *b, int cmd, long num, void *ptr)
 
 static int sock_puts(BIO *bp, const char *str)
 {
-    int ret;
+    int    ret;
     size_t n = strlen(str);
 
     if (n > INT_MAX)
@@ -358,4 +354,4 @@ int BIO_sock_non_fatal_error(int err)
     return 0;
 }
 
-#endif                          /* #ifndef OPENSSL_NO_SOCK */
+#endif /* #ifndef OPENSSL_NO_SOCK */

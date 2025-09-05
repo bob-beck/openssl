@@ -21,11 +21,11 @@
 
 int ossl_policy_cache_set_mapping(X509 *x, POLICY_MAPPINGS *maps)
 {
-    POLICY_MAPPING *map;
-    X509_POLICY_DATA *data;
+    POLICY_MAPPING    *map;
+    X509_POLICY_DATA  *data;
     X509_POLICY_CACHE *cache = x->policy_cache;
-    int i;
-    int ret = 0;
+    int                i;
+    int                ret = 0;
     if (sk_POLICY_MAPPING_num(maps) == 0) {
         ret = -1;
         goto bad_mapping;
@@ -47,33 +47,30 @@ int ossl_policy_cache_set_mapping(X509 *x, POLICY_MAPPINGS *maps)
 
         /* Create a NODE from anyPolicy */
         if (data == NULL) {
-            data = ossl_policy_data_new(NULL, map->issuerDomainPolicy,
-                                        cache->anyPolicy->flags
-                                        & POLICY_DATA_FLAG_CRITICAL);
+            data = ossl_policy_data_new(NULL,
+                                        map->issuerDomainPolicy,
+                                        cache->anyPolicy->flags & POLICY_DATA_FLAG_CRITICAL);
             if (data == NULL)
                 goto bad_mapping;
-            data->qualifier_set = cache->anyPolicy->qualifier_set;
+            data->qualifier_set  = cache->anyPolicy->qualifier_set;
             /*
              * map->issuerDomainPolicy = NULL;
              */
-            data->flags |= POLICY_DATA_FLAG_MAPPED_ANY;
-            data->flags |= POLICY_DATA_FLAG_SHARED_QUALIFIERS;
+            data->flags         |= POLICY_DATA_FLAG_MAPPED_ANY;
+            data->flags         |= POLICY_DATA_FLAG_SHARED_QUALIFIERS;
             if (!sk_X509_POLICY_DATA_push(cache->data, data)) {
                 ossl_policy_data_free(data);
                 goto bad_mapping;
             }
         } else
             data->flags |= POLICY_DATA_FLAG_MAPPED;
-        if (!sk_ASN1_OBJECT_push(data->expected_policy_set,
-                                 map->subjectDomainPolicy))
+        if (!sk_ASN1_OBJECT_push(data->expected_policy_set, map->subjectDomainPolicy))
             goto bad_mapping;
         map->subjectDomainPolicy = NULL;
-
     }
 
     ret = 1;
- bad_mapping:
+bad_mapping:
     sk_POLICY_MAPPING_pop_free(maps, POLICY_MAPPING_free);
     return ret;
-
 }

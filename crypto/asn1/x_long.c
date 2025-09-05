@@ -18,35 +18,31 @@
  * ASN1_INTEGER and a long directly.
  */
 
-static int long_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
+static int  long_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
 static void long_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
 
-static int long_i2c(const ASN1_VALUE **pval, unsigned char *cont, int *putype,
-                    const ASN1_ITEM *it);
-static int long_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
-                    int utype, char *free_cont, const ASN1_ITEM *it);
-static int long_print(BIO *out, const ASN1_VALUE **pval, const ASN1_ITEM *it,
-                      int indent, const ASN1_PCTX *pctx);
+static int  long_i2c(const ASN1_VALUE **pval, unsigned char *cont, int *putype, const ASN1_ITEM *it);
+static int
+long_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len, int utype, char *free_cont, const ASN1_ITEM *it);
+static int long_print(BIO *out, const ASN1_VALUE **pval, const ASN1_ITEM *it, int indent, const ASN1_PCTX *pctx);
 
-static ASN1_PRIMITIVE_FUNCS long_pf = {
-    NULL, 0,
-    long_new,
-    long_free,
-    long_free,                  /* Clear should set to initial value */
-    long_c2i,
-    long_i2c,
-    long_print
-};
+static ASN1_PRIMITIVE_FUNCS long_pf = {NULL,
+                                       0,
+                                       long_new,
+                                       long_free,
+                                       long_free, /* Clear should set to initial value */
+                                       long_c2i,
+                                       long_i2c,
+                                       long_print};
 
-ASN1_ITEM_start(LONG)
-        ASN1_ITYPE_PRIMITIVE, V_ASN1_INTEGER, NULL, 0, &long_pf, ASN1_LONG_UNDEF, "LONG"
-ASN1_ITEM_end(LONG)
+ASN1_ITEM_start(LONG) ASN1_ITYPE_PRIMITIVE, V_ASN1_INTEGER, NULL, 0, &long_pf, ASN1_LONG_UNDEF,
+    "LONG" ASN1_ITEM_end(LONG)
 
-ASN1_ITEM_start(ZLONG)
-        ASN1_ITYPE_PRIMITIVE, V_ASN1_INTEGER, NULL, 0, &long_pf, 0, "ZLONG"
-ASN1_ITEM_end(ZLONG)
+        ASN1_ITEM_start(ZLONG) ASN1_ITYPE_PRIMITIVE,
+    V_ASN1_INTEGER, NULL, 0, &long_pf, 0,
+    "ZLONG" ASN1_ITEM_end(ZLONG)
 
-static int long_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
+        static int long_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     memcpy(pval, &it->size, COPY_SIZE(*pval, it->size));
     return 1;
@@ -65,7 +61,7 @@ static void long_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
  */
 static int num_bits_ulong(unsigned long value)
 {
-    size_t i;
+    size_t        i;
     unsigned long ret = 0;
 
     /*
@@ -75,19 +71,18 @@ static int num_bits_ulong(unsigned long value)
      * penalties.
      */
     for (i = 0; i < sizeof(value) * 8; i++) {
-        ret += (value != 0);
+        ret    += (value != 0);
         value >>= 1;
     }
 
     return (int)ret;
 }
 
-static int long_i2c(const ASN1_VALUE **pval, unsigned char *cont, int *putype,
-                    const ASN1_ITEM *it)
+static int long_i2c(const ASN1_VALUE **pval, unsigned char *cont, int *putype, const ASN1_ITEM *it)
 {
-    long ltmp;
+    long          ltmp;
     unsigned long utmp, sign;
-    int clen, pad, i;
+    int           clen, pad, i;
 
     memcpy(&ltmp, pval, COPY_SIZE(*pval, ltmp));
     if (ltmp == it->size)
@@ -118,18 +113,18 @@ static int long_i2c(const ASN1_VALUE **pval, unsigned char *cont, int *putype,
         if (pad)
             *cont++ = (unsigned char)sign;
         for (i = clen - 1; i >= 0; i--) {
-            cont[i] = (unsigned char)(utmp ^ sign);
-            utmp >>= 8;
+            cont[i]   = (unsigned char)(utmp ^ sign);
+            utmp    >>= 8;
         }
     }
     return clen + pad;
 }
 
-static int long_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
-                    int utype, char *free_cont, const ASN1_ITEM *it)
+static int
+long_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len, int utype, char *free_cont, const ASN1_ITEM *it)
 {
-    int i;
-    long ltmp;
+    int           i;
+    long          ltmp;
     unsigned long utmp = 0, sign = 0x100;
 
     if (len > 1) {
@@ -169,7 +164,7 @@ static int long_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
     utmp = 0;
     for (i = 0; i < len; i++) {
         utmp <<= 8;
-        utmp |= cont[i] ^ sign;
+        utmp  |= cont[i] ^ sign;
     }
     ltmp = (long)utmp;
     if (ltmp < 0) {
@@ -186,8 +181,7 @@ static int long_c2i(ASN1_VALUE **pval, const unsigned char *cont, int len,
     return 1;
 }
 
-static int long_print(BIO *out, const ASN1_VALUE **pval, const ASN1_ITEM *it,
-                      int indent, const ASN1_PCTX *pctx)
+static int long_print(BIO *out, const ASN1_VALUE **pval, const ASN1_ITEM *it, int indent, const ASN1_PCTX *pctx)
 {
     long l;
 

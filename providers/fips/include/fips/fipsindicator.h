@@ -31,9 +31,9 @@
 # define OSSL_FIPS_IND_SETTABLE_MAX (1 + OSSL_FIPS_IND_SETTABLE7)
 
 /* Each settable is in one of 3 states */
-#define OSSL_FIPS_IND_STATE_UNKNOWN    -1  /* Initial unknown state */
-#define OSSL_FIPS_IND_STATE_STRICT      1  /* Strict enforcement */
-#define OSSL_FIPS_IND_STATE_TOLERANT    0  /* Relaxation of rules */
+# define OSSL_FIPS_IND_STATE_UNKNOWN    -1  /* Initial unknown state */
+# define OSSL_FIPS_IND_STATE_STRICT      1  /* Strict enforcement */
+# define OSSL_FIPS_IND_STATE_TOLERANT    0  /* Relaxation of rules */
 
 /*
  * For each algorithm context there may be multiple checks that determine if
@@ -54,29 +54,27 @@
  */
 typedef struct ossl_fips_ind_st {
     unsigned char approved;
-    signed char settable[OSSL_FIPS_IND_SETTABLE_MAX]; /* See OSSL_FIPS_IND_STATE */
+    signed char   settable[OSSL_FIPS_IND_SETTABLE_MAX]; /* See OSSL_FIPS_IND_STATE */
 } OSSL_FIPS_IND;
 
-typedef int (OSSL_FIPS_IND_CHECK_CB)(OSSL_LIB_CTX *libctx);
+typedef int(OSSL_FIPS_IND_CHECK_CB)(OSSL_LIB_CTX *libctx);
 
-int ossl_FIPS_IND_callback(OSSL_LIB_CTX *libctx, const char *type,
-                           const char *desc);
+int  ossl_FIPS_IND_callback(OSSL_LIB_CTX *libctx, const char *type, const char *desc);
 
 void ossl_FIPS_IND_init(OSSL_FIPS_IND *ind);
 void ossl_FIPS_IND_set_approved(OSSL_FIPS_IND *ind);
 void ossl_FIPS_IND_set_settable(OSSL_FIPS_IND *ind, int id, int enable);
-int ossl_FIPS_IND_get_settable(const OSSL_FIPS_IND *ind, int id);
-int ossl_FIPS_IND_on_unapproved(OSSL_FIPS_IND *ind, int id, OSSL_LIB_CTX *libctx,
-                                const char *algname, const char *opname,
-                                OSSL_FIPS_IND_CHECK_CB *config_check_fn);
-int ossl_FIPS_IND_set_ctx_param(OSSL_FIPS_IND *ind, int id, const OSSL_PARAM *p);
-int ossl_FIPS_IND_set_ctx_param_locate(OSSL_FIPS_IND *ind, int id,
-                                       const OSSL_PARAM params[],
-                                       const char *name);
-int ossl_FIPS_IND_get_ctx_param(const OSSL_FIPS_IND *ind,
-                                OSSL_PARAM *p);
-int ossl_FIPS_IND_get_ctx_param_locate(const OSSL_FIPS_IND *ind,
-                                       OSSL_PARAM params[]);
+int  ossl_FIPS_IND_get_settable(const OSSL_FIPS_IND *ind, int id);
+int  ossl_FIPS_IND_on_unapproved(OSSL_FIPS_IND          *ind,
+                                 int                     id,
+                                 OSSL_LIB_CTX           *libctx,
+                                 const char             *algname,
+                                 const char             *opname,
+                                 OSSL_FIPS_IND_CHECK_CB *config_check_fn);
+int  ossl_FIPS_IND_set_ctx_param(OSSL_FIPS_IND *ind, int id, const OSSL_PARAM *p);
+int  ossl_FIPS_IND_set_ctx_param_locate(OSSL_FIPS_IND *ind, int id, const OSSL_PARAM params[], const char *name);
+int  ossl_FIPS_IND_get_ctx_param(const OSSL_FIPS_IND *ind, OSSL_PARAM *p);
+int  ossl_FIPS_IND_get_ctx_param_locate(const OSSL_FIPS_IND *ind, OSSL_PARAM params[]);
 void ossl_FIPS_IND_copy(OSSL_FIPS_IND *dst, const OSSL_FIPS_IND *src);
 
 /* Place this in the algorithm ctx structure */
@@ -132,19 +130,31 @@ void ossl_FIPS_IND_copy(OSSL_FIPS_IND *dst, const OSSL_FIPS_IND *src);
     if (*settable != OSSL_FIPS_IND_STATE_UNKNOWN)                              \
         *p = OSSL_PARAM_construct_int(name, settable);
 
-int ossl_fips_ind_rsa_key_check(OSSL_FIPS_IND *ind, int id, OSSL_LIB_CTX *libctx,
-                                const RSA *rsa, const char *desc, int protect);
+int ossl_fips_ind_rsa_key_check(OSSL_FIPS_IND *ind,
+                                int            id,
+                                OSSL_LIB_CTX  *libctx,
+                                const RSA     *rsa,
+                                const char    *desc,
+                                int            protect);
 # ifndef OPENSSL_NO_EC
-int ossl_fips_ind_ec_key_check(OSSL_FIPS_IND *ind, int id, OSSL_LIB_CTX *libctx,
-                               const EC_GROUP *group, const char *desc,
-                               int protect);
+int ossl_fips_ind_ec_key_check(OSSL_FIPS_IND  *ind,
+                               int             id,
+                               OSSL_LIB_CTX   *libctx,
+                               const EC_GROUP *group,
+                               const char     *desc,
+                               int             protect);
 # endif
-int ossl_fips_ind_digest_exch_check(OSSL_FIPS_IND *ind, int id, OSSL_LIB_CTX *libctx,
-                                    const EVP_MD *md, const char *desc);
-int ossl_fips_ind_digest_sign_check(OSSL_FIPS_IND *ind, int id,
-                                    OSSL_LIB_CTX *libctx,
-                                    int nid, int sha1_allowed,
-                                    const char *desc,
+int ossl_fips_ind_digest_exch_check(OSSL_FIPS_IND *ind,
+                                    int            id,
+                                    OSSL_LIB_CTX  *libctx,
+                                    const EVP_MD  *md,
+                                    const char    *desc);
+int ossl_fips_ind_digest_sign_check(OSSL_FIPS_IND          *ind,
+                                    int                     id,
+                                    OSSL_LIB_CTX           *libctx,
+                                    int                     nid,
+                                    int                     sha1_allowed,
+                                    const char             *desc,
                                     OSSL_FIPS_IND_CHECK_CB *config_check_f);
 
 #else

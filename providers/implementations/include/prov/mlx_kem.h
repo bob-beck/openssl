@@ -8,8 +8,8 @@
  */
 
 #ifndef OSSL_MLX_KEM_H
-# define OSSL_MLX_KEM_H
-# pragma once
+#define OSSL_MLX_KEM_H
+#pragma once
 
 #include <openssl/evp.h>
 #include <openssl/ml_kem.h>
@@ -27,13 +27,13 @@ typedef struct ecdh_vinfo_st {
 } ECDH_VINFO;
 
 typedef struct mlx_key_st {
-    OSSL_LIB_CTX *libctx;
-    char *propq;
+    OSSL_LIB_CTX       *libctx;
+    char               *propq;
     const ML_KEM_VINFO *minfo;
-    const ECDH_VINFO *xinfo;
-    EVP_PKEY *mkey;
-    EVP_PKEY *xkey;
-    unsigned int state;
+    const ECDH_VINFO   *xinfo;
+    EVP_PKEY           *mkey;
+    EVP_PKEY           *xkey;
+    unsigned int        state;
 } MLX_KEY;
 
 #define MLX_HAVE_NOKEYS 0

@@ -21,20 +21,20 @@
 #include "testutil.h"
 #include "helpers/pkcs12.h"
 
-static OSSL_LIB_CTX *testctx = NULL;
+static OSSL_LIB_CTX  *testctx  = NULL;
 static OSSL_PROVIDER *nullprov = NULL;
 
-static int test_null_args(void)
+static int            test_null_args(void)
 {
     return TEST_false(PKCS12_parse(NULL, NULL, NULL, NULL, NULL));
 }
 
 static PKCS12 *PKCS12_load(const char *fpath)
 {
-    BIO *bio = NULL;
+    BIO    *bio = NULL;
     PKCS12 *p12 = NULL;
 
-    bio = BIO_new_file(fpath, "rb");
+    bio         = BIO_new_file(fpath, "rb");
     if (!TEST_ptr(bio))
         goto err;
 
@@ -55,20 +55,20 @@ err:
     return NULL;
 }
 
-static const char *in_file = NULL;
-static const char *in_pass = "";
-static int has_key = 0;
-static int has_cert = 0;
-static int has_ca = 0;
+static const char *in_file  = NULL;
+static const char *in_pass  = "";
+static int         has_key  = 0;
+static int         has_cert = 0;
+static int         has_ca   = 0;
 
-static int changepass(PKCS12 *p12, EVP_PKEY *key, X509 *cert, STACK_OF(X509) *ca)
+static int         changepass(PKCS12 *p12, EVP_PKEY *key, X509 *cert, STACK_OF(X509) *ca)
 {
-    int ret = 0;
-    PKCS12 *p12new = NULL;
-    EVP_PKEY *key2 = NULL;
-    X509 *cert2 = NULL;
-    STACK_OF(X509) *ca2 = NULL;
-    BIO *bio = NULL;
+    int             ret    = 0;
+    PKCS12         *p12new = NULL;
+    EVP_PKEY       *key2   = NULL;
+    X509           *cert2  = NULL;
+    STACK_OF(X509) *ca2    = NULL;
+    BIO            *bio    = NULL;
 
     if (!TEST_true(PKCS12_newpass(p12, in_pass, "NEWPASS")))
         goto err;
@@ -102,11 +102,11 @@ err:
 
 static int pkcs12_parse_test(void)
 {
-    int ret = 0;
-    PKCS12 *p12 = NULL;
-    EVP_PKEY *key = NULL;
-    X509 *cert = NULL;
-    STACK_OF(X509) *ca = NULL;
+    int             ret  = 0;
+    PKCS12         *p12  = NULL;
+    EVP_PKEY       *key  = NULL;
+    X509           *cert = NULL;
+    STACK_OF(X509) *ca   = NULL;
 
     if (in_file != NULL) {
         p12 = PKCS12_load(in_file);
@@ -136,14 +136,14 @@ err:
 
 static int pkcs12_create_cb(PKCS12_SAFEBAG *bag, void *cbarg)
 {
-    int cb_ret = *((int*)cbarg);
+    int cb_ret = *((int *)cbarg);
     return cb_ret;
 }
 
 static PKCS12 *pkcs12_create_ex2_setup(EVP_PKEY **key, X509 **cert, STACK_OF(X509) **ca)
 {
     PKCS12 *p12 = NULL;
-    p12 = PKCS12_load("out6.p12");
+    p12         = PKCS12_load("out6.p12");
     if (!TEST_ptr(p12))
         goto err;
 
@@ -158,23 +158,19 @@ err:
 
 static int pkcs12_create_ex2_test(int test)
 {
-    int ret = 0, cb_ret = 0;
-    PKCS12 *ptr = NULL, *p12 = NULL;
-    EVP_PKEY *key = NULL;
-    X509 *cert = NULL;
-    STACK_OF(X509) *ca = NULL;
+    int             ret = 0, cb_ret = 0;
+    PKCS12         *ptr = NULL, *p12 = NULL;
+    EVP_PKEY       *key  = NULL;
+    X509           *cert = NULL;
+    STACK_OF(X509) *ca   = NULL;
 
-    p12 = pkcs12_create_ex2_setup(&key, &cert, &ca);
+    p12                  = pkcs12_create_ex2_setup(&key, &cert, &ca);
     if (!TEST_ptr(p12))
         goto err;
 
     if (test == 0) {
         /* Confirm PKCS12_create_ex2 returns NULL */
-        ptr = PKCS12_create_ex2(NULL, NULL, NULL,
-                                NULL, NULL, NID_undef, NID_undef,
-                                0, 0, 0,
-                                testctx, NULL,
-                                NULL, NULL);
+        ptr = PKCS12_create_ex2(NULL, NULL, NULL, NULL, NULL, NID_undef, NID_undef, 0, 0, 0, testctx, NULL, NULL, NULL);
         if (TEST_ptr(ptr))
             goto err;
 
@@ -184,33 +180,60 @@ static int pkcs12_create_ex2_test(int test)
 
         /* Specified call back called - return success */
         cb_ret = 1;
-        ptr = PKCS12_create_ex2(NULL, NULL, NULL,
-                                cert, NULL, NID_undef, NID_undef,
-                                0, 0, 0,
-                                testctx, NULL,
-                                pkcs12_create_cb, (void*)&cb_ret);
+        ptr    = PKCS12_create_ex2(NULL,
+                                NULL,
+                                NULL,
+                                cert,
+                                NULL,
+                                NID_undef,
+                                NID_undef,
+                                0,
+                                0,
+                                0,
+                                testctx,
+                                NULL,
+                                pkcs12_create_cb,
+                                (void *)&cb_ret);
         /* PKCS12 successfully created */
         if (!TEST_ptr(ptr))
             goto err;
     } else if (test == 1) {
         /* Specified call back called - return error*/
         cb_ret = -1;
-        ptr = PKCS12_create_ex2(NULL, NULL, NULL,
-                                cert, NULL, NID_undef, NID_undef,
-                                0, 0, 0,
-                                testctx, NULL,
-                                pkcs12_create_cb, (void*)&cb_ret);
+        ptr    = PKCS12_create_ex2(NULL,
+                                NULL,
+                                NULL,
+                                cert,
+                                NULL,
+                                NID_undef,
+                                NID_undef,
+                                0,
+                                0,
+                                0,
+                                testctx,
+                                NULL,
+                                pkcs12_create_cb,
+                                (void *)&cb_ret);
         /* PKCS12 not created */
-       if (TEST_ptr(ptr))
+        if (TEST_ptr(ptr))
             goto err;
     } else if (test == 2) {
         /* Specified call back called - return failure */
         cb_ret = 0;
-        ptr = PKCS12_create_ex2(NULL, NULL, NULL,
-                                cert, NULL, NID_undef, NID_undef,
-                                0, 0, 0,
-                                testctx, NULL,
-                                pkcs12_create_cb, (void*)&cb_ret);
+        ptr    = PKCS12_create_ex2(NULL,
+                                NULL,
+                                NULL,
+                                cert,
+                                NULL,
+                                NID_undef,
+                                NID_undef,
+                                0,
+                                0,
+                                0,
+                                testctx,
+                                NULL,
+                                pkcs12_create_cb,
+                                (void *)&cb_ret);
         /* PKCS12 successfully created */
         if (!TEST_ptr(ptr))
             goto err;
@@ -242,13 +265,13 @@ const OPTIONS *test_get_options(void)
 {
     static const OPTIONS options[] = {
         OPT_TEST_OPTIONS_DEFAULT_USAGE,
-        { "in",   OPT_IN_FILE,   '<', "PKCS12 input file" },
-        { "pass",   OPT_IN_PASS,   's', "PKCS12 input file password" },
-        { "has-key",   OPT_IN_HAS_KEY,  'n', "Whether the input file does contain an user key" },
-        { "has-cert",   OPT_IN_HAS_CERT, 'n', "Whether the input file does contain an user certificate" },
-        { "has-ca",   OPT_IN_HAS_CA,   'n', "Whether the input file does contain other certificate" },
-        { "legacy",  OPT_LEGACY,  '-', "Test the legacy APIs" },
-        { NULL }
+        {"in", OPT_IN_FILE, '<', "PKCS12 input file"},
+        {"pass", OPT_IN_PASS, 's', "PKCS12 input file password"},
+        {"has-key", OPT_IN_HAS_KEY, 'n', "Whether the input file does contain an user key"},
+        {"has-cert", OPT_IN_HAS_CERT, 'n', "Whether the input file does contain an user certificate"},
+        {"has-ca", OPT_IN_HAS_CA, 'n', "Whether the input file does contain other certificate"},
+        {"legacy", OPT_LEGACY, '-', "Test the legacy APIs"},
+        {NULL}
     };
     return options;
 }

@@ -15,7 +15,7 @@
 
 static ENGINE_TABLE *pkey_meth_table = NULL;
 
-void ENGINE_unregister_pkey_meths(ENGINE *e)
+void                 ENGINE_unregister_pkey_meths(ENGINE *e)
 {
     engine_table_unregister(&pkey_meth_table, e);
 }
@@ -29,11 +29,9 @@ int ENGINE_register_pkey_meths(ENGINE *e)
 {
     if (e->pkey_meths) {
         const int *nids;
-        int num_nids = e->pkey_meths(e, NULL, &nids, 0);
+        int        num_nids = e->pkey_meths(e, NULL, &nids, 0);
         if (num_nids > 0)
-            return engine_table_register(&pkey_meth_table,
-                                         engine_unregister_all_pkey_meths, e,
-                                         nids, num_nids, 0);
+            return engine_table_register(&pkey_meth_table, engine_unregister_all_pkey_meths, e, nids, num_nids, 0);
     }
     return 1;
 }
@@ -50,11 +48,9 @@ int ENGINE_set_default_pkey_meths(ENGINE *e)
 {
     if (e->pkey_meths) {
         const int *nids;
-        int num_nids = e->pkey_meths(e, NULL, &nids, 0);
+        int        num_nids = e->pkey_meths(e, NULL, &nids, 0);
         if (num_nids > 0)
-            return engine_table_register(&pkey_meth_table,
-                                         engine_unregister_all_pkey_meths, e,
-                                         nids, num_nids, 1);
+            return engine_table_register(&pkey_meth_table, engine_unregister_all_pkey_meths, e, nids, num_nids, 1);
     }
     return 1;
 }
@@ -66,14 +62,13 @@ int ENGINE_set_default_pkey_meths(ENGINE *e)
  */
 ENGINE *ENGINE_get_pkey_meth_engine(int nid)
 {
-    return ossl_engine_table_select(&pkey_meth_table, nid,
-                                    OPENSSL_FILE, OPENSSL_LINE);
+    return ossl_engine_table_select(&pkey_meth_table, nid, OPENSSL_FILE, OPENSSL_LINE);
 }
 
 /* Obtains a pkey_meth implementation from an ENGINE functional reference */
 const EVP_PKEY_METHOD *ENGINE_get_pkey_meth(ENGINE *e, int nid)
 {
-    EVP_PKEY_METHOD *ret;
+    EVP_PKEY_METHOD      *ret;
     ENGINE_PKEY_METHS_PTR fn = ENGINE_get_pkey_meths(e);
     if (!fn || !fn(e, &ret, NULL, nid)) {
         ERR_raise(ERR_LIB_ENGINE, ENGINE_R_UNIMPLEMENTED_PUBLIC_KEY_METHOD);
@@ -102,11 +97,11 @@ int ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f)
 
 void engine_pkey_meths_free(ENGINE *e)
 {
-    int i;
+    int              i;
     EVP_PKEY_METHOD *pkm;
     if (e->pkey_meths) {
         const int *pknids;
-        int npknids;
+        int        npknids;
         npknids = e->pkey_meths(e, NULL, &pknids, 0);
         for (i = 0; i < npknids; i++) {
             if (e->pkey_meths(e, &pkm, NULL, pknids[i])) {

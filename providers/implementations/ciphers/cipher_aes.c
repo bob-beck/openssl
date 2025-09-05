@@ -22,9 +22,9 @@
 #include "cipher_aes_cfb.h"
 
 static OSSL_FUNC_cipher_freectx_fn aes_freectx;
-static OSSL_FUNC_cipher_dupctx_fn aes_dupctx;
+static OSSL_FUNC_cipher_dupctx_fn  aes_dupctx;
 
-static void aes_freectx(void *vctx)
+static void                        aes_freectx(void *vctx)
 {
     PROV_AES_CTX *ctx = (PROV_AES_CTX *)vctx;
 

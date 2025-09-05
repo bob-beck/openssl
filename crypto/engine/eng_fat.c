@@ -36,11 +36,9 @@ int ENGINE_set_default(ENGINE *e, unsigned int flags)
 #endif
     if ((flags & ENGINE_METHOD_RAND) && !ENGINE_set_default_RAND(e))
         return 0;
-    if ((flags & ENGINE_METHOD_PKEY_METHS)
-        && !ENGINE_set_default_pkey_meths(e))
+    if ((flags & ENGINE_METHOD_PKEY_METHS) && !ENGINE_set_default_pkey_meths(e))
         return 0;
-    if ((flags & ENGINE_METHOD_PKEY_ASN1_METHS)
-        && !ENGINE_set_default_pkey_asn1_meths(e))
+    if ((flags & ENGINE_METHOD_PKEY_ASN1_METHS) && !ENGINE_set_default_pkey_asn1_meths(e))
         return 0;
     return 1;
 }
@@ -83,8 +81,7 @@ int ENGINE_set_default_string(ENGINE *e, const char *def_list)
 {
     unsigned int flags = 0;
     if (!CONF_parse_list(def_list, ',', 1, int_def_cb, &flags)) {
-        ERR_raise_data(ERR_LIB_ENGINE, ENGINE_R_INVALID_STRING,
-                       "str=%s", def_list);
+        ERR_raise_data(ERR_LIB_ENGINE, ENGINE_R_INVALID_STRING, "str=%s", def_list);
         return 0;
     }
     return ENGINE_set_default(e, flags);

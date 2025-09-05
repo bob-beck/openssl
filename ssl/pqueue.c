@@ -12,7 +12,7 @@
 
 struct pqueue_st {
     pitem *items;
-    int count;
+    int    count;
 };
 
 pitem *pitem_new(unsigned char *prio64be, void *data)
@@ -54,13 +54,12 @@ pitem *pqueue_insert(pqueue *pq, pitem *item)
         return item;
     }
 
-    for (curr = NULL, next = pq->items;
-         next != NULL; curr = next, next = next->next) {
+    for (curr = NULL, next = pq->items; next != NULL; curr = next, next = next->next) {
         /*
          * we can compare 64-bit value in big-endian encoding with memcmp:-)
          */
         int cmp = memcmp(next->priority, item->priority, 8);
-        if (cmp > 0) {          /* next > item */
+        if (cmp > 0) { /* next > item */
             item->next = next;
 
             if (curr == NULL)
@@ -71,7 +70,7 @@ pitem *pqueue_insert(pqueue *pq, pitem *item)
             return item;
         }
 
-        else if (cmp == 0)      /* duplicates not allowed */
+        else if (cmp == 0) /* duplicates not allowed */
             return NULL;
     }
 
@@ -134,7 +133,7 @@ pitem *pqueue_next(piterator *item)
         return NULL;
 
     /* *item != NULL */
-    ret = *item;
+    ret   = *item;
     *item = (*item)->next;
 
     return ret;
@@ -142,7 +141,7 @@ pitem *pqueue_next(piterator *item)
 
 size_t pqueue_size(pqueue *pq)
 {
-    pitem *item = pq->items;
+    pitem *item  = pq->items;
     size_t count = 0;
 
     while (item != NULL) {

@@ -17,13 +17,13 @@
  * BIO_put and BIO_get both add to the digest, BIO_gets returns the digest
  */
 
-static int md_write(BIO *h, char const *buf, int num);
-static int md_read(BIO *h, char *buf, int size);
-static int md_gets(BIO *h, char *str, int size);
-static long md_ctrl(BIO *h, int cmd, long arg1, void *arg2);
-static int md_new(BIO *h);
-static int md_free(BIO *data);
-static long md_callback_ctrl(BIO *h, int cmd, BIO_info_cb *fp);
+static int              md_write(BIO *h, char const *buf, int num);
+static int              md_read(BIO *h, char *buf, int size);
+static int              md_gets(BIO *h, char *str, int size);
+static long             md_ctrl(BIO *h, int cmd, long arg1, void *arg2);
+static int              md_new(BIO *h);
+static int              md_free(BIO *data);
+static long             md_callback_ctrl(BIO *h, int cmd, BIO_info_cb *fp);
 
 static const BIO_METHOD methods_md = {
     BIO_TYPE_MD,
@@ -32,7 +32,7 @@ static const BIO_METHOD methods_md = {
     md_write,
     bread_conv,
     md_read,
-    NULL,                       /* md_puts, */
+    NULL, /* md_puts, */
     md_gets,
     md_ctrl,
     md_new,
@@ -72,14 +72,14 @@ static int md_free(BIO *a)
 
 static int md_read(BIO *b, char *out, int outl)
 {
-    int ret = 0;
+    int         ret = 0;
     EVP_MD_CTX *ctx;
-    BIO *next;
+    BIO        *next;
 
     if (out == NULL)
         return 0;
 
-    ctx = BIO_get_data(b);
+    ctx  = BIO_get_data(b);
     next = BIO_next(b);
 
     if ((ctx == NULL) || (next == NULL))
@@ -88,8 +88,7 @@ static int md_read(BIO *b, char *out, int outl)
     ret = BIO_read(next, out, outl);
     if (BIO_get_init(b)) {
         if (ret > 0) {
-            if (EVP_DigestUpdate(ctx, (unsigned char *)out,
-                                 (unsigned int)ret) <= 0)
+            if (EVP_DigestUpdate(ctx, (unsigned char *)out, (unsigned int)ret) <= 0)
                 return -1;
         }
     }
@@ -100,22 +99,21 @@ static int md_read(BIO *b, char *out, int outl)
 
 static int md_write(BIO *b, const char *in, int inl)
 {
-    int ret = 0;
+    int         ret = 0;
     EVP_MD_CTX *ctx;
-    BIO *next;
+    BIO        *next;
 
     if ((in == NULL) || (inl <= 0))
         return 0;
 
-    ctx = BIO_get_data(b);
+    ctx  = BIO_get_data(b);
     next = BIO_next(b);
     if ((ctx != NULL) && (next != NULL))
         ret = BIO_write(next, in, inl);
 
     if (BIO_get_init(b)) {
         if (ret > 0) {
-            if (!EVP_DigestUpdate(ctx, (const unsigned char *)in,
-                                  (unsigned int)ret)) {
+            if (!EVP_DigestUpdate(ctx, (const unsigned char *)in, (unsigned int)ret)) {
                 BIO_clear_retry_flags(b);
                 return 0;
             }
@@ -130,14 +128,13 @@ static int md_write(BIO *b, const char *in, int inl)
 
 static long md_ctrl(BIO *b, int cmd, long num, void *ptr)
 {
-    EVP_MD_CTX *ctx, *dctx, **pctx;
+    EVP_MD_CTX    *ctx, *dctx, **pctx;
     const EVP_MD **ppmd;
-    EVP_MD *md;
-    long ret = 1;
-    BIO *dbio, *next;
+    EVP_MD        *md;
+    long           ret = 1;
+    BIO           *dbio, *next;
 
-
-    ctx = BIO_get_data(b);
+    ctx  = BIO_get_data(b);
     next = BIO_next(b);
 
     switch (cmd) {
@@ -151,13 +148,13 @@ static long md_ctrl(BIO *b, int cmd, long num, void *ptr)
         break;
     case BIO_C_GET_MD:
         if (BIO_get_init(b)) {
-            ppmd = ptr;
+            ppmd  = ptr;
             *ppmd = EVP_MD_CTX_get0_md(ctx);
         } else
             ret = 0;
         break;
     case BIO_C_GET_MD_CTX:
-        pctx = ptr;
+        pctx  = ptr;
         *pctx = ctx;
         BIO_set_init(b, 1);
         break;
@@ -174,7 +171,7 @@ static long md_ctrl(BIO *b, int cmd, long num, void *ptr)
         break;
 
     case BIO_C_SET_MD:
-        md = ptr;
+        md  = ptr;
         ret = EVP_DigestInit_ex(ctx, md, NULL);
         if (ret > 0)
             BIO_set_init(b, 1);
@@ -207,7 +204,7 @@ static long md_callback_ctrl(BIO *b, int cmd, BIO_info_cb *fp)
 
 static int md_gets(BIO *bp, char *buf, int size)
 {
-    EVP_MD_CTX *ctx;
+    EVP_MD_CTX  *ctx;
     unsigned int ret;
 
     ctx = BIO_get_data(bp);

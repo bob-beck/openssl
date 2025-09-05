@@ -12,24 +12,17 @@
 
 static char *config_file = NULL;
 
-typedef enum OPTION_choice {
-    OPT_ERR = -1,
-    OPT_EOF = 0,
-    OPT_CONFIG_FILE,
-    OPT_TEST_ENUM
-} OPTION_CHOICE;
+typedef enum OPTION_choice { OPT_ERR = -1, OPT_EOF = 0, OPT_CONFIG_FILE, OPT_TEST_ENUM } OPTION_CHOICE;
 
 const OPTIONS *test_get_options(void)
 {
     static const OPTIONS options[] = {
         OPT_TEST_OPTIONS_DEFAULT_USAGE,
-        { "config", OPT_CONFIG_FILE, '<',
-          "The configuration file to use for the libctx" },
-        { NULL }
+        {"config", OPT_CONFIG_FILE, '<', "The configuration file to use for the libctx"},
+        {NULL}
     };
     return options;
 }
-
 
 /*
  * Test that parsing a config file with incorrect stable settings aren't parsed
@@ -37,7 +30,7 @@ const OPTIONS *test_get_options(void)
  */
 static int test_asn1_stable_parse(void)
 {
-    int testret = 0;
+    int           testret = 0;
     unsigned long errcode;
     OSSL_LIB_CTX *newctx = OSSL_LIB_CTX_new();
 

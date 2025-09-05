@@ -23,37 +23,31 @@
  * Hard coding the key into an application is very bad.
  * It is done here solely for educational purposes.
  */
-static unsigned char key[] = {
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
-};
+static unsigned char key[] =
+    {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
 
-static unsigned char data[] = {
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e
-};
+static unsigned char data[] =
+    {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
 
-static const unsigned char expected_output[] = {
-    0xe5, 0x45, 0xbe, 0x49, 0x61, 0xca, 0x29, 0xa1
-};
+static const unsigned char expected_output[] = {0xe5, 0x45, 0xbe, 0x49, 0x61, 0xca, 0x29, 0xa1};
 
 /*
  * A property query used for selecting the SIPHASH implementation.
  */
-static char *propq = NULL;
+static char               *propq             = NULL;
 
-int main(int argc, char **argv)
+int                        main(int argc, char **argv)
 {
-    int ret = EXIT_FAILURE;
-    EVP_MAC *mac = NULL;
-    EVP_MAC_CTX *mctx = NULL;
+    int           ret  = EXIT_FAILURE;
+    EVP_MAC      *mac  = NULL;
+    EVP_MAC_CTX  *mctx = NULL;
     unsigned char out[8];
-    OSSL_PARAM params[4], *p = params;
+    OSSL_PARAM    params[4], *p = params;
     OSSL_LIB_CTX *library_context = NULL;
-    unsigned int digest_len = 8, c_rounds = 2, d_rounds = 4;
-    size_t out_len = 0;
+    unsigned int  digest_len = 8, c_rounds = 2, d_rounds = 4;
+    size_t        out_len = 0;
 
-    library_context = OSSL_LIB_CTX_new();
+    library_context       = OSSL_LIB_CTX_new();
     if (library_context == NULL) {
         fprintf(stderr, "OSSL_LIB_CTX_new() returned NULL\n");
         goto end;
@@ -84,7 +78,7 @@ int main(int argc, char **argv)
     *p++ = OSSL_PARAM_construct_uint(OSSL_MAC_PARAM_C_ROUNDS, &c_rounds);
     *p++ = OSSL_PARAM_construct_uint(OSSL_MAC_PARAM_D_ROUNDS, &d_rounds);
 
-    *p = OSSL_PARAM_construct_end();
+    *p   = OSSL_PARAM_construct_end();
 
     /* Initialise the SIPHASH operation */
     if (!EVP_MAC_init(mctx, key, sizeof(key), params)) {

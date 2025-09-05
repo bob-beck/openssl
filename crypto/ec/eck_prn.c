@@ -21,7 +21,7 @@
 int ECPKParameters_print_fp(FILE *fp, const EC_GROUP *x, int off)
 {
     BIO *b;
-    int ret;
+    int  ret;
 
     if ((b = BIO_new(BIO_s_file())) == NULL) {
         ERR_raise(ERR_LIB_EC, ERR_R_BUF_LIB);
@@ -36,7 +36,7 @@ int ECPKParameters_print_fp(FILE *fp, const EC_GROUP *x, int off)
 int EC_KEY_print_fp(FILE *fp, const EC_KEY *x, int off)
 {
     BIO *b;
-    int ret;
+    int  ret;
 
     if ((b = BIO_new(BIO_s_file())) == NULL) {
         ERR_raise(ERR_LIB_EC, ERR_R_BIO_LIB);
@@ -51,7 +51,7 @@ int EC_KEY_print_fp(FILE *fp, const EC_KEY *x, int off)
 int ECParameters_print_fp(FILE *fp, const EC_KEY *x)
 {
     BIO *b;
-    int ret;
+    int  ret;
 
     if ((b = BIO_new(BIO_s_file())) == NULL) {
         ERR_raise(ERR_LIB_EC, ERR_R_BIO_LIB);
@@ -62,25 +62,24 @@ int ECParameters_print_fp(FILE *fp, const EC_KEY *x)
     BIO_free(b);
     return ret;
 }
-#endif /* OPENSSL_NO_STDIO */
+# endif /* OPENSSL_NO_STDIO */
 
-static int print_bin(BIO *fp, const char *str, const unsigned char *num,
-                     size_t len, int off);
+static int print_bin(BIO *fp, const char *str, const unsigned char *num, size_t len, int off);
 
-int ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
+int        ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
 {
-    int ret = 0, reason = ERR_R_BIO_LIB;
-    BN_CTX *ctx = NULL;
-    const EC_POINT *point = NULL;
-    BIGNUM *p = NULL, *a = NULL, *b = NULL;
-    unsigned char *gen_buf = NULL;
-    const BIGNUM *order = NULL, *cofactor = NULL;
+    int                  ret = 0, reason = ERR_R_BIO_LIB;
+    BN_CTX              *ctx   = NULL;
+    const EC_POINT      *point = NULL;
+    BIGNUM              *p = NULL, *a = NULL, *b = NULL;
+    unsigned char       *gen_buf = NULL;
+    const BIGNUM        *order = NULL, *cofactor = NULL;
     const unsigned char *seed;
-    size_t seed_len = 0, gen_buf_len = 0;
+    size_t               seed_len = 0, gen_buf_len = 0;
 
-    static const char *gen_compressed = "Generator (compressed):";
-    static const char *gen_uncompressed = "Generator (uncompressed):";
-    static const char *gen_hybrid = "Generator (hybrid):";
+    static const char   *gen_compressed   = "Generator (compressed):";
+    static const char   *gen_uncompressed = "Generator (uncompressed):";
+    static const char   *gen_hybrid       = "Generator (hybrid):";
 
     if (!x) {
         reason = ERR_R_PASSED_NULL_PARAMETER;
@@ -95,7 +94,7 @@ int ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
 
     if (EC_GROUP_get_asn1_flag(x)) {
         /* the curve parameter are given by an asn1 OID */
-        int nid;
+        int         nid;
         const char *nname;
 
         if (!BIO_indent(bp, off, 128))
@@ -116,17 +115,16 @@ int ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
                 goto err;
         }
     } else {
-        const char *form_str;
+        const char             *form_str;
         /* explicit parameters */
-        int is_char_two = 0;
+        int                     is_char_two = 0;
         point_conversion_form_t form;
-        int tmp_nid = EC_GROUP_get_field_type(x);
+        int                     tmp_nid = EC_GROUP_get_field_type(x);
 
         if (tmp_nid == NID_X9_62_characteristic_two_field)
             is_char_two = 1;
 
-        if ((p = BN_new()) == NULL || (a = BN_new()) == NULL ||
-            (b = BN_new()) == NULL) {
+        if ((p = BN_new()) == NULL || (a = BN_new()) == NULL || (b = BN_new()) == NULL) {
             reason = ERR_R_BN_LIB;
             goto err;
         }
@@ -140,14 +138,14 @@ int ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
             reason = ERR_R_EC_LIB;
             goto err;
         }
-        order = EC_GROUP_get0_order(x);
+        order    = EC_GROUP_get0_order(x);
         cofactor = EC_GROUP_get0_cofactor(x);
         if (order == NULL) {
             reason = ERR_R_EC_LIB;
             goto err;
         }
 
-        form = EC_GROUP_get_point_conversion_form(x);
+        form        = EC_GROUP_get_point_conversion_form(x);
 
         gen_buf_len = EC_POINT_point2buf(x, point, form, &gen_buf, ctx);
         if (gen_buf_len == 0) {
@@ -162,8 +160,7 @@ int ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
             goto err;
 
         /* print the 'short name' of the field type */
-        if (BIO_printf(bp, "Field Type: %s\n", OBJ_nid2sn(tmp_nid))
-            <= 0)
+        if (BIO_printf(bp, "Field Type: %s\n", OBJ_nid2sn(tmp_nid)) <= 0)
             goto err;
 
         if (is_char_two) {
@@ -175,13 +172,11 @@ int ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
             if (!BIO_indent(bp, off, 128))
                 goto err;
 
-            if (BIO_printf(bp, "Basis Type: %s\n",
-                           OBJ_nid2sn(basis_type)) <= 0)
+            if (BIO_printf(bp, "Basis Type: %s\n", OBJ_nid2sn(basis_type)) <= 0)
                 goto err;
 
             /* print the polynomial */
-            if ((p != NULL) && !ASN1_bn_print(bp, "Polynomial:", p, NULL,
-                                              off))
+            if ((p != NULL) && !ASN1_bn_print(bp, "Polynomial:", p, NULL, off))
                 goto err;
         } else {
             if ((p != NULL) && !ASN1_bn_print(bp, "Prime:", p, NULL, off))
@@ -198,20 +193,18 @@ int ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
             form_str = gen_uncompressed;
         else
             form_str = gen_hybrid;
-        if (gen_buf != NULL
-            && !print_bin(bp, form_str, gen_buf, gen_buf_len, off))
+        if (gen_buf != NULL && !print_bin(bp, form_str, gen_buf, gen_buf_len, off))
             goto err;
 
         if ((order != NULL) && !ASN1_bn_print(bp, "Order: ", order, NULL, off))
             goto err;
-        if ((cofactor != NULL) && !ASN1_bn_print(bp, "Cofactor: ", cofactor,
-                                                 NULL, off))
+        if ((cofactor != NULL) && !ASN1_bn_print(bp, "Cofactor: ", cofactor, NULL, off))
             goto err;
         if (seed && !print_bin(bp, "Seed:", seed, seed_len, off))
             goto err;
     }
     ret = 1;
- err:
+err:
     if (!ret)
         ERR_raise(ERR_LIB_EC, reason);
     BN_free(p);
@@ -222,11 +215,10 @@ int ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
     return ret;
 }
 
-static int print_bin(BIO *fp, const char *name, const unsigned char *buf,
-                     size_t len, int off)
+static int print_bin(BIO *fp, const char *name, const unsigned char *buf, size_t len, int off)
 {
     size_t i;
-    char str[128 + 1 + 4];
+    char   str[128 + 1 + 4];
 
     if (buf == NULL)
         return 1;
@@ -250,8 +242,7 @@ static int print_bin(BIO *fp, const char *name, const unsigned char *buf,
             if (BIO_write(fp, str, off + 1 + 4) <= 0)
                 return 0;
         }
-        if (BIO_printf(fp, "%02x%s", buf[i], ((i + 1) == len) ? "" : ":") <=
-            0)
+        if (BIO_printf(fp, "%02x%s", buf[i], ((i + 1) == len) ? "" : ":") <= 0)
             return 0;
     }
     if (BIO_write(fp, "\n", 1) <= 0)

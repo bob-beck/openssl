@@ -17,14 +17,17 @@
 #include <openssl/rc5.h>
 #include "rc5_local.h"
 
-void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
-                        long length, RC5_32_KEY *ks, unsigned char *iv,
-                        int encrypt)
+void RC5_32_cbc_encrypt(const unsigned char *in,
+                        unsigned char       *out,
+                        long                 length,
+                        RC5_32_KEY          *ks,
+                        unsigned char       *iv,
+                        int                  encrypt)
 {
     register unsigned long tin0, tin1;
     register unsigned long tout0, tout1, xor0, xor1;
-    register long l = length;
-    unsigned long tin[2];
+    register long          l = length;
+    unsigned long          tin[2];
 
     if (encrypt) {
         c2l(iv, tout0);
@@ -33,10 +36,10 @@ void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
         for (l -= 8; l >= 0; l -= 8) {
             c2l(in, tin0);
             c2l(in, tin1);
-            tin0 ^= tout0;
-            tin1 ^= tout1;
-            tin[0] = tin0;
-            tin[1] = tin1;
+            tin0   ^= tout0;
+            tin1   ^= tout1;
+            tin[0]  = tin0;
+            tin[1]  = tin1;
             RC5_32_encrypt(tin, ks);
             tout0 = tin[0];
             l2c(tout0, out);
@@ -45,10 +48,10 @@ void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
         }
         if (l != -8) {
             c2ln(in, tin0, tin1, l + 8);
-            tin0 ^= tout0;
-            tin1 ^= tout1;
-            tin[0] = tin0;
-            tin[1] = tin1;
+            tin0   ^= tout0;
+            tin1   ^= tout1;
+            tin[0]  = tin0;
+            tin[1]  = tin1;
             RC5_32_encrypt(tin, ks);
             tout0 = tin[0];
             l2c(tout0, out);

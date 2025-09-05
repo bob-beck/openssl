@@ -26,11 +26,10 @@
 #include "prov/provider_ctx.h"
 #include "prov/endecoder_local.h"
 
-static int write_blob(void *provctx, OSSL_CORE_BIO *cout,
-                      void *data, int len)
+static int write_blob(void *provctx, OSSL_CORE_BIO *cout, void *data, int len)
 {
     BIO *out = ossl_bio_new_from_core_bio(provctx, cout);
-    int ret;
+    int  ret;
 
     if (out == NULL)
         return 0;
@@ -40,10 +39,10 @@ static int write_blob(void *provctx, OSSL_CORE_BIO *cout,
     return ret;
 }
 
-static OSSL_FUNC_encoder_newctx_fn key2blob_newctx;
+static OSSL_FUNC_encoder_newctx_fn  key2blob_newctx;
 static OSSL_FUNC_encoder_freectx_fn key2blob_freectx;
 
-static void *key2blob_newctx(void *provctx)
+static void                        *key2blob_newctx(void *provctx)
 {
     return provctx;
 }
@@ -58,11 +57,9 @@ static int key2blob_check_selection(int selection, int selection_mask)
      * The selections are kinda sorta "levels", i.e. each selection given
      * here is assumed to include those following.
      */
-    int checks[] = {
-        OSSL_KEYMGMT_SELECT_PRIVATE_KEY,
-        OSSL_KEYMGMT_SELECT_PUBLIC_KEY,
-        OSSL_KEYMGMT_SELECT_ALL_PARAMETERS
-    };
+    int    checks[] = {OSSL_KEYMGMT_SELECT_PRIVATE_KEY,
+                       OSSL_KEYMGMT_SELECT_PUBLIC_KEY,
+                       OSSL_KEYMGMT_SELECT_ALL_PARAMETERS};
     size_t i;
 
     /* The decoder implementations made here support guessing */
@@ -85,13 +82,12 @@ static int key2blob_check_selection(int selection, int selection_mask)
     return 0;
 }
 
-static int key2blob_encode(void *vctx, const void *key, int selection,
-                           OSSL_CORE_BIO *cout)
+static int key2blob_encode(void *vctx, const void *key, int selection, OSSL_CORE_BIO *cout)
 {
-    int pubkey_len = 0, ok = 0;
+    int            pubkey_len = 0, ok = 0;
     unsigned char *pubkey = NULL;
 
-    pubkey_len = i2o_ECPublicKey(key, &pubkey);
+    pubkey_len            = i2o_ECPublicKey(key, &pubkey);
     if (pubkey_len > 0 && pubkey != NULL)
         ok = write_blob(vctx, cout, pubkey, pubkey_len);
     OPENSSL_free(pubkey);

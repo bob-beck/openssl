@@ -49,23 +49,27 @@
 #include <openssl/x509v3.h>
 #include "ext_dat.h"
 
-static int i2r_pci(X509V3_EXT_METHOD *method, PROXY_CERT_INFO_EXTENSION *ext,
-                   BIO *out, int indent);
-static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
-                                          X509V3_CTX *ctx, char *str);
+static int i2r_pci(X509V3_EXT_METHOD *method, PROXY_CERT_INFO_EXTENSION *ext, BIO *out, int indent);
+static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, char *str);
 
-const X509V3_EXT_METHOD ossl_v3_pci = {
-    NID_proxyCertInfo, 0, ASN1_ITEM_ref(PROXY_CERT_INFO_EXTENSION),
-    0, 0, 0, 0,
-    0, 0,
-    NULL, NULL,
+const X509V3_EXT_METHOD           ossl_v3_pci = {
+    NID_proxyCertInfo,
+    0,
+    ASN1_ITEM_ref(PROXY_CERT_INFO_EXTENSION),
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    NULL,
+    NULL,
     (X509V3_EXT_I2R)i2r_pci,
     (X509V3_EXT_R2I)r2i_pci,
     NULL,
 };
 
-static int i2r_pci(X509V3_EXT_METHOD *method, PROXY_CERT_INFO_EXTENSION *pci,
-                   BIO *out, int indent)
+static int i2r_pci(X509V3_EXT_METHOD *method, PROXY_CERT_INFO_EXTENSION *pci, BIO *out, int indent)
 {
     BIO_printf(out, "%*sPath Length Constraint: ", indent, "");
     if (pci->pcPathLengthConstraint)
@@ -76,15 +80,17 @@ static int i2r_pci(X509V3_EXT_METHOD *method, PROXY_CERT_INFO_EXTENSION *pci,
     BIO_printf(out, "%*sPolicy Language: ", indent, "");
     i2a_ASN1_OBJECT(out, pci->proxyPolicy->policyLanguage);
     if (pci->proxyPolicy->policy && pci->proxyPolicy->policy->data)
-        BIO_printf(out, "\n%*sPolicy Text: %.*s", indent, "",
+        BIO_printf(out,
+                   "\n%*sPolicy Text: %.*s",
+                   indent,
+                   "",
                    pci->proxyPolicy->policy->length,
                    pci->proxyPolicy->policy->data);
     return 1;
 }
 
-static int process_pci_value(CONF_VALUE *val,
-                             ASN1_OBJECT **language, ASN1_INTEGER **pathlen,
-                             ASN1_OCTET_STRING **policy)
+static int
+process_pci_value(CONF_VALUE *val, ASN1_OBJECT **language, ASN1_INTEGER **pathlen, ASN1_OCTET_STRING **policy)
 {
     int free_policy = 0;
 
@@ -101,8 +107,7 @@ static int process_pci_value(CONF_VALUE *val,
         }
     } else if (strcmp(val->name, "pathlen") == 0) {
         if (*pathlen) {
-            ERR_raise(ERR_LIB_X509V3,
-                      X509V3_R_POLICY_PATH_LENGTH_ALREADY_DEFINED);
+            ERR_raise(ERR_LIB_X509V3, X509V3_R_POLICY_PATH_LENGTH_ALREADY_DEFINED);
             X509V3_conf_err(val);
             return 0;
         }
@@ -112,9 +117,9 @@ static int process_pci_value(CONF_VALUE *val,
             return 0;
         }
     } else if (strcmp(val->name, "policy") == 0) {
-        char *valp = val->value;
+        char          *valp     = val->value;
         unsigned char *tmp_data = NULL;
-        long val_len;
+        long           val_len;
 
         if (*policy == NULL) {
             *policy = ASN1_OCTET_STRING_new();
@@ -126,22 +131,19 @@ static int process_pci_value(CONF_VALUE *val,
             free_policy = 1;
         }
         if (CHECK_AND_SKIP_PREFIX(valp, "hex:")) {
-            unsigned char *tmp_data2 =
-                OPENSSL_hexstr2buf(valp, &val_len);
+            unsigned char *tmp_data2 = OPENSSL_hexstr2buf(valp, &val_len);
 
             if (!tmp_data2) {
                 X509V3_conf_err(val);
                 goto err;
             }
 
-            tmp_data = OPENSSL_realloc((*policy)->data,
-                                       (*policy)->length + val_len + 1);
+            tmp_data = OPENSSL_realloc((*policy)->data, (*policy)->length + val_len + 1);
             if (tmp_data) {
                 (*policy)->data = tmp_data;
-                memcpy(&(*policy)->data[(*policy)->length],
-                       tmp_data2, val_len);
-                (*policy)->length += val_len;
-                (*policy)->data[(*policy)->length] = '\0';
+                memcpy(&(*policy)->data[(*policy)->length], tmp_data2, val_len);
+                (*policy)->length                  += val_len;
+                (*policy)->data[(*policy)->length]  = '\0';
             } else {
                 OPENSSL_free(tmp_data2);
                 /*
@@ -149,7 +151,7 @@ static int process_pci_value(CONF_VALUE *val,
                  * too!
                  */
                 OPENSSL_free((*policy)->data);
-                (*policy)->data = NULL;
+                (*policy)->data   = NULL;
                 (*policy)->length = 0;
                 X509V3_conf_err(val);
                 goto err;
@@ -157,24 +159,22 @@ static int process_pci_value(CONF_VALUE *val,
             OPENSSL_free(tmp_data2);
         } else if (CHECK_AND_SKIP_PREFIX(valp, "file:")) {
             unsigned char buf[2048];
-            int n;
-            BIO *b = BIO_new_file(valp, "r");
+            int           n;
+            BIO          *b = BIO_new_file(valp, "r");
             if (!b) {
                 ERR_raise(ERR_LIB_X509V3, ERR_R_BIO_LIB);
                 X509V3_conf_err(val);
                 goto err;
             }
-            while ((n = BIO_read(b, buf, sizeof(buf))) > 0
-                   || (n == 0 && BIO_should_retry(b))) {
+            while ((n = BIO_read(b, buf, sizeof(buf))) > 0 || (n == 0 && BIO_should_retry(b))) {
                 if (!n)
                     continue;
 
-                tmp_data = OPENSSL_realloc((*policy)->data,
-                                           (*policy)->length + n + 1);
+                tmp_data = OPENSSL_realloc((*policy)->data, (*policy)->length + n + 1);
 
                 if (!tmp_data) {
                     OPENSSL_free((*policy)->data);
-                    (*policy)->data = NULL;
+                    (*policy)->data   = NULL;
                     (*policy)->length = 0;
                     X509V3_conf_err(val);
                     BIO_free_all(b);
@@ -183,8 +183,8 @@ static int process_pci_value(CONF_VALUE *val,
 
                 (*policy)->data = tmp_data;
                 memcpy(&(*policy)->data[(*policy)->length], buf, n);
-                (*policy)->length += n;
-                (*policy)->data[(*policy)->length] = '\0';
+                (*policy)->length                  += n;
+                (*policy)->data[(*policy)->length]  = '\0';
             }
             BIO_free_all(b);
 
@@ -194,22 +194,20 @@ static int process_pci_value(CONF_VALUE *val,
                 goto err;
             }
         } else if (CHECK_AND_SKIP_PREFIX(valp, "text:")) {
-            val_len = (int)strlen(valp);
-            tmp_data = OPENSSL_realloc((*policy)->data,
-                                       (*policy)->length + val_len + 1);
+            val_len  = (int)strlen(valp);
+            tmp_data = OPENSSL_realloc((*policy)->data, (*policy)->length + val_len + 1);
             if (tmp_data) {
                 (*policy)->data = tmp_data;
-                memcpy(&(*policy)->data[(*policy)->length],
-                       val->value + 5, val_len);
-                (*policy)->length += val_len;
-                (*policy)->data[(*policy)->length] = '\0';
+                memcpy(&(*policy)->data[(*policy)->length], val->value + 5, val_len);
+                (*policy)->length                  += val_len;
+                (*policy)->data[(*policy)->length]  = '\0';
             } else {
                 /*
                  * realloc failure implies the original data space is b0rked
                  * too!
                  */
                 OPENSSL_free((*policy)->data);
-                (*policy)->data = NULL;
+                (*policy)->data   = NULL;
                 (*policy)->length = 0;
                 X509V3_conf_err(val);
                 goto err;
@@ -225,7 +223,7 @@ static int process_pci_value(CONF_VALUE *val,
         }
     }
     return 1;
- err:
+err:
     if (free_policy) {
         ASN1_OCTET_STRING_free(*policy);
         *policy = NULL;
@@ -233,15 +231,14 @@ static int process_pci_value(CONF_VALUE *val,
     return 0;
 }
 
-static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
-                                          X509V3_CTX *ctx, char *value)
+static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method, X509V3_CTX *ctx, char *value)
 {
     PROXY_CERT_INFO_EXTENSION *pci = NULL;
-    STACK_OF(CONF_VALUE) *vals;
-    ASN1_OBJECT *language = NULL;
-    ASN1_INTEGER *pathlen = NULL;
-    ASN1_OCTET_STRING *policy = NULL;
-    int i, j;
+    STACK_OF(CONF_VALUE)      *vals;
+    ASN1_OBJECT               *language = NULL;
+    ASN1_INTEGER              *pathlen  = NULL;
+    ASN1_OCTET_STRING         *policy   = NULL;
+    int                        i, j;
 
     vals = X509V3_parse_list(value);
     for (i = 0; i < sk_CONF_VALUE_num(vals); i++) {
@@ -254,18 +251,16 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
         }
         if (*cnf->name == '@') {
             STACK_OF(CONF_VALUE) *sect;
-            int success_p = 1;
+            int                   success_p = 1;
 
-            sect = X509V3_get_section(ctx, cnf->name + 1);
+            sect                            = X509V3_get_section(ctx, cnf->name + 1);
             if (!sect) {
                 ERR_raise(ERR_LIB_X509V3, X509V3_R_INVALID_SECTION);
                 X509V3_conf_err(cnf);
                 goto err;
             }
             for (j = 0; success_p && j < sk_CONF_VALUE_num(sect); j++) {
-                success_p =
-                    process_pci_value(sk_CONF_VALUE_value(sect, j),
-                                      &language, &pathlen, &policy);
+                success_p = process_pci_value(sk_CONF_VALUE_value(sect, j), &language, &pathlen, &policy);
             }
             X509V3_section_free(ctx, sect);
             if (!success_p)
@@ -280,14 +275,12 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
 
     /* Language is mandatory */
     if (!language) {
-        ERR_raise(ERR_LIB_X509V3,
-                  X509V3_R_NO_PROXY_CERT_POLICY_LANGUAGE_DEFINED);
+        ERR_raise(ERR_LIB_X509V3, X509V3_R_NO_PROXY_CERT_POLICY_LANGUAGE_DEFINED);
         goto err;
     }
     i = OBJ_obj2nid(language);
     if ((i == NID_Independent || i == NID_id_ppl_inheritAll) && policy) {
-        ERR_raise(ERR_LIB_X509V3,
-                  X509V3_R_POLICY_WHEN_PROXY_LANGUAGE_REQUIRES_NO_POLICY);
+        ERR_raise(ERR_LIB_X509V3, X509V3_R_POLICY_WHEN_PROXY_LANGUAGE_REQUIRES_NO_POLICY);
         goto err;
     }
 
@@ -298,13 +291,13 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
     }
 
     pci->proxyPolicy->policyLanguage = language;
-    language = NULL;
-    pci->proxyPolicy->policy = policy;
-    policy = NULL;
-    pci->pcPathLengthConstraint = pathlen;
-    pathlen = NULL;
+    language                         = NULL;
+    pci->proxyPolicy->policy         = policy;
+    policy                           = NULL;
+    pci->pcPathLengthConstraint      = pathlen;
+    pathlen                          = NULL;
     goto end;
- err:
+err:
     ASN1_OBJECT_free(language);
     ASN1_INTEGER_free(pathlen);
     pathlen = NULL;
@@ -312,7 +305,7 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
     policy = NULL;
     PROXY_CERT_INFO_EXTENSION_free(pci);
     pci = NULL;
- end:
+end:
     sk_CONF_VALUE_pop_free(vals, X509V3_conf_free);
     return pci;
 }

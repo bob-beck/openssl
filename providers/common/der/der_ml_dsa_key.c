@@ -19,8 +19,8 @@
 int ossl_DER_w_algorithmIdentifier_ML_DSA(WPACKET *pkt, int tag, ML_DSA_KEY *key)
 {
     const uint8_t *alg;
-    size_t len;
-    const char *name = ossl_ml_dsa_key_get_name(key);
+    size_t         len;
+    const char    *name = ossl_ml_dsa_key_get_name(key);
 
     if (OPENSSL_strcasecmp(name, "ML-DSA-44") == 0) {
         alg = ossl_der_oid_id_ml_dsa_44;
@@ -35,7 +35,6 @@ int ossl_DER_w_algorithmIdentifier_ML_DSA(WPACKET *pkt, int tag, ML_DSA_KEY *key
         return 0;
     }
     return ossl_DER_w_begin_sequence(pkt, tag)
-        /* No parameters */
-        && ossl_DER_w_precompiled(pkt, -1, alg, len)
-        && ossl_DER_w_end_sequence(pkt, tag);
+           /* No parameters */
+           && ossl_DER_w_precompiled(pkt, -1, alg, len) && ossl_DER_w_end_sequence(pkt, tag);
 }

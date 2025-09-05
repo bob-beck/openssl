@@ -16,25 +16,28 @@
 #include <openssl/objects.h>
 #include <openssl/x509.h>
 
-int EVP_SealInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
-                 unsigned char **ek, int *ekl, unsigned char *iv,
-                 EVP_PKEY **pubk, int npubk)
+int EVP_SealInit(EVP_CIPHER_CTX   *ctx,
+                 const EVP_CIPHER *type,
+                 unsigned char   **ek,
+                 int              *ekl,
+                 unsigned char    *iv,
+                 EVP_PKEY        **pubk,
+                 int               npubk)
 {
-    unsigned char key[EVP_MAX_KEY_LENGTH];
+    unsigned char        key[EVP_MAX_KEY_LENGTH];
     const OSSL_PROVIDER *prov;
-    OSSL_LIB_CTX *libctx = NULL;
-    EVP_PKEY_CTX *pctx = NULL;
-    const EVP_CIPHER *cipher;
-    int i, len;
-    int rv = 0;
+    OSSL_LIB_CTX        *libctx = NULL;
+    EVP_PKEY_CTX        *pctx   = NULL;
+    const EVP_CIPHER    *cipher;
+    int                  i, len;
+    int                  rv = 0;
 
     if (type != NULL) {
         EVP_CIPHER_CTX_reset(ctx);
         if (!EVP_EncryptInit_ex(ctx, type, NULL, NULL, NULL))
             return 0;
     }
-    if ((cipher = EVP_CIPHER_CTX_get0_cipher(ctx)) != NULL
-            && (prov = EVP_CIPHER_get0_provider(cipher)) != NULL)
+    if ((cipher = EVP_CIPHER_CTX_get0_cipher(ctx)) != NULL && (prov = EVP_CIPHER_get0_provider(cipher)) != NULL)
         libctx = ossl_provider_libctx(prov);
     if ((npubk <= 0) || !pubk)
         return 1;
@@ -56,20 +59,19 @@ int EVP_SealInit(EVP_CIPHER_CTX *ctx, const EVP_CIPHER *type,
     for (i = 0; i < npubk; i++) {
         size_t keylen = len;
 
-        pctx = EVP_PKEY_CTX_new_from_pkey(libctx, pubk[i], NULL);
+        pctx          = EVP_PKEY_CTX_new_from_pkey(libctx, pubk[i], NULL);
         if (pctx == NULL) {
             ERR_raise(ERR_LIB_EVP, ERR_R_EVP_LIB);
             goto err;
         }
 
-        if (EVP_PKEY_encrypt_init(pctx) <= 0
-            || EVP_PKEY_encrypt(pctx, ek[i], &keylen, key, keylen) <= 0)
+        if (EVP_PKEY_encrypt_init(pctx) <= 0 || EVP_PKEY_encrypt(pctx, ek[i], &keylen, key, keylen) <= 0)
             goto err;
         ekl[i] = (int)keylen;
         EVP_PKEY_CTX_free(pctx);
     }
     pctx = NULL;
-    rv = npubk;
+    rv   = npubk;
 err:
     EVP_PKEY_CTX_free(pctx);
     OPENSSL_cleanse(key, sizeof(key));

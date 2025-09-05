@@ -28,7 +28,7 @@ int FuzzerInitialize(int *argc, char ***argv)
 int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 {
     CMS_ContentInfo *cms;
-    BIO *in;
+    BIO             *in;
 
     if (len == 0 || len > INT_MAX)
         return 0;

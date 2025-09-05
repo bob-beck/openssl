@@ -28,8 +28,7 @@ const char *BF_options(void)
     return "blowfish(ptr)";
 }
 
-void BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
-                    const BF_KEY *key, int encrypt)
+void BF_ecb_encrypt(const unsigned char *in, unsigned char *out, const BF_KEY *key, int encrypt)
 {
     BF_LONG l, d[2];
 

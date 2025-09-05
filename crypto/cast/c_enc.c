@@ -18,7 +18,7 @@
 
 void CAST_encrypt(CAST_LONG *data, const CAST_KEY *key)
 {
-    CAST_LONG l, r, t;
+    CAST_LONG        l, r, t;
     const CAST_LONG *k;
 
     k = &(key->data[0]);
@@ -50,7 +50,7 @@ void CAST_encrypt(CAST_LONG *data, const CAST_KEY *key)
 
 void CAST_decrypt(CAST_LONG *data, const CAST_KEY *key)
 {
-    CAST_LONG l, r, t;
+    CAST_LONG        l, r, t;
     const CAST_LONG *k;
 
     k = &(key->data[0]);
@@ -80,14 +80,17 @@ void CAST_decrypt(CAST_LONG *data, const CAST_KEY *key)
     data[0] = r & 0xffffffffL;
 }
 
-void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
-                      long length, const CAST_KEY *ks, unsigned char *iv,
-                      int enc)
+void CAST_cbc_encrypt(const unsigned char *in,
+                      unsigned char       *out,
+                      long                 length,
+                      const CAST_KEY      *ks,
+                      unsigned char       *iv,
+                      int                  enc)
 {
     register CAST_LONG tin0, tin1;
     register CAST_LONG tout0, tout1, xor0, xor1;
-    register long l = length;
-    CAST_LONG tin[2];
+    register long      l = length;
+    CAST_LONG          tin[2];
 
     if (enc) {
         n2l(iv, tout0);
@@ -96,10 +99,10 @@ void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
         for (l -= 8; l >= 0; l -= 8) {
             n2l(in, tin0);
             n2l(in, tin1);
-            tin0 ^= tout0;
-            tin1 ^= tout1;
-            tin[0] = tin0;
-            tin[1] = tin1;
+            tin0   ^= tout0;
+            tin1   ^= tout1;
+            tin[0]  = tin0;
+            tin[1]  = tin1;
             CAST_encrypt(tin, ks);
             tout0 = tin[0];
             tout1 = tin[1];
@@ -108,10 +111,10 @@ void CAST_cbc_encrypt(const unsigned char *in, unsigned char *out,
         }
         if (l != -8) {
             n2ln(in, tin0, tin1, l + 8);
-            tin0 ^= tout0;
-            tin1 ^= tout1;
-            tin[0] = tin0;
-            tin[1] = tin1;
+            tin0   ^= tout0;
+            tin1   ^= tout1;
+            tin[0]  = tin0;
+            tin[1]  = tin1;
             CAST_encrypt(tin, ks);
             tout0 = tin[0];
             tout1 = tin[1];

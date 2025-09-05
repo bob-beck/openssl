@@ -51,8 +51,7 @@ BN_ULONG BN_mod_word(const BIGNUM *a, BN_ULONG w)
         ret = ((ret << BN_BITS4) | ((a->d[i] >> BN_BITS4) & BN_MASK2l)) % w;
         ret = ((ret << BN_BITS4) | (a->d[i] & BN_MASK2l)) % w;
 #else
-        ret = (BN_ULLONG) (((ret << (BN_ULLONG) BN_BITS2) | a->d[i]) %
-                           (BN_ULLONG) w);
+        ret = (BN_ULLONG)(((ret << (BN_ULLONG)BN_BITS2) | a->d[i]) % (BN_ULLONG)w);
 #endif
     }
     return (BN_ULONG)ret;
@@ -61,7 +60,7 @@ BN_ULONG BN_mod_word(const BIGNUM *a, BN_ULONG w)
 BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w)
 {
     BN_ULONG ret = 0;
-    int i, j;
+    int      i, j;
 
     bn_check_top(a);
     w &= BN_MASK2;
@@ -73,7 +72,7 @@ BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w)
         return 0;
 
     /* normalize input (so bn_div_words doesn't complain) */
-    j = BN_BITS2 - BN_num_bits_word(w);
+    j   = BN_BITS2 - BN_num_bits_word(w);
     w <<= j;
     if (!BN_lshift(a, a, j))
         return (BN_ULONG)-1;
@@ -81,9 +80,9 @@ BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w)
     for (i = a->top - 1; i >= 0; i--) {
         BN_ULONG l, d;
 
-        l = a->d[i];
-        d = bn_div_words(ret, l, w);
-        ret = (l - ((d * w) & BN_MASK2)) & BN_MASK2;
+        l       = a->d[i];
+        d       = bn_div_words(ret, l, w);
+        ret     = (l - ((d * w) & BN_MASK2)) & BN_MASK2;
         a->d[i] = d;
     }
     if ((a->top > 0) && (a->d[a->top - 1] == 0))
@@ -98,7 +97,7 @@ BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w)
 int BN_add_word(BIGNUM *a, BN_ULONG w)
 {
     BN_ULONG l;
-    int i;
+    int      i;
 
     bn_check_top(a);
     w &= BN_MASK2;
@@ -112,14 +111,14 @@ int BN_add_word(BIGNUM *a, BN_ULONG w)
     /* handle 'a' when negative */
     if (a->neg) {
         a->neg = 0;
-        i = BN_sub_word(a, w);
+        i      = BN_sub_word(a, w);
         if (!BN_is_zero(a))
             a->neg = !(a->neg);
         return i;
     }
     for (i = 0; w != 0 && i < a->top; i++) {
         a->d[i] = l = (a->d[i] + w) & BN_MASK2;
-        w = (w > l) ? 1 : 0;
+        w           = (w > l) ? 1 : 0;
     }
     if (w && i == a->top) {
         if (bn_wexpand(a, a->top + 1) == NULL)
@@ -151,14 +150,14 @@ int BN_sub_word(BIGNUM *a, BN_ULONG w)
     /* handle 'a' when negative */
     if (a->neg) {
         a->neg = 0;
-        i = BN_add_word(a, w);
+        i      = BN_add_word(a, w);
         a->neg = 1;
         return i;
     }
 
     if ((a->top == 1) && (a->d[0] < w)) {
         a->d[0] = w - a->d[0];
-        a->neg = 1;
+        a->neg  = 1;
         return 1;
     }
     i = 0;

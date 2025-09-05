@@ -19,8 +19,8 @@
 void DES_string_to_key(const char *str, DES_cblock *key)
 {
     DES_key_schedule ks;
-    int i;
-    size_t length;
+    int              i;
+    size_t           length;
 
     memset(key, 0, 8);
     length = strlen(str);
@@ -33,9 +33,9 @@ void DES_string_to_key(const char *str, DES_cblock *key)
             (*key)[i % 8] ^= (j << 1);
         else {
             /* Reverse the bit order 05/05/92 eay */
-            j = ((j << 4) & 0xf0) | ((j >> 4) & 0x0f);
-            j = ((j << 2) & 0xcc) | ((j >> 2) & 0x33);
-            j = ((j << 1) & 0xaa) | ((j >> 1) & 0x55);
+            j                    = ((j << 4) & 0xf0) | ((j >> 4) & 0x0f);
+            j                    = ((j << 2) & 0xcc) | ((j >> 2) & 0x33);
+            j                    = ((j << 1) & 0xaa) | ((j >> 1) & 0x55);
             (*key)[7 - (i % 8)] ^= j;
         }
     }
@@ -49,8 +49,8 @@ void DES_string_to_key(const char *str, DES_cblock *key)
 void DES_string_to_2keys(const char *str, DES_cblock *key1, DES_cblock *key2)
 {
     DES_key_schedule ks;
-    int i;
-    size_t length;
+    int              i;
+    size_t           length;
 
     memset(key1, 0, 8);
     memset(key2, 0, 8);

@@ -50,24 +50,21 @@ extern char ossl_cpu_info_str[];
 
 #if defined(_WIN32) && defined(OSSL_WINCTX)
 /* size: MAX_PATH + sizeof("OPENSSLDIR: \"\"") */
-static char openssldir[MAX_PATH + 15];
+static char        openssldir[MAX_PATH + 15];
 
 /* size: MAX_PATH + sizeof("ENGINESDIR: \"\"") */
-static char enginesdir[MAX_PATH + 15];
+static char        enginesdir[MAX_PATH + 15];
 
 /* size: MAX_PATH + sizeof("MODULESDIR: \"\"") */
-static char modulesdir[MAX_PATH + 15];
+static char        modulesdir[MAX_PATH + 15];
 
 static CRYPTO_ONCE version_strings_once = CRYPTO_ONCE_STATIC_INIT;
 
 DEFINE_RUN_ONCE_STATIC(version_strings_setup)
 {
-    BIO_snprintf(openssldir, sizeof(openssldir), "OPENSSLDIR: \"%s\"",
-                 ossl_get_openssldir());
-    BIO_snprintf(enginesdir, sizeof(enginesdir), "ENGINESDIR: \"%s\"",
-                 ossl_get_enginesdir());
-    BIO_snprintf(modulesdir, sizeof(modulesdir), "MODULESDIR: \"%s\"",
-                 ossl_get_modulesdir());
+    BIO_snprintf(openssldir, sizeof(openssldir), "OPENSSLDIR: \"%s\"", ossl_get_openssldir());
+    BIO_snprintf(enginesdir, sizeof(enginesdir), "ENGINESDIR: \"%s\"", ossl_get_enginesdir());
+    BIO_snprintf(modulesdir, sizeof(modulesdir), "MODULESDIR: \"%s\"", ossl_get_modulesdir());
     return 1;
 }
 

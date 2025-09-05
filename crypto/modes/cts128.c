@@ -25,9 +25,11 @@
  */
 
 size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
-                                   unsigned char *out, size_t len,
-                                   const void *key, unsigned char ivec[16],
-                                   block128_f block)
+                                   unsigned char       *out,
+                                   size_t               len,
+                                   const void          *key,
+                                   unsigned char        ivec[16],
+                                   block128_f           block)
 {
     size_t residue, n;
 
@@ -41,12 +43,12 @@ size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
 
     CRYPTO_cbc128_encrypt(in, out, len, key, ivec, block);
 
-    in += len;
+    in  += len;
     out += len;
 
     for (n = 0; n < residue; ++n)
         ivec[n] ^= in[n];
-    (*block) (ivec, ivec, key);
+    (*block)(ivec, ivec, key);
     memcpy(out, out - 16, residue);
     memcpy(out - 16, ivec, 16);
 
@@ -54,43 +56,48 @@ size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
 }
 
 size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
-                                       unsigned char *out, size_t len,
-                                       const void *key,
-                                       unsigned char ivec[16],
-                                       block128_f block)
+                                       unsigned char       *out,
+                                       size_t               len,
+                                       const void          *key,
+                                       unsigned char        ivec[16],
+                                       block128_f           block)
 {
     size_t residue, n;
 
     if (len < 16)
         return 0;
 
-    residue = len % 16;
+    residue  = len % 16;
 
-    len -= residue;
+    len     -= residue;
 
     CRYPTO_cbc128_encrypt(in, out, len, key, ivec, block);
 
     if (residue == 0)
         return len;
 
-    in += len;
+    in  += len;
     out += len;
 
     for (n = 0; n < residue; ++n)
         ivec[n] ^= in[n];
-    (*block) (ivec, ivec, key);
+    (*block)(ivec, ivec, key);
     memcpy(out - 16 + residue, ivec, 16);
 
     return len + residue;
 }
 
-size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
-                             size_t len, const void *key,
-                             unsigned char ivec[16], cbc128_f cbc)
+size_t CRYPTO_cts128_encrypt(const unsigned char *in,
+                             unsigned char       *out,
+                             size_t               len,
+                             const void          *key,
+                             unsigned char        ivec[16],
+                             cbc128_f             cbc)
 {
     size_t residue;
+
     union {
-        size_t align;
+        size_t        align;
         unsigned char c[16];
     } tmp;
 
@@ -102,67 +109,74 @@ size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
 
     len -= residue;
 
-    (*cbc) (in, out, len, key, ivec, 1);
+    (*cbc)(in, out, len, key, ivec, 1);
 
-    in += len;
+    in  += len;
     out += len;
 
 #if defined(CBC_HANDLES_TRUNCATED_IO)
     memcpy(tmp.c, out - 16, 16);
-    (*cbc) (in, out - 16, residue, key, ivec, 1);
+    (*cbc)(in, out - 16, residue, key, ivec, 1);
     memcpy(out, tmp.c, residue);
 #else
     memset(tmp.c, 0, sizeof(tmp));
     memcpy(tmp.c, in, residue);
     memcpy(out, out - 16, residue);
-    (*cbc) (tmp.c, out - 16, 16, key, ivec, 1);
+    (*cbc)(tmp.c, out - 16, 16, key, ivec, 1);
 #endif
     return len + residue;
 }
 
-size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
-                                 size_t len, const void *key,
-                                 unsigned char ivec[16], cbc128_f cbc)
+size_t CRYPTO_nistcts128_encrypt(const unsigned char *in,
+                                 unsigned char       *out,
+                                 size_t               len,
+                                 const void          *key,
+                                 unsigned char        ivec[16],
+                                 cbc128_f             cbc)
 {
     size_t residue;
+
     union {
-        size_t align;
+        size_t        align;
         unsigned char c[16];
     } tmp;
 
     if (len < 16)
         return 0;
 
-    residue = len % 16;
+    residue  = len % 16;
 
-    len -= residue;
+    len     -= residue;
 
-    (*cbc) (in, out, len, key, ivec, 1);
+    (*cbc)(in, out, len, key, ivec, 1);
 
     if (residue == 0)
         return len;
 
-    in += len;
+    in  += len;
     out += len;
 
 #if defined(CBC_HANDLES_TRUNCATED_IO)
-    (*cbc) (in, out - 16 + residue, residue, key, ivec, 1);
+    (*cbc)(in, out - 16 + residue, residue, key, ivec, 1);
 #else
     memset(tmp.c, 0, sizeof(tmp));
     memcpy(tmp.c, in, residue);
-    (*cbc) (tmp.c, out - 16 + residue, 16, key, ivec, 1);
+    (*cbc)(tmp.c, out - 16 + residue, 16, key, ivec, 1);
 #endif
     return len + residue;
 }
 
 size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
-                                   unsigned char *out, size_t len,
-                                   const void *key, unsigned char ivec[16],
-                                   block128_f block)
+                                   unsigned char       *out,
+                                   size_t               len,
+                                   const void          *key,
+                                   unsigned char        ivec[16],
+                                   block128_f           block)
 {
     size_t residue, n;
+
     union {
-        size_t align;
+        size_t        align;
         unsigned char c[32];
     } tmp;
 
@@ -176,20 +190,20 @@ size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
 
     if (len) {
         CRYPTO_cbc128_decrypt(in, out, len, key, ivec, block);
-        in += len;
+        in  += len;
         out += len;
     }
 
-    (*block) (in, tmp.c + 16, key);
+    (*block)(in, tmp.c + 16, key);
 
     memcpy(tmp.c, tmp.c + 16, 16);
     memcpy(tmp.c, in + 16, residue);
-    (*block) (tmp.c, tmp.c, key);
+    (*block)(tmp.c, tmp.c, key);
 
     for (n = 0; n < 16; ++n) {
         unsigned char c = in[n];
-        out[n] = tmp.c[n] ^ ivec[n];
-        ivec[n] = c;
+        out[n]          = tmp.c[n] ^ ivec[n];
+        ivec[n]         = c;
     }
     for (residue += 16; n < residue; ++n)
         out[n] = tmp.c[n] ^ in[n];
@@ -198,14 +212,16 @@ size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
 }
 
 size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
-                                       unsigned char *out, size_t len,
-                                       const void *key,
-                                       unsigned char ivec[16],
-                                       block128_f block)
+                                       unsigned char       *out,
+                                       size_t               len,
+                                       const void          *key,
+                                       unsigned char        ivec[16],
+                                       block128_f           block)
 {
     size_t residue, n;
+
     union {
-        size_t align;
+        size_t        align;
         unsigned char c[32];
     } tmp;
 
@@ -223,21 +239,21 @@ size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
 
     if (len) {
         CRYPTO_cbc128_decrypt(in, out, len, key, ivec, block);
-        in += len;
+        in  += len;
         out += len;
     }
 
-    (*block) (in + residue, tmp.c + 16, key);
+    (*block)(in + residue, tmp.c + 16, key);
 
     memcpy(tmp.c, tmp.c + 16, 16);
     memcpy(tmp.c, in, residue);
-    (*block) (tmp.c, tmp.c, key);
+    (*block)(tmp.c, tmp.c, key);
 
     for (n = 0; n < 16; ++n) {
         unsigned char c = in[n];
-        out[n] = tmp.c[n] ^ ivec[n];
-        ivec[n] = in[n + residue];
-        tmp.c[n] = c;
+        out[n]          = tmp.c[n] ^ ivec[n];
+        ivec[n]         = in[n + residue];
+        tmp.c[n]        = c;
     }
     for (residue += 16; n < residue; ++n)
         out[n] = tmp.c[n] ^ tmp.c[n - 16];
@@ -245,13 +261,17 @@ size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
     return 16 + len + residue;
 }
 
-size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
-                             size_t len, const void *key,
-                             unsigned char ivec[16], cbc128_f cbc)
+size_t CRYPTO_cts128_decrypt(const unsigned char *in,
+                             unsigned char       *out,
+                             size_t               len,
+                             const void          *key,
+                             unsigned char        ivec[16],
+                             cbc128_f             cbc)
 {
     size_t residue;
+
     union {
-        size_t align;
+        size_t        align;
         unsigned char c[32];
     } tmp;
 
@@ -264,8 +284,8 @@ size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
     len -= 16 + residue;
 
     if (len) {
-        (*cbc) (in, out, len, key, ivec, 0);
-        in += len;
+        (*cbc)(in, out, len, key, ivec, 0);
+        in  += len;
         out += len;
     }
 
@@ -273,25 +293,29 @@ size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
     /*
      * this places in[16] at &tmp.c[16] and decrypted block at &tmp.c[0]
      */
-    (*cbc) (in, tmp.c, 16, key, tmp.c + 16, 0);
+    (*cbc)(in, tmp.c, 16, key, tmp.c + 16, 0);
 
     memcpy(tmp.c, in + 16, residue);
 #if defined(CBC_HANDLES_TRUNCATED_IO)
-    (*cbc) (tmp.c, out, 16 + residue, key, ivec, 0);
+    (*cbc)(tmp.c, out, 16 + residue, key, ivec, 0);
 #else
-    (*cbc) (tmp.c, tmp.c, 32, key, ivec, 0);
+    (*cbc)(tmp.c, tmp.c, 32, key, ivec, 0);
     memcpy(out, tmp.c, 16 + residue);
 #endif
     return 16 + len + residue;
 }
 
-size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
-                                 size_t len, const void *key,
-                                 unsigned char ivec[16], cbc128_f cbc)
+size_t CRYPTO_nistcts128_decrypt(const unsigned char *in,
+                                 unsigned char       *out,
+                                 size_t               len,
+                                 const void          *key,
+                                 unsigned char        ivec[16],
+                                 cbc128_f             cbc)
 {
     size_t residue;
+
     union {
-        size_t align;
+        size_t        align;
         unsigned char c[32];
     } tmp;
 
@@ -301,15 +325,15 @@ size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
     residue = len % 16;
 
     if (residue == 0) {
-        (*cbc) (in, out, len, key, ivec, 0);
+        (*cbc)(in, out, len, key, ivec, 0);
         return len;
     }
 
     len -= 16 + residue;
 
     if (len) {
-        (*cbc) (in, out, len, key, ivec, 0);
-        in += len;
+        (*cbc)(in, out, len, key, ivec, 0);
+        in  += len;
         out += len;
     }
 
@@ -317,13 +341,13 @@ size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
     /*
      * this places in[16] at &tmp.c[16] and decrypted block at &tmp.c[0]
      */
-    (*cbc) (in + residue, tmp.c, 16, key, tmp.c + 16, 0);
+    (*cbc)(in + residue, tmp.c, 16, key, tmp.c + 16, 0);
 
     memcpy(tmp.c, in, residue);
 #if defined(CBC_HANDLES_TRUNCATED_IO)
-    (*cbc) (tmp.c, out, 16 + residue, key, ivec, 0);
+    (*cbc)(tmp.c, out, 16 + residue, key, ivec, 0);
 #else
-    (*cbc) (tmp.c, tmp.c, 32, key, ivec, 0);
+    (*cbc)(tmp.c, tmp.c, 32, key, ivec, 0);
     memcpy(out, tmp.c, 16 + residue);
 #endif
     return 16 + len + residue;

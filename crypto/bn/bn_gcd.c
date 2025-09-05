@@ -18,14 +18,12 @@
  * This is a static function, we ensure all callers in this file pass valid
  * arguments: all passed pointers here are non-NULL.
  */
-static ossl_inline
-BIGNUM *bn_mod_inverse_no_branch(BIGNUM *in,
-                                 const BIGNUM *a, const BIGNUM *n,
-                                 BN_CTX *ctx, int *pnoinv)
+static ossl_inline BIGNUM *
+bn_mod_inverse_no_branch(BIGNUM *in, const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx, int *pnoinv)
 {
     BIGNUM *A, *B, *X, *Y, *M, *D, *T, *R = NULL;
     BIGNUM *ret = NULL;
-    int sign;
+    int     sign;
 
     bn_check_top(a);
     bn_check_top(n);
@@ -62,7 +60,7 @@ BIGNUM *bn_mod_inverse_no_branch(BIGNUM *in,
          * Turn BN_FLG_CONSTTIME flag on, so that when BN_div is invoked,
          * BN_div_no_branch will be called eventually.
          */
-         {
+        {
             BIGNUM local_B;
             bn_init(&local_B);
             BN_with_flags(&local_B, B, BN_FLG_CONSTTIME);
@@ -111,12 +109,12 @@ BIGNUM *bn_mod_inverse_no_branch(BIGNUM *in,
          * (**)  sign*Y*a  ==  D*B + M   (mod |n|).
          */
 
-        tmp = A;                /* keep the BIGNUM object, the value does not
-                                 * matter */
+        tmp = A; /* keep the BIGNUM object, the value does not
+                  * matter */
 
         /* (A, B) := (B, A mod B) ... */
-        A = B;
-        B = M;
+        A   = B;
+        B   = M;
         /* ... so we have  0 <= B < A  again */
 
         /*-
@@ -144,10 +142,10 @@ BIGNUM *bn_mod_inverse_no_branch(BIGNUM *in,
         if (!BN_add(tmp, tmp, Y))
             goto err;
 
-        M = Y;                  /* keep the BIGNUM object, the value does not
-                                 * matter */
-        Y = X;
-        X = tmp;
+        M    = Y; /* keep the BIGNUM object, the value does not
+                   * matter */
+        Y    = X;
+        X    = tmp;
         sign = -sign;
     }
 
@@ -180,10 +178,10 @@ BIGNUM *bn_mod_inverse_no_branch(BIGNUM *in,
         goto err;
     }
 
-    ret = R;
+    ret     = R;
     *pnoinv = 0;
 
- err:
+err:
     if ((ret == NULL) && (in == NULL))
         BN_free(R);
     BN_CTX_end(ctx);
@@ -195,13 +193,11 @@ BIGNUM *bn_mod_inverse_no_branch(BIGNUM *in,
  * This is an internal function, we assume all callers pass valid arguments:
  * all pointers passed here are assumed non-NULL.
  */
-BIGNUM *int_bn_mod_inverse(BIGNUM *in,
-                           const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx,
-                           int *pnoinv)
+BIGNUM *int_bn_mod_inverse(BIGNUM *in, const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx, int *pnoinv)
 {
     BIGNUM *A, *B, *X, *Y, *M, *D, *T, *R = NULL;
     BIGNUM *ret = NULL;
-    int sign;
+    int     sign;
 
     /* This is invalid input so we don't worry about constant time here */
     if (BN_abs_is_word(n, 1) || BN_is_zero(n)) {
@@ -211,8 +207,7 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
 
     *pnoinv = 0;
 
-    if ((BN_get_flags(a, BN_FLG_CONSTTIME) != 0)
-        || (BN_get_flags(n, BN_FLG_CONSTTIME) != 0)) {
+    if ((BN_get_flags(a, BN_FLG_CONSTTIME) != 0) || (BN_get_flags(n, BN_FLG_CONSTTIME) != 0)) {
         return bn_mod_inverse_no_branch(in, a, n, ctx, pnoinv);
     }
 
@@ -416,11 +411,11 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
              * (**)  sign*Y*a  ==  D*B + M   (mod |n|).
              */
 
-            tmp = A;    /* keep the BIGNUM object, the value does not matter */
+            tmp = A; /* keep the BIGNUM object, the value does not matter */
 
             /* (A, B) := (B, A mod B) ... */
-            A = B;
-            B = M;
+            A   = B;
+            B   = M;
             /* ... so we have  0 <= B < A  again */
 
             /*-
@@ -469,9 +464,9 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
                     goto err;
             }
 
-            M = Y;      /* keep the BIGNUM object, the value does not matter */
-            Y = X;
-            X = tmp;
+            M    = Y; /* keep the BIGNUM object, the value does not matter */
+            Y    = X;
+            X    = tmp;
             sign = -sign;
         }
     }
@@ -504,7 +499,7 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
         goto err;
     }
     ret = R;
- err:
+err:
     if ((ret == NULL) && (in == NULL))
         BN_free(R);
     BN_CTX_end(ctx);
@@ -513,12 +508,11 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
 }
 
 /* solves ax == 1 (mod n) */
-BIGNUM *BN_mod_inverse(BIGNUM *in,
-                       const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx)
+BIGNUM *BN_mod_inverse(BIGNUM *in, const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx)
 {
     BN_CTX *new_ctx = NULL;
     BIGNUM *rv;
-    int noinv = 0;
+    int     noinv = 0;
 
     if (ctx == NULL) {
         ctx = new_ctx = BN_CTX_new_ex(NULL);
@@ -548,7 +542,7 @@ BIGNUM *BN_mod_inverse(BIGNUM *in,
  */
 int BN_are_coprime(BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
 {
-    int ret = 0;
+    int     ret = 0;
     BIGNUM *tmp;
 
     BN_CTX_start(ctx);
@@ -580,20 +574,20 @@ end:
  */
 int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
 {
-    BIGNUM *g, *temp = NULL;
+    BIGNUM  *g, *temp = NULL;
     BN_ULONG pow2_numbits, pow2_numbits_temp, pow2_condition_mask, pow2_flag;
-    int i, j, top, rlen, glen, m, delta = 1, cond = 0, pow2_shifts, ret = 0;
+    int      i, j, top, rlen, glen, m, delta = 1, cond = 0, pow2_shifts, ret = 0;
 
     /* Note 2: zero input corner cases are not constant-time since they are
      * handled immediately. An attacker can run an attack under this
      * assumption without the need of side-channel information. */
     if (BN_is_zero(in_b)) {
-        ret = BN_copy(r, in_a) != NULL;
+        ret    = BN_copy(r, in_a) != NULL;
         r->neg = 0;
         return ret;
     }
     if (BN_is_zero(in_a)) {
-        ret = BN_copy(r, in_b) != NULL;
+        ret    = BN_copy(r, in_b) != NULL;
         r->neg = 0;
         return ret;
     }
@@ -603,45 +597,39 @@ int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
 
     BN_CTX_start(ctx);
     temp = BN_CTX_get(ctx);
-    g = BN_CTX_get(ctx);
+    g    = BN_CTX_get(ctx);
 
     /* make r != 0, g != 0 even, so BN_rshift is not a potential nop */
-    if (g == NULL
-        || !BN_lshift1(g, in_b)
-        || !BN_lshift1(r, in_a))
+    if (g == NULL || !BN_lshift1(g, in_b) || !BN_lshift1(r, in_a))
         goto err;
 
     /* find shared powers of two, i.e. "shifts" >= 1 */
-    pow2_flag = 1;
-    pow2_shifts = 0;
+    pow2_flag    = 1;
+    pow2_shifts  = 0;
     pow2_numbits = 0;
     for (i = 0; i < r->dmax && i < g->dmax; i++) {
-        pow2_numbits_temp = r->d[i] | g->d[i];
-        pow2_condition_mask = constant_time_is_zero_bn(pow2_flag);
-        pow2_flag &= constant_time_is_zero_bn(pow2_numbits_temp);
-        pow2_shifts += (int)pow2_flag;
-        pow2_numbits = constant_time_select_bn(pow2_condition_mask,
-                                               pow2_numbits, pow2_numbits_temp);
+        pow2_numbits_temp    = r->d[i] | g->d[i];
+        pow2_condition_mask  = constant_time_is_zero_bn(pow2_flag);
+        pow2_flag           &= constant_time_is_zero_bn(pow2_numbits_temp);
+        pow2_shifts         += (int)pow2_flag;
+        pow2_numbits         = constant_time_select_bn(pow2_condition_mask, pow2_numbits, pow2_numbits_temp);
     }
-    pow2_numbits = ~pow2_numbits;
-    pow2_shifts *= BN_BITS2;
-    pow2_flag = 1;
+    pow2_numbits  = ~pow2_numbits;
+    pow2_shifts  *= BN_BITS2;
+    pow2_flag     = 1;
     for (j = 0; j < BN_BITS2; j++) {
-        pow2_flag &= pow2_numbits;
-        pow2_shifts += (int)pow2_flag;
+        pow2_flag     &= pow2_numbits;
+        pow2_shifts   += (int)pow2_flag;
         pow2_numbits >>= 1;
     }
 
     /* subtract shared powers of two; shifts >= 1 */
-    if (!BN_rshift(r, r, pow2_shifts)
-        || !BN_rshift(g, g, pow2_shifts))
+    if (!BN_rshift(r, r, pow2_shifts) || !BN_rshift(g, g, pow2_shifts))
         goto err;
 
     /* expand to biggest nword, with room for a possible extra word */
     top = 1 + ((r->top >= g->top) ? r->top : g->top);
-    if (bn_wexpand(r, top) == NULL
-        || bn_wexpand(g, top) == NULL
-        || bn_wexpand(temp, top) == NULL)
+    if (bn_wexpand(r, top) == NULL || bn_wexpand(g, top) == NULL || bn_wexpand(temp, top) == NULL)
         goto err;
 
     /* re arrange inputs s.t. r is odd */
@@ -650,14 +638,15 @@ int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
     /* compute the number of iterations */
     rlen = BN_num_bits(r);
     glen = BN_num_bits(g);
-    m = 4 + 3 * ((rlen >= glen) ? rlen : glen);
+    m    = 4 + 3 * ((rlen >= glen) ? rlen : glen);
 
     for (i = 0; i < m; i++) {
         /* conditionally flip signs if delta is positive and g is odd */
-        cond = ((unsigned int)-delta >> (8 * sizeof(delta) - 1)) & g->d[0] & 1
-            /* make sure g->top > 0 (i.e. if top == 0 then g == 0 always) */
-            & (~((unsigned int)(g->top - 1) >> (sizeof(g->top) * 8 - 1)));
-        delta = (-cond & -delta) | ((cond - 1) & delta);
+        cond = ((unsigned int)-delta >> (8 * sizeof(delta) - 1)) & g->d[0]
+               & 1
+               /* make sure g->top > 0 (i.e. if top == 0 then g == 0 always) */
+               & (~((unsigned int)(g->top - 1) >> (sizeof(g->top) * 8 - 1)));
+        delta   = (-cond & -delta) | ((cond - 1) & delta);
         r->neg ^= cond;
         /* swap */
         BN_consttime_swap(cond, r, g, top);
@@ -666,10 +655,13 @@ int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
         delta++;
         if (!BN_add(temp, g, r))
             goto err;
-        BN_consttime_swap(g->d[0] & 1 /* g is odd */
-                /* make sure g->top > 0 (i.e. if top == 0 then g == 0 always) */
-                & (~((unsigned int)(g->top - 1) >> (sizeof(g->top) * 8 - 1))),
-                g, temp, top);
+        BN_consttime_swap(g->d[0]
+                              & 1 /* g is odd */
+                              /* make sure g->top > 0 (i.e. if top == 0 then g == 0 always) */
+                              & (~((unsigned int)(g->top - 1) >> (sizeof(g->top) * 8 - 1))),
+                          g,
+                          temp,
+                          top);
         if (!BN_rshift1(g, g))
             goto err;
     }
@@ -677,13 +669,12 @@ int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
     /* remove possible negative sign */
     r->neg = 0;
     /* add powers of 2 removed, then correct the artificial shift */
-    if (!BN_lshift(r, r, pow2_shifts)
-        || !BN_rshift1(r, r))
+    if (!BN_lshift(r, r, pow2_shifts) || !BN_rshift1(r, r))
         goto err;
 
     ret = 1;
 
- err:
+err:
     BN_CTX_end(ctx);
     bn_check_top(r);
     return ret;

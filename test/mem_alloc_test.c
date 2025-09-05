@@ -40,6 +40,7 @@ enum exp_ret {
 #define IS_FAIL(exp_) (!!((int) (exp) & (int) EXP_FAIL))
 
 static const char test_fn[] = "test_file_name";
+
 enum { test_line = 31415926 };
 
 #define SQRT_SIZE_T ((size_t) 1 << (sizeof(size_t) * (CHAR_BIT / 2)))
@@ -62,131 +63,120 @@ static struct call_counts saved_custom_counts, cur_custom_counts;
 #endif
 
 static const struct array_alloc_vector {
-    size_t nmemb;
-    size_t size;
+    size_t       nmemb;
+    size_t       size;
     enum exp_ret exp_malloc;
     enum exp_ret exp_calloc;
 } array_alloc_vectors[] = {
-    { 0,                0,                 EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0,                1,                 EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0,                SQRT_SIZE_T - 1,   EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0,                SQRT_SIZE_T,       EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0,                SIZE_MAX,          EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 1,                0,                 EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { SQRT_SIZE_T - 1,  0,                 EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { SIZE_MAX,         0,                 EXP_ZERO_SIZE, EXP_ZERO_SIZE },
+    {0,                0,               EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,                1,               EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,                SQRT_SIZE_T - 1, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,                SQRT_SIZE_T,     EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,                SIZE_MAX,        EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {1,                0,               EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {SQRT_SIZE_T - 1,  0,               EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {SIZE_MAX,         0,               EXP_ZERO_SIZE, EXP_ZERO_SIZE},
 
-    { 1,                1,                 EXP_NONNULL,   EXP_NONNULL   },
+    {1,                1,               EXP_NONNULL,   EXP_NONNULL  },
 
-    { SQRT_SIZE_T / 2,  SQRT_SIZE_T,       EXP_OOM,       EXP_OOM       },
+    {SQRT_SIZE_T / 2,  SQRT_SIZE_T,     EXP_OOM,       EXP_OOM      },
 
-    { SQRT_SIZE_T,      SQRT_SIZE_T,       EXP_ZERO_SIZE, EXP_INT_OF    },
+    {SQRT_SIZE_T,      SQRT_SIZE_T,     EXP_ZERO_SIZE, EXP_INT_OF   },
 
-    /* Some magic numbers */
+/* Some magic numbers */
 #if SIZE_MAX == 4294967295U
-    { 641, 6700417, EXP_NONNULL, EXP_INT_OF },
-#else /* Of course there are no archutectures other than 32- and 64-bit ones */
-    { 274177, 67280421310721LLU, EXP_NONNULL, EXP_INT_OF },
+    {641,              6700417,         EXP_NONNULL,   EXP_INT_OF   },
+#else  /* Of course there are no archutectures other than 32- and 64-bit ones */
+    {274177, 67280421310721LLU, EXP_NONNULL, EXP_INT_OF},
 #endif
 
-    { SIZE_MAX / 4 * 3, SIZE_MAX / 2, EXP_OOM, EXP_INT_OF },
+    {SIZE_MAX / 4 * 3, SIZE_MAX / 2,    EXP_OOM,       EXP_INT_OF   },
 };
 
 static const struct array_realloc_vector {
-    size_t size;
-    size_t orig_nmemb;
-    size_t new_nmemb;
+    size_t       size;
+    size_t       orig_nmemb;
+    size_t       new_nmemb;
     enum exp_ret exp_orig;
     enum exp_ret exp_new;
     enum exp_ret exp_orig_array;
     enum exp_ret exp_new_array;
 } array_realloc_vectors[] = {
-    { 0, 0, 0,
-      EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, 0, 1,
-      EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, 0, SIZE_MAX,
-      EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, 1, 0,
-      EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, SIZE_MAX, 0,
-      EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, 1, SIZE_MAX,
-      EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, SIZE_MAX, 1,
-      EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, SIZE_MAX, SIZE_MAX,
-      EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
+    {0,             0,                   0,                   EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,             0,                   1,                   EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,             0,                   SIZE_MAX,            EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,             1,                   0,                   EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,             SIZE_MAX,            0,                   EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,             1,                   SIZE_MAX,            EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,             SIZE_MAX,            1,                   EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,             SIZE_MAX,            SIZE_MAX,            EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
 
-    { 1, 0, 0,
-      EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 1, 0, 1,
-      EXP_ZERO_SIZE, EXP_NONNULL,   EXP_ZERO_SIZE, EXP_NONNULL },
-    { 1, 0, SIZE_MAX,
-      EXP_ZERO_SIZE, EXP_OOM,       EXP_ZERO_SIZE, EXP_OOM },
-    { 1, 1, 0,
-      EXP_NONNULL,   EXP_ZERO_SIZE, EXP_NONNULL,   EXP_ZERO_SIZE },
-    { 1, SIZE_MAX, 0,
-      EXP_OOM,       EXP_ZERO_SIZE, EXP_OOM,       EXP_ZERO_SIZE },
+    {1,             0,                   0,                   EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {1,             0,                   1,                   EXP_ZERO_SIZE, EXP_NONNULL,   EXP_ZERO_SIZE, EXP_NONNULL  },
+    {1,             0,                   SIZE_MAX,            EXP_ZERO_SIZE, EXP_OOM,       EXP_ZERO_SIZE, EXP_OOM      },
+    {1,             1,                   0,                   EXP_NONNULL,   EXP_ZERO_SIZE, EXP_NONNULL,   EXP_ZERO_SIZE},
+    {1,             SIZE_MAX,            0,                   EXP_OOM,       EXP_ZERO_SIZE, EXP_OOM,       EXP_ZERO_SIZE},
 
-    { 1, 123, 345,
-      EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL },
-    { 1, 345, 123,
-      EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL },
-    { 12, 34, 56,
-      EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL },
-    { 12, 56, 34,
-      EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL },
+    {1,             123,                 345,                 EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL  },
+    {1,             345,                 123,                 EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL  },
+    {12,            34,                  56,                  EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL  },
+    {12,            56,                  34,                  EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL  },
 
-    { SQSQRT_SIZE_T, SIZE_MAX / SQSQRT_SIZE_T + 1, SIZE_MAX / SQSQRT_SIZE_T + 2,
-      EXP_ZERO_SIZE, EXP_NONNULL,   EXP_INT_OF,    EXP_INT_OF },
-    { SQSQRT_SIZE_T, SIZE_MAX / SQSQRT_SIZE_T + 2, SIZE_MAX / SQSQRT_SIZE_T + 1,
-      EXP_NONNULL,   EXP_ZERO_SIZE, EXP_INT_OF,    EXP_INT_OF },
+    {SQSQRT_SIZE_T,
+     SIZE_MAX / SQSQRT_SIZE_T + 1,
+     SIZE_MAX / SQSQRT_SIZE_T + 2,
+     EXP_ZERO_SIZE,                                                          EXP_NONNULL,
+     EXP_INT_OF,                                                                                           EXP_INT_OF   },
+    {SQSQRT_SIZE_T,
+     SIZE_MAX / SQSQRT_SIZE_T + 2,
+     SIZE_MAX / SQSQRT_SIZE_T + 1,
+     EXP_NONNULL,                                                            EXP_ZERO_SIZE,
+     EXP_INT_OF,                                                                                           EXP_INT_OF   },
 
-    { 123, 12, SIZE_MAX / 123 + 12,
-      EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL,   EXP_INT_OF },
-    { 123, SIZE_MAX / 123 + 12, 12,
-      EXP_NONNULL,   EXP_NONNULL,   EXP_INT_OF,    EXP_NONNULL },
+    {123,           12,                  SIZE_MAX / 123 + 12, EXP_NONNULL,   EXP_NONNULL,   EXP_NONNULL,   EXP_INT_OF   },
+    {123,           SIZE_MAX / 123 + 12, 12,                  EXP_NONNULL,   EXP_NONNULL,   EXP_INT_OF,    EXP_NONNULL  },
 };
 
 static const struct array_aligned_alloc_vector {
-    size_t nmemb;
-    size_t size;
-    size_t align;
+    size_t       nmemb;
+    size_t       size;
+    size_t       align;
     enum exp_ret exp;
     enum exp_ret exp_array;
 } array_aligned_alloc_vectors[] = {
-    { 0, 0, 0, EXP_INVAL, EXP_INVAL },
-    { 0, 0, 1, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, 0, 2, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, 0, 3, EXP_INVAL, EXP_INVAL },
-    { 0, 0, 4, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, 0, 64, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
-    { 0, 0, SQSQRT_SIZE_T, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
+    {0,                0, 0,             EXP_INVAL,     EXP_INVAL    },
+    {0,                0, 1,             EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,                0, 2,             EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,                0, 3,             EXP_INVAL,     EXP_INVAL    },
+    {0,                0, 4,             EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,                0, 64,            EXP_ZERO_SIZE, EXP_ZERO_SIZE},
+    {0,                0, SQSQRT_SIZE_T, EXP_ZERO_SIZE, EXP_ZERO_SIZE},
     /*
      * This one gets mem_alloc_custom_fns_test killed with SIGKILL
      * on the linux-arm64 github runner.
      */
     /* { 0, 0, SQRT_SIZE_T, EXP_ZERO_SIZE, EXP_ZERO_SIZE }, */
 
-    { 0, 0, 64, EXP_ZERO_SIZE, EXP_ZERO_SIZE },
+    {0,                0, 64,            EXP_ZERO_SIZE, EXP_ZERO_SIZE},
 
-    { 8, 8, 63, EXP_INVAL, EXP_INVAL },
-    { 8, 8, 64, EXP_NONNULL, EXP_NONNULL },
-    { SIZE_MAX / 8 + 9, 8, 64, EXP_NONNULL, EXP_INT_OF },
+    {8,                8, 63,            EXP_INVAL,     EXP_INVAL    },
+    {8,                8, 64,            EXP_NONNULL,   EXP_NONNULL  },
+    {SIZE_MAX / 8 + 9, 8, 64,            EXP_NONNULL,   EXP_INT_OF   },
 
     /*
      * posix_memalign expected to fail with ENOMEM, while the open-coded
      * implementation tries to alloc size + alignment, which should fail
      * on integer overflow.
      */
-    { 1, SIZE_MAX / 2 + 2, SIZE_MAX / 2 + 1,
-#if (defined(_BSD_SOURCE) \
-      || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L)) \
-    && !USE_CUSTOM_ALLOC_FNS || defined(OPENSSL_SMALL_FOOTPRINT)
-      EXP_OOM, EXP_OOM
+    {1,
+     SIZE_MAX / 2 + 2,
+     SIZE_MAX / 2 + 1,
+#if (defined(_BSD_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L)) && !USE_CUSTOM_ALLOC_FNS \
+    || defined(OPENSSL_SMALL_FOOTPRINT)
+     EXP_OOM,                                           EXP_OOM
 #else
-      EXP_INT_OF, EXP_INT_OF
+     EXP_INT_OF,
+     EXP_INT_OF
 #endif
     },
 };
@@ -194,14 +184,12 @@ static const struct array_aligned_alloc_vector {
 static int secure_memory_is_secure;
 
 #if USE_CUSTOM_ALLOC_FNS
-static void *my_malloc(const size_t num,
-                       const char * const file, const int line)
+static void *my_malloc(const size_t num, const char *const file, const int line)
 {
-    void * const p = malloc(num);
+    void *const p = malloc(num);
 
 # if CUSTOM_FN_PRINT_CALLS
-    if (file == test_fn || file == NULL
-        || (strcmp(file, OPENSSL_FILE) == 0 && file[0] != '\0'))
+    if (file == test_fn || file == NULL || (strcmp(file, OPENSSL_FILE) == 0 && file[0] != '\0'))
         TEST_note("[%s:%d]: malloc(%#zx) -> %p", file, line, num, p);
 # endif
 
@@ -210,19 +198,17 @@ static void *my_malloc(const size_t num,
 
     return p;
 }
-static void *my_realloc(void * const addr, const size_t num,
-                        const char * const file, const int line)
+
+static void *my_realloc(void *const addr, const size_t num, const char *const file, const int line)
 {
 # if CUSTOM_FN_PRINT_CALLS
-    const uintptr_t old_addr = (uintptr_t) addr;
+    const uintptr_t old_addr = (uintptr_t)addr;
 # endif
-    void * const p = realloc(addr, num);
+    void *const p = realloc(addr, num);
 
 # if CUSTOM_FN_PRINT_CALLS
-    if (file == test_fn || file == NULL
-        || (strcmp(file, OPENSSL_FILE) == 0 && file[0] != '\0'))
-        TEST_note("[%s:%d]: realloc(%#" PRIxPTR ", %#zx) -> %p",
-                  file, line, old_addr, num, p);
+    if (file == test_fn || file == NULL || (strcmp(file, OPENSSL_FILE) == 0 && file[0] != '\0'))
+        TEST_note("[%s:%d]: realloc(%#" PRIxPTR ", %#zx) -> %p", file, line, old_addr, num, p);
 # endif
 
     if (cur_custom_counts.realloc < INT_MAX)
@@ -231,11 +217,10 @@ static void *my_realloc(void * const addr, const size_t num,
     return p;
 }
 
-static void my_free(void * const addr, const char * const file, const int line)
+static void my_free(void *const addr, const char *const file, const int line)
 {
 # if CUSTOM_FN_PRINT_CALLS
-    if (file == test_fn || file == NULL
-        || (strcmp(file, OPENSSL_FILE) == 0 && file[0] != '\0'))
+    if (file == test_fn || file == NULL || (strcmp(file, OPENSSL_FILE) == 0 && file[0] != '\0'))
         TEST_note("[%s:%d]: free(%p)", file, line, addr);
 # endif
 
@@ -262,9 +247,7 @@ static bool check_zero_mem(char *p, size_t sz)
 static void save_counts(void)
 {
 #if !defined(OPENSSL_NO_CRYPTO_MDEBUG)
-    CRYPTO_get_alloc_counts(&mdebug_counts.malloc,
-                            &mdebug_counts.realloc,
-                            &mdebug_counts.free);
+    CRYPTO_get_alloc_counts(&mdebug_counts.malloc, &mdebug_counts.realloc, &mdebug_counts.free);
 #endif
 
 #if USE_CUSTOM_ALLOC_FNS
@@ -292,30 +275,21 @@ static bool check_counts(int exp_mallocs, int exp_reallocs, int exp_frees)
         struct call_counts cur;
 
         CRYPTO_get_alloc_counts(&cur.malloc, &cur.realloc, &cur.free);
-        if (exp_mallocs >= 0
-            && !TEST_int_eq(cur.malloc - mdebug_counts.malloc, exp_mallocs))
+        if (exp_mallocs >= 0 && !TEST_int_eq(cur.malloc - mdebug_counts.malloc, exp_mallocs))
             test_result = 0;
-        if (exp_reallocs >= 0
-            && !TEST_int_eq(cur.realloc - mdebug_counts.realloc, exp_reallocs))
+        if (exp_reallocs >= 0 && !TEST_int_eq(cur.realloc - mdebug_counts.realloc, exp_reallocs))
             test_result = 0;
-        if (exp_frees >= 0
-            && !TEST_int_eq(cur.free - mdebug_counts.free, exp_frees))
+        if (exp_frees >= 0 && !TEST_int_eq(cur.free - mdebug_counts.free, exp_frees))
             test_result = 0;
     }
 #endif
 
 #if USE_CUSTOM_ALLOC_FNS
-    if (exp_mallocs >= 0
-        && !TEST_int_eq(cur_custom_counts.malloc - saved_custom_counts.malloc,
-                        exp_mallocs))
+    if (exp_mallocs >= 0 && !TEST_int_eq(cur_custom_counts.malloc - saved_custom_counts.malloc, exp_mallocs))
         test_result = 0;
-    if (exp_reallocs >= 0
-        && !TEST_int_eq(cur_custom_counts.realloc - saved_custom_counts.realloc,
-                        exp_reallocs))
+    if (exp_reallocs >= 0 && !TEST_int_eq(cur_custom_counts.realloc - saved_custom_counts.realloc, exp_reallocs))
         test_result = 0;
-    if (exp_frees >= 0
-        && !TEST_int_eq(cur_custom_counts.free - saved_custom_counts.free,
-                        exp_frees))
+    if (exp_frees >= 0 && !TEST_int_eq(cur_custom_counts.free - saved_custom_counts.free, exp_frees))
         test_result = 0;
 #endif
 
@@ -335,78 +309,64 @@ static bool check_counts(int exp_mallocs, int exp_reallocs, int exp_frees)
  * XXX beck - Maybe reconsider if this is testing too much or things
  * not actually in control of the functions under test.
  */
-static int check_exp(const char *const fn, const int start_ln, const int end_ln,
-                     const size_t sz, const bool secure, const bool zero,
-                     char *const ret, const enum exp_ret exp, int exp_mallocs,
-                     int exp_reallocs)
+static int check_exp(const char *const  fn,
+                     const int          start_ln,
+                     const int          end_ln,
+                     const size_t       sz,
+                     const bool         secure,
+                     const bool         zero,
+                     char *const        ret,
+                     const enum exp_ret exp,
+                     int                exp_mallocs,
+                     int                exp_reallocs)
 
 {
-    int num_errs;
-    unsigned long err_code = 0;
-    const char *err_file = NULL;
-    int err_line = 0;
-    const char *err_func = NULL;
-    const char *err_data = NULL;
-    int err_flags = 0;
-    int test_result = 1;
+    int           num_errs;
+    unsigned long err_code    = 0;
+    const char   *err_file    = NULL;
+    int           err_line    = 0;
+    const char   *err_func    = NULL;
+    const char   *err_data    = NULL;
+    int           err_flags   = 0;
+    int           test_result = 1;
     unsigned long oom_err;
 
     num_errs = ERR_count_to_mark();
     if (num_errs > 0) {
-        err_code = ERR_peek_last_error_all(&err_file, &err_line, &err_func,
-                                           &err_data, &err_flags);
+        err_code = ERR_peek_last_error_all(&err_file, &err_line, &err_func, &err_data, &err_flags);
     }
 
     switch (exp) {
     case EXP_OOM:
-        oom_err = secure ? CRYPTO_R_SECURE_MALLOC_FAILURE
-                         : ERR_R_MALLOC_FAILURE;
-        if (!TEST_ptr_null(ret)
-            || !TEST_int_eq(num_errs, 1)
-            || !TEST_ulong_eq(err_code, ERR_PACK(ERR_LIB_CRYPTO, 0, oom_err))
-            || !TEST_str_eq(err_file, fn)
-	    || !(TEST_int_eq(err_line, start_ln)
-		 || TEST_int_eq(err_line, end_ln))
-            || !TEST_str_eq(err_func, "")
-            || !TEST_str_eq(err_data, "")
-            || !TEST_int_eq(err_flags, 0))
+        oom_err = secure ? CRYPTO_R_SECURE_MALLOC_FAILURE : ERR_R_MALLOC_FAILURE;
+        if (!TEST_ptr_null(ret) || !TEST_int_eq(num_errs, 1)
+            || !TEST_ulong_eq(err_code, ERR_PACK(ERR_LIB_CRYPTO, 0, oom_err)) || !TEST_str_eq(err_file, fn)
+            || !(TEST_int_eq(err_line, start_ln) || TEST_int_eq(err_line, end_ln)) || !TEST_str_eq(err_func, "")
+            || !TEST_str_eq(err_data, "") || !TEST_int_eq(err_flags, 0))
             test_result = 0;
 
         break;
 
     case EXP_INVAL:
-        if (!TEST_ptr_null(ret)
-            || !TEST_int_eq(num_errs, 1)
-            || !TEST_ulong_eq(err_code, ERR_PACK(ERR_LIB_CRYPTO, 0,
-                                                 ERR_R_PASSED_INVALID_ARGUMENT))
-	    || !TEST_str_eq(err_file, fn)
-	    || !(TEST_int_eq(err_line, start_ln)
-		 || TEST_int_eq(err_line, end_ln))
-            || !TEST_str_eq(err_func, "")
-            || !TEST_str_eq(err_data, "")
-            || !TEST_int_eq(err_flags, 0))
+        if (!TEST_ptr_null(ret) || !TEST_int_eq(num_errs, 1)
+            || !TEST_ulong_eq(err_code, ERR_PACK(ERR_LIB_CRYPTO, 0, ERR_R_PASSED_INVALID_ARGUMENT))
+            || !TEST_str_eq(err_file, fn) || !(TEST_int_eq(err_line, start_ln) || TEST_int_eq(err_line, end_ln))
+            || !TEST_str_eq(err_func, "") || !TEST_str_eq(err_data, "") || !TEST_int_eq(err_flags, 0))
             test_result = 0;
 
         break;
 
     case EXP_INT_OF:
-        if (!TEST_ptr_null(ret)
-            || !TEST_int_eq(num_errs, 1)
-            || !TEST_ulong_eq(err_code, ERR_PACK(ERR_LIB_CRYPTO, 0,
-                                                 CRYPTO_R_INTEGER_OVERFLOW))
-	    || !TEST_str_eq(err_file, fn)
-	    || !(TEST_int_eq(err_line, start_ln)
-		 || TEST_int_eq(err_line, end_ln))
-            || !TEST_str_eq(err_func, "")
-            || !TEST_str_eq(err_data, "")
-            || !TEST_int_eq(err_flags, 0))
+        if (!TEST_ptr_null(ret) || !TEST_int_eq(num_errs, 1)
+            || !TEST_ulong_eq(err_code, ERR_PACK(ERR_LIB_CRYPTO, 0, CRYPTO_R_INTEGER_OVERFLOW))
+            || !TEST_str_eq(err_file, fn) || !(TEST_int_eq(err_line, start_ln) || TEST_int_eq(err_line, end_ln))
+            || !TEST_str_eq(err_func, "") || !TEST_str_eq(err_data, "") || !TEST_int_eq(err_flags, 0))
             test_result = 0;
 
         break;
 
     case EXP_NONNULL:
-        if (!TEST_ptr(ret)
-            || !TEST_int_eq(num_errs, 0)) {
+        if (!TEST_ptr(ret) || !TEST_int_eq(num_errs, 0)) {
             test_result = 0;
         } else if (zero) {
             if (!check_zero_mem(ret, sz))
@@ -441,80 +401,73 @@ static int check_exp(const char *const fn, const int start_ln, const int end_ln,
     return test_result;
 }
 
-static int test_xalloc(const bool secure, const bool array, const bool zero,
-                       const bool macro, const struct array_alloc_vector *td)
+static int
+test_xalloc(const bool secure, const bool array, const bool zero, const bool macro, const struct array_alloc_vector *td)
 {
-    char *ret;
-	int start_ln = test_line;
-	int end_ln = test_line;
-    size_t sz = td->nmemb * td->size;
-    enum exp_ret exp = array ? td->exp_calloc : td->exp_malloc;
-    bool really_secure = secure && secure_memory_is_secure;
-    int exp_cnt = 0;
-    int res;
+    char        *ret;
+    int          start_ln      = test_line;
+    int          end_ln        = test_line;
+    size_t       sz            = td->nmemb * td->size;
+    enum exp_ret exp           = array ? td->exp_calloc : td->exp_malloc;
+    bool         really_secure = secure && secure_memory_is_secure;
+    int          exp_cnt       = 0;
+    int          res;
 
     check_exp_prep();
 
     if (macro) {
         if (secure) {
             if (array) {
-                if (zero){
+                if (zero) {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_secure_calloc(td->nmemb, td->size);
-                    end_ln = OPENSSL_LINE - 1;
+                    ret      = OPENSSL_secure_calloc(td->nmemb, td->size);
+                    end_ln   = OPENSSL_LINE - 1;
                 } else {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_secure_malloc_array(td->nmemb, td->size);
-                    end_ln = OPENSSL_LINE - 1;
+                    ret      = OPENSSL_secure_malloc_array(td->nmemb, td->size);
+                    end_ln   = OPENSSL_LINE - 1;
                 }
             } else {
                 if (zero) {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_secure_zalloc(sz);
-                    end_ln = OPENSSL_LINE - 1;
+                    ret      = OPENSSL_secure_zalloc(sz);
+                    end_ln   = OPENSSL_LINE - 1;
                 } else {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_secure_malloc(sz);
-                    end_ln = OPENSSL_LINE - 1;
+                    ret      = OPENSSL_secure_malloc(sz);
+                    end_ln   = OPENSSL_LINE - 1;
                 }
             }
         } else {
             if (array) {
                 if (zero) {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_calloc(td->nmemb, td->size);
-                    end_ln = OPENSSL_LINE - 1;
-                }
-                else {
+                    ret      = OPENSSL_calloc(td->nmemb, td->size);
+                    end_ln   = OPENSSL_LINE - 1;
+                } else {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_malloc_array(td->nmemb, td->size);
-                    end_ln = OPENSSL_LINE - 1;
+                    ret      = OPENSSL_malloc_array(td->nmemb, td->size);
+                    end_ln   = OPENSSL_LINE - 1;
                 }
             } else {
                 if (zero) {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_zalloc(sz);
-                    end_ln = OPENSSL_LINE - 1;
-                }
-                else {
+                    ret      = OPENSSL_zalloc(sz);
+                    end_ln   = OPENSSL_LINE - 1;
+                } else {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_malloc(sz);
-                    end_ln = OPENSSL_LINE - 1;
+                    ret      = OPENSSL_malloc(sz);
+                    end_ln   = OPENSSL_LINE - 1;
                 }
             }
         }
     } else {
         if (array) {
-            ret = (secure ? (zero ? CRYPTO_secure_calloc
-                                  : CRYPTO_secure_malloc_array)
-                          : (zero ? CRYPTO_calloc
-                                  : CRYPTO_malloc_array))(td->nmemb, td->size,
-                                                          test_fn, test_line);
+            ret = (secure ? (zero ? CRYPTO_secure_calloc : CRYPTO_secure_malloc_array)
+                          : (zero ? CRYPTO_calloc : CRYPTO_malloc_array))(td->nmemb, td->size, test_fn, test_line);
         } else {
-            ret = (secure ? (zero ? CRYPTO_secure_zalloc
-                                  : CRYPTO_secure_malloc)
-                          : (zero ? CRYPTO_zalloc
-                                  : CRYPTO_malloc))(sz, test_fn, test_line);
+            ret = (secure ? (zero ? CRYPTO_secure_zalloc : CRYPTO_secure_malloc)
+                          : (zero ? CRYPTO_zalloc : CRYPTO_malloc))(sz, test_fn, test_line);
         }
     }
 
@@ -522,7 +475,7 @@ static int test_xalloc(const bool secure, const bool array, const bool zero,
      * There is an OPENSSL_calloc in ERR_set_debug, triggered
      * from ossl_report_alloc_err_ex.
      */
-    exp_cnt += IS_FAIL(exp) && (!macro || (bool) OPENSSL_FILE[0]);
+    exp_cnt += IS_FAIL(exp) && (!macro || (bool)OPENSSL_FILE[0]);
     /*
      * Secure allocations don't trigger alloc counting.
      * EXP_OOM is special as it comes on return from the (called and counted)
@@ -530,8 +483,7 @@ static int test_xalloc(const bool secure, const bool array, const bool zero,
      */
     if (!really_secure)
         exp_cnt += !!(exp == EXP_OOM || !IS_FAIL(exp));
-    res = check_exp(macro ? OPENSSL_FILE : test_fn, start_ln, end_ln, sz,
-                    really_secure, zero, ret, exp, exp_cnt, 0);
+    res = check_exp(macro ? OPENSSL_FILE : test_fn, start_ln, end_ln, sz, really_secure, zero, ret, exp, exp_cnt, 0);
 
     if (really_secure)
         OPENSSL_secure_free(ret);
@@ -541,13 +493,12 @@ static int test_xalloc(const bool secure, const bool array, const bool zero,
     return res;
 }
 
-static int test_xrealloc(const bool clear, const bool array, const bool macro,
-                         const struct array_realloc_vector *td)
+static int test_xrealloc(const bool clear, const bool array, const bool macro, const struct array_realloc_vector *td)
 {
-    char *ret = NULL;
-    char *old_ret = NULL;
-    int exp_malloc_cnt, exp_realloc_cnt;
-    int res = 1;
+    char  *ret     = NULL;
+    char  *old_ret = NULL;
+    int    exp_malloc_cnt, exp_realloc_cnt;
+    int    res = 1;
     size_t i;
 
     /*
@@ -555,16 +506,15 @@ static int test_xrealloc(const bool clear, const bool array, const bool macro,
      * call.
      */
     for (i = 0; i < 2; i++) {
-        size_t nmemb = i ? td->new_nmemb : td->orig_nmemb;
-        size_t old_nmemb = i ? td->orig_nmemb : 0;
-        size_t sz = nmemb * td->size;
-        size_t old_sz = old_nmemb * td->size;
-        int start_ln = test_line;
-        int end_ln = test_line;
-        enum exp_ret exp = i ? (array ? td->exp_new_array  : td->exp_new)
-                             : (array ? td->exp_orig_array : td->exp_orig);
-        enum exp_ret exp2 = !i ? (array ? td->exp_new_array  : td->exp_new)
-                               : (array ? td->exp_orig_array : td->exp_orig);
+        size_t       nmemb     = i ? td->new_nmemb : td->orig_nmemb;
+        size_t       old_nmemb = i ? td->orig_nmemb : 0;
+        size_t       sz        = nmemb * td->size;
+        size_t       old_sz    = old_nmemb * td->size;
+        int          start_ln  = test_line;
+        int          end_ln    = test_line;
+        enum exp_ret exp = i ? (array ? td->exp_new_array : td->exp_new) : (array ? td->exp_orig_array : td->exp_orig);
+        enum exp_ret exp2 =
+            !i ? (array ? td->exp_new_array : td->exp_new) : (array ? td->exp_orig_array : td->exp_orig);
 
         exp_malloc_cnt = exp_realloc_cnt = 0;
 
@@ -599,39 +549,33 @@ static int test_xrealloc(const bool clear, const bool array, const bool macro,
             if (array) {
                 if (clear) {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_clear_realloc_array(ret, old_nmemb, nmemb, td->size);
-                    end_ln = OPENSSL_LINE - 1;
-                }
-                else {
+                    ret      = OPENSSL_clear_realloc_array(ret, old_nmemb, nmemb, td->size);
+                    end_ln   = OPENSSL_LINE - 1;
+                } else {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_realloc_array(ret, nmemb, td->size);
-                    end_ln = OPENSSL_LINE - 1;
+                    ret      = OPENSSL_realloc_array(ret, nmemb, td->size);
+                    end_ln   = OPENSSL_LINE - 1;
                 }
             } else {
                 if (clear) {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_clear_realloc(ret, old_sz, sz);
-                    end_ln = OPENSSL_LINE - 1;
-                }
-                else {
+                    ret      = OPENSSL_clear_realloc(ret, old_sz, sz);
+                    end_ln   = OPENSSL_LINE - 1;
+                } else {
                     start_ln = OPENSSL_LINE + 1;
-                    ret = OPENSSL_realloc(ret, sz);
-                    end_ln = OPENSSL_LINE - 1;
+                    ret      = OPENSSL_realloc(ret, sz);
+                    end_ln   = OPENSSL_LINE - 1;
                 }
             }
         } else {
             if (array) {
                 if (clear)
-                    ret = CRYPTO_clear_realloc_array(ret, old_nmemb, nmemb,
-                                                     td->size,
-                                                     test_fn, test_line);
+                    ret = CRYPTO_clear_realloc_array(ret, old_nmemb, nmemb, td->size, test_fn, test_line);
                 else
-                    ret = CRYPTO_realloc_array(ret, nmemb, td->size,
-                                               test_fn, test_line);
+                    ret = CRYPTO_realloc_array(ret, nmemb, td->size, test_fn, test_line);
             } else {
                 if (clear)
-                    ret = CRYPTO_clear_realloc(ret, old_sz, sz,
-                                               test_fn, test_line);
+                    ret = CRYPTO_clear_realloc(ret, old_sz, sz, test_fn, test_line);
                 else
                     ret = CRYPTO_realloc(ret, sz, test_fn, test_line);
             }
@@ -641,33 +585,45 @@ static int test_xrealloc(const bool clear, const bool array, const bool macro,
          * There is an OPENSSL_calloc in ERR_set_debug, triggered
          * from ossl_report_alloc_err_ex.
          */
-        exp_malloc_cnt += !!(exp == EXP_OOM
-                             && (!macro || (bool) OPENSSL_FILE[0]));
+        exp_malloc_cnt += !!(exp == EXP_OOM && (!macro || (bool)OPENSSL_FILE[0]));
 
-        res = check_exp(macro ? OPENSSL_FILE : test_fn, start_ln, end_ln, sz,
-                        false, false, ret, exp, exp_malloc_cnt,
+        res             = check_exp(macro ? OPENSSL_FILE : test_fn,
+                        start_ln,
+                        end_ln,
+                        sz,
+                        false,
+                        false,
+                        ret,
+                        exp,
+                        exp_malloc_cnt,
                         exp_realloc_cnt);
         if (res == 0)
             TEST_error("realloc return code check fail with i = %zu, ret = %p"
                        ", old_nmemb = %#zx, nmemb = %#zx, size = %#zx",
-                       i, (void *) ret, old_nmemb, nmemb, td->size);
+                       i,
+                       (void *)ret,
+                       old_nmemb,
+                       nmemb,
+                       td->size);
 
         /* Write data on the first pass and check it on the second */
         if (res != 0 && exp == EXP_NONNULL && exp2 == EXP_NONNULL) {
-            size_t check_sz = MIN(td->orig_nmemb * td->size,
-                                  td->new_nmemb * td->size);
+            size_t check_sz = MIN(td->orig_nmemb * td->size, td->new_nmemb * td->size);
             size_t j;
             size_t num_err = 0;
 
             if (i != 0) {
                 for (j = 0; j < check_sz; j++) {
-                    char exp_val = (uint8_t) ((uintptr_t) td * 253 + j * 17);
+                    char exp_val = (uint8_t)((uintptr_t)td * 253 + j * 17);
 
                     if (ret[j] != exp_val) {
                         if (!num_err)
                             TEST_error("Memory mismatch at byte %zu of %zu: "
                                        "%#04hhx != %#04hhx",
-                                       j, check_sz, ret[j], exp_val);
+                                       j,
+                                       check_sz,
+                                       ret[j],
+                                       exp_val);
 
                         res = 0;
                         num_err++;
@@ -678,7 +634,7 @@ static int test_xrealloc(const bool clear, const bool array, const bool macro,
                     TEST_error("Total errors: %zu", num_err);
             } else {
                 for (j = 0; j < check_sz; j++)
-                    ret[j] = (uint8_t) ((uintptr_t) td * 253 + j * 17);
+                    ret[j] = (uint8_t)((uintptr_t)td * 253 + j * 17);
             }
         }
 
@@ -694,37 +650,34 @@ static int test_xrealloc(const bool clear, const bool array, const bool macro,
     return res;
 }
 
-static int test_xaligned_alloc(const bool array, const bool macro,
-                               const struct array_aligned_alloc_vector *td)
+static int test_xaligned_alloc(const bool array, const bool macro, const struct array_aligned_alloc_vector *td)
 {
-    char *ret;
-	int start_ln = test_line;
-	int end_ln = test_line;
-    size_t sz = td->nmemb * td->size;
-    enum exp_ret exp = array ? td->exp_array : td->exp;
-    int exp_cnt = 0;
-    void *freeptr = &freeptr;
-    int res = 1;
+    char        *ret;
+    int          start_ln = test_line;
+    int          end_ln   = test_line;
+    size_t       sz       = td->nmemb * td->size;
+    enum exp_ret exp      = array ? td->exp_array : td->exp;
+    int          exp_cnt  = 0;
+    void        *freeptr  = &freeptr;
+    int          res      = 1;
 
     check_exp_prep();
 
     if (macro) {
         if (array) {
             start_ln = OPENSSL_LINE + 1;
-            ret = OPENSSL_aligned_alloc_array(td->nmemb, td->size, td->align, &freeptr);
-            end_ln = OPENSSL_LINE - 1;
+            ret      = OPENSSL_aligned_alloc_array(td->nmemb, td->size, td->align, &freeptr);
+            end_ln   = OPENSSL_LINE - 1;
         } else {
             start_ln = OPENSSL_LINE + 1;
-            ret = OPENSSL_aligned_alloc(sz, td->align, &freeptr);
-            end_ln = OPENSSL_LINE - 1;
+            ret      = OPENSSL_aligned_alloc(sz, td->align, &freeptr);
+            end_ln   = OPENSSL_LINE - 1;
         }
     } else {
         if (array)
-            ret = CRYPTO_aligned_alloc_array(td->nmemb, td->size, td->align,
-                                             &freeptr, test_fn, test_line);
+            ret = CRYPTO_aligned_alloc_array(td->nmemb, td->size, td->align, &freeptr, test_fn, test_line);
         else
-            ret = CRYPTO_aligned_alloc(sz, td->align, &freeptr,
-                                       test_fn, test_line);
+            ret = CRYPTO_aligned_alloc(sz, td->align, &freeptr, test_fn, test_line);
     }
 
 #if !defined(OPENSSL_SMALL_FOOTPRINT)
@@ -733,11 +686,10 @@ static int test_xaligned_alloc(const bool array, const bool macro,
      * OPENSSL_malloc is only called when the open-coded implementation
      * is used.
      */
-# if USE_CUSTOM_ALLOC_FNS \
-    || !(defined(_BSD_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L))
+# if USE_CUSTOM_ALLOC_FNS || !(defined(_BSD_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L))
     exp_cnt += !!(exp != EXP_INT_OF && exp != EXP_INVAL);
 # endif
-#else /* OPENSSL_SMALL_FOOTPRINT */
+#else  /* OPENSSL_SMALL_FOOTPRINT */
     exp = exp == EXP_INT_OF ? EXP_INT_OF : EXP_ZERO_SIZE;
 #endif /* !OPENSSL_SMALL_FOOTPRINT */
 
@@ -745,13 +697,12 @@ static int test_xaligned_alloc(const bool array, const bool macro,
      * There is an OPENSSL_calloc in ERR_set_debug, triggered
      * from ossl_report_alloc_err_ex.
      */
-    exp_cnt += IS_FAIL(exp) && (!macro || (bool) OPENSSL_FILE[0]);
-    res &= check_exp(macro ? OPENSSL_FILE : test_fn, start_ln, end_ln, sz, false, false,
-                     ret, exp, exp_cnt, 0);
+    exp_cnt += IS_FAIL(exp) && (!macro || (bool)OPENSSL_FILE[0]);
+    res     &= check_exp(macro ? OPENSSL_FILE : test_fn, start_ln, end_ln, sz, false, false, ret, exp, exp_cnt, 0);
 
     /* Check the pointer's alignment */
     if (exp == EXP_NONNULL) {
-        if (!TEST_uint64_t_eq((uintptr_t) ret & (td->align - 1), 0))
+        if (!TEST_uint64_t_eq((uintptr_t)ret & (td->align - 1), 0))
             res = 0;
     }
 
@@ -760,7 +711,7 @@ static int test_xaligned_alloc(const bool array, const bool macro,
         res = 0;
     if ((exp == EXP_NONNULL) && !TEST_ptr(freeptr))
         res = 0;
-#else /* OPENSSL_SMALL_FOOTPRINT */
+#else  /* OPENSSL_SMALL_FOOTPRINT */
     if (!TEST_ptr_null(ret) || !TEST_ptr_null(freeptr))
         res = 0;
 #endif /* !OPENSSL_SMALL_FOOTPRINT */
@@ -773,90 +724,90 @@ static int test_xaligned_alloc(const bool array, const bool macro,
 static int test_malloc(const int i)
 {
     return test_xalloc(false, false, false, false, array_alloc_vectors + i)
-        && test_xalloc(false, false, false, true,  array_alloc_vectors + i);
+           && test_xalloc(false, false, false, true, array_alloc_vectors + i);
 }
 
 static int test_zalloc(const int i)
 {
     return test_xalloc(false, false, true, false, array_alloc_vectors + i)
-        && test_xalloc(false, false, true, true,  array_alloc_vectors + i);
+           && test_xalloc(false, false, true, true, array_alloc_vectors + i);
 }
 
 static int test_malloc_array(const int i)
 {
     return test_xalloc(false, true, false, false, array_alloc_vectors + i)
-        && test_xalloc(false, true, false, true,  array_alloc_vectors + i);
+           && test_xalloc(false, true, false, true, array_alloc_vectors + i);
 }
 
 static int test_calloc(const int i)
 {
     return test_xalloc(false, true, true, false, array_alloc_vectors + i)
-        && test_xalloc(false, true, true, true,  array_alloc_vectors + i);
+           && test_xalloc(false, true, true, true, array_alloc_vectors + i);
 }
 
 static int test_secure_malloc(const int i)
 {
     return test_xalloc(true, false, false, false, array_alloc_vectors + i)
-        && test_xalloc(true, false, false, true,  array_alloc_vectors + i);
+           && test_xalloc(true, false, false, true, array_alloc_vectors + i);
 }
 
 static int test_secure_zalloc(const int i)
 {
     return test_xalloc(true, false, true, false, array_alloc_vectors + i)
-        && test_xalloc(true, false, true, true,  array_alloc_vectors + i);
+           && test_xalloc(true, false, true, true, array_alloc_vectors + i);
 }
 
 static int test_secure_malloc_array(const int i)
 {
     return test_xalloc(true, true, false, false, array_alloc_vectors + i)
-        && test_xalloc(true, true, false, true,  array_alloc_vectors + i);
+           && test_xalloc(true, true, false, true, array_alloc_vectors + i);
 }
 
 static int test_secure_calloc(const int i)
 {
     return test_xalloc(true, true, true, false, array_alloc_vectors + i)
-        && test_xalloc(true, true, true, true,  array_alloc_vectors + i);
+           && test_xalloc(true, true, true, true, array_alloc_vectors + i);
 }
 
 static int test_realloc(const int i)
 {
     return test_xrealloc(false, false, false, array_realloc_vectors + i)
-        && test_xrealloc(false, false, true,  array_realloc_vectors + i);
+           && test_xrealloc(false, false, true, array_realloc_vectors + i);
 }
 
 static int test_clear_realloc(const int i)
 {
     return test_xrealloc(true, false, false, array_realloc_vectors + i)
-        && test_xrealloc(true, false, true,  array_realloc_vectors + i);
+           && test_xrealloc(true, false, true, array_realloc_vectors + i);
 }
 
 static int test_realloc_array(const int i)
 {
     return test_xrealloc(false, true, false, array_realloc_vectors + i)
-        && test_xrealloc(false, true, true,  array_realloc_vectors + i);
+           && test_xrealloc(false, true, true, array_realloc_vectors + i);
 }
 
 static int test_clear_realloc_array(const int i)
 {
     return test_xrealloc(true, true, false, array_realloc_vectors + i)
-        && test_xrealloc(true, true, true,  array_realloc_vectors + i);
+           && test_xrealloc(true, true, true, array_realloc_vectors + i);
 }
 
 static int test_aligned_alloc(const int i)
 {
     return test_xaligned_alloc(false, false, array_aligned_alloc_vectors + i)
-        && test_xaligned_alloc(false, true,  array_aligned_alloc_vectors + i);
+           && test_xaligned_alloc(false, true, array_aligned_alloc_vectors + i);
 }
 
 static int test_aligned_alloc_array(const int i)
 {
     return test_xaligned_alloc(true, false, array_aligned_alloc_vectors + i)
-        && test_xaligned_alloc(true, true,  array_aligned_alloc_vectors + i);
+           && test_xaligned_alloc(true, true, array_aligned_alloc_vectors + i);
 }
 
 static int test_free(void)
 {
-    int test_result = 1;
+    int   test_result = 1;
     void *p;
 
     save_counts();
@@ -905,8 +856,7 @@ int setup_tests(void)
     ADD_ALL_TESTS(test_clear_realloc_array, OSSL_NELEM(array_realloc_vectors));
 
     ADD_ALL_TESTS(test_aligned_alloc, OSSL_NELEM(array_aligned_alloc_vectors));
-    ADD_ALL_TESTS(test_aligned_alloc_array,
-                  OSSL_NELEM(array_aligned_alloc_vectors));
+    ADD_ALL_TESTS(test_aligned_alloc_array, OSSL_NELEM(array_aligned_alloc_vectors));
 
     ADD_TEST(test_free);
 

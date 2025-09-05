@@ -29,17 +29,17 @@ STACK_OF(SSL_COMP) *ossl_load_builtin_compressions(void)
 {
     STACK_OF(SSL_COMP) *comp_methods = NULL;
 #ifndef OPENSSL_NO_COMP
-    SSL_COMP *comp = NULL;
+    SSL_COMP    *comp   = NULL;
     COMP_METHOD *method = COMP_zlib();
 
-    comp_methods = sk_SSL_COMP_new(sk_comp_cmp);
+    comp_methods        = sk_SSL_COMP_new(sk_comp_cmp);
 
     if (COMP_get_type(method) != NID_undef && comp_methods != NULL) {
         comp = OPENSSL_malloc(sizeof(*comp));
         if (comp != NULL) {
             comp->method = method;
-            comp->id = SSL_COMP_ZLIB_IDX;
-            comp->name = COMP_get_name(method);
+            comp->id     = SSL_COMP_ZLIB_IDX;
+            comp->name   = COMP_get_name(method);
             if (!sk_SSL_COMP_push(comp_methods, comp))
                 OPENSSL_free(comp);
         }

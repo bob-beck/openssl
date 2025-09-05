@@ -13,9 +13,11 @@
 #include "crypto/aes_platform.h"
 
 typedef struct prov_aes_ccm_ctx_st {
-    PROV_CCM_CTX base;         /* Must be first */
+    PROV_CCM_CTX base; /* Must be first */
+
     union {
         OSSL_UNION_ALIGN;
+
         /*-
          * Padding is chosen so that s390x.kmac.k overlaps with ks.ks and
          * fc with ks.ks.rounds. Remember that on s390x, an AES_KEY's
@@ -24,22 +26,25 @@ typedef struct prov_aes_ccm_ctx_st {
          */
         struct {
             unsigned char pad[16];
-            AES_KEY ks;
+            AES_KEY       ks;
         } ks;
 #if defined(OPENSSL_CPUID_OBJ) && defined(__s390__)
         struct {
-            S390X_KMAC_PARAMS kmac;
+            S390X_KMAC_PARAMS  kmac;
             unsigned long long blocks;
+
             union {
                 unsigned long long g[2];
-                unsigned char b[AES_BLOCK_SIZE];
+                unsigned char      b[AES_BLOCK_SIZE];
             } nonce;
+
             union {
                 unsigned long long g[2];
-                unsigned char b[AES_BLOCK_SIZE];
+                unsigned char      b[AES_BLOCK_SIZE];
             } buf;
+
             unsigned char dummy_pad[168];
-            unsigned int fc;   /* fc has same offset as ks.ks.rounds */
+            unsigned int  fc; /* fc has same offset as ks.ks.rounds */
         } s390x;
 #endif /* defined(OPENSSL_CPUID_OBJ) && defined(__s390__) */
     } ccm;

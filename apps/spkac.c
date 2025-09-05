@@ -22,17 +22,26 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_NOOUT, OPT_PUBKEY, OPT_VERIFY, OPT_IN, OPT_OUT,
-    OPT_ENGINE, OPT_KEY, OPT_CHALLENGE, OPT_PASSIN, OPT_SPKAC,
-    OPT_SPKSECT, OPT_KEYFORM, OPT_DIGEST,
+    OPT_NOOUT,
+    OPT_PUBKEY,
+    OPT_VERIFY,
+    OPT_IN,
+    OPT_OUT,
+    OPT_ENGINE,
+    OPT_KEY,
+    OPT_CHALLENGE,
+    OPT_PASSIN,
+    OPT_SPKAC,
+    OPT_SPKSECT,
+    OPT_KEYFORM,
+    OPT_DIGEST,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
 const OPTIONS spkac_options[] = {
     OPT_SECTION("General"),
     {"help", OPT_HELP, '-', "Display this summary"},
-    {"spksect", OPT_SPKSECT, 's',
-     "Specify the name of an SPKAC-dedicated section of configuration"},
+    {"spksect", OPT_SPKSECT, 's', "Specify the name of an SPKAC-dedicated section of configuration"},
 #ifndef OPENSSL_NO_ENGINE
     {"engine", OPT_ENGINE, 's', "Use engine, possibly a hardware device"},
 #endif
@@ -46,7 +55,7 @@ const OPTIONS spkac_options[] = {
     {"spkac", OPT_SPKAC, 's', "Alternative SPKAC name"},
 
     OPT_SECTION("Output"),
-    {"digest", OPT_DIGEST, 's', "Sign new SPKAC with the specified digest (default: MD5)" },
+    {"digest", OPT_DIGEST, 's', "Sign new SPKAC with the specified digest (default: MD5)"},
     {"out", OPT_OUT, '>', "Output file"},
     {"noout", OPT_NOOUT, '-', "Don't print SPKAC"},
     {"pubkey", OPT_PUBKEY, '-', "Output public key"},
@@ -58,27 +67,27 @@ const OPTIONS spkac_options[] = {
 
 int spkac_main(int argc, char **argv)
 {
-    BIO *out = NULL;
-    CONF *conf = NULL;
-    ENGINE *e = NULL;
-    EVP_PKEY *pkey = NULL;
-    NETSCAPE_SPKI *spki = NULL;
-    char *challenge = NULL, *keyfile = NULL;
-    char *infile = NULL, *outfile = NULL, *passinarg = NULL, *passin = NULL;
-    char *spkstr = NULL, *prog;
-    const char *spkac = "SPKAC", *spksect = "default";
-    const char *digest = "MD5";
-    EVP_MD *md = NULL;
-    int i, ret = 1, verify = 0, noout = 0, pubkey = 0;
-    int keyformat = FORMAT_UNDEF;
-    OPTION_CHOICE o;
+    BIO           *out       = NULL;
+    CONF          *conf      = NULL;
+    ENGINE        *e         = NULL;
+    EVP_PKEY      *pkey      = NULL;
+    NETSCAPE_SPKI *spki      = NULL;
+    char          *challenge = NULL, *keyfile = NULL;
+    char          *infile = NULL, *outfile = NULL, *passinarg = NULL, *passin = NULL;
+    char          *spkstr = NULL, *prog;
+    const char    *spkac = "SPKAC", *spksect = "default";
+    const char    *digest = "MD5";
+    EVP_MD        *md     = NULL;
+    int            i, ret = 1, verify = 0, noout = 0, pubkey = 0;
+    int            keyformat = FORMAT_UNDEF;
+    OPTION_CHOICE  o;
 
     prog = opt_init(argc, argv, spkac_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -145,16 +154,13 @@ int spkac_main(int argc, char **argv)
         if (!opt_md(digest, &md))
             goto end;
 
-        pkey = load_key(strcmp(keyfile, "-") ? keyfile : NULL,
-                        keyformat, 1, passin, e, "private key");
+        pkey = load_key(strcmp(keyfile, "-") ? keyfile : NULL, keyformat, 1, passin, e, "private key");
         if (pkey == NULL)
             goto end;
         spki = NETSCAPE_SPKI_new();
         if (spki == NULL)
             goto end;
-        if (challenge != NULL
-            && !ASN1_STRING_set(spki->spkac->challenge,
-                                challenge, (int)strlen(challenge)))
+        if (challenge != NULL && !ASN1_STRING_set(spki->spkac->challenge, challenge, (int)strlen(challenge)))
             goto end;
         if (!NETSCAPE_SPKI_set_pubkey(spki, pkey)) {
             BIO_printf(bio_err, "Error setting public key\n");
@@ -221,7 +227,7 @@ int spkac_main(int argc, char **argv)
 
     ret = 0;
 
- end:
+end:
     EVP_MD_free(md);
     NCONF_free(conf);
     NETSCAPE_SPKI_free(spki);

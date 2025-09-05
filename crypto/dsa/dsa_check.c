@@ -48,16 +48,14 @@ int ossl_dsa_check_params(const DSA *dsa, int checktype, int *ret)
         return 0;
 
     if (checktype == OSSL_KEYMGMT_VALIDATE_QUICK_CHECK)
-        return ossl_ffc_params_simple_validate(dsa->libctx, &dsa->params,
-                                               FFC_PARAM_TYPE_DSA, ret);
+        return ossl_ffc_params_simple_validate(dsa->libctx, &dsa->params, FFC_PARAM_TYPE_DSA, ret);
     else
         /*
          * Do full FFC domain params validation according to FIPS-186-4
          *  - always in FIPS_MODULE
          *  - only if possible (i.e., seed is set) in default provider
          */
-        return ossl_ffc_params_full_validate(dsa->libctx, &dsa->params,
-                                             FFC_PARAM_TYPE_DSA, ret);
+        return ossl_ffc_params_full_validate(dsa->libctx, &dsa->params, FFC_PARAM_TYPE_DSA, ret);
 }
 
 /*
@@ -68,8 +66,7 @@ int ossl_dsa_check_pub_key(const DSA *dsa, const BIGNUM *pub_key, int *ret)
     if (!dsa_precheck_params(dsa, ret))
         return 0;
 
-    return ossl_ffc_validate_public_key(&dsa->params, pub_key, ret)
-           && *ret == 0;
+    return ossl_ffc_validate_public_key(&dsa->params, pub_key, ret) && *ret == 0;
 }
 
 /*
@@ -82,8 +79,7 @@ int ossl_dsa_check_pub_key_partial(const DSA *dsa, const BIGNUM *pub_key, int *r
     if (!dsa_precheck_params(dsa, ret))
         return 0;
 
-    return ossl_ffc_validate_public_key_partial(&dsa->params, pub_key, ret)
-           && *ret == 0;
+    return ossl_ffc_validate_public_key_partial(&dsa->params, pub_key, ret) && *ret == 0;
 }
 
 int ossl_dsa_check_priv_key(const DSA *dsa, const BIGNUM *priv_key, int *ret)
@@ -102,16 +98,14 @@ int ossl_dsa_check_priv_key(const DSA *dsa, const BIGNUM *priv_key, int *ret)
  */
 int ossl_dsa_check_pairwise(const DSA *dsa)
 {
-    int ret = 0;
-    BN_CTX *ctx = NULL;
+    int     ret     = 0;
+    BN_CTX *ctx     = NULL;
     BIGNUM *pub_key = NULL;
 
     if (!dsa_precheck_params(dsa, &ret))
         return 0;
 
-    if (dsa->params.g == NULL
-        || dsa->priv_key == NULL
-        || dsa->pub_key == NULL)
+    if (dsa->params.g == NULL || dsa->priv_key == NULL || dsa->pub_key == NULL)
         return 0;
 
     ctx = BN_CTX_new_ex(dsa->libctx);

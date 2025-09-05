@@ -13,9 +13,9 @@
 #include "eng_local.h"
 
 static ENGINE_TABLE *rand_table = NULL;
-static const int dummy_nid = 1;
+static const int     dummy_nid  = 1;
 
-void ENGINE_unregister_RAND(ENGINE *e)
+void                 ENGINE_unregister_RAND(ENGINE *e)
 {
     engine_table_unregister(&rand_table, e);
 }
@@ -28,9 +28,7 @@ static void engine_unregister_all_RAND(void)
 int ENGINE_register_RAND(ENGINE *e)
 {
     if (e->rand_meth)
-        return engine_table_register(&rand_table,
-                                     engine_unregister_all_RAND, e,
-                                     &dummy_nid, 1, 0);
+        return engine_table_register(&rand_table, engine_unregister_all_RAND, e, &dummy_nid, 1, 0);
     return 1;
 }
 
@@ -45,9 +43,7 @@ void ENGINE_register_all_RAND(void)
 int ENGINE_set_default_RAND(ENGINE *e)
 {
     if (e->rand_meth)
-        return engine_table_register(&rand_table,
-                                     engine_unregister_all_RAND, e,
-                                     &dummy_nid, 1, 1);
+        return engine_table_register(&rand_table, engine_unregister_all_RAND, e, &dummy_nid, 1, 1);
     return 1;
 }
 
@@ -58,8 +54,7 @@ int ENGINE_set_default_RAND(ENGINE *e)
  */
 ENGINE *ENGINE_get_default_RAND(void)
 {
-    return ossl_engine_table_select(&rand_table, dummy_nid,
-                                    OPENSSL_FILE, OPENSSL_LINE);
+    return ossl_engine_table_select(&rand_table, dummy_nid, OPENSSL_FILE, OPENSSL_LINE);
 }
 
 /* Obtains an RAND implementation from an ENGINE functional reference */

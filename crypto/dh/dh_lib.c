@@ -39,10 +39,10 @@ int DH_set_method(DH *dh, const DH_METHOD *meth)
     mtmp = dh->meth;
     if (mtmp->finish)
         mtmp->finish(dh);
-#ifndef OPENSSL_NO_ENGINE
+# ifndef OPENSSL_NO_ENGINE
     ENGINE_finish(dh->engine);
     dh->engine = NULL;
-#endif
+# endif
     dh->meth = meth;
     if (meth->init)
         meth->init(dh);
@@ -92,9 +92,9 @@ static DH *dh_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
     }
 
     ret->libctx = libctx;
-    ret->meth = DH_get_default_method();
+    ret->meth   = DH_get_default_method();
 #if !defined(FIPS_MODULE) && !defined(OPENSSL_NO_ENGINE)
-    ret->flags = ret->meth->flags;  /* early default init */
+    ret->flags = ret->meth->flags; /* early default init */
     if (engine) {
         if (!ENGINE_init(engine)) {
             ERR_raise(ERR_LIB_DH, ERR_R_ENGINE_LIB);
@@ -128,7 +128,7 @@ static DH *dh_new_intern(ENGINE *engine, OSSL_LIB_CTX *libctx)
 
     return ret;
 
- err:
+err:
     DH_free(ret);
     return NULL;
 }
@@ -222,8 +222,7 @@ int DH_security_bits(const DH *dh)
     return -1;
 }
 
-void DH_get0_pqg(const DH *dh,
-                 const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
+void DH_get0_pqg(const DH *dh, const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
 {
     ossl_ffc_params_get0_pqg(&dh->params, p, q, g);
 }
@@ -234,8 +233,7 @@ int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
      * If the fields p and g in dh are NULL, the corresponding input
      * parameters MUST be non-NULL.  q may remain NULL.
      */
-    if ((dh->params.p == NULL && p == NULL)
-        || (dh->params.g == NULL && g == NULL))
+    if ((dh->params.p == NULL && p == NULL) || (dh->params.g == NULL && g == NULL))
         return 0;
 
     ossl_ffc_params_set0_pqg(&dh->params, p, q, g);
@@ -330,6 +328,7 @@ FFC_PARAMS *ossl_dh_get0_params(DH *dh)
 {
     return &dh->params;
 }
+
 int ossl_dh_get0_nid(const DH *dh)
 {
     return dh->params.nid;

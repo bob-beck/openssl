@@ -37,7 +37,7 @@ static uint8_t *consume_uint8t(const uint8_t *buf, size_t *len, uint8_t *val)
 {
     if (*len < sizeof(uint8_t))
         return NULL;
-    *val = *buf;
+    *val  = *buf;
     *len -= sizeof(uint8_t);
     return (uint8_t *)buf + 1;
 }
@@ -58,19 +58,17 @@ static uint8_t *consume_uint8t(const uint8_t *buf, size_t *len, uint8_t *val)
  *
  * @return 1 if a key type is successfully selected, 0 on failure.
  */
-static int select_keytype_and_size(uint8_t **buf, size_t *len,
-                                   char **keytype, size_t *keylen,
-                                   int only_valid)
+static int select_keytype_and_size(uint8_t **buf, size_t *len, char **keytype, size_t *keylen, int only_valid)
 {
     uint16_t keysize;
-    uint16_t modulus = 6;
+    uint16_t modulus  = 6;
 
     /*
      * Note: We don't really care about endianess here, we just
      * want a random 16 bit value
      */
-    *buf = (uint8_t *)OPENSSL_load_u16_le(&keysize, *buf);
-    *len -= sizeof(uint16_t);
+    *buf              = (uint8_t *)OPENSSL_load_u16_le(&keysize, *buf);
+    *len             -= sizeof(uint16_t);
 
     if (*buf == NULL)
         return 0;
@@ -91,32 +89,32 @@ static int select_keytype_and_size(uint8_t **buf, size_t *len,
     switch (keysize % modulus) {
     case 0:
         *keytype = "ML-KEM-512";
-        *keylen = OSSL_ML_KEM_512_PUBLIC_KEY_BYTES;
+        *keylen  = OSSL_ML_KEM_512_PUBLIC_KEY_BYTES;
         break;
     case 1:
         *keytype = "ML-KEM-768";
-        *keylen = OSSL_ML_KEM_768_PUBLIC_KEY_BYTES;
+        *keylen  = OSSL_ML_KEM_768_PUBLIC_KEY_BYTES;
         break;
     case 2:
         *keytype = "ML-KEM-1024";
-        *keylen = OSSL_ML_KEM_1024_PUBLIC_KEY_BYTES;
+        *keylen  = OSSL_ML_KEM_1024_PUBLIC_KEY_BYTES;
         break;
     case 3:
         /* select invalid alg */
         *keytype = "ML-KEM-13";
-        *keylen = 13;
+        *keylen  = 13;
         break;
     case 4:
         /* Select valid alg, but bogus size */
-        *keytype = "ML-KEM-1024";
-        *buf = (uint8_t *)OPENSSL_load_u16_le(&keysize, *buf);
-        *len -= sizeof(uint16_t);
-        *keylen = (size_t)keysize;
-        *keylen %= 1024; /* size to our key buffer */
+        *keytype  = "ML-KEM-1024";
+        *buf      = (uint8_t *)OPENSSL_load_u16_le(&keysize, *buf);
+        *len     -= sizeof(uint16_t);
+        *keylen   = (size_t)keysize;
+        *keylen  %= 1024; /* size to our key buffer */
         break;
     default:
         *keytype = NULL;
-        *keylen = 0;
+        *keylen  = 0;
         break;
     }
     return 1;
@@ -137,14 +135,13 @@ static int select_keytype_and_size(uint8_t **buf, size_t *len,
  * @note The generated key is allocated using OpenSSL's EVP_PKEY functions
  *       and should be freed appropriately using `EVP_PKEY_free()`.
  */
-static void create_mlkem_raw_key(uint8_t **buf, size_t *len,
-                                 void **key1, void **key2)
+static void create_mlkem_raw_key(uint8_t **buf, size_t *len, void **key1, void **key2)
 {
     EVP_PKEY *pubkey;
-    char *keytype = NULL;
-    size_t keylen = 0;
-    uint8_t key[4096];
-    int pub = 0;
+    char     *keytype = NULL;
+    size_t    keylen  = 0;
+    uint8_t   key[4096];
+    int       pub = 0;
 
     if (!select_keytype_and_size(buf, len, &keytype, &keylen, 0))
         return;
@@ -199,17 +196,16 @@ static void create_mlkem_raw_key(uint8_t **buf, size_t *len,
  * @note The generated key is allocated using OpenSSL's EVP_PKEY functions
  *       and should be freed using `EVP_PKEY_free()`.
  */
-static void keygen_mlkem_real_key(uint8_t **buf, size_t *len,
-                                  void **key1, void **key2)
+static void keygen_mlkem_real_key(uint8_t **buf, size_t *len, void **key1, void **key2)
 {
-    char *keytype = NULL;
-    size_t keylen = 0;
-    EVP_PKEY_CTX *ctx = NULL;
-    EVP_PKEY **key;
+    char         *keytype = NULL;
+    size_t        keylen  = 0;
+    EVP_PKEY_CTX *ctx     = NULL;
+    EVP_PKEY    **key;
 
     *key1 = *key2 = NULL;
 
-    key = (EVP_PKEY **)key1;
+    key           = (EVP_PKEY **)key1;
 
 again:
     /*
@@ -266,19 +262,18 @@ err:
  * @param[out] out1  Unused output parameter (reserved for future use).
  * @param[out] out2  Unused output parameter (reserved for future use).
  */
-static void mlkem_encap_decap(uint8_t **buf, size_t *len, void *key1, void *in2,
-                              void **out1, void **out2)
+static void mlkem_encap_decap(uint8_t **buf, size_t *len, void *key1, void *in2, void **out1, void **out2)
 {
-    EVP_PKEY *key = (EVP_PKEY *)key1;
+    EVP_PKEY     *key = (EVP_PKEY *)key1;
     EVP_PKEY_CTX *ctx;
     unsigned char genkey[32];
-    size_t genkey_len = 32;
+    size_t        genkey_len = 32;
     unsigned char unwrappedkey[32];
-    size_t unwrappedkey_len = 32;
+    size_t        unwrappedkey_len = 32;
     unsigned char wrapkey[1568];
-    size_t wrapkey_len = 1568;
+    size_t        wrapkey_len = 1568;
 
-    ctx = EVP_PKEY_CTX_new_from_pkey(NULL, key, NULL);
+    ctx                       = EVP_PKEY_CTX_new_from_pkey(NULL, key, NULL);
     if (ctx == NULL) {
         fprintf(stderr, "Failed to allocate ctx\n");
         goto err;
@@ -309,8 +304,7 @@ static void mlkem_encap_decap(uint8_t **buf, size_t *len, void *key1, void *in2,
         goto err;
     }
 
-    if (EVP_PKEY_decapsulate(ctx, unwrappedkey, &unwrappedkey_len,
-                             wrapkey, wrapkey_len) <= 0) {
+    if (EVP_PKEY_decapsulate(ctx, unwrappedkey, &unwrappedkey_len, wrapkey, wrapkey_len) <= 0) {
         fprintf(stderr, "Failed to decap key\n");
         goto err;
     }
@@ -341,10 +335,10 @@ static void do_derive(EVP_PKEY *key, EVP_PKEY *peer, uint8_t **shared, size_t *s
 {
     EVP_PKEY_CTX *ctx = NULL;
 
-    *shared = NULL;
-    *shared_len = 0;
+    *shared           = NULL;
+    *shared_len       = 0;
 
-    ctx = EVP_PKEY_CTX_new_from_pkey(NULL, key, NULL);
+    ctx               = EVP_PKEY_CTX_new_from_pkey(NULL, key, NULL);
     if (ctx == NULL) {
         fprintf(stderr, "failed to create keygen context\n");
         goto err;
@@ -376,7 +370,7 @@ static void do_derive(EVP_PKEY *key, EVP_PKEY *peer, uint8_t **shared, size_t *s
     if (!EVP_PKEY_derive(ctx, *shared, shared_len)) {
         fprintf(stderr, "Derive failed 2\n");
         OPENSSL_free(*shared);
-        *shared = NULL;
+        *shared     = NULL;
         *shared_len = 0;
         goto err;
     }
@@ -402,14 +396,13 @@ err:
  *       shared secrets match. A check should be added when ML-KEM
  *       supports this.
  */
-static void mlkem_kex(uint8_t **buf, size_t *len, void *key1, void *key2,
-                      void **out1, void **out2)
+static void mlkem_kex(uint8_t **buf, size_t *len, void *key1, void *key2, void **out1, void **out2)
 {
     EVP_PKEY *alice = (EVP_PKEY *)key1;
-    EVP_PKEY *bob = (EVP_PKEY *)key2;
-    size_t boblen, alicelen;
-    uint8_t *bobshare = NULL;
-    uint8_t *aliceshare = NULL;
+    EVP_PKEY *bob   = (EVP_PKEY *)key2;
+    size_t    boblen, alicelen;
+    uint8_t  *bobshare   = NULL;
+    uint8_t  *aliceshare = NULL;
 
     do_derive(alice, bob, &aliceshare, &alicelen);
     do_derive(bob, alice, &bobshare, &boblen);
@@ -439,13 +432,12 @@ static void mlkem_kex(uint8_t **buf, size_t *len, void *key1, void *key2,
  * @note If any step in the export-import process fails, the function
  *       logs an error and cleans up allocated resources.
  */
-static void mlkem_export_import(uint8_t **buf, size_t *len, void *key1,
-                                void *key2, void **out1, void **out2)
+static void mlkem_export_import(uint8_t **buf, size_t *len, void *key1, void *key2, void **out1, void **out2)
 {
-    EVP_PKEY *alice = (EVP_PKEY *)key1;
-    EVP_PKEY *new = NULL;
-    EVP_PKEY_CTX *ctx = NULL;
-    OSSL_PARAM *params = NULL;
+    EVP_PKEY *alice      = (EVP_PKEY *)key1;
+    EVP_PKEY *new        = NULL;
+    EVP_PKEY_CTX *ctx    = NULL;
+    OSSL_PARAM   *params = NULL;
 
     if (!EVP_PKEY_todata(alice, EVP_PKEY_KEYPAIR, &params)) {
         fprintf(stderr, "Failed todata\n");
@@ -484,11 +476,10 @@ err:
  * @param out1  Unused parameter (purpose unclear).
  * @param out2  Unused parameter (purpose unclear).
  */
-static void mlkem_compare(uint8_t **buf, size_t *len, void *key1,
-                          void *key2, void **out1, void **out2)
+static void mlkem_compare(uint8_t **buf, size_t *len, void *key1, void *key2, void **out1, void **out2)
 {
     EVP_PKEY *alice = (EVP_PKEY *)key1;
-    EVP_PKEY *bob = (EVP_PKEY *)key2;
+    EVP_PKEY *bob   = (EVP_PKEY *)key2;
 
     EVP_PKEY_eq(alice, alice);
     EVP_PKEY_eq(alice, bob);
@@ -508,8 +499,7 @@ static void mlkem_compare(uint8_t **buf, size_t *len, void *key1,
  * @note This function assumes that each key is either a valid EVP_PKEY
  *       object or NULL. Passing NULL is safe and has no effect.
  */
-static void cleanup_mlkem_keys(void *key1, void *key2,
-                               void *key3, void *key4)
+static void cleanup_mlkem_keys(void *key1, void *key2, void *key3, void *key4)
 {
     EVP_PKEY_free((EVP_PKEY *)key1);
     EVP_PKEY_free((EVP_PKEY *)key2);
@@ -554,8 +544,7 @@ struct op_table_entry {
      * @param out1  Pointer to store the first output of the operation.
      * @param out2  Pointer to store the second output of the operation.
      */
-    void (*doit)(uint8_t **buf, size_t *len, void *in1, void *in2,
-                 void **out1, void **out2);
+    void (*doit)(uint8_t **buf, size_t *len, void *in1, void *in2, void **out1, void **out2);
 
     /**
      * @brief Function pointer for cleaning up after the operation.
@@ -569,43 +558,24 @@ struct op_table_entry {
 };
 
 static struct op_table_entry ops[] = {
-    {
-        "Generate ML-KEM raw key",
-        "Try generate a raw keypair using random data. Usually fails",
-        create_mlkem_raw_key,
-        NULL,
-        cleanup_mlkem_keys
-    }, {
-        "Generate ML-KEM keypair, using EVP_PKEY_keygen",
-        "Generates a real ML-KEM keypair, should always work",
-        keygen_mlkem_real_key,
-        NULL,
-        cleanup_mlkem_keys
-    }, {
-        "Do a key encap/decap operation on a key",
-        "Generate key, encap it, decap it and compare, should work",
-        keygen_mlkem_real_key,
-        mlkem_encap_decap,
-        cleanup_mlkem_keys
-    }, {
-        "Do a key exchange operation on two keys",
-        "Gen keys, do a key exchange both ways and compare",
-        keygen_mlkem_real_key,
-        mlkem_kex,
-        cleanup_mlkem_keys
-    }, {
-        "Do an export/import of key data",
-        "Exercise EVP_PKEY_todata/fromdata",
-        keygen_mlkem_real_key,
-        mlkem_export_import,
-        cleanup_mlkem_keys
-    }, {
-        "Compare keys for equality",
-        "Compare key1/key1 and key1/key2 for equality",
-        keygen_mlkem_real_key,
-        mlkem_compare,
-        cleanup_mlkem_keys
-    }
+    {"Generate ML-KEM raw key",
+     "Try generate a raw keypair using random data. Usually fails", create_mlkem_raw_key,
+     NULL,                cleanup_mlkem_keys},
+    {"Generate ML-KEM keypair, using EVP_PKEY_keygen",
+     "Generates a real ML-KEM keypair, should always work",         keygen_mlkem_real_key,
+     NULL,                cleanup_mlkem_keys},
+    {"Do a key encap/decap operation on a key",
+     "Generate key, encap it, decap it and compare, should work",   keygen_mlkem_real_key,
+     mlkem_encap_decap,   cleanup_mlkem_keys},
+    {"Do a key exchange operation on two keys",
+     "Gen keys, do a key exchange both ways and compare",           keygen_mlkem_real_key,
+     mlkem_kex,           cleanup_mlkem_keys},
+    {"Do an export/import of key data",
+     "Exercise EVP_PKEY_todata/fromdata",                           keygen_mlkem_real_key,
+     mlkem_export_import, cleanup_mlkem_keys},
+    {"Compare keys for equality",
+     "Compare key1/key1 and key1/key2 for equality",                keygen_mlkem_real_key,
+     mlkem_compare,       cleanup_mlkem_keys}
 };
 
 int FuzzerInitialize(int *argc, char ***argv)
@@ -631,10 +601,10 @@ int FuzzerInitialize(int *argc, char ***argv)
  */
 int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 {
-    uint8_t operation;
+    uint8_t  operation;
     uint8_t *buffer_cursor;
-    void *in1 = NULL, *in2 = NULL;
-    void *out1 = NULL, *out2 = NULL;
+    void    *in1 = NULL, *in2 = NULL;
+    void    *out1 = NULL, *out2 = NULL;
 
     if (len < 32)
         return -1;

@@ -23,21 +23,23 @@
 /* A bundle of bignums that can be linked with other bundles */
 typedef struct bignum_pool_item {
     /* The bignum values */
-    BIGNUM vals[BN_CTX_POOL_SIZE];
+    BIGNUM                   vals[BN_CTX_POOL_SIZE];
     /* Linked-list admin */
     struct bignum_pool_item *prev, *next;
 } BN_POOL_ITEM;
+
 /* A linked-list of bignums grouped in bundles */
 typedef struct bignum_pool {
     /* Linked-list admin */
     BN_POOL_ITEM *head, *current, *tail;
     /* Stack depth and allocation size */
-    unsigned used, size;
+    unsigned      used, size;
 } BN_POOL;
-static void BN_POOL_init(BN_POOL *);
-static void BN_POOL_finish(BN_POOL *);
+
+static void    BN_POOL_init(BN_POOL *);
+static void    BN_POOL_finish(BN_POOL *);
 static BIGNUM *BN_POOL_get(BN_POOL *, int);
-static void BN_POOL_release(BN_POOL *, unsigned int);
+static void    BN_POOL_release(BN_POOL *, unsigned int);
 
 /************/
 /* BN_STACK */
@@ -48,11 +50,12 @@ typedef struct bignum_ctx_stack {
     /* Array of indexes into the bignum stack */
     unsigned int *indexes;
     /* Number of stack frames, and the size of the allocated array */
-    unsigned int depth, size;
+    unsigned int  depth, size;
 } BN_STACK;
-static void BN_STACK_init(BN_STACK *);
-static void BN_STACK_finish(BN_STACK *);
-static int BN_STACK_push(BN_STACK *, unsigned int);
+
+static void         BN_STACK_init(BN_STACK *);
+static void         BN_STACK_finish(BN_STACK *);
+static int          BN_STACK_push(BN_STACK *, unsigned int);
 static unsigned int BN_STACK_pop(BN_STACK *);
 
 /**********/
@@ -62,17 +65,17 @@ static unsigned int BN_STACK_pop(BN_STACK *);
 /* The opaque BN_CTX type */
 struct bignum_ctx {
     /* The bignum bundles */
-    BN_POOL pool;
+    BN_POOL       pool;
     /* The "stack frames", if you will */
-    BN_STACK stack;
+    BN_STACK      stack;
     /* The number of bignums currently assigned */
-    unsigned int used;
+    unsigned int  used;
     /* Depth of stack overflow */
-    int err_stack;
+    int           err_stack;
     /* Block "gets" until an "end" (compatibility behaviour) */
-    int too_many;
+    int           too_many;
     /* Flags. */
-    int flags;
+    int           flags;
     /* The library context */
     OSSL_LIB_CTX *libctx;
 };
@@ -81,15 +84,14 @@ struct bignum_ctx {
 /* Debugging functionality */
 static void ctxdbg(BIO *channel, const char *text, BN_CTX *ctx)
 {
-    unsigned int bnidx = 0, fpidx = 0;
-    BN_POOL_ITEM *item = ctx->pool.head;
-    BN_STACK *stack = &ctx->stack;
+    unsigned int  bnidx = 0, fpidx = 0;
+    BN_POOL_ITEM *item  = ctx->pool.head;
+    BN_STACK     *stack = &ctx->stack;
 
     BIO_printf(channel, "%s\n", text);
-    BIO_printf(channel, "  (%16p): ", (void*)ctx);
+    BIO_printf(channel, "  (%16p): ", (void *)ctx);
     while (bnidx < ctx->used) {
-        BIO_printf(channel, "%03x ",
-                   item->vals[bnidx++ % BN_CTX_POOL_SIZE].dmax);
+        BIO_printf(channel, "%03x ", item->vals[bnidx++ % BN_CTX_POOL_SIZE].dmax);
         if (!(bnidx % BN_CTX_POOL_SIZE))
             item = item->next;
     }
@@ -156,11 +158,10 @@ void BN_CTX_free(BN_CTX *ctx)
     if (ctx == NULL)
         return;
 #ifndef FIPS_MODULE
-    OSSL_TRACE_BEGIN(BN_CTX) {
+    OSSL_TRACE_BEGIN(BN_CTX)
+    {
         BN_POOL_ITEM *pool = ctx->pool.head;
-        BIO_printf(trc_out,
-                   "BN_CTX_free(): stack-size=%d, pool-bignums=%d\n",
-                   ctx->stack.size, ctx->pool.size);
+        BIO_printf(trc_out, "BN_CTX_free(): stack-size=%d, pool-bignums=%d\n", ctx->stack.size, ctx->pool.size);
         BIO_printf(trc_out, "  dmaxs: ");
         while (pool) {
             unsigned loop = 0;
@@ -169,7 +170,8 @@ void BN_CTX_free(BN_CTX *ctx)
             pool = pool->next;
         }
         BIO_printf(trc_out, "\n");
-    } OSSL_TRACE_END(BN_CTX);
+    }
+    OSSL_TRACE_END(BN_CTX);
 #endif
     BN_STACK_finish(&ctx->stack);
     BN_POOL_finish(&ctx->pool);
@@ -202,7 +204,7 @@ void BN_CTX_end(BN_CTX *ctx)
         /* Does this stack frame have anything to release? */
         if (fp < ctx->used)
             BN_POOL_release(&ctx->pool, ctx->used - fp);
-        ctx->used = fp;
+        ctx->used     = fp;
         /* Unjam "too_many" in case "get" had failed */
         ctx->too_many = 0;
     }
@@ -257,13 +259,11 @@ static void BN_STACK_finish(BN_STACK *st)
     st->indexes = NULL;
 }
 
-
 static int BN_STACK_push(BN_STACK *st, unsigned int idx)
 {
     if (st->depth == st->size) {
         /* Need to expand */
-        unsigned int newsize =
-            st->size ? (st->size * 3 / 2) : BN_CTX_START_FRAMES;
+        unsigned int  newsize = st->size ? (st->size * 3 / 2) : BN_CTX_START_FRAMES;
         unsigned int *newitems;
 
         if ((newitems = OPENSSL_malloc_array(newsize, sizeof(*newitems))) == NULL)
@@ -272,7 +272,7 @@ static int BN_STACK_push(BN_STACK *st, unsigned int idx)
             memcpy(newitems, st->indexes, sizeof(*newitems) * st->depth);
         OPENSSL_free(st->indexes);
         st->indexes = newitems;
-        st->size = newsize;
+        st->size    = newsize;
     }
     st->indexes[(st->depth)++] = idx;
     return 1;
@@ -296,7 +296,7 @@ static void BN_POOL_init(BN_POOL *p)
 static void BN_POOL_finish(BN_POOL *p)
 {
     unsigned int loop;
-    BIGNUM *bn;
+    BIGNUM      *bn;
 
     while (p->head) {
         for (loop = 0, bn = p->head->vals; loop++ < BN_CTX_POOL_SIZE; bn++)
@@ -308,10 +308,9 @@ static void BN_POOL_finish(BN_POOL *p)
     }
 }
 
-
 static BIGNUM *BN_POOL_get(BN_POOL *p, int flag)
 {
-    BIGNUM *bn;
+    BIGNUM      *bn;
     unsigned int loop;
 
     /* Full; allocate a new pool item and link it in. */
@@ -332,8 +331,8 @@ static BIGNUM *BN_POOL_get(BN_POOL *p, int flag)
             p->head = p->current = p->tail = item;
         else {
             p->tail->next = item;
-            p->tail = item;
-            p->current = item;
+            p->tail       = item;
+            p->current    = item;
         }
         p->size += BN_CTX_POOL_SIZE;
         p->used++;
@@ -350,13 +349,13 @@ static BIGNUM *BN_POOL_get(BN_POOL *p, int flag)
 
 static void BN_POOL_release(BN_POOL *p, unsigned int num)
 {
-    unsigned int offset = (p->used - 1) % BN_CTX_POOL_SIZE;
+    unsigned int offset  = (p->used - 1) % BN_CTX_POOL_SIZE;
 
-    p->used -= num;
+    p->used             -= num;
     while (num--) {
         bn_check_top(p->current->vals + offset);
         if (offset == 0) {
-            offset = BN_CTX_POOL_SIZE - 1;
+            offset     = BN_CTX_POOL_SIZE - 1;
             p->current = p->current->prev;
         } else
             offset--;

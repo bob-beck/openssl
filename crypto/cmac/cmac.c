@@ -22,25 +22,26 @@
 #include "crypto/cmac.h"
 
 #define LOCAL_BUF_SIZE 2048
+
 struct CMAC_CTX_st {
     /* Cipher context to use */
     EVP_CIPHER_CTX *cctx;
     /* Keys k1 and k2 */
-    unsigned char k1[EVP_MAX_BLOCK_LENGTH];
-    unsigned char k2[EVP_MAX_BLOCK_LENGTH];
+    unsigned char   k1[EVP_MAX_BLOCK_LENGTH];
+    unsigned char   k2[EVP_MAX_BLOCK_LENGTH];
     /* Temporary block */
-    unsigned char tbl[EVP_MAX_BLOCK_LENGTH];
+    unsigned char   tbl[EVP_MAX_BLOCK_LENGTH];
     /* Last (possibly partial) block */
-    unsigned char last_block[EVP_MAX_BLOCK_LENGTH];
+    unsigned char   last_block[EVP_MAX_BLOCK_LENGTH];
     /* Number of bytes in last block: -1 means context not initialised */
-    int nlast_block;
+    int             nlast_block;
 };
 
 /* Make temporary keys K1 and K2 */
 
 static void make_kn(unsigned char *k1, const unsigned char *l, int bl)
 {
-    int i;
+    int           i;
     unsigned char c = l[0], carry = c >> 7, cnext;
 
     /* Shift block to left, including carry */
@@ -108,12 +109,15 @@ int CMAC_CTX_copy(CMAC_CTX *out, const CMAC_CTX *in)
     return 1;
 }
 
-int ossl_cmac_init(CMAC_CTX *ctx, const void *key, size_t keylen,
-                   const EVP_CIPHER *cipher, ENGINE *impl,
-                   const OSSL_PARAM param[])
+int ossl_cmac_init(CMAC_CTX         *ctx,
+                   const void       *key,
+                   size_t            keylen,
+                   const EVP_CIPHER *cipher,
+                   ENGINE           *impl,
+                   const OSSL_PARAM  param[])
 {
-    static const unsigned char zero_iv[EVP_MAX_BLOCK_LENGTH] = { 0 };
-    int block_len;
+    static const unsigned char zero_iv[EVP_MAX_BLOCK_LENGTH] = {0};
+    int                        block_len;
 
     /* All zeros means restart */
     if (!key && !cipher && !impl && keylen == 0) {
@@ -149,8 +153,7 @@ int ossl_cmac_init(CMAC_CTX *ctx, const void *key, size_t keylen,
         ctx->nlast_block = -1;
         if (EVP_CIPHER_CTX_get0_cipher(ctx->cctx) == NULL)
             return 0;
-        if (keylen > INT_MAX
-            || EVP_CIPHER_CTX_set_key_length(ctx->cctx, (int)keylen) <= 0)
+        if (keylen > INT_MAX || EVP_CIPHER_CTX_set_key_length(ctx->cctx, (int)keylen) <= 0)
             return 0;
         if (!EVP_EncryptInit_ex2(ctx->cctx, NULL, key, zero_iv, param))
             return 0;
@@ -171,8 +174,7 @@ int ossl_cmac_init(CMAC_CTX *ctx, const void *key, size_t keylen,
     return 1;
 }
 
-int CMAC_Init(CMAC_CTX *ctx, const void *key, size_t keylen,
-              const EVP_CIPHER *cipher, ENGINE *impl)
+int CMAC_Init(CMAC_CTX *ctx, const void *key, size_t keylen, const EVP_CIPHER *cipher, ENGINE *impl)
 {
     return ossl_cmac_init(ctx, key, keylen, cipher, impl, NULL);
 }
@@ -180,9 +182,9 @@ int CMAC_Init(CMAC_CTX *ctx, const void *key, size_t keylen,
 int CMAC_Update(CMAC_CTX *ctx, const void *in, size_t dlen)
 {
     const unsigned char *data = in;
-    int bl;
-    size_t max_burst_blocks, cipher_blocks;
-    unsigned char buf[LOCAL_BUF_SIZE];
+    int                  bl;
+    size_t               max_burst_blocks, cipher_blocks;
+    unsigned char        buf[LOCAL_BUF_SIZE];
 
     if (ctx->nlast_block == -1)
         return 0;
@@ -198,7 +200,7 @@ int CMAC_Update(CMAC_CTX *ctx, const void *in, size_t dlen)
         if (dlen < nleft)
             nleft = dlen;
         memcpy(ctx->last_block + ctx->nlast_block, data, nleft);
-        dlen -= nleft;
+        dlen             -= nleft;
         ctx->nlast_block += (int)nleft;
         /* If no more to process return */
         if (dlen == 0)
@@ -211,7 +213,7 @@ int CMAC_Update(CMAC_CTX *ctx, const void *in, size_t dlen)
     /* Encrypt all but one of the complete blocks left */
 
     max_burst_blocks = LOCAL_BUF_SIZE / bl;
-    cipher_blocks = (dlen - 1) / bl;
+    cipher_blocks    = (dlen - 1) / bl;
     if (max_burst_blocks == 0) {
         /*
          * When block length is greater than local buffer size,
@@ -227,8 +229,8 @@ int CMAC_Update(CMAC_CTX *ctx, const void *in, size_t dlen)
         while (cipher_blocks > max_burst_blocks) {
             if (EVP_Cipher(ctx->cctx, buf, data, (int)(max_burst_blocks * bl)) <= 0)
                 return 0;
-            dlen -= max_burst_blocks * bl;
-            data += max_burst_blocks * bl;
+            dlen          -= max_burst_blocks * bl;
+            data          += max_burst_blocks * bl;
             cipher_blocks -= max_burst_blocks;
         }
         if (cipher_blocks > 0) {
@@ -243,7 +245,6 @@ int CMAC_Update(CMAC_CTX *ctx, const void *in, size_t dlen)
     memcpy(ctx->last_block, data, dlen);
     ctx->nlast_block = (int)dlen;
     return 1;
-
 }
 
 int CMAC_Final(CMAC_CTX *ctx, unsigned char *out, size_t *poutlen)

@@ -19,11 +19,10 @@
  * s is the security strength.
  * priv_key is the returned private key,
  */
-int ossl_ffc_generate_private_key(BN_CTX *ctx, const FFC_PARAMS *params,
-                                  int N, int s, BIGNUM *priv)
+int ossl_ffc_generate_private_key(BN_CTX *ctx, const FFC_PARAMS *params, int N, int s, BIGNUM *priv)
 {
-    int ret = 0, qbits = BN_num_bits(params->q);
-    BIGNUM *m, *two_powN = NULL;
+    int     ret = 0, qbits = BN_num_bits(params->q);
+    BIGNUM *m, *two_powN   = NULL;
 
     /* Deal with the edge cases where the value of N and/or s is not set */
     if (s == 0)
@@ -45,8 +44,7 @@ int ossl_ffc_generate_private_key(BN_CTX *ctx, const FFC_PARAMS *params,
 
     do {
         /* Steps (3, 4 & 7) :  c + 1 = 1 + random[0..2^N - 1] */
-        if (!BN_priv_rand_range_ex(priv, two_powN, 0, ctx)
-            || !BN_add_word(priv, 1))
+        if (!BN_priv_rand_range_ex(priv, two_powN, 0, ctx) || !BN_add_word(priv, 1))
             goto err;
         /* Step (6) : loop if c > M - 2 (i.e. c + 1 >= M) */
         if (BN_cmp(priv, m) < 0)

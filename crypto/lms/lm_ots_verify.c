@@ -12,8 +12,7 @@
 #include "crypto/lms_sig.h"
 #include "crypto/lms_util.h"
 
-static int lm_ots_compute_pubkey_final(EVP_MD_CTX *ctx, EVP_MD_CTX *ctxIq,
-                                       const LM_OTS_SIG *sig, unsigned char *Kc);
+static int lm_ots_compute_pubkey_final(EVP_MD_CTX *ctx, EVP_MD_CTX *ctxIq, const LM_OTS_SIG *sig, unsigned char *Kc);
 
 /**
  * @brief OTS Signature verification.
@@ -34,11 +33,15 @@ static int lm_ots_compute_pubkey_final(EVP_MD_CTX *ctx, EVP_MD_CTX *ctxIq,
  * @param Kc The computed public key candidate. It is assumed the size is n.
  * @returns 1 on success, or 0 otherwise.
  */
-int ossl_lm_ots_compute_pubkey(EVP_MD_CTX *ctx, EVP_MD_CTX *ctxIq,
-                               const LM_OTS_SIG *sig, const LM_OTS_PARAMS *pub,
-                               const unsigned char *Id, uint32_t q,
-                               const unsigned char *msg, size_t msglen,
-                               unsigned char *Kc)
+int        ossl_lm_ots_compute_pubkey(EVP_MD_CTX          *ctx,
+                                      EVP_MD_CTX          *ctxIq,
+                                      const LM_OTS_SIG    *sig,
+                                      const LM_OTS_PARAMS *pub,
+                                      const unsigned char *Id,
+                                      uint32_t             q,
+                                      const unsigned char *msg,
+                                      size_t               msglen,
+                                      unsigned char       *Kc)
 {
     unsigned char qbuf[LMS_SIZE_q];
     unsigned char d_mesg[sizeof(uint16_t)];
@@ -49,14 +52,11 @@ int ossl_lm_ots_compute_pubkey(EVP_MD_CTX *ctx, EVP_MD_CTX *ctxIq,
     OPENSSL_store_u32_be(qbuf, q);
     OPENSSL_store_u16_be(d_mesg, OSSL_LMS_D_MESG);
 
-    return (EVP_DigestUpdate(ctxIq, Id, LMS_SIZE_I)
-            && EVP_DigestUpdate(ctxIq, qbuf, sizeof(qbuf))
+    return (EVP_DigestUpdate(ctxIq, Id, LMS_SIZE_I) && EVP_DigestUpdate(ctxIq, qbuf, sizeof(qbuf))
             && EVP_MD_CTX_copy_ex(ctx, ctxIq)
             /* Q = H(I || u32str(q) || u16str(D_MESG) || C || msg) */
-            && EVP_DigestUpdate(ctx, d_mesg, sizeof(d_mesg))
-            && EVP_DigestUpdate(ctx, sig->C, sig->params->n)
-            && EVP_DigestUpdate(ctx, msg, msglen)
-            && lm_ots_compute_pubkey_final(ctx, ctxIq, sig, Kc));
+            && EVP_DigestUpdate(ctx, d_mesg, sizeof(d_mesg)) && EVP_DigestUpdate(ctx, sig->C, sig->params->n)
+            && EVP_DigestUpdate(ctx, msg, msglen) && lm_ots_compute_pubkey_final(ctx, ctxIq, sig, Kc));
 }
 
 /**
@@ -83,38 +83,35 @@ static ossl_inline void INC16(unsigned char *tag)
  * @param Kc The computed public key. It is assumed the size is n.
  * @returns 1 on success, or 0 otherwise.
  */
-static int lm_ots_compute_pubkey_final(EVP_MD_CTX *ctx, EVP_MD_CTX *ctxIq,
-                                       const LM_OTS_SIG *sig, unsigned char *Kc)
+static int lm_ots_compute_pubkey_final(EVP_MD_CTX *ctx, EVP_MD_CTX *ctxIq, const LM_OTS_SIG *sig, unsigned char *Kc)
 {
-    int ret = 0, i;
-    EVP_MD_CTX *ctxKc = NULL;
-    unsigned char tag[2 + 1], *tag2 = &tag[2];
-    unsigned char Q[LMS_MAX_DIGEST_SIZE + LMS_SIZE_QSUM], *Qsum;
-    unsigned char z[LMS_MAX_DIGEST_SIZE];
-    unsigned char d_pblc[sizeof(uint16_t)];
-    uint16_t sum;
+    int                  ret   = 0, i;
+    EVP_MD_CTX          *ctxKc = NULL;
+    unsigned char        tag[2 + 1], *tag2 = &tag[2];
+    unsigned char        Q[LMS_MAX_DIGEST_SIZE + LMS_SIZE_QSUM], *Qsum;
+    unsigned char        z[LMS_MAX_DIGEST_SIZE];
+    unsigned char        d_pblc[sizeof(uint16_t)];
+    uint16_t             sum;
     const LM_OTS_PARAMS *params = sig->params;
-    int n = params->n;
-    int p = params->p;
-    uint8_t j, w = params->w, end = (1 << w) - 1;
-    int a;
-    unsigned char *y;
+    int                  n      = params->n;
+    int                  p      = params->p;
+    uint8_t              j, w = params->w, end = (1 << w) - 1;
+    int                  a;
+    unsigned char       *y;
 
-    if (!EVP_DigestFinal_ex(ctx, Q, NULL)
-            || (ctxKc = EVP_MD_CTX_create()) == NULL)
+    if (!EVP_DigestFinal_ex(ctx, Q, NULL) || (ctxKc = EVP_MD_CTX_create()) == NULL)
         return 0;
 
-    sum = ossl_lm_ots_params_checksum(params, Q);
+    sum  = ossl_lm_ots_params_checksum(params, Q);
     Qsum = Q + n;
     /* Q || Cksm(Q) */
     OPENSSL_store_u16_be(Qsum, sum);
     OPENSSL_store_u16_be(d_pblc, OSSL_LMS_D_PBLC);
 
-    if (!(EVP_MD_CTX_copy_ex(ctxKc, ctxIq))
-            || !EVP_DigestUpdate(ctxKc, d_pblc, sizeof(d_pblc)))
+    if (!(EVP_MD_CTX_copy_ex(ctxKc, ctxIq)) || !EVP_DigestUpdate(ctxKc, d_pblc, sizeof(d_pblc)))
         goto err;
 
-    y = sig->y;
+    y      = sig->y;
     tag[0] = 0;
     tag[1] = 0;
 
@@ -129,10 +126,8 @@ static int lm_ots_compute_pubkey_final(EVP_MD_CTX *ctx, EVP_MD_CTX *ctxIq,
         y += n;
         for (j = a; j < end; ++j) {
             *tag2 = (j & 0xFF);
-            if (!(EVP_MD_CTX_copy_ex(ctx, ctxIq))
-                    || !EVP_DigestUpdate(ctx, tag, sizeof(tag))
-                    || !EVP_DigestUpdate(ctx, z, n)
-                    || !EVP_DigestFinal_ex(ctx, z, NULL))
+            if (!(EVP_MD_CTX_copy_ex(ctx, ctxIq)) || !EVP_DigestUpdate(ctx, tag, sizeof(tag))
+                || !EVP_DigestUpdate(ctx, z, n) || !EVP_DigestFinal_ex(ctx, z, NULL))
                 goto err;
         }
         INC16(tag);

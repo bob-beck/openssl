@@ -56,7 +56,7 @@ int X509_CRL_set1_nextUpdate(X509_CRL *x, const ASN1_TIME *tm)
 
 int X509_CRL_sort(X509_CRL *c)
 {
-    int i;
+    int           i;
     X509_REVOKED *r;
 
     /*
@@ -64,7 +64,7 @@ int X509_CRL_sort(X509_CRL *c)
      */
     sk_X509_REVOKED_sort(c->crl.revoked);
     for (i = 0; i < sk_X509_REVOKED_num(c->crl.revoked); i++) {
-        r = sk_X509_REVOKED_value(c->crl.revoked, i);
+        r           = sk_X509_REVOKED_value(c->crl.revoked, i);
         r->sequence = i;
     }
     c->crl.enc.modified = 1;
@@ -130,8 +130,7 @@ const X509_ALGOR *X509_CRL_get0_tbs_sigalg(const X509_CRL *crl)
     return &crl->crl.sig_alg;
 }
 
-void X509_CRL_get0_signature(const X509_CRL *crl, const ASN1_BIT_STRING **psig,
-                             const X509_ALGOR **palg)
+void X509_CRL_get0_signature(const X509_CRL *crl, const ASN1_BIT_STRING **psig, const X509_ALGOR **palg)
 {
     if (psig != NULL)
         *psig = &crl->signature;
@@ -173,8 +172,7 @@ int X509_REVOKED_set_serialNumber(X509_REVOKED *x, ASN1_INTEGER *serial)
     return 1;
 }
 
-const STACK_OF(X509_EXTENSION) *X509_REVOKED_get0_extensions(const
-                                                             X509_REVOKED *r)
+const STACK_OF(X509_EXTENSION) *X509_REVOKED_get0_extensions(const X509_REVOKED *r)
 {
     return r->extensions;
 }

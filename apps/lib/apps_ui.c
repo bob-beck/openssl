@@ -12,10 +12,10 @@
 #include <openssl/ui.h>
 #include "apps_ui.h"
 
-static UI_METHOD *ui_method = NULL;
+static UI_METHOD       *ui_method      = NULL;
 static const UI_METHOD *ui_base_method = NULL;
 
-static int ui_open(UI *ui)
+static int              ui_open(UI *ui)
 {
     int (*opener)(UI *ui) = UI_method_get_opener(ui_base_method);
 
@@ -28,21 +28,17 @@ static int ui_read(UI *ui, UI_STRING *uis)
 {
     int (*reader)(UI *ui, UI_STRING *uis) = NULL;
 
-    if (UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD
-        && UI_get0_user_data(ui)) {
+    if (UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD && UI_get0_user_data(ui)) {
         switch (UI_get_string_type(uis)) {
         case UIT_PROMPT:
-        case UIT_VERIFY:
-            {
-                const char *password =
-                    ((PW_CB_DATA *)UI_get0_user_data(ui))->password;
+        case UIT_VERIFY: {
+            const char *password = ((PW_CB_DATA *)UI_get0_user_data(ui))->password;
 
-                if (password != NULL) {
-                    UI_set_result(ui, uis, password);
-                    return 1;
-                }
+            if (password != NULL) {
+                UI_set_result(ui, uis, password);
+                return 1;
             }
-            break;
+        } break;
         case UIT_NONE:
         case UIT_BOOLEAN:
         case UIT_INFO:
@@ -63,19 +59,15 @@ static int ui_write(UI *ui, UI_STRING *uis)
 {
     int (*writer)(UI *ui, UI_STRING *uis) = NULL;
 
-    if (UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD
-        && UI_get0_user_data(ui)) {
+    if (UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD && UI_get0_user_data(ui)) {
         switch (UI_get_string_type(uis)) {
         case UIT_PROMPT:
-        case UIT_VERIFY:
-            {
-                const char *password =
-                    ((PW_CB_DATA *)UI_get0_user_data(ui))->password;
+        case UIT_VERIFY: {
+            const char *password = ((PW_CB_DATA *)UI_get0_user_data(ui))->password;
 
-                if (password != NULL)
-                    return 1;
-            }
-            break;
+            if (password != NULL)
+                return 1;
+        } break;
         case UIT_NONE:
         case UIT_BOOLEAN:
         case UIT_INFO:
@@ -100,8 +92,7 @@ static int ui_close(UI *ui)
 }
 
 /* object_name defaults to prompt_info from ui user data if present */
-static char *ui_prompt_construct(UI *ui, const char *phrase_desc,
-                                 const char *object_name)
+static char *ui_prompt_construct(UI *ui, const char *phrase_desc, const char *object_name)
 {
     PW_CB_DATA *cb_data = (PW_CB_DATA *)UI_get0_user_data(ui);
 
@@ -127,13 +118,10 @@ int setup_ui_method(void)
     ui_base_method = UI_OpenSSL();
 #endif
     ui_method = UI_create_method("OpenSSL application user interface");
-    return ui_method != NULL
-        && 0 == UI_method_set_opener(ui_method, ui_open)
-        && 0 == UI_method_set_reader(ui_method, ui_read)
-        && 0 == UI_method_set_writer(ui_method, ui_write)
-        && 0 == UI_method_set_closer(ui_method, ui_close)
-        && 0 == UI_method_set_prompt_constructor(ui_method,
-                                                 ui_prompt_construct);
+    return ui_method != NULL && 0 == UI_method_set_opener(ui_method, ui_open)
+           && 0 == UI_method_set_reader(ui_method, ui_read) && 0 == UI_method_set_writer(ui_method, ui_write)
+           && 0 == UI_method_set_closer(ui_method, ui_close)
+           && 0 == UI_method_set_prompt_constructor(ui_method, ui_prompt_construct);
 }
 
 void destroy_ui_method(void)
@@ -163,13 +151,13 @@ static void *ui_malloc(int sz, const char *what)
 
 int password_callback(char *buf, int bufsiz, int verify, PW_CB_DATA *cb_data)
 {
-    int res = 0;
-    UI *ui;
-    int ok = 0;
-    char *buff = NULL;
-    int ui_flags = 0;
+    int         res = 0;
+    UI         *ui;
+    int         ok          = 0;
+    char       *buff        = NULL;
+    int         ui_flags    = 0;
     const char *prompt_info = NULL;
-    char *prompt;
+    char       *prompt;
 
     if ((ui = UI_new_method(ui_method)) == NULL)
         return 0;
@@ -189,13 +177,11 @@ int password_callback(char *buf, int bufsiz, int verify, PW_CB_DATA *cb_data)
     /* We know that there is no previous user data to return to us */
     (void)UI_add_user_data(ui, cb_data);
 
-    ok = UI_add_input_string(ui, prompt, ui_flags, buf,
-                             PW_MIN_LENGTH, bufsiz - 1);
+    ok = UI_add_input_string(ui, prompt, ui_flags, buf, PW_MIN_LENGTH, bufsiz - 1);
 
     if (ok >= 0 && verify) {
         buff = ui_malloc(bufsiz, "password buffer");
-        ok = UI_add_verify_string(ui, prompt, ui_flags, buff,
-                                  PW_MIN_LENGTH, bufsiz - 1, buf);
+        ok   = UI_add_verify_string(ui, prompt, ui_flags, buff, PW_MIN_LENGTH, bufsiz - 1, buf);
     }
     if (ok >= 0)
         do {

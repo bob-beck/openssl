@@ -18,8 +18,12 @@
 
 typedef enum OPTION_choice {
     OPT_COMMON,
-    OPT_IN, OPT_OUT, OPT_TEXT, OPT_NOOUT,
-    OPT_ENGINE, OPT_CHECK,
+    OPT_IN,
+    OPT_OUT,
+    OPT_TEXT,
+    OPT_NOOUT,
+    OPT_ENGINE,
+    OPT_CHECK,
     OPT_PROV_ENUM
 } OPTION_CHOICE;
 
@@ -45,20 +49,20 @@ const OPTIONS pkeyparam_options[] = {
 
 int pkeyparam_main(int argc, char **argv)
 {
-    ENGINE *e = NULL;
-    BIO *in = NULL, *out = NULL;
-    EVP_PKEY *pkey = NULL;
-    EVP_PKEY_CTX *ctx = NULL;
-    int text = 0, noout = 0, ret = EXIT_FAILURE, check = 0, r;
+    ENGINE       *e  = NULL;
+    BIO          *in = NULL, *out = NULL;
+    EVP_PKEY     *pkey = NULL;
+    EVP_PKEY_CTX *ctx  = NULL;
+    int           text = 0, noout = 0, ret = EXIT_FAILURE, check = 0, r;
     OPTION_CHOICE o;
-    char *infile = NULL, *outfile = NULL, *prog;
+    char         *infile = NULL, *outfile = NULL, *prog;
 
     prog = opt_init(argc, argv, pkeyparam_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_EOF:
         case OPT_ERR:
- opthelp:
+opthelp:
             BIO_printf(bio_err, "%s: Use -help for summary.\n", prog);
             goto end;
         case OPT_HELP:
@@ -97,8 +101,7 @@ int pkeyparam_main(int argc, char **argv)
     in = bio_open_default(infile, 'r', FORMAT_PEM);
     if (in == NULL)
         goto end;
-    pkey = PEM_read_bio_Parameters_ex(in, NULL, app_get0_libctx(),
-                                      app_get0_propq());
+    pkey = PEM_read_bio_Parameters_ex(in, NULL, app_get0_libctx(), app_get0_propq());
     if (pkey == NULL) {
         BIO_printf(bio_err, "Error reading parameters\n");
         ERR_print_errors(bio_err);
@@ -110,8 +113,7 @@ int pkeyparam_main(int argc, char **argv)
 
     if (check) {
         if (e == NULL)
-            ctx = EVP_PKEY_CTX_new_from_pkey(app_get0_libctx(), pkey,
-                                             app_get0_propq());
+            ctx = EVP_PKEY_CTX_new_from_pkey(app_get0_libctx(), pkey, app_get0_propq());
         else
             ctx = EVP_PKEY_CTX_new(pkey, e);
         if (ctx == NULL) {
@@ -142,7 +144,7 @@ int pkeyparam_main(int argc, char **argv)
 
     ret = EXIT_SUCCESS;
 
- end:
+end:
     EVP_PKEY_CTX_free(ctx);
     EVP_PKEY_free(pkey);
     release_engine(e);

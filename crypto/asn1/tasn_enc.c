@@ -16,26 +16,25 @@
 #include "crypto/asn1.h"
 #include "asn1_local.h"
 
-static int asn1_i2d_ex_primitive(const ASN1_VALUE **pval, unsigned char **out,
-                                 const ASN1_ITEM *it, int tag, int aclass);
+static int
+asn1_i2d_ex_primitive(const ASN1_VALUE **pval, unsigned char **out, const ASN1_ITEM *it, int tag, int aclass);
 static int asn1_set_seq_out(STACK_OF(const_ASN1_VALUE) *sk,
-                            unsigned char **out,
-                            int skcontlen, const ASN1_ITEM *item,
-                            int do_sort, int iclass);
-static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
-                                const ASN1_TEMPLATE *tt, int tag, int aclass);
-static int asn1_item_flags_i2d(const ASN1_VALUE *val, unsigned char **out,
-                               const ASN1_ITEM *it, int flags);
-static int asn1_ex_i2c(const ASN1_VALUE **pval, unsigned char *cout, int *putype,
-                       const ASN1_ITEM *it);
+                            unsigned char             **out,
+                            int                         skcontlen,
+                            const ASN1_ITEM            *item,
+                            int                         do_sort,
+                            int                         iclass);
+static int
+asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out, const ASN1_TEMPLATE *tt, int tag, int aclass);
+static int asn1_item_flags_i2d(const ASN1_VALUE *val, unsigned char **out, const ASN1_ITEM *it, int flags);
+static int asn1_ex_i2c(const ASN1_VALUE **pval, unsigned char *cout, int *putype, const ASN1_ITEM *it);
 
 /*
  * Top level i2d equivalents: the 'ndef' variant instructs the encoder to use
  * indefinite length constructed encoding, where appropriate
  */
 
-int ASN1_item_ndef_i2d(const ASN1_VALUE *val, unsigned char **out,
-                       const ASN1_ITEM *it)
+int        ASN1_item_ndef_i2d(const ASN1_VALUE *val, unsigned char **out, const ASN1_ITEM *it)
 {
     return asn1_item_flags_i2d(val, out, it, ASN1_TFLG_NDEF);
 }
@@ -52,12 +51,11 @@ int ASN1_item_i2d(const ASN1_VALUE *val, unsigned char **out, const ASN1_ITEM *i
  * allocated and populated with the encoding.
  */
 
-static int asn1_item_flags_i2d(const ASN1_VALUE *val, unsigned char **out,
-                               const ASN1_ITEM *it, int flags)
+static int asn1_item_flags_i2d(const ASN1_VALUE *val, unsigned char **out, const ASN1_ITEM *it, int flags)
 {
     if (out != NULL && *out == NULL) {
         unsigned char *p, *buf;
-        int len;
+        int            len;
 
         len = ASN1_item_ex_i2d(&val, NULL, it, -1, flags);
         if (len <= 0)
@@ -78,29 +76,27 @@ static int asn1_item_flags_i2d(const ASN1_VALUE *val, unsigned char **out,
  * performs the normal item handling: it can be used in external types.
  */
 
-int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
-                     const ASN1_ITEM *it, int tag, int aclass)
+int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out, const ASN1_ITEM *it, int tag, int aclass)
 {
-    const ASN1_TEMPLATE *tt = NULL;
-    int i, seqcontlen, seqlen, ndef = 1;
+    const ASN1_TEMPLATE     *tt = NULL;
+    int                      i, seqcontlen, seqlen, ndef = 1;
     const ASN1_EXTERN_FUNCS *ef;
-    const ASN1_AUX *aux = it->funcs;
-    ASN1_aux_const_cb *asn1_cb = NULL;
+    const ASN1_AUX          *aux     = it->funcs;
+    ASN1_aux_const_cb       *asn1_cb = NULL;
 
     if ((it->itype != ASN1_ITYPE_PRIMITIVE) && *pval == NULL)
         return 0;
 
     if (aux != NULL) {
-        asn1_cb = ((aux->flags & ASN1_AFLG_CONST_CB) != 0) ? aux->asn1_const_cb
-            : (ASN1_aux_const_cb *)aux->asn1_cb; /* backward compatibility */
+        asn1_cb = ((aux->flags & ASN1_AFLG_CONST_CB) != 0)
+                      ? aux->asn1_const_cb
+                      : (ASN1_aux_const_cb *)aux->asn1_cb; /* backward compatibility */
     }
 
     switch (it->itype) {
-
     case ASN1_ITYPE_PRIMITIVE:
         if (it->templates)
-            return asn1_template_ex_i2d(pval, out, it->templates,
-                                        tag, aclass);
+            return asn1_template_ex_i2d(pval, out, it->templates, tag, aclass);
         return asn1_i2d_ex_primitive(pval, out, it, tag, aclass);
 
     case ASN1_ITYPE_MSTRING:
@@ -127,9 +123,9 @@ int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
             return 0;
         i = ossl_asn1_get_choice_selector_const(pval, it);
         if ((i >= 0) && (i < it->tcount)) {
-            const ASN1_VALUE **pchval;
+            const ASN1_VALUE   **pchval;
             const ASN1_TEMPLATE *chtt;
-            chtt = it->templates + i;
+            chtt   = it->templates + i;
             pchval = ossl_asn1_get_const_field_ptr(pval, chtt);
             return asn1_template_ex_i2d(pchval, out, chtt, -1, aclass);
         }
@@ -161,23 +157,22 @@ int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
         seqcontlen = 0;
         /* If no IMPLICIT tagging set to SEQUENCE, UNIVERSAL */
         if (tag == -1) {
-            tag = V_ASN1_SEQUENCE;
+            tag    = V_ASN1_SEQUENCE;
             /* Retain any other flags in aclass */
-            aclass = (aclass & ~ASN1_TFLG_TAG_CLASS)
-                | V_ASN1_UNIVERSAL;
+            aclass = (aclass & ~ASN1_TFLG_TAG_CLASS) | V_ASN1_UNIVERSAL;
         }
         if (asn1_cb && !asn1_cb(ASN1_OP_I2D_PRE, pval, it, NULL))
             return 0;
         /* First work out sequence content length */
         for (i = 0, tt = it->templates; i < it->tcount; tt++, i++) {
             const ASN1_TEMPLATE *seqtt;
-            const ASN1_VALUE **pseqval;
-            int tmplen;
+            const ASN1_VALUE   **pseqval;
+            int                  tmplen;
             seqtt = ossl_asn1_do_adb(*pval, tt, 1);
             if (!seqtt)
                 return 0;
             pseqval = ossl_asn1_get_const_field_ptr(pval, seqtt);
-            tmplen = asn1_template_ex_i2d(pseqval, NULL, seqtt, -1, aclass);
+            tmplen  = asn1_template_ex_i2d(pseqval, NULL, seqtt, -1, aclass);
             if (tmplen == -1 || (tmplen > INT_MAX - seqcontlen))
                 return -1;
             seqcontlen += tmplen;
@@ -190,7 +185,7 @@ int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
         ASN1_put_object(out, ndef, seqcontlen, tag, aclass);
         for (i = 0, tt = it->templates; i < it->tcount; tt++, i++) {
             const ASN1_TEMPLATE *seqtt;
-            const ASN1_VALUE **pseqval;
+            const ASN1_VALUE   **pseqval;
             seqtt = ossl_asn1_do_adb(*pval, tt, 1);
             if (!seqtt)
                 return 0;
@@ -206,16 +201,15 @@ int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
 
     default:
         return 0;
-
     }
     return 0;
 }
 
-static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
-                                const ASN1_TEMPLATE *tt, int tag, int iclass)
+static int
+asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out, const ASN1_TEMPLATE *tt, int tag, int iclass)
 {
-    const int flags = tt->flags;
-    int i, ret, ttag, tclass, ndef, len;
+    const int         flags = tt->flags;
+    int               i, ret, ttag, tclass, ndef, len;
     const ASN1_VALUE *tval;
 
     /*
@@ -239,14 +233,14 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
             /* FIXME: error code here */
             return -1;
         /* Get tagging from template */
-        ttag = tt->tag;
+        ttag   = tt->tag;
         tclass = flags & ASN1_TFLG_TAG_CLASS;
     } else if (tag != -1) {
         /* No template tagging, get from arguments */
-        ttag = tag;
+        ttag   = tag;
         tclass = iclass & ASN1_TFLG_TAG_CLASS;
     } else {
-        ttag = -1;
+        ttag   = -1;
         tclass = 0;
     }
     /*
@@ -268,9 +262,9 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
     if (flags & ASN1_TFLG_SK_MASK) {
         /* SET OF, SEQUENCE OF */
         STACK_OF(const_ASN1_VALUE) *sk = (STACK_OF(const_ASN1_VALUE) *)*pval;
-        int isset, sktag, skaclass;
-        int skcontlen, sklen;
-        const ASN1_VALUE *skitem;
+        int                         isset, sktag, skaclass;
+        int                         skcontlen, sklen;
+        const ASN1_VALUE           *skitem;
 
         if (*pval == NULL)
             return 0;
@@ -288,7 +282,7 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
          * type.
          */
         if ((ttag != -1) && !(flags & ASN1_TFLG_EXPTAG)) {
-            sktag = ttag;
+            sktag    = ttag;
             skaclass = tclass;
         } else {
             skaclass = V_ASN1_UNIVERSAL;
@@ -302,8 +296,7 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
         skcontlen = 0;
         for (i = 0; i < sk_const_ASN1_VALUE_num(sk); i++) {
             skitem = sk_const_ASN1_VALUE_value(sk, i);
-            len = ASN1_item_ex_i2d(&skitem, NULL, ASN1_ITEM_ptr(tt->item),
-                                   -1, iclass);
+            len    = ASN1_item_ex_i2d(&skitem, NULL, ASN1_ITEM_ptr(tt->item), -1, iclass);
             if (len == -1 || (skcontlen > INT_MAX - len))
                 return -1;
             if (len == 0 && (tt->flags & ASN1_TFLG_OPTIONAL) == 0) {
@@ -331,8 +324,7 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
         /* SET or SEQUENCE and IMPLICIT tag */
         ASN1_put_object(out, ndef, skcontlen, sktag, skaclass);
         /* And the stuff itself */
-        asn1_set_seq_out(sk, out, skcontlen, ASN1_ITEM_ptr(tt->item),
-                         isset, iclass);
+        asn1_set_seq_out(sk, out, skcontlen, ASN1_ITEM_ptr(tt->item), isset, iclass);
         if (ndef == 2) {
             ASN1_put_eoc(out);
             if (flags & ASN1_TFLG_EXPTAG)
@@ -366,8 +358,7 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
     }
 
     /* Either normal or IMPLICIT tagging: combine class and flags */
-    len = ASN1_item_ex_i2d(pval, out, ASN1_ITEM_ptr(tt->item),
-                              ttag, tclass | iclass);
+    len = ASN1_item_ex_i2d(pval, out, ASN1_ITEM_ptr(tt->item), ttag, tclass | iclass);
     if (len == 0 && (tt->flags & ASN1_TFLG_OPTIONAL) == 0) {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_ZERO_CONTENT);
         return -1;
@@ -378,17 +369,17 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
 /* Temporary structure used to hold DER encoding of items for SET OF */
 
 typedef struct {
-    unsigned char *data;
-    int length;
+    unsigned char    *data;
+    int               length;
     const ASN1_VALUE *field;
 } DER_ENC;
 
 static int der_cmp(const void *a, const void *b)
 {
     const DER_ENC *d1 = a, *d2 = b;
-    int cmplen, i;
+    int            cmplen, i;
     cmplen = (d1->length < d2->length) ? d1->length : d2->length;
-    i = memcmp(d1->data, d2->data, cmplen);
+    i      = memcmp(d1->data, d2->data, cmplen);
     if (i)
         return i;
     return d1->length - d2->length;
@@ -397,22 +388,23 @@ static int der_cmp(const void *a, const void *b)
 /* Output the content octets of SET OF or SEQUENCE OF */
 
 static int asn1_set_seq_out(STACK_OF(const_ASN1_VALUE) *sk,
-                            unsigned char **out,
-                            int skcontlen, const ASN1_ITEM *item,
-                            int do_sort, int iclass)
+                            unsigned char             **out,
+                            int                         skcontlen,
+                            const ASN1_ITEM            *item,
+                            int                         do_sort,
+                            int                         iclass)
 {
-    int i, ret = 0;
+    int               i, ret = 0;
     const ASN1_VALUE *skitem;
-    unsigned char *tmpdat = NULL, *p = NULL;
-    DER_ENC *derlst = NULL, *tder;
+    unsigned char    *tmpdat = NULL, *p = NULL;
+    DER_ENC          *derlst = NULL, *tder;
 
     if (do_sort) {
         /* Don't need to sort less than 2 items */
         if (sk_const_ASN1_VALUE_num(sk) < 2)
             do_sort = 0;
         else {
-            derlst = OPENSSL_malloc(sk_const_ASN1_VALUE_num(sk)
-                                    * sizeof(*derlst));
+            derlst = OPENSSL_malloc(sk_const_ASN1_VALUE_num(sk) * sizeof(*derlst));
             if (derlst == NULL)
                 return 0;
             tmpdat = OPENSSL_malloc(skcontlen);
@@ -432,10 +424,10 @@ static int asn1_set_seq_out(STACK_OF(const_ASN1_VALUE) *sk,
 
     /* Doing sort: build up a list of each member's DER encoding */
     for (i = 0, tder = derlst; i < sk_const_ASN1_VALUE_num(sk); i++, tder++) {
-        skitem = sk_const_ASN1_VALUE_value(sk, i);
-        tder->data = p;
+        skitem       = sk_const_ASN1_VALUE_value(sk, i);
+        tder->data   = p;
         tder->length = ASN1_item_ex_i2d(&skitem, &p, item, -1, iclass);
-        tder->field = skitem;
+        tder->field  = skitem;
     }
 
     /* Now sort them */
@@ -459,29 +451,27 @@ err:
     return ret;
 }
 
-static int asn1_i2d_ex_primitive(const ASN1_VALUE **pval, unsigned char **out,
-                                 const ASN1_ITEM *it, int tag, int aclass)
+static int asn1_i2d_ex_primitive(const ASN1_VALUE **pval, unsigned char **out, const ASN1_ITEM *it, int tag, int aclass)
 {
     int len;
     int utype;
     int usetag;
     int ndef = 0;
 
-    utype = it->utype;
+    utype    = it->utype;
 
     /*
      * Get length of content octets and maybe find out the underlying type.
      */
 
-    len = asn1_ex_i2c(pval, NULL, &utype, it);
+    len      = asn1_ex_i2c(pval, NULL, &utype, it);
 
     /*
      * If SEQUENCE, SET or OTHER then header is included in pseudo content
      * octets so don't include tag+length. We need to check here because the
      * call to asn1_ex_i2c() could change utype.
      */
-    if ((utype == V_ASN1_SEQUENCE) || (utype == V_ASN1_SET) ||
-        (utype == V_ASN1_OTHER))
+    if ((utype == V_ASN1_SEQUENCE) || (utype == V_ASN1_SET) || (utype == V_ASN1_OTHER))
         usetag = 0;
     else
         usetag = 1;
@@ -494,7 +484,7 @@ static int asn1_i2d_ex_primitive(const ASN1_VALUE **pval, unsigned char **out,
     /* -2 return is special meaning use ndef */
     if (len == -2) {
         ndef = 2;
-        len = 0;
+        len  = 0;
     }
 
     /* If not implicitly tagged get tag from underlying type */
@@ -519,40 +509,38 @@ static int asn1_i2d_ex_primitive(const ASN1_VALUE **pval, unsigned char **out,
 
 /* Produce content octets from a structure */
 
-static int asn1_ex_i2c(const ASN1_VALUE **pval, unsigned char *cout, int *putype,
-                       const ASN1_ITEM *it)
+static int asn1_ex_i2c(const ASN1_VALUE **pval, unsigned char *cout, int *putype, const ASN1_ITEM *it)
 {
-    ASN1_BOOLEAN *tbool = NULL;
-    ASN1_STRING *strtmp;
-    ASN1_OBJECT *otmp;
-    int utype;
-    const unsigned char *cont;
-    unsigned char c;
-    int len;
+    ASN1_BOOLEAN               *tbool = NULL;
+    ASN1_STRING                *strtmp;
+    ASN1_OBJECT                *otmp;
+    int                         utype;
+    const unsigned char        *cont;
+    unsigned char               c;
+    int                         len;
     const ASN1_PRIMITIVE_FUNCS *pf;
     pf = it->funcs;
     if (pf && pf->prim_i2c)
         return pf->prim_i2c(pval, cout, putype, it);
 
     /* Should type be omitted? */
-    if ((it->itype != ASN1_ITYPE_PRIMITIVE)
-        || (it->utype != V_ASN1_BOOLEAN)) {
+    if ((it->itype != ASN1_ITYPE_PRIMITIVE) || (it->utype != V_ASN1_BOOLEAN)) {
         if (*pval == NULL)
             return -1;
     }
 
     if (it->itype == ASN1_ITYPE_MSTRING) {
         /* If MSTRING type set the underlying type */
-        strtmp = (ASN1_STRING *)*pval;
-        utype = strtmp->type;
+        strtmp  = (ASN1_STRING *)*pval;
+        utype   = strtmp->type;
         *putype = utype;
     } else if (it->utype == V_ASN1_ANY) {
         /* If ANY set type and pointer to value */
         ASN1_TYPE *typ;
-        typ = (ASN1_TYPE *)*pval;
-        utype = typ->type;
+        typ     = (ASN1_TYPE *)*pval;
+        utype   = typ->type;
         *putype = utype;
-        pval = (const ASN1_VALUE **)&typ->value.asn1_value; /* actually is const */
+        pval    = (const ASN1_VALUE **)&typ->value.asn1_value; /* actually is const */
     } else
         utype = *putype;
 
@@ -560,7 +548,7 @@ static int asn1_ex_i2c(const ASN1_VALUE **pval, unsigned char *cout, int *putype
     case V_ASN1_OBJECT:
         otmp = (ASN1_OBJECT *)*pval;
         cont = otmp->data;
-        len = otmp->length;
+        len  = otmp->length;
         if (cont == NULL || len == 0)
             return -1;
         break;
@@ -570,7 +558,7 @@ static int asn1_ex_i2c(const ASN1_VALUE **pval, unsigned char *cout, int *putype
 
     case V_ASN1_NULL:
         cont = NULL;
-        len = 0;
+        len  = 0;
         break;
 
     case V_ASN1_BOOLEAN:
@@ -586,14 +574,13 @@ static int asn1_ex_i2c(const ASN1_VALUE **pval, unsigned char *cout, int *putype
             if (!*tbool && !it->size)
                 return -1;
         }
-        c = (unsigned char)*tbool;
+        c    = (unsigned char)*tbool;
         cont = &c;
-        len = 1;
+        len  = 1;
         break;
 
     case V_ASN1_BIT_STRING:
-        return ossl_i2c_ASN1_BIT_STRING((ASN1_BIT_STRING *)*pval,
-                                        cout ? &cout : NULL);
+        return ossl_i2c_ASN1_BIT_STRING((ASN1_BIT_STRING *)*pval, cout ? &cout : NULL);
 
     case V_ASN1_INTEGER:
     case V_ASN1_ENUMERATED:
@@ -622,20 +609,18 @@ static int asn1_ex_i2c(const ASN1_VALUE **pval, unsigned char *cout, int *putype
         /* All based on ASN1_STRING and handled the same */
         strtmp = (ASN1_STRING *)*pval;
         /* Special handling for NDEF */
-        if ((it->size == ASN1_TFLG_NDEF)
-            && (strtmp->flags & ASN1_STRING_FLAG_NDEF)) {
+        if ((it->size == ASN1_TFLG_NDEF) && (strtmp->flags & ASN1_STRING_FLAG_NDEF)) {
             if (cout) {
-                strtmp->data = cout;
+                strtmp->data   = cout;
                 strtmp->length = 0;
             }
             /* Special return code */
             return -2;
         }
         cont = strtmp->data;
-        len = strtmp->length;
+        len  = strtmp->length;
 
         break;
-
     }
     if (cout && len)
         memcpy(cout, cont, len);

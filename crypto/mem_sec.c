@@ -31,12 +31,7 @@
  * the headers do not define the API. Define it ourselves instead.
  */
 WINBASEAPI
-BOOL
-WINAPI
-VirtualLock(
-    _In_ LPVOID lpAddress,
-    _In_ SIZE_T dwSize
-    );
+BOOL WINAPI VirtualLock(_In_ LPVOID lpAddress, _In_ SIZE_T dwSize);
 #   endif
 #  endif
 # endif
@@ -49,10 +44,10 @@ VirtualLock(
 # if defined(OPENSSL_SYS_UNIX)
 #  include <sys/mman.h>
 #  if defined(__FreeBSD__)
-#    define MADV_DONTDUMP MADV_NOCORE
+#   define MADV_DONTDUMP MADV_NOCORE
 #  endif
 #  if !defined(MAP_CONCEAL)
-#    define MAP_CONCEAL 0
+#   define MAP_CONCEAL 0
 #  endif
 # endif
 # if defined(OPENSSL_SYS_LINUX)
@@ -88,21 +83,21 @@ VirtualLock(
 #endif
 
 #ifndef OPENSSL_NO_SECURE_MEMORY
-static size_t secure_mem_used;
+static size_t         secure_mem_used;
 
-static int secure_mem_initialized;
+static int            secure_mem_initialized;
 
 static CRYPTO_RWLOCK *sec_malloc_lock = NULL;
 
 /*
  * These are the functions that must be implemented by a secure heap (sh).
  */
-static int sh_init(size_t size, size_t minsize);
-static void *sh_malloc(size_t size);
-static void sh_free(void *ptr);
-static void sh_done(void);
-static size_t sh_actual_size(char *ptr);
-static int sh_allocated(const char *ptr);
+static int            sh_init(size_t size, size_t minsize);
+static void          *sh_malloc(size_t size);
+static void           sh_free(void *ptr);
+static void           sh_done(void);
+static size_t         sh_actual_size(char *ptr);
+static int            sh_allocated(const char *ptr);
 #endif
 
 int CRYPTO_secure_malloc_init(size_t size, size_t minsize)
@@ -154,9 +149,9 @@ int CRYPTO_secure_malloc_initialized(void)
 void *CRYPTO_secure_malloc(size_t num, const char *file, int line)
 {
 #ifndef OPENSSL_NO_SECURE_MEMORY
-    void *ret = NULL;
+    void  *ret = NULL;
     size_t actual_size;
-    int reason = CRYPTO_R_SECURE_MALLOC_FAILURE;
+    int    reason = CRYPTO_R_SECURE_MALLOC_FAILURE;
 
     if (!secure_mem_initialized) {
         return CRYPTO_malloc(num, file, line);
@@ -165,11 +160,11 @@ void *CRYPTO_secure_malloc(size_t num, const char *file, int line)
         reason = ERR_R_CRYPTO_LIB;
         goto err;
     }
-    ret = sh_malloc(num);
-    actual_size = ret ? sh_actual_size(ret) : 0;
+    ret              = sh_malloc(num);
+    actual_size      = ret ? sh_actual_size(ret) : 0;
     secure_mem_used += actual_size;
     CRYPTO_THREAD_unlock(sec_malloc_lock);
- err:
+err:
     if (ret == NULL && (file != NULL || line != 0)) {
         ERR_new();
         ERR_set_debug(file, line, NULL);
@@ -214,8 +209,7 @@ void CRYPTO_secure_free(void *ptr, const char *file, int line)
 #endif /* OPENSSL_NO_SECURE_MEMORY */
 }
 
-void CRYPTO_secure_clear_free(void *ptr, size_t num,
-                              const char *file, int line)
+void CRYPTO_secure_clear_free(void *ptr, size_t num, const char *file, int line)
 {
 #ifndef OPENSSL_NO_SECURE_MEMORY
     size_t actual_size;
@@ -293,7 +287,6 @@ size_t CRYPTO_secure_actual_size(void *ptr)
  */
 #ifndef OPENSSL_NO_SECURE_MEMORY
 
-
 /*
  * The implementation provided here uses a fixed-sized mmap() heap,
  * which is locked into memory, not written to core files, and protected
@@ -309,42 +302,41 @@ size_t CRYPTO_secure_actual_size(void *ptr)
  * place.
  */
 
-#define ONE ((size_t)1)
+# define ONE ((size_t)1)
 
 # define TESTBIT(t, b)  (t[(b) >> 3] &  (ONE << ((b) & 7)))
 # define SETBIT(t, b)   (t[(b) >> 3] |= (ONE << ((b) & 7)))
 # define CLEARBIT(t, b) (t[(b) >> 3] &= (0xFF & ~(ONE << ((b) & 7))))
 
-#define WITHIN_ARENA(p) \
+# define WITHIN_ARENA(p) \
     ((char*)(p) >= sh.arena && (char*)(p) < &sh.arena[sh.arena_size])
-#define WITHIN_FREELIST(p) \
+# define WITHIN_FREELIST(p) \
     ((char*)(p) >= (char*)sh.freelist && (char*)(p) < (char*)&sh.freelist[sh.freelist_size])
 
-
 typedef struct sh_list_st {
-    struct sh_list_st *next;
+    struct sh_list_st  *next;
     struct sh_list_st **p_next;
 } SH_LIST;
 
 typedef struct sh_st {
-    char* map_result;
-    size_t map_size;
-    char *arena;
-    size_t arena_size;
-    char **freelist;
-    ossl_ssize_t freelist_size;
-    size_t minsize;
+    char          *map_result;
+    size_t         map_size;
+    char          *arena;
+    size_t         arena_size;
+    char         **freelist;
+    ossl_ssize_t   freelist_size;
+    size_t         minsize;
     unsigned char *bittable;
     unsigned char *bitmalloc;
-    size_t bittable_size; /* size in bits */
+    size_t         bittable_size; /* size in bits */
 } SH;
 
-static SH sh;
+static SH     sh;
 
 static size_t sh_getlist(char *ptr)
 {
     ossl_ssize_t list = sh.freelist_size - 1;
-    size_t bit = (sh.arena_size + ptr - sh.arena) / sh.minsize;
+    size_t       bit  = (sh.arena_size + ptr - sh.arena) / sh.minsize;
 
     for (; bit; bit >>= 1, list--) {
         if (TESTBIT(sh.bittable, bit))
@@ -354,7 +346,6 @@ static size_t sh_getlist(char *ptr)
 
     return list;
 }
-
 
 static int sh_testbit(char *ptr, int list, unsigned char *table)
 {
@@ -398,7 +389,7 @@ static void sh_add_to_list(char **list, char *ptr)
     OPENSSL_assert(WITHIN_FREELIST(list));
     OPENSSL_assert(WITHIN_ARENA(ptr));
 
-    temp = (SH_LIST *)ptr;
+    temp       = (SH_LIST *)ptr;
     temp->next = *(SH_LIST **)list;
     OPENSSL_assert(temp->next == NULL || WITHIN_ARENA(temp->next));
     temp->p_next = (SH_LIST **)list;
@@ -426,17 +417,16 @@ static void sh_remove_from_list(char *ptr)
     OPENSSL_assert(WITHIN_FREELIST(temp2->p_next) || WITHIN_ARENA(temp2->p_next));
 }
 
-
 static int sh_init(size_t size, size_t minsize)
 {
-    int ret;
+    int    ret;
     size_t i;
     size_t pgsize;
     size_t aligned;
-#if defined(_WIN32)
-    DWORD flOldProtect;
+# if defined(_WIN32)
+    DWORD       flOldProtect;
     SYSTEM_INFO systemInfo;
-#endif
+# endif
 
     memset(&sh, 0, sizeof(sh));
 
@@ -453,7 +443,7 @@ static int sh_init(size_t size, size_t minsize)
          * This must be a power of 2 and at least as large as the SH_LIST
          * structure.
          */
-        minsize = sizeof(SH_LIST) - 1;
+        minsize  = sizeof(SH_LIST) - 1;
         minsize |= minsize >> 1;
         minsize |= minsize >> 2;
         if (sizeof(SH_LIST) > 16)
@@ -463,13 +453,13 @@ static int sh_init(size_t size, size_t minsize)
         minsize++;
     } else {
         /* make sure minsize is a powers of 2 */
-          OPENSSL_assert((minsize & (minsize - 1)) == 0);
-          if ((minsize & (minsize - 1)) != 0)
-              goto err;
+        OPENSSL_assert((minsize & (minsize - 1)) == 0);
+        if ((minsize & (minsize - 1)) != 0)
+            goto err;
     }
 
-    sh.arena_size = size;
-    sh.minsize = minsize;
+    sh.arena_size    = size;
+    sh.minsize       = minsize;
     sh.bittable_size = (sh.arena_size / sh.minsize) * 2;
 
     /* Prevent allocations of size 0 later on */
@@ -496,50 +486,48 @@ static int sh_init(size_t size, size_t minsize)
         goto err;
 
     /* Allocate space for heap, and two extra pages as guards */
-#if defined(_SC_PAGE_SIZE) || defined (_SC_PAGESIZE)
+# if defined(_SC_PAGE_SIZE) || defined(_SC_PAGESIZE)
     {
-# if defined(_SC_PAGE_SIZE)
+#  if defined(_SC_PAGE_SIZE)
         long tmppgsize = sysconf(_SC_PAGE_SIZE);
-# else
+#  else
         long tmppgsize = sysconf(_SC_PAGESIZE);
-# endif
+#  endif
         if (tmppgsize < 1)
             pgsize = PAGE_SIZE;
         else
             pgsize = (size_t)tmppgsize;
     }
-#elif defined(_WIN32)
+# elif defined(_WIN32)
     GetSystemInfo(&systemInfo);
     pgsize = (size_t)systemInfo.dwPageSize;
-#else
+# else
     pgsize = PAGE_SIZE;
-#endif
+# endif
     sh.map_size = pgsize + sh.arena_size + pgsize;
 
-#if !defined(_WIN32)
-# ifdef MAP_ANON
-    sh.map_result = mmap(NULL, sh.map_size,
-                         PROT_READ|PROT_WRITE, MAP_ANON|MAP_PRIVATE|MAP_CONCEAL, -1, 0);
-# else
+# if !defined(_WIN32)
+#  ifdef MAP_ANON
+    sh.map_result = mmap(NULL, sh.map_size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE | MAP_CONCEAL, -1, 0);
+#  else
     {
         int fd;
 
         sh.map_result = MAP_FAILED;
         if ((fd = open("/dev/zero", O_RDWR)) >= 0) {
-            sh.map_result = mmap(NULL, sh.map_size,
-                                 PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0);
+            sh.map_result = mmap(NULL, sh.map_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
             close(fd);
         }
     }
-# endif
+#  endif
     if (sh.map_result == MAP_FAILED)
         goto err;
-#else
+# else
     sh.map_result = VirtualAlloc(NULL, sh.map_size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
     if (sh.map_result == NULL)
-            goto err;
-#endif
+        goto err;
+# endif
 
     sh.arena = (char *)(sh.map_result + pgsize);
     sh_setbit(sh.arena, 0, sh.bittable);
@@ -548,26 +536,26 @@ static int sh_init(size_t size, size_t minsize)
     /* Now try to add guard pages and lock into memory. */
     ret = 1;
 
-#if !defined(_WIN32)
+# if !defined(_WIN32)
     /* Starting guard is already aligned from mmap. */
     if (mprotect(sh.map_result, pgsize, PROT_NONE) < 0)
         ret = 2;
-#else
+# else
     if (VirtualProtect(sh.map_result, pgsize, PAGE_NOACCESS, &flOldProtect) == FALSE)
         ret = 2;
-#endif
+# endif
 
     /* Ending guard page - need to round up to page boundary */
     aligned = (pgsize + sh.arena_size + (pgsize - 1)) & ~(pgsize - 1);
-#if !defined(_WIN32)
+# if !defined(_WIN32)
     if (mprotect(sh.map_result + aligned, pgsize, PROT_NONE) < 0)
         ret = 2;
-#else
+# else
     if (VirtualProtect(sh.map_result + aligned, pgsize, PAGE_NOACCESS, &flOldProtect) == FALSE)
         ret = 2;
-#endif
+# endif
 
-#if defined(OPENSSL_SYS_LINUX) && defined(MLOCK_ONFAULT) && defined(SYS_mlock2)
+# if defined(OPENSSL_SYS_LINUX) && defined(MLOCK_ONFAULT) && defined(SYS_mlock2)
     if (syscall(SYS_mlock2, sh.arena, sh.arena_size, MLOCK_ONFAULT) < 0) {
         if (errno == ENOSYS) {
             if (mlock(sh.arena, sh.arena_size) < 0)
@@ -576,21 +564,21 @@ static int sh_init(size_t size, size_t minsize)
             ret = 2;
         }
     }
-#elif defined(_WIN32)
+# elif defined(_WIN32)
     if (VirtualLock(sh.arena, sh.arena_size) == FALSE)
         ret = 2;
-#else
+# else
     if (mlock(sh.arena, sh.arena_size) < 0)
         ret = 2;
-#endif
-#ifndef NO_MADVISE
+# endif
+# ifndef NO_MADVISE
     if (madvise(sh.arena, sh.arena_size, MADV_DONTDUMP) < 0)
         ret = 2;
-#endif
+# endif
 
     return ret;
 
- err:
+err:
     sh_done();
     return 0;
 }
@@ -600,13 +588,13 @@ static void sh_done(void)
     OPENSSL_free(sh.freelist);
     OPENSSL_free(sh.bittable);
     OPENSSL_free(sh.bitmalloc);
-#if !defined(_WIN32)
+# if !defined(_WIN32)
     if (sh.map_result != MAP_FAILED && sh.map_size)
         munmap(sh.map_result, sh.map_size);
-#else
+# else
     if (sh.map_result != NULL && sh.map_size)
         VirtualFree(sh.map_result, 0, MEM_RELEASE);
-#endif
+# endif
     memset(&sh, 0, sizeof(sh));
 }
 
@@ -618,10 +606,10 @@ static int sh_allocated(const char *ptr)
 static char *sh_find_my_buddy(char *ptr, int list)
 {
     size_t bit;
-    char *chunk = NULL;
+    char  *chunk  = NULL;
 
-    bit = (ONE << list) + (ptr - sh.arena) / (sh.arena_size >> list);
-    bit ^= 1;
+    bit           = (ONE << list) + (ptr - sh.arena) / (sh.arena_size >> list);
+    bit          ^= 1;
 
     if (TESTBIT(sh.bittable, bit) && !TESTBIT(sh.bitmalloc, bit))
         chunk = sh.arena + ((bit & ((ONE << list) - 1)) * (sh.arena_size >> list));
@@ -632,8 +620,8 @@ static char *sh_find_my_buddy(char *ptr, int list)
 static void *sh_malloc(size_t size)
 {
     ossl_ssize_t list, slist;
-    size_t i;
-    char *chunk;
+    size_t       i;
+    char        *chunk;
 
     if (size > sh.arena_size)
         return NULL;
@@ -677,7 +665,7 @@ static void *sh_malloc(size_t size)
         sh_add_to_list(&sh.freelist[slist], temp);
         OPENSSL_assert(sh.freelist[slist] == temp);
 
-        OPENSSL_assert(temp-(sh.arena_size >> slist) == sh_find_my_buddy(temp, (int)slist));
+        OPENSSL_assert(temp - (sh.arena_size >> slist) == sh_find_my_buddy(temp, (int)slist));
     }
 
     /* peel off memory to hand back */
@@ -697,7 +685,7 @@ static void *sh_malloc(size_t size)
 static void sh_free(void *ptr)
 {
     size_t list;
-    void *buddy;
+    void  *buddy;
 
     if (ptr == NULL)
         return;

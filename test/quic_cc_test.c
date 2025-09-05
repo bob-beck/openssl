@@ -51,37 +51,37 @@ typedef struct net_pkt_st {
     /*
      * The time at which the packet was sent.
      */
-    OSSL_TIME   tx_time;
+    OSSL_TIME tx_time;
 
     /*
      * The time at which the simulated packet arrives at the RX side (success)
      * or is dropped (!success).
      */
-    OSSL_TIME   arrive_time;
+    OSSL_TIME arrive_time;
 
     /*
      * The time at which the transmitting side makes a determination of
      * acknowledgement (if success) or loss (if !success).
      */
-    OSSL_TIME   determination_time;
+    OSSL_TIME determination_time;
 
     /*
      * Current earliest time there is something to be done for this packet.
      * min(arrive_time, determination_time).
      */
-    OSSL_TIME   next_time;
+    OSSL_TIME next_time;
 
     /* 1 if the packet will be successfully delivered, 0 if it is to be lost. */
-    int         success;
+    int       success;
 
     /* 1 if we have already processed packet arrival. */
-    int         arrived;
+    int       arrived;
 
     /* Size of simulated packet in bytes. */
-    size_t      size;
+    size_t    size;
 
     /* pqueue internal index. */
-    size_t      idx;
+    size_t    idx;
 } NET_PKT;
 
 DEFINE_PRIORITY_QUEUE_OF(NET_PKT);
@@ -95,29 +95,28 @@ struct net_sim {
     const OSSL_CC_METHOD *ccm;
     OSSL_CC_DATA         *cc;
 
-    uint64_t capacity; /* bytes/s */
-    uint64_t latency;  /* ms */
+    uint64_t              capacity; /* bytes/s */
+    uint64_t              latency;  /* ms */
 
-    uint64_t spare_capacity;
-    PRIORITY_QUEUE_OF(NET_PKT) *pkts;
+    uint64_t              spare_capacity;
+    PRIORITY_QUEUE_OF(NET_PKT) * pkts;
 
     uint64_t total_acked, total_lost; /* bytes */
 };
 
-static int net_sim_init(struct net_sim *s,
-                        const OSSL_CC_METHOD *ccm, OSSL_CC_DATA *cc,
-                        uint64_t capacity, uint64_t latency)
+static int
+net_sim_init(struct net_sim *s, const OSSL_CC_METHOD *ccm, OSSL_CC_DATA *cc, uint64_t capacity, uint64_t latency)
 {
-    s->ccm              = ccm;
-    s->cc               = cc;
+    s->ccm            = ccm;
+    s->cc             = cc;
 
-    s->capacity         = capacity;
-    s->latency          = latency;
+    s->capacity       = capacity;
+    s->latency        = latency;
 
-    s->spare_capacity   = capacity;
+    s->spare_capacity = capacity;
 
-    s->total_acked      = 0;
-    s->total_lost       = 0;
+    s->total_acked    = 0;
+    s->total_lost     = 0;
 
     if (!TEST_ptr(s->pkts = ossl_pqueue_NET_PKT_new(net_pkt_cmp)))
         return 0;
@@ -140,7 +139,7 @@ static int net_sim_process(struct net_sim *s, size_t skip_forward);
 static int net_sim_send(struct net_sim *s, size_t sz)
 {
     NET_PKT *pkt = OPENSSL_zalloc(sizeof(*pkt));
-    int success;
+    int      success;
 
     if (!TEST_ptr(pkt))
         return 0;
@@ -153,32 +152,28 @@ static int net_sim_send(struct net_sim *s, size_t sz)
         goto err;
 
     /* Do we have room for the packet in the network? */
-    success = (sz <= s->spare_capacity);
+    success      = (sz <= s->spare_capacity);
 
     pkt->tx_time = fake_time;
     pkt->success = success;
     if (success) {
         /* This packet will arrive successfully after |latency| time. */
-        pkt->arrive_time        = ossl_time_add(pkt->tx_time,
-                                                ossl_ms2time(s->latency));
+        pkt->arrive_time         = ossl_time_add(pkt->tx_time, ossl_ms2time(s->latency));
         /* Assume all received packets are acknowledged immediately. */
-        pkt->determination_time = ossl_time_add(pkt->arrive_time,
-                                                ossl_ms2time(s->latency));
-        pkt->next_time          = pkt->arrive_time;
-        s->spare_capacity      -= sz;
+        pkt->determination_time  = ossl_time_add(pkt->arrive_time, ossl_ms2time(s->latency));
+        pkt->next_time           = pkt->arrive_time;
+        s->spare_capacity       -= sz;
     } else {
         /*
          * In our network model, assume all packets are dropped due to a
          * bottleneck at the peer's NIC RX queue; thus dropping occurs after
          * |latency|.
          */
-        pkt->arrive_time        = ossl_time_add(pkt->tx_time,
-                                                ossl_ms2time(s->latency));
+        pkt->arrive_time        = ossl_time_add(pkt->tx_time, ossl_ms2time(s->latency));
         /*
          * It will take longer to detect loss than to detect acknowledgement.
          */
-        pkt->determination_time = ossl_time_add(pkt->tx_time,
-                                                ossl_ms2time(3 * s->latency));
+        pkt->determination_time = ossl_time_add(pkt->tx_time, ossl_ms2time(3 * s->latency));
         pkt->next_time          = pkt->determination_time;
     }
 
@@ -208,11 +203,10 @@ static int net_sim_process_one(struct net_sim *s, int skip_forward)
     if (skip_forward && ossl_time_compare(pkt->next_time, fake_time) > 0)
         fake_time = pkt->next_time;
 
-    if (pkt->success && !pkt->arrived
-        && ossl_time_compare(fake_time, pkt->arrive_time) >= 0) {
+    if (pkt->success && !pkt->arrived && ossl_time_compare(fake_time, pkt->arrive_time) >= 0) {
         /* Packet arrives */
         s->spare_capacity += pkt->size;
-        pkt->arrived = 1;
+        pkt->arrived       = 1;
 
         ossl_pqueue_NET_PKT_pop(s->pkts);
         pkt->next_time = pkt->determination_time;
@@ -231,8 +225,8 @@ static int net_sim_process_one(struct net_sim *s, int skip_forward)
     if (!pkt->success) {
         OSSL_CC_LOSS_INFO loss_info = {0};
 
-        loss_info.tx_time = pkt->tx_time;
-        loss_info.tx_size = pkt->size;
+        loss_info.tx_time           = pkt->tx_time;
+        loss_info.tx_size           = pkt->size;
 
         if (!TEST_true(s->ccm->on_data_lost(s->cc, &loss_info)))
             return 0;
@@ -246,8 +240,8 @@ static int net_sim_process_one(struct net_sim *s, int skip_forward)
     } else {
         OSSL_CC_ACK_INFO ack_info = {0};
 
-        ack_info.tx_time = pkt->tx_time;
-        ack_info.tx_size = pkt->size;
+        ack_info.tx_time          = pkt->tx_time;
+        ack_info.tx_size          = pkt->size;
 
         if (!TEST_true(s->ccm->on_data_acked(s->cc, &ack_info)))
             return 0;
@@ -281,8 +275,7 @@ static int net_sim_process(struct net_sim *s, size_t skip_forward)
 static FILE *logfile;
 #endif
 
-static int dump_state(const OSSL_CC_METHOD *ccm, OSSL_CC_DATA *cc,
-                                  struct net_sim *s)
+static int dump_state(const OSSL_CC_METHOD *ccm, OSSL_CC_DATA *cc, struct net_sim *s)
 {
 #ifdef GENERATE_LOG
     uint64_t cwnd_size, cur_bytes, state;
@@ -290,19 +283,17 @@ static int dump_state(const OSSL_CC_METHOD *ccm, OSSL_CC_DATA *cc,
     if (logfile == NULL)
         return 1;
 
-    if (!TEST_true(ccm->get_option_uint(cc, OSSL_CC_OPTION_CUR_CWND_SIZE,
-                                        &cwnd_size)))
+    if (!TEST_true(ccm->get_option_uint(cc, OSSL_CC_OPTION_CUR_CWND_SIZE, &cwnd_size)))
         return 0;
 
-    if (!TEST_true(ccm->get_option_uint(cc, OSSL_CC_OPTION_CUR_BYTES_IN_FLIGHT,
-                                        &cur_bytes)))
+    if (!TEST_true(ccm->get_option_uint(cc, OSSL_CC_OPTION_CUR_BYTES_IN_FLIGHT, &cur_bytes)))
         return 0;
 
-    if (!TEST_true(ccm->get_option_uint(cc, OSSL_CC_OPTION_CUR_STATE,
-                                        &state)))
+    if (!TEST_true(ccm->get_option_uint(cc, OSSL_CC_OPTION_CUR_STATE, &state)))
         return 0;
 
-    fprintf(logfile, "%10lu,%10lu,%10lu,%10lu,%10lu,%10lu,%10lu,%10lu,\"%c\"\n",
+    fprintf(logfile,
+            "%10lu,%10lu,%10lu,%10lu,%10lu,%10lu,%10lu,%10lu,\"%c\"\n",
             ossl_time2ms(fake_time),
             ccm->get_tx_allowance(cc),
             cwnd_size,
@@ -327,19 +318,19 @@ static int dump_state(const OSSL_CC_METHOD *ccm, OSSL_CC_DATA *cc,
  */
 static int test_simulate(void)
 {
-    int testresult = 0;
-    int rc;
-    int have_sim = 0;
-    const OSSL_CC_METHOD *ccm = &ossl_cc_newreno_method;
-    OSSL_CC_DATA *cc = NULL;
-    size_t mdpl = 1472;
-    uint64_t total_sent = 0, total_to_send, allowance;
-    uint64_t actual_capacity = 16000; /* B/s - 128kb/s */
-    uint64_t cwnd_sample_sum = 0, cwnd_sample_count = 0;
-    uint64_t diag_cur_bytes_in_flight = UINT64_MAX;
-    uint64_t diag_cur_cwnd_size = UINT64_MAX;
-    struct net_sim sim;
-    OSSL_PARAM params[3], *p = params;
+    int                   testresult = 0;
+    int                   rc;
+    int                   have_sim        = 0;
+    const OSSL_CC_METHOD *ccm             = &ossl_cc_newreno_method;
+    OSSL_CC_DATA         *cc              = NULL;
+    size_t                mdpl            = 1472;
+    uint64_t              total_sent      = 0, total_to_send, allowance;
+    uint64_t              actual_capacity = 16000; /* B/s - 128kb/s */
+    uint64_t              cwnd_sample_sum = 0, cwnd_sample_count = 0;
+    uint64_t              diag_cur_bytes_in_flight = UINT64_MAX;
+    uint64_t              diag_cur_cwnd_size       = UINT64_MAX;
+    struct net_sim        sim;
+    OSSL_PARAM            params[3], *p = params;
 
     fake_time = TIME_BASE;
 
@@ -351,18 +342,15 @@ static int test_simulate(void)
 
     have_sim = 1;
 
-    *p++ = OSSL_PARAM_construct_size_t(OSSL_CC_OPTION_MAX_DGRAM_PAYLOAD_LEN,
-                                       &mdpl);
-    *p++ = OSSL_PARAM_construct_end();
+    *p++     = OSSL_PARAM_construct_size_t(OSSL_CC_OPTION_MAX_DGRAM_PAYLOAD_LEN, &mdpl);
+    *p++     = OSSL_PARAM_construct_end();
 
     if (!TEST_true(ccm->set_input_params(cc, params)))
         goto err;
 
-    p = params;
-    *p++ = OSSL_PARAM_construct_uint64(OSSL_CC_OPTION_CUR_BYTES_IN_FLIGHT,
-                                       &diag_cur_bytes_in_flight);
-    *p++ = OSSL_PARAM_construct_uint64(OSSL_CC_OPTION_CUR_CWND_SIZE,
-                                       &diag_cur_cwnd_size);
+    p    = params;
+    *p++ = OSSL_PARAM_construct_uint64(OSSL_CC_OPTION_CUR_BYTES_IN_FLIGHT, &diag_cur_bytes_in_flight);
+    *p++ = OSSL_PARAM_construct_uint64(OSSL_CC_OPTION_CUR_CWND_SIZE, &diag_cur_cwnd_size);
     *p++ = OSSL_PARAM_construct_end();
 
     if (!TEST_true(ccm->bind_diagnostics(cc, params)))
@@ -390,7 +378,7 @@ static int test_simulate(void)
             dump_state(ccm, cc, &sim);
 
             allowance = ccm->get_tx_allowance(cc);
-            sz = allowance > mdpl ? mdpl : allowance;
+            sz        = allowance > mdpl ? mdpl : allowance;
             if (sz > SIZE_MAX)
                 sz = SIZE_MAX;
 
@@ -446,7 +434,7 @@ static int test_simulate(void)
     {
         uint64_t estimated_capacity = cwnd_sample_sum / cwnd_sample_count;
 
-        double error = ((double)estimated_capacity / (double)actual_capacity) - 1.0;
+        double   error              = ((double)estimated_capacity / (double)actual_capacity) - 1.0;
 
         TEST_info("est = %6llu kB/s, act=%6llu kB/s (error=%.02f%%)\n",
                   (unsigned long long)estimated_capacity,
@@ -482,24 +470,23 @@ err:
  */
 static int test_sanity(void)
 {
-    int testresult = 0;
-    OSSL_CC_DATA *cc = NULL;
-    const OSSL_CC_METHOD *ccm = &ossl_cc_newreno_method;
-    OSSL_CC_LOSS_INFO loss_info = {0};
-    OSSL_CC_ACK_INFO ack_info = {0};
-    uint64_t allowance, allowance2;
-    OSSL_PARAM params[3], *p = params;
-    size_t mdpl = 1472, diag_mdpl = SIZE_MAX;
-    uint64_t diag_cur_bytes_in_flight = UINT64_MAX;
+    int                   testresult = 0;
+    OSSL_CC_DATA         *cc         = NULL;
+    const OSSL_CC_METHOD *ccm        = &ossl_cc_newreno_method;
+    OSSL_CC_LOSS_INFO     loss_info  = {0};
+    OSSL_CC_ACK_INFO      ack_info   = {0};
+    uint64_t              allowance, allowance2;
+    OSSL_PARAM            params[3], *p = params;
+    size_t                mdpl = 1472, diag_mdpl = SIZE_MAX;
+    uint64_t              diag_cur_bytes_in_flight = UINT64_MAX;
 
-    fake_time = TIME_BASE;
+    fake_time                                      = TIME_BASE;
 
     if (!TEST_ptr(cc = ccm->new(fake_now, NULL)))
         goto err;
 
     /* Test configuration of options. */
-    *p++ = OSSL_PARAM_construct_size_t(OSSL_CC_OPTION_MAX_DGRAM_PAYLOAD_LEN,
-                                       &mdpl);
+    *p++ = OSSL_PARAM_construct_size_t(OSSL_CC_OPTION_MAX_DGRAM_PAYLOAD_LEN, &mdpl);
     *p++ = OSSL_PARAM_construct_end();
 
     if (!TEST_true(ccm->set_input_params(cc, params)))
@@ -507,15 +494,12 @@ static int test_sanity(void)
 
     ccm->reset(cc);
 
-    p = params;
-    *p++ = OSSL_PARAM_construct_size_t(OSSL_CC_OPTION_MAX_DGRAM_PAYLOAD_LEN,
-                                       &diag_mdpl);
-    *p++ = OSSL_PARAM_construct_uint64(OSSL_CC_OPTION_CUR_BYTES_IN_FLIGHT,
-                                       &diag_cur_bytes_in_flight);
+    p    = params;
+    *p++ = OSSL_PARAM_construct_size_t(OSSL_CC_OPTION_MAX_DGRAM_PAYLOAD_LEN, &diag_mdpl);
+    *p++ = OSSL_PARAM_construct_uint64(OSSL_CC_OPTION_CUR_BYTES_IN_FLIGHT, &diag_cur_bytes_in_flight);
     *p++ = OSSL_PARAM_construct_end();
 
-    if (!TEST_true(ccm->bind_diagnostics(cc, params))
-        || !TEST_size_t_eq(diag_mdpl, 1472))
+    if (!TEST_true(ccm->bind_diagnostics(cc, params)) || !TEST_size_t_eq(diag_mdpl, 1472))
         goto err;
 
     if (!TEST_uint64_t_ge(allowance = ccm->get_tx_allowance(cc), 1472))
@@ -573,8 +557,7 @@ static int test_sanity(void)
     if (!TEST_true(ccm->on_data_sent(cc, 1300)))
         goto err;
 
-    if (!TEST_uint64_t_eq(allowance2 = ccm->get_tx_allowance(cc),
-                          allowance - 1200 - 1300))
+    if (!TEST_uint64_t_eq(allowance2 = ccm->get_tx_allowance(cc), allowance - 1200 - 1300))
         goto err;
 
     loss_info.tx_time = fake_time;
@@ -610,17 +593,16 @@ err:
 
 int setup_tests(void)
 {
-
 #ifdef GENERATE_LOG
     logfile = fopen("quic_cc_stats.csv", "w");
     fprintf(logfile,
-        "\"Time\","
-        "\"TX Allowance\","
-        "\"CWND Size\","
-        "\"Bytes in Flight\","
-        "\"Total Acked\",\"Total Lost\","
-        "\"Capacity\",\"Spare Capacity\","
-        "\"State\"\n");
+            "\"Time\","
+            "\"TX Allowance\","
+            "\"CWND Size\","
+            "\"Bytes in Flight\","
+            "\"Total Acked\",\"Total Lost\","
+            "\"Capacity\",\"Spare Capacity\","
+            "\"State\"\n");
 #endif
 
     ADD_TEST(test_simulate);

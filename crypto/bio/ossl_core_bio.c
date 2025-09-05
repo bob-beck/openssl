@@ -17,7 +17,7 @@
  */
 struct ossl_core_bio_st {
     CRYPTO_REF_COUNT ref_cnt;
-    BIO *bio;
+    BIO             *bio;
 };
 
 static OSSL_CORE_BIO *core_bio_new(void)
@@ -89,14 +89,12 @@ OSSL_CORE_BIO *ossl_core_bio_new_mem_buf(const void *buf, int len)
     return core_bio_new_from_new_bio(BIO_new_mem_buf(buf, len));
 }
 
-int ossl_core_bio_read_ex(OSSL_CORE_BIO *cb, void *data, size_t dlen,
-                          size_t *readbytes)
+int ossl_core_bio_read_ex(OSSL_CORE_BIO *cb, void *data, size_t dlen, size_t *readbytes)
 {
     return BIO_read_ex(cb->bio, data, dlen, readbytes);
 }
 
-int ossl_core_bio_write_ex(OSSL_CORE_BIO *cb, const void *data, size_t dlen,
-                           size_t *written)
+int ossl_core_bio_write_ex(OSSL_CORE_BIO *cb, const void *data, size_t dlen, size_t *written)
 {
     return BIO_write_ex(cb->bio, data, dlen, written);
 }

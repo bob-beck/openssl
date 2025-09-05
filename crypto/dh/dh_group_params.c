@@ -63,17 +63,14 @@ void ossl_dh_cache_named_group(DH *dh)
     dh->params.nid = NID_undef; /* flush cached value */
 
     /* Exit if p or g is not set */
-    if (dh->params.p == NULL
-        || dh->params.g == NULL)
+    if (dh->params.p == NULL || dh->params.g == NULL)
         return;
 
-    if ((group = ossl_ffc_numbers_to_dh_named_group(dh->params.p,
-                                                    dh->params.q,
-                                                    dh->params.g)) != NULL) {
+    if ((group = ossl_ffc_numbers_to_dh_named_group(dh->params.p, dh->params.q, dh->params.g)) != NULL) {
         if (dh->params.q == NULL)
             dh->params.q = (BIGNUM *)ossl_ffc_named_group_get_q(group);
         /* cache the nid and default key length */
-        dh->params.nid = ossl_ffc_named_group_get_uid(group);
+        dh->params.nid       = ossl_ffc_named_group_get_uid(group);
         dh->params.keylength = ossl_ffc_named_group_get_keylength(group);
         dh->dirty_cnt++;
     }

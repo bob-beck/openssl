@@ -47,6 +47,4 @@ static int name##_internal_final(void *ctx, unsigned char *out, size_t *outl,  \
     return 0;                                                                  \
 }
 
-IMPLEMENT_digest_functions(nullmd, NULLMD_CTX,
-                           0, 0, 0,
-                           null_init, null_update, null_final)
+IMPLEMENT_digest_functions(nullmd, NULLMD_CTX, 0, 0, 0, null_init, null_update, null_final)

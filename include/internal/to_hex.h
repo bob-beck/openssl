@@ -8,13 +8,13 @@
  */
 
 #ifndef OSSL_INTERNAL_TO_HEX_H
-# define OSSL_INTERNAL_TO_HEX_H
-# pragma once
+#define OSSL_INTERNAL_TO_HEX_H
+#pragma once
 
 static ossl_inline size_t to_hex(char *buf, uint8_t n, const char hexdig[17])
 {
     *buf++ = hexdig[(n >> 4) & 0xf];
-    *buf = hexdig[n & 0xf];
+    *buf   = hexdig[n & 0xf];
     return 2;
 }
 

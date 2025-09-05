@@ -17,24 +17,23 @@
 
 static char *find_friendly_name(PKCS12 *p12)
 {
-    STACK_OF(PKCS7) *safes;
-    int n, m;
-    char *name = NULL;
-    PKCS7 *safe;
+    STACK_OF(PKCS7)          *safes;
+    int                       n, m;
+    char                     *name = NULL;
+    PKCS7                    *safe;
     STACK_OF(PKCS12_SAFEBAG) *bags;
-    PKCS12_SAFEBAG *bag;
+    PKCS12_SAFEBAG           *bag;
 
     if ((safes = PKCS12_unpack_authsafes(p12)) == NULL)
         return NULL;
 
     for (n = 0; n < sk_PKCS7_num(safes) && name == NULL; n++) {
         safe = sk_PKCS7_value(safes, n);
-        if (OBJ_obj2nid(safe->type) != NID_pkcs7_data
-                || (bags = PKCS12_unpack_p7data(safe)) == NULL)
+        if (OBJ_obj2nid(safe->type) != NID_pkcs7_data || (bags = PKCS12_unpack_p7data(safe)) == NULL)
             continue;
 
         for (m = 0; m < sk_PKCS12_SAFEBAG_num(bags) && name == NULL; m++) {
-            bag = sk_PKCS12_SAFEBAG_value(bags, m);
+            bag  = sk_PKCS12_SAFEBAG_value(bags, m);
             name = PKCS12_get_friendlyname(bag);
         }
         sk_PKCS12_SAFEBAG_pop_free(bags, PKCS12_SAFEBAG_free);
@@ -47,13 +46,13 @@ static char *find_friendly_name(PKCS12 *p12)
 
 int main(int argc, char **argv)
 {
-    FILE *fp;
-    EVP_PKEY *pkey = NULL;
-    X509 *cert = NULL;
-    STACK_OF(X509) *ca = NULL;
-    PKCS12 *p12 = NULL;
-    char *name = NULL;
-    int i, ret = EXIT_FAILURE;
+    FILE           *fp;
+    EVP_PKEY       *pkey = NULL;
+    X509           *cert = NULL;
+    STACK_OF(X509) *ca   = NULL;
+    PKCS12         *p12  = NULL;
+    char           *name = NULL;
+    int             i, ret = EXIT_FAILURE;
 
     if (argc != 4) {
         fprintf(stderr, "Usage: pkread p12file password opfile\n");
@@ -101,7 +100,7 @@ int main(int argc, char **argv)
 
     ret = EXIT_SUCCESS;
 
- err:
+err:
     OPENSSL_free(name);
     X509_free(cert);
     EVP_PKEY_free(pkey);

@@ -21,10 +21,10 @@
 #define OSSL_PARAM_BUF_MAX    (OSSL_PARAM_BUF_SECURE + 1)
 
 typedef struct {
-    OSSL_PARAM_ALIGNED_BLOCK *alloc; /* The allocated buffer */
-    OSSL_PARAM_ALIGNED_BLOCK *cur;   /* Current position in the allocated buf */
-    size_t blocks;    /* Number of aligned blocks */
-    size_t alloc_sz;  /* The size of the allocated buffer (in bytes) */
+    OSSL_PARAM_ALIGNED_BLOCK *alloc;    /* The allocated buffer */
+    OSSL_PARAM_ALIGNED_BLOCK *cur;      /* Current position in the allocated buf */
+    size_t                    blocks;   /* Number of aligned blocks */
+    size_t                    alloc_sz; /* The size of the allocated buffer (in bytes) */
 } OSSL_PARAM_BUF;
 
 size_t ossl_param_bytes_to_blocks(size_t bytes)
@@ -32,52 +32,46 @@ size_t ossl_param_bytes_to_blocks(size_t bytes)
     return (bytes + OSSL_PARAM_ALIGN_SIZE - 1) / OSSL_PARAM_ALIGN_SIZE;
 }
 
-static int ossl_param_buf_alloc(OSSL_PARAM_BUF *out, size_t extra_blocks,
-                                int is_secure)
+static int ossl_param_buf_alloc(OSSL_PARAM_BUF *out, size_t extra_blocks, int is_secure)
 {
     size_t num_blocks, sz = 0;
 
-    if (ossl_unlikely(!ossl_size_add(extra_blocks, out->blocks, &num_blocks,
-                                     OPENSSL_FILE, OPENSSL_LINE)
-                      || !ossl_size_mul(num_blocks, OSSL_PARAM_ALIGN_SIZE, &sz,
-                                        OPENSSL_FILE, OPENSSL_LINE)))
+    if (ossl_unlikely(!ossl_size_add(extra_blocks, out->blocks, &num_blocks, OPENSSL_FILE, OPENSSL_LINE)
+                      || !ossl_size_mul(num_blocks, OSSL_PARAM_ALIGN_SIZE, &sz, OPENSSL_FILE, OPENSSL_LINE)))
         return 0;
 
     out->alloc = is_secure ? OPENSSL_secure_zalloc(sz) : OPENSSL_zalloc(sz);
     if (out->alloc == NULL)
         return 0;
     out->alloc_sz = sz;
-    out->cur = out->alloc + extra_blocks;
+    out->cur      = out->alloc + extra_blocks;
     return 1;
 }
 
-void ossl_param_set_secure_block(OSSL_PARAM *last, void *secure_buffer,
-                                 size_t secure_buffer_sz)
+void ossl_param_set_secure_block(OSSL_PARAM *last, void *secure_buffer, size_t secure_buffer_sz)
 {
-    last->key = NULL;
+    last->key       = NULL;
     last->data_size = secure_buffer_sz;
-    last->data = secure_buffer;
+    last->data      = secure_buffer;
     last->data_type = OSSL_PARAM_ALLOCATED_END;
 }
 
-static OSSL_PARAM *ossl_param_dup(const OSSL_PARAM *src, OSSL_PARAM *dst,
-                                  OSSL_PARAM_BUF buf[OSSL_PARAM_BUF_MAX],
-                                  int *param_count)
+static OSSL_PARAM *
+ossl_param_dup(const OSSL_PARAM *src, OSSL_PARAM *dst, OSSL_PARAM_BUF buf[OSSL_PARAM_BUF_MAX], int *param_count)
 {
     const OSSL_PARAM *in;
-    int has_dst = (dst != NULL);
-    int is_secure;
-    size_t param_sz, blks;
+    int               has_dst = (dst != NULL);
+    int               is_secure;
+    size_t            param_sz, blks;
 
     for (in = src; in->key != NULL; in++) {
         is_secure = CRYPTO_secure_allocated(in->data);
         if (has_dst) {
-            *dst = *in;
+            *dst      = *in;
             dst->data = buf[is_secure].cur;
         }
 
-        if (in->data_type == OSSL_PARAM_OCTET_PTR
-            || in->data_type == OSSL_PARAM_UTF8_PTR) {
+        if (in->data_type == OSSL_PARAM_OCTET_PTR || in->data_type == OSSL_PARAM_UTF8_PTR) {
             param_sz = sizeof(in->data);
             if (has_dst)
                 *((const void **)dst->data) = *(const void **)in->data;
@@ -104,10 +98,10 @@ static OSSL_PARAM *ossl_param_dup(const OSSL_PARAM *src, OSSL_PARAM *dst,
 
 OSSL_PARAM *OSSL_PARAM_dup(const OSSL_PARAM *src)
 {
-    size_t param_blocks;
+    size_t         param_blocks;
     OSSL_PARAM_BUF buf[OSSL_PARAM_BUF_MAX];
-    OSSL_PARAM *last, *dst;
-    int param_count = 1; /* Include terminator in the count */
+    OSSL_PARAM    *last, *dst;
+    int            param_count = 1; /* Include terminator in the count */
 
     if (src == NULL) {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_NULL_PARAMETER);
@@ -128,17 +122,15 @@ OSSL_PARAM *OSSL_PARAM_dup(const OSSL_PARAM *src)
         return NULL;
 
     /* Allocate a secure memory buffer if required */
-    if (buf[OSSL_PARAM_BUF_SECURE].blocks > 0
-        && !ossl_param_buf_alloc(&buf[OSSL_PARAM_BUF_SECURE], 0, 1)) {
+    if (buf[OSSL_PARAM_BUF_SECURE].blocks > 0 && !ossl_param_buf_alloc(&buf[OSSL_PARAM_BUF_SECURE], 0, 1)) {
         OPENSSL_free(buf[OSSL_PARAM_BUF_PUBLIC].alloc);
         return NULL;
     }
 
-    dst = (OSSL_PARAM *)buf[OSSL_PARAM_BUF_PUBLIC].alloc;
+    dst  = (OSSL_PARAM *)buf[OSSL_PARAM_BUF_PUBLIC].alloc;
     last = ossl_param_dup(src, dst, buf, NULL);
     /* Store the allocated secure memory buffer in the last param block */
-    ossl_param_set_secure_block(last, buf[OSSL_PARAM_BUF_SECURE].alloc,
-                                buf[OSSL_PARAM_BUF_SECURE].alloc_sz);
+    ossl_param_set_secure_block(last, buf[OSSL_PARAM_BUF_SECURE].alloc, buf[OSSL_PARAM_BUF_SECURE].alloc_sz);
     return dst;
 }
 
@@ -152,13 +144,13 @@ static int compare_params(const void *left, const void *right)
 
 OSSL_PARAM *OSSL_PARAM_merge(const OSSL_PARAM *p1, const OSSL_PARAM *p2)
 {
-    const OSSL_PARAM *list1[OSSL_PARAM_MERGE_LIST_MAX + 1];
-    const OSSL_PARAM *list2[OSSL_PARAM_MERGE_LIST_MAX + 1];
-    const OSSL_PARAM *p = NULL;
+    const OSSL_PARAM  *list1[OSSL_PARAM_MERGE_LIST_MAX + 1];
+    const OSSL_PARAM  *list2[OSSL_PARAM_MERGE_LIST_MAX + 1];
+    const OSSL_PARAM  *p = NULL;
     const OSSL_PARAM **p1cur, **p2cur;
-    OSSL_PARAM *params, *dst;
-    size_t  list1_sz = 0, list2_sz = 0;
-    int diff;
+    OSSL_PARAM        *params, *dst;
+    size_t             list1_sz = 0, list2_sz = 0;
+    int                diff;
 
     if (p1 == NULL && p2 == NULL) {
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_PASSED_NULL_PARAMETER);
@@ -187,11 +179,11 @@ OSSL_PARAM *OSSL_PARAM_merge(const OSSL_PARAM *p1, const OSSL_PARAM *p2)
     qsort(list1, list1_sz, sizeof(OSSL_PARAM *), compare_params);
     qsort(list2, list2_sz, sizeof(OSSL_PARAM *), compare_params);
 
-   /* Allocate enough space to store the merged parameters */
+    /* Allocate enough space to store the merged parameters */
     params = OPENSSL_calloc(list1_sz + list2_sz + 1, sizeof(*p1));
     if (params == NULL)
         return NULL;
-    dst = params;
+    dst   = params;
     p1cur = list1;
     p2cur = list2;
     while (1) {

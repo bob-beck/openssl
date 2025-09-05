@@ -24,19 +24,18 @@
 
 #ifndef OPENSSL_NO_DEPRECATED_3_0
 
-int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *a, ASN1_BIT_STRING *signature,
-                char *data, EVP_PKEY *pkey)
+int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *a, ASN1_BIT_STRING *signature, char *data, EVP_PKEY *pkey)
 {
-    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
-    const EVP_MD *type;
+    EVP_MD_CTX    *ctx = EVP_MD_CTX_new();
+    const EVP_MD  *type;
     unsigned char *p, *buf_in = NULL;
-    int ret = -1, i, inl;
+    int            ret = -1, i, inl;
 
     if (ctx == NULL) {
         ERR_raise(ERR_LIB_ASN1, ERR_R_EVP_LIB);
         goto err;
     }
-    i = OBJ_obj2nid(a->algorithm);
+    i    = OBJ_obj2nid(a->algorithm);
     type = EVP_get_digestbyname(OBJ_nid2sn(i));
     if (type == NULL) {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_UNKNOWN_MESSAGE_DIGEST_ALGORITHM);
@@ -59,8 +58,7 @@ int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *a, ASN1_BIT_STRING *signature,
     p = buf_in;
 
     i2d(data, &p);
-    ret = EVP_VerifyInit_ex(ctx, type, NULL)
-        && EVP_VerifyUpdate(ctx, (unsigned char *)buf_in, inl);
+    ret = EVP_VerifyInit_ex(ctx, type, NULL) && EVP_VerifyUpdate(ctx, (unsigned char *)buf_in, inl);
 
     OPENSSL_clear_free(buf_in, (unsigned int)inl);
 
@@ -70,34 +68,39 @@ int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *a, ASN1_BIT_STRING *signature,
     }
     ret = -1;
 
-    if (EVP_VerifyFinal(ctx, (unsigned char *)signature->data,
-                        (unsigned int)signature->length, pkey) <= 0) {
+    if (EVP_VerifyFinal(ctx, (unsigned char *)signature->data, (unsigned int)signature->length, pkey) <= 0) {
         ERR_raise(ERR_LIB_ASN1, ERR_R_EVP_LIB);
         ret = 0;
         goto err;
     }
     ret = 1;
- err:
+err:
     EVP_MD_CTX_free(ctx);
     return ret;
 }
 
 #endif
 
-int ASN1_item_verify(const ASN1_ITEM *it, const X509_ALGOR *alg,
-                     const ASN1_BIT_STRING *signature, const void *data,
-                     EVP_PKEY *pkey)
+int ASN1_item_verify(const ASN1_ITEM       *it,
+                     const X509_ALGOR      *alg,
+                     const ASN1_BIT_STRING *signature,
+                     const void            *data,
+                     EVP_PKEY              *pkey)
 {
     return ASN1_item_verify_ex(it, alg, signature, data, NULL, pkey, NULL, NULL);
 }
 
-int ASN1_item_verify_ex(const ASN1_ITEM *it, const X509_ALGOR *alg,
-                        const ASN1_BIT_STRING *signature, const void *data,
-                        const ASN1_OCTET_STRING *id, EVP_PKEY *pkey,
-                        OSSL_LIB_CTX *libctx, const char *propq)
+int ASN1_item_verify_ex(const ASN1_ITEM         *it,
+                        const X509_ALGOR        *alg,
+                        const ASN1_BIT_STRING   *signature,
+                        const void              *data,
+                        const ASN1_OCTET_STRING *id,
+                        EVP_PKEY                *pkey,
+                        OSSL_LIB_CTX            *libctx,
+                        const char              *propq)
 {
     EVP_MD_CTX *ctx;
-    int rv = -1;
+    int         rv = -1;
 
     if ((ctx = evp_md_ctx_new_ex(pkey, id, libctx, propq)) != NULL) {
         rv = ASN1_item_verify_ctx(it, alg, signature, data, ctx);
@@ -107,17 +110,19 @@ int ASN1_item_verify_ex(const ASN1_ITEM *it, const X509_ALGOR *alg,
     return rv;
 }
 
-int ASN1_item_verify_ctx(const ASN1_ITEM *it, const X509_ALGOR *alg,
-                         const ASN1_BIT_STRING *signature, const void *data,
-                         EVP_MD_CTX *ctx)
+int ASN1_item_verify_ctx(const ASN1_ITEM       *it,
+                         const X509_ALGOR      *alg,
+                         const ASN1_BIT_STRING *signature,
+                         const void            *data,
+                         EVP_MD_CTX            *ctx)
 {
-    EVP_PKEY *pkey;
+    EVP_PKEY      *pkey;
     unsigned char *buf_in = NULL;
-    int ret = -1, inl = 0;
-    int mdnid, pknid;
-    size_t inll = 0;
+    int            ret = -1, inl = 0;
+    int            mdnid, pknid;
+    size_t         inll = 0;
 
-    pkey = EVP_PKEY_CTX_get0_pkey(EVP_MD_CTX_get_pkey_ctx(ctx));
+    pkey                = EVP_PKEY_CTX_get0_pkey(EVP_MD_CTX_get_pkey_ctx(ctx));
 
     if (pkey == NULL) {
         ERR_raise(ERR_LIB_ASN1, ERR_R_PASSED_NULL_PARAMETER);
@@ -180,9 +185,7 @@ int ASN1_item_verify_ctx(const ASN1_ITEM *it, const X509_ALGOR *alg,
             if (mdnid != NID_undef) {
                 type = EVP_get_digestbynid(mdnid);
                 if (type == NULL) {
-                    ERR_raise_data(ERR_LIB_ASN1,
-                                   ASN1_R_UNKNOWN_MESSAGE_DIGEST_ALGORITHM,
-                                   "nid=0x%x", mdnid);
+                    ERR_raise_data(ERR_LIB_ASN1, ASN1_R_UNKNOWN_MESSAGE_DIGEST_ALGORITHM, "nid=0x%x", mdnid);
                     goto err;
                 }
             }
@@ -212,14 +215,13 @@ int ASN1_item_verify_ctx(const ASN1_ITEM *it, const X509_ALGOR *alg,
     }
     inll = inl;
 
-    ret = EVP_DigestVerify(ctx, signature->data, (size_t)signature->length,
-                           buf_in, inl);
+    ret  = EVP_DigestVerify(ctx, signature->data, (size_t)signature->length, buf_in, inl);
     if (ret <= 0) {
         ERR_raise(ERR_LIB_ASN1, ERR_R_EVP_LIB);
         goto err;
     }
     ret = 1;
- err:
+err:
     OPENSSL_clear_free(buf_in, inll);
     return ret;
 }

@@ -22,20 +22,20 @@
 
 #define RC5_FLAGS PROV_CIPHER_FLAG_VARIABLE_LENGTH
 
-static OSSL_FUNC_cipher_encrypt_init_fn rc5_einit;
-static OSSL_FUNC_cipher_decrypt_init_fn rc5_dinit;
-static OSSL_FUNC_cipher_freectx_fn rc5_freectx;
-static OSSL_FUNC_cipher_dupctx_fn rc5_dupctx;
-OSSL_FUNC_cipher_gettable_ctx_params_fn rc5_gettable_ctx_params;
-OSSL_FUNC_cipher_settable_ctx_params_fn rc5_settable_ctx_params;
+static OSSL_FUNC_cipher_encrypt_init_fn   rc5_einit;
+static OSSL_FUNC_cipher_decrypt_init_fn   rc5_dinit;
+static OSSL_FUNC_cipher_freectx_fn        rc5_freectx;
+static OSSL_FUNC_cipher_dupctx_fn         rc5_dupctx;
+OSSL_FUNC_cipher_gettable_ctx_params_fn   rc5_gettable_ctx_params;
+OSSL_FUNC_cipher_settable_ctx_params_fn   rc5_settable_ctx_params;
 static OSSL_FUNC_cipher_set_ctx_params_fn rc5_set_ctx_params;
 
-static void rc5_freectx(void *vctx)
+static void                               rc5_freectx(void *vctx)
 {
     PROV_RC5_CTX *ctx = (PROV_RC5_CTX *)vctx;
 
     ossl_cipher_generic_reset_ctx((PROV_CIPHER_CTX *)vctx);
-    OPENSSL_clear_free(ctx,  sizeof(*ctx));
+    OPENSSL_clear_free(ctx, sizeof(*ctx));
 }
 
 static void *rc5_dupctx(void *ctx)
@@ -54,18 +54,24 @@ static void *rc5_dupctx(void *ctx)
     return ret;
 }
 
-static int rc5_einit(void *ctx, const unsigned char *key, size_t keylen,
-                          const unsigned char *iv, size_t ivlen,
-                          const OSSL_PARAM params[])
+static int rc5_einit(void                *ctx,
+                     const unsigned char *key,
+                     size_t               keylen,
+                     const unsigned char *iv,
+                     size_t               ivlen,
+                     const OSSL_PARAM     params[])
 {
     if (!ossl_cipher_generic_einit(ctx, key, keylen, iv, ivlen, NULL))
         return 0;
     return rc5_set_ctx_params(ctx, params);
 }
 
-static int rc5_dinit(void *ctx, const unsigned char *key, size_t keylen,
-                          const unsigned char *iv, size_t ivlen,
-                          const OSSL_PARAM params[])
+static int rc5_dinit(void                *ctx,
+                     const unsigned char *key,
+                     size_t               keylen,
+                     const unsigned char *iv,
+                     size_t               ivlen,
+                     const OSSL_PARAM     params[])
 {
     if (!ossl_cipher_generic_dinit(ctx, key, keylen, iv, ivlen, NULL))
         return 0;
@@ -74,7 +80,7 @@ static int rc5_dinit(void *ctx, const unsigned char *key, size_t keylen,
 
 static int rc5_set_ctx_params(void *vctx, const OSSL_PARAM params[])
 {
-    PROV_RC5_CTX *ctx = (PROV_RC5_CTX *)vctx;
+    PROV_RC5_CTX     *ctx = (PROV_RC5_CTX *)vctx;
     const OSSL_PARAM *p;
 
     if (ossl_param_is_empty(params))
@@ -91,9 +97,7 @@ static int rc5_set_ctx_params(void *vctx, const OSSL_PARAM params[])
             ERR_raise(ERR_LIB_PROV, PROV_R_FAILED_TO_GET_PARAMETER);
             return 0;
         }
-        if (rounds != RC5_8_ROUNDS
-            && rounds != RC5_12_ROUNDS
-            && rounds != RC5_16_ROUNDS) {
+        if (rounds != RC5_8_ROUNDS && rounds != RC5_12_ROUNDS && rounds != RC5_16_ROUNDS) {
             ERR_raise(ERR_LIB_PROV, PROV_R_UNSUPPORTED_NUMBER_OF_ROUNDS);
             return 0;
         }
@@ -103,19 +107,18 @@ static int rc5_set_ctx_params(void *vctx, const OSSL_PARAM params[])
 }
 
 CIPHER_DEFAULT_GETTABLE_CTX_PARAMS_START(rc5)
+
+OSSL_PARAM_uint(OSSL_CIPHER_PARAM_ROUNDS, NULL),
+    CIPHER_DEFAULT_GETTABLE_CTX_PARAMS_END(rc5)
+
+        CIPHER_DEFAULT_SETTABLE_CTX_PARAMS_START(rc5) OSSL_PARAM_size_t(OSSL_CIPHER_PARAM_KEYLEN, NULL),
     OSSL_PARAM_uint(OSSL_CIPHER_PARAM_ROUNDS, NULL),
-CIPHER_DEFAULT_GETTABLE_CTX_PARAMS_END(rc5)
+    CIPHER_DEFAULT_SETTABLE_CTX_PARAMS_END(rc5)
 
-CIPHER_DEFAULT_SETTABLE_CTX_PARAMS_START(rc5)
-    OSSL_PARAM_size_t(OSSL_CIPHER_PARAM_KEYLEN, NULL),
-    OSSL_PARAM_uint(OSSL_CIPHER_PARAM_ROUNDS, NULL),
-CIPHER_DEFAULT_SETTABLE_CTX_PARAMS_END(rc5)
-
-
-static int rc5_get_ctx_params(void *vctx, OSSL_PARAM params[])
+        static int rc5_get_ctx_params(void *vctx, OSSL_PARAM params[])
 {
     PROV_RC5_CTX *ctx = (PROV_RC5_CTX *)vctx;
-    OSSL_PARAM *p;
+    OSSL_PARAM   *p;
 
     if (!ossl_cipher_generic_get_ctx_params(vctx, params))
         return 0;
@@ -127,8 +130,7 @@ static int rc5_get_ctx_params(void *vctx, OSSL_PARAM params[])
     return 1;
 }
 
-#define IMPLEMENT_cipher(alg, UCALG, lcmode, UCMODE, flags, kbits,             \
-                         blkbits, ivbits, typ)                                 \
+#define IMPLEMENT_cipher(alg, UCALG, lcmode, UCMODE, flags, kbits, blkbits, ivbits, typ)                                 \
 static OSSL_FUNC_cipher_get_params_fn alg##_##kbits##_##lcmode##_get_params;   \
 static int alg##_##kbits##_##lcmode##_get_params(OSSL_PARAM params[])          \
 {                                                                              \
@@ -183,4 +185,4 @@ IMPLEMENT_cipher(rc5, RC5, cbc, CBC, RC5_FLAGS, 128, 64, 64, block)
 /* ossl_rc5128ofb64_functions */
 IMPLEMENT_cipher(rc5, RC5, ofb64, OFB, RC5_FLAGS, 128, 8, 64, stream)
 /* ossl_rc5128cfb64_functions */
-IMPLEMENT_cipher(rc5, RC5, cfb64,  CFB, RC5_FLAGS, 128, 8, 64, stream)
+IMPLEMENT_cipher(rc5, RC5, cfb64, CFB, RC5_FLAGS, 128, 8, 64, stream)

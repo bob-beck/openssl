@@ -48,10 +48,10 @@
  * objects.
  */
 typedef struct radix_obj_st {
-    char                *name;  /* owned, zero-terminated */
-    SSL                 *ssl;   /* owns one reference */
-    unsigned int        registered      : 1; /* in LHASH? */
-    unsigned int        active          : 1; /* tick? */
+    char        *name;          /* owned, zero-terminated */
+    SSL         *ssl;           /* owns one reference */
+    unsigned int registered: 1; /* in LHASH? */
+    unsigned int active    : 1; /* tick? */
 } RADIX_OBJ;
 
 DEFINE_LHASH_OF_EX(RADIX_OBJ);
@@ -61,13 +61,13 @@ typedef struct radix_process_st {
     size_t                  node_idx;
     size_t                  process_idx;
     size_t                  next_thread_idx;
-    STACK_OF(RADIX_THREAD)  *threads;
+    STACK_OF(RADIX_THREAD) *threads;
 
     /* Process-global state. */
-    CRYPTO_MUTEX            *gm;            /* global mutex */
-    LHASH_OF(RADIX_OBJ)     *objs;          /* protected by gm */
-    OSSL_TIME               time_slip;      /* protected by gm */
-    BIO                     *keylog_out;    /* protected by gm */
+    CRYPTO_MUTEX           *gm;         /* global mutex */
+    LHASH_OF(RADIX_OBJ)    *objs;       /* protected by gm */
+    OSSL_TIME               time_slip;  /* protected by gm */
+    BIO                    *keylog_out; /* protected by gm */
 
     int                     done_join_all_threads;
 
@@ -81,24 +81,24 @@ typedef struct radix_process_st {
 
 /* Thread-level state within a process */
 typedef struct radix_thread_st {
-    RADIX_PROCESS       *rp;
-    CRYPTO_THREAD       *t;
-    unsigned char       *tmp_buf;
-    size_t              tmp_buf_offset;
-    size_t              thread_idx; /* 0=main thread */
-    RADIX_OBJ           *slot[NUM_SLOTS];
-    SSL                 *ssl[NUM_SLOTS];
+    RADIX_PROCESS *rp;
+    CRYPTO_THREAD *t;
+    unsigned char *tmp_buf;
+    size_t         tmp_buf_offset;
+    size_t         thread_idx; /* 0=main thread */
+    RADIX_OBJ     *slot[NUM_SLOTS];
+    SSL           *ssl[NUM_SLOTS];
 
     /* child thread spawn arguments */
-    SCRIPT_INFO         *child_script_info;
-    BIO                 *debug_bio;
+    SCRIPT_INFO   *child_script_info;
+    BIO           *debug_bio;
 
     /* m protects all of the below values */
-    CRYPTO_MUTEX        *m;
-    int                 done;
-    int                 testresult; /* valid if done */
+    CRYPTO_MUTEX  *m;
+    int            done;
+    int            testresult; /* valid if done */
 
-    uint64_t            scratch0;
+    uint64_t       scratch0;
 } RADIX_THREAD;
 
 DEFINE_STACK_OF(RADIX_THREAD)
@@ -112,14 +112,14 @@ static RADIX_OBJ *RADIX_OBJ_new(const char *name, SSL *ssl)
         return NULL;
 
     if (!TEST_ptr(obj = OPENSSL_zalloc(sizeof(*obj))))
-       return NULL;
+        return NULL;
 
     if (!TEST_ptr(obj->name = OPENSSL_strdup(name))) {
         OPENSSL_free(obj);
         return NULL;
     }
 
-    obj->ssl  = ssl;
+    obj->ssl = ssl;
     return obj;
 }
 
@@ -161,15 +161,14 @@ static int RADIX_PROCESS_init(RADIX_PROCESS *rp, size_t node_idx, size_t process
         goto err;
 
     rp->keylog_out = NULL;
-    keylog_path = ossl_safe_getenv("SSLKEYLOGFILE");
-    if (keylog_path != NULL && *keylog_path != '\0'
-        && !TEST_ptr(rp->keylog_out = BIO_new_file(keylog_path, "a")))
+    keylog_path    = ossl_safe_getenv("SSLKEYLOGFILE");
+    if (keylog_path != NULL && *keylog_path != '\0' && !TEST_ptr(rp->keylog_out = BIO_new_file(keylog_path, "a")))
         goto err;
 
-    rp->node_idx                = node_idx;
-    rp->process_idx             = process_idx;
-    rp->done_join_all_threads   = 0;
-    rp->next_thread_idx         = 0;
+    rp->node_idx              = node_idx;
+    rp->process_idx           = process_idx;
+    rp->done_join_all_threads = 0;
+    rp->next_thread_idx       = 0;
     return 1;
 
 err:
@@ -201,13 +200,11 @@ static const char *stream_state_to_str(int state)
     }
 }
 
-static void report_ssl_state(BIO *bio, const char *pfx, int is_write,
-                             int state, uint64_t ec)
+static void report_ssl_state(BIO *bio, const char *pfx, int is_write, int state, uint64_t ec)
 {
     const char *state_s = stream_state_to_str(state);
 
-    BIO_printf(bio, "%s%-15s%s(%d)", pfx, is_write ? "Write state: " : "Read state: ",
-        state_s, state);
+    BIO_printf(bio, "%s%-15s%s(%d)", pfx, is_write ? "Write state: " : "Read state: ", state_s, state);
     if (ec != UINT64_MAX)
         BIO_printf(bio, ", %llu", (unsigned long long)ec);
     BIO_printf(bio, "\n");
@@ -215,13 +212,13 @@ static void report_ssl_state(BIO *bio, const char *pfx, int is_write,
 
 static void report_ssl(SSL *ssl, BIO *bio, const char *pfx)
 {
-    const char *type = "SSL";
-    int is_quic = SSL_is_quic(ssl), is_conn = 0, is_listener = 0;
+    const char         *type    = "SSL";
+    int                 is_quic = SSL_is_quic(ssl), is_conn = 0, is_listener = 0;
     SSL_CONN_CLOSE_INFO cc_info = {0};
-    const char *e_str, *f_str;
+    const char         *e_str, *f_str;
 
     if (is_quic) {
-        is_conn = SSL_is_connection(ssl);
+        is_conn     = SSL_is_connection(ssl);
         is_listener = SSL_is_listener(ssl);
 
         if (is_listener)
@@ -234,9 +231,7 @@ static void report_ssl(SSL *ssl, BIO *bio, const char *pfx)
 
     BIO_printf(bio, "%sType:          %s\n", pfx, type);
 
-    if (is_quic && is_conn
-        && SSL_get_conn_close_info(ssl, &cc_info, sizeof(cc_info))) {
-
+    if (is_quic && is_conn && SSL_get_conn_close_info(ssl, &cc_info, sizeof(cc_info))) {
         e_str = ossl_quic_err_to_string(cc_info.error_code);
         f_str = ossl_quic_frame_type_to_string(cc_info.frame_type);
 
@@ -245,27 +240,25 @@ static void report_ssl(SSL *ssl, BIO *bio, const char *pfx)
         if (f_str == NULL)
             f_str = "?";
 
-        BIO_printf(bio, "%sConnection is closed: %s(%llu)/%s(%llu), "
+        BIO_printf(bio,
+                   "%sConnection is closed: %s(%llu)/%s(%llu), "
                    "%s, %s, reason: \"%s\"\n",
                    pfx,
                    e_str,
                    (unsigned long long)cc_info.error_code,
                    f_str,
                    (unsigned long long)cc_info.frame_type,
-                   (cc_info.flags & SSL_CONN_CLOSE_FLAG_LOCAL) != 0
-                     ? "local" : "remote",
-                   (cc_info.flags & SSL_CONN_CLOSE_FLAG_TRANSPORT) != 0
-                     ? "transport" : "app",
+                   (cc_info.flags & SSL_CONN_CLOSE_FLAG_LOCAL) != 0 ? "local" : "remote",
+                   (cc_info.flags & SSL_CONN_CLOSE_FLAG_TRANSPORT) != 0 ? "transport" : "app",
                    cc_info.reason != NULL ? cc_info.reason : "-");
     }
 
     if (is_quic && !is_listener) {
         uint64_t stream_id = SSL_get_stream_id(ssl), rec, wec;
-        int rstate, wstate;
+        int      rstate, wstate;
 
         if (stream_id != UINT64_MAX)
-            BIO_printf(bio, "%sStream ID: %llu\n", pfx,
-                       (unsigned long long)stream_id);
+            BIO_printf(bio, "%sStream ID: %llu\n", pfx, (unsigned long long)stream_id);
 
         rstate = SSL_get_stream_read_state(ssl);
         wstate = SSL_get_stream_write_state(ssl);
@@ -301,41 +294,35 @@ static void RADIX_THREAD_report_state(RADIX_THREAD *rt, BIO *bio)
         if (rt->slot[i] == NULL)
             BIO_printf(bio, "  %3zu) <NULL>\n", i);
         else
-            BIO_printf(bio, "  %3zu) '%s' (SSL: %p)\n", i,
-                       rt->slot[i]->name,
-                       (void *)rt->ssl[i]);
+            BIO_printf(bio, "  %3zu) '%s' (SSL: %p)\n", i, rt->slot[i]->name, (void *)rt->ssl[i]);
 }
 
-static void RADIX_PROCESS_report_state(RADIX_PROCESS *rp, BIO *bio,
-                                       int verbose)
+static void RADIX_PROCESS_report_state(RADIX_PROCESS *rp, BIO *bio, int verbose)
 {
-    BIO_printf(bio, "Final process state for node %zu, process %zu:\n",
-               rp->node_idx, rp->process_idx);
+    BIO_printf(bio, "Final process state for node %zu, process %zu:\n", rp->node_idx, rp->process_idx);
 
-    BIO_printf(bio, "  Threads (incl. main):        %zu\n",
-               rp->next_thread_idx);
-    BIO_printf(bio, "  Time slip:                   %llu ms\n",
-               (unsigned long long)ossl_time2ms(rp->time_slip));
+    BIO_printf(bio, "  Threads (incl. main):        %zu\n", rp->next_thread_idx);
+    BIO_printf(bio, "  Time slip:                   %llu ms\n", (unsigned long long)ossl_time2ms(rp->time_slip));
 
     BIO_printf(bio, "  Objects:\n");
     lh_RADIX_OBJ_doall_arg(rp->objs, report_obj, bio);
 
     if (verbose)
-        RADIX_THREAD_report_state(sk_RADIX_THREAD_value(rp->threads, 0),
-                                  bio_err);
+        RADIX_THREAD_report_state(sk_RADIX_THREAD_value(rp->threads, 0), bio_err);
 
-    BIO_printf(bio, "\n==========================================="
+    BIO_printf(bio,
+               "\n==========================================="
                "===========================\n");
 }
 
 static void RADIX_PROCESS_report_thread_results(RADIX_PROCESS *rp, BIO *bio)
 {
-    int i;
+    int           i;
     RADIX_THREAD *rt;
-    char *p;
-    long l;
-    char pfx_buf[64];
-    int rt_testresult;
+    char         *p;
+    long          l;
+    char          pfx_buf[64];
+    int           rt_testresult;
 
     for (i = 1; i < sk_RADIX_THREAD_num(rp->threads); ++i) {
         rt = sk_RADIX_THREAD_value(rp->threads, i);
@@ -345,10 +332,14 @@ static void RADIX_PROCESS_report_thread_results(RADIX_PROCESS *rp, BIO *bio)
         rt_testresult = rt->testresult;
         ossl_crypto_mutex_unlock(rt->m);
 
-        BIO_printf(bio, "\n====(n%zu/p%zu/t%zu)============================"
+        BIO_printf(bio,
+                   "\n====(n%zu/p%zu/t%zu)============================"
                    "===========================\n"
                    "Result for child thread with index %zu:\n",
-                   rp->node_idx, rp->process_idx, rt->thread_idx, rt->thread_idx);
+                   rp->node_idx,
+                   rp->process_idx,
+                   rt->thread_idx,
+                   rt->thread_idx);
 
         BIO_snprintf(pfx_buf, sizeof(pfx_buf), "#  -T-%2zu:\t# ", rt->thread_idx);
         BIO_set_prefix(bio_err, pfx_buf);
@@ -357,13 +348,13 @@ static void RADIX_PROCESS_report_thread_results(RADIX_PROCESS *rp, BIO *bio)
         BIO_write(bio, p, l);
         BIO_printf(bio, "\n");
         BIO_set_prefix(bio_err, "# ");
-        BIO_printf(bio, "==> Child thread with index %zu exited with %d\n",
-                   rt->thread_idx, rt_testresult);
+        BIO_printf(bio, "==> Child thread with index %zu exited with %d\n", rt->thread_idx, rt_testresult);
         if (!rt_testresult)
             RADIX_THREAD_report_state(rt, bio);
     }
 
-    BIO_printf(bio, "\n==========================================="
+    BIO_printf(bio,
+               "\n==========================================="
                "===========================\n");
 }
 
@@ -371,10 +362,10 @@ static int RADIX_THREAD_join(RADIX_THREAD *rt);
 
 static int RADIX_PROCESS_join_all_threads(RADIX_PROCESS *rp, int *testresult)
 {
-    int ok = 1;
-    int i;
+    int           ok = 1;
+    int           i;
     RADIX_THREAD *rt;
-    int composite_testresult = 1;
+    int           composite_testresult = 1;
 
     if (rp->done_join_all_threads) {
         *testresult = rp->thread_composite_testresult;
@@ -438,8 +429,7 @@ static RADIX_OBJ *RADIX_PROCESS_get_obj(RADIX_PROCESS *rp, const char *name)
     return lh_RADIX_OBJ_retrieve(rp->objs, &key);
 }
 
-static int RADIX_PROCESS_set_obj(RADIX_PROCESS *rp,
-                                 const char *name, RADIX_OBJ *obj)
+static int RADIX_PROCESS_set_obj(RADIX_PROCESS *rp, const char *name, RADIX_OBJ *obj)
 {
     RADIX_OBJ *existing;
 
@@ -493,11 +483,10 @@ static RADIX_THREAD *RADIX_THREAD_new(RADIX_PROCESS *rp)
 {
     RADIX_THREAD *rt;
 
-    if (!TEST_ptr(rp)
-        || !TEST_ptr(rt = OPENSSL_zalloc(sizeof(*rt))))
+    if (!TEST_ptr(rp) || !TEST_ptr(rt = OPENSSL_zalloc(sizeof(*rt))))
         return 0;
 
-    rt->rp          = rp;
+    rt->rp = rp;
 
 #if defined(OPENSSL_THREADS)
     if (!TEST_ptr(rt->m = ossl_crypto_mutex_new())) {
@@ -511,7 +500,7 @@ static RADIX_THREAD *RADIX_THREAD_new(RADIX_PROCESS *rp)
         return 0;
     }
 
-    rt->thread_idx  = rp->next_thread_idx++;
+    rt->thread_idx = rp->next_thread_idx++;
     assert(rt->thread_idx + 1 == (size_t)sk_RADIX_THREAD_num(rp->threads));
     return rt;
 }
@@ -544,10 +533,10 @@ static int RADIX_THREAD_join(RADIX_THREAD *rt)
     return 1;
 }
 
-static RADIX_PROCESS        radix_process;
-static CRYPTO_THREAD_LOCAL  radix_thread;
+static RADIX_PROCESS       radix_process;
+static CRYPTO_THREAD_LOCAL radix_thread;
 
-static void radix_thread_cleanup_tl(void *p)
+static void                radix_thread_cleanup_tl(void *p)
 {
     /* Should already have been cleaned up. */
     if (!TEST_ptr_null(p))
@@ -561,8 +550,7 @@ static RADIX_THREAD *radix_get_thread(void)
 
 static int radix_thread_init(RADIX_THREAD *rt)
 {
-    if (!TEST_ptr(rt)
-        || !TEST_ptr_null(CRYPTO_THREAD_get_local(&radix_thread)))
+    if (!TEST_ptr(rt) || !TEST_ptr_null(CRYPTO_THREAD_get_local(&radix_thread)))
         return 0;
 
     if (!TEST_true(CRYPTO_THREAD_set_local(&radix_thread, rt)))
@@ -591,8 +579,7 @@ static int bindings_process_init(size_t node_idx, size_t process_idx)
     if (!TEST_true(RADIX_PROCESS_init(&radix_process, node_idx, process_idx)))
         return 0;
 
-    if (!TEST_true(CRYPTO_THREAD_init_local(&radix_thread,
-                                            radix_thread_cleanup_tl)))
+    if (!TEST_true(CRYPTO_THREAD_init_local(&radix_thread, radix_thread_cleanup_tl)))
         return 0;
 
     if (!TEST_ptr(rt = RADIX_THREAD_new(&radix_process)))
@@ -606,12 +593,12 @@ static int bindings_process_finish(int testresult_main)
 {
     int testresult, testresult_child;
 
-    if (!TEST_true(RADIX_PROCESS_join_all_threads(&radix_process,
-                                                  &testresult_child)))
+    if (!TEST_true(RADIX_PROCESS_join_all_threads(&radix_process, &testresult_child)))
         return 0;
 
     testresult = testresult_main && testresult_child;
-    RADIX_PROCESS_report_state(&radix_process, bio_err,
+    RADIX_PROCESS_report_state(&radix_process,
+                               bio_err,
                                /*verbose=*/!testresult);
     radix_thread_cleanup(); /* cleanup main thread */
     RADIX_PROCESS_cleanup(&radix_process);
@@ -619,8 +606,7 @@ static int bindings_process_finish(int testresult_main)
     if (testresult)
         BIO_printf(bio_err, "==> OK\n\n");
     else
-        BIO_printf(bio_err, "==> ERROR (main=%d, children=%d)\n\n",
-                   testresult_main, testresult_child);
+        BIO_printf(bio_err, "==> ERROR (main=%d, children=%d)\n\n", testresult_main, testresult_child);
 
     return testresult;
 }
@@ -660,15 +646,14 @@ static int do_per_op(TERP *terp, void *arg)
 
 static int bindings_adjust_terp_config(TERP_CONFIG *cfg)
 {
-    cfg->now_cb     = get_time;
-    cfg->per_op_cb  = do_per_op;
+    cfg->now_cb    = get_time;
+    cfg->per_op_cb = do_per_op;
     return 1;
 }
 
 static int expect_slot_ssl(FUNC_CTX *fctx, size_t idx, SSL **p_ssl)
 {
-    if (!TEST_size_t_lt(idx, NUM_SLOTS)
-        || !TEST_ptr(*p_ssl = RT()->ssl[idx]))
+    if (!TEST_size_t_lt(idx, NUM_SLOTS) || !TEST_ptr(*p_ssl = RT()->ssl[idx]))
         return 0;
 
     return 1;
@@ -725,10 +710,10 @@ static int expect_slot_ssl(FUNC_CTX *fctx, size_t idx, SSL **p_ssl)
 
 static int RADIX_THREAD_worker_run(RADIX_THREAD *rt)
 {
-    int ok = 0;
+    int         ok  = 0;
     TERP_CONFIG cfg = {0};
 
-    cfg.debug_bio = rt->debug_bio;
+    cfg.debug_bio   = rt->debug_bio;
     if (!TEST_true(bindings_adjust_terp_config(&cfg)))
         goto err;
 
@@ -742,8 +727,8 @@ err:
 
 static unsigned int RADIX_THREAD_worker_main(void *p)
 {
-    int testresult = 0;
-    RADIX_THREAD *rt = p;
+    int           testresult = 0;
+    RADIX_THREAD *rt         = p;
 
     if (!TEST_true(radix_thread_init(rt)))
         return 0;
@@ -755,8 +740,8 @@ static unsigned int RADIX_THREAD_worker_main(void *p)
     testresult = RADIX_THREAD_worker_run(rt);
 
     ossl_crypto_mutex_lock(rt->m);
-    rt->testresult  = testresult;
-    rt->done        = 1;
+    rt->testresult = testresult;
+    rt->done       = 1;
     ossl_crypto_mutex_unlock(rt->m);
 
     radix_thread_cleanup();
@@ -781,9 +766,9 @@ static void radix_activate_slot(size_t idx)
 
 DEF_FUNC(hf_spawn_thread)
 {
-    int ok = 0;
-    RADIX_THREAD *child_rt = NULL;
-    SCRIPT_INFO *script_info = NULL;
+    int           ok          = 0;
+    RADIX_THREAD *child_rt    = NULL;
+    SCRIPT_INFO  *script_info = NULL;
 
     F_POP(script_info);
     if (!TEST_ptr(script_info))
@@ -802,8 +787,7 @@ DEF_FUNC(hf_spawn_thread)
     ossl_crypto_mutex_lock(child_rt->m);
 
     child_rt->child_script_info = script_info;
-    if (!TEST_ptr(child_rt->t = ossl_crypto_thread_native_start(RADIX_THREAD_worker_main,
-                                                                child_rt, 1))) {
+    if (!TEST_ptr(child_rt->t = ossl_crypto_thread_native_start(RADIX_THREAD_worker_main, child_rt, 1))) {
         ossl_crypto_mutex_unlock(child_rt->m);
         goto err;
     }
@@ -821,7 +805,7 @@ err:
 DEF_FUNC(hf_clear)
 {
     RADIX_THREAD *rt = RT();
-    size_t i;
+    size_t        i;
 
     ossl_crypto_mutex_lock(RP()->gm);
 

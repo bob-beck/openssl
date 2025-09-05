@@ -44,18 +44,22 @@
 #define S390X_OFF_RN(n)                 (4 * n)
 #define S390X_OFF_Y(n)                  (4 * n)
 
-static int ec_GFp_s390x_nistp_mul(const EC_GROUP *group, EC_POINT *r,
-                                  const BIGNUM *scalar,
-                                  size_t num, const EC_POINT *points[],
-                                  const BIGNUM *scalars[],
-                                  BN_CTX *ctx, unsigned int fc, int len)
+static int ec_GFp_s390x_nistp_mul(const EC_GROUP *group,
+                                  EC_POINT       *r,
+                                  const BIGNUM   *scalar,
+                                  size_t          num,
+                                  const EC_POINT *points[],
+                                  const BIGNUM   *scalars[],
+                                  BN_CTX         *ctx,
+                                  unsigned int    fc,
+                                  int             len)
 {
-    unsigned char param[S390X_SIZE_PARAM];
-    BIGNUM *x, *y;
-    const EC_POINT *point_ptr = NULL;
-    const BIGNUM *scalar_ptr = NULL;
-    BN_CTX *new_ctx = NULL;
-    int rc = -1;
+    unsigned char   param[S390X_SIZE_PARAM];
+    BIGNUM         *x, *y;
+    const EC_POINT *point_ptr  = NULL;
+    const BIGNUM   *scalar_ptr = NULL;
+    BN_CTX         *new_ctx    = NULL;
+    int             rc         = -1;
 
     if (ctx == NULL) {
         ctx = new_ctx = BN_CTX_new_ex(group->libctx);
@@ -79,34 +83,28 @@ static int ec_GFp_s390x_nistp_mul(const EC_GROUP *group, EC_POINT *r,
      */
     if ((scalar != NULL && num == 0 && BN_is_negative(scalar) == 0)
         || (scalar == NULL && num == 1 && BN_is_negative(scalars[0]) == 0)) {
-
         if (num == 0) {
-            point_ptr = EC_GROUP_get0_generator(group);
+            point_ptr  = EC_GROUP_get0_generator(group);
             scalar_ptr = scalar;
         } else {
-            point_ptr = points[0];
+            point_ptr  = points[0];
             scalar_ptr = scalars[0];
         }
 
-        if (EC_POINT_is_at_infinity(group, point_ptr) == 1
-            || BN_is_zero(scalar_ptr)) {
+        if (EC_POINT_is_at_infinity(group, point_ptr) == 1 || BN_is_zero(scalar_ptr)) {
             rc = EC_POINT_set_to_infinity(group, r);
             goto ret;
         }
 
         memset(&param, 0, sizeof(param));
 
-        if (group->meth->point_get_affine_coordinates(group, point_ptr,
-                                                      x, y, ctx) != 1
+        if (group->meth->point_get_affine_coordinates(group, point_ptr, x, y, ctx) != 1
             || BN_bn2binpad(x, param + S390X_OFF_SRC_X(len), len) == -1
             || BN_bn2binpad(y, param + S390X_OFF_SRC_Y(len), len) == -1
-            || BN_bn2binpad(scalar_ptr,
-                            param + S390X_OFF_SCALAR(len), len) == -1
-            || s390x_pcc(fc, param) != 0
+            || BN_bn2binpad(scalar_ptr, param + S390X_OFF_SCALAR(len), len) == -1 || s390x_pcc(fc, param) != 0
             || BN_bin2bn(param + S390X_OFF_RES_X(len), len, x) == NULL
             || BN_bin2bn(param + S390X_OFF_RES_Y(len), len, y) == NULL
-            || group->meth->point_set_affine_coordinates(group, r,
-                                                         x, y, ctx) != 1)
+            || group->meth->point_set_affine_coordinates(group, r, x, y, ctx) != 1)
             goto ret;
 
         rc = 1;
@@ -123,22 +121,23 @@ ret:
 }
 
 static ECDSA_SIG *ecdsa_s390x_nistp_sign_sig(const unsigned char *dgst,
-                                             int dgstlen,
-                                             const BIGNUM *kinv,
-                                             const BIGNUM *r,
-                                             EC_KEY *eckey,
-                                             unsigned int fc, int len)
+                                             int                  dgstlen,
+                                             const BIGNUM        *kinv,
+                                             const BIGNUM        *r,
+                                             EC_KEY              *eckey,
+                                             unsigned int         fc,
+                                             int                  len)
 {
-    unsigned char param[S390X_SIZE_PARAM];
-    int ok = 0;
-    BIGNUM *k;
-    ECDSA_SIG *sig;
+    unsigned char   param[S390X_SIZE_PARAM];
+    int             ok = 0;
+    BIGNUM         *k;
+    ECDSA_SIG      *sig;
     const EC_GROUP *group;
-    const BIGNUM *privkey;
-    BN_CTX *bn_ctx = NULL;
-    int off;
+    const BIGNUM   *privkey;
+    BN_CTX         *bn_ctx = NULL;
+    int             off;
 
-    group = EC_KEY_get0_group(eckey);
+    group   = EC_KEY_get0_group(eckey);
     privkey = EC_KEY_get0_private_key(eckey);
     if (group == NULL || privkey == NULL) {
         ERR_raise(ERR_LIB_EC, EC_R_MISSING_PARAMETERS);
@@ -150,7 +149,7 @@ static ECDSA_SIG *ecdsa_s390x_nistp_sign_sig(const unsigned char *dgst,
         return NULL;
     }
 
-    k = BN_secure_new();
+    k   = BN_secure_new();
     sig = ECDSA_SIG_new();
     if (k == NULL || sig == NULL) {
         ERR_raise(ERR_LIB_EC, ERR_R_ECDSA_LIB);
@@ -184,11 +183,10 @@ static ECDSA_SIG *ecdsa_s390x_nistp_sign_sig(const unsigned char *dgst,
          * because kdsa instruction constructs an in-range, invertible nonce
          * internally implementing counter-measures for RNG weakness.
          */
-         if (RAND_priv_bytes_ex(eckey->libctx, param + S390X_OFF_RN(len),
-                                (size_t)len, 0) != 1) {
-             ERR_raise(ERR_LIB_EC, EC_R_RANDOM_NUMBER_GENERATION_FAILED);
-             goto ret;
-         }
+        if (RAND_priv_bytes_ex(eckey->libctx, param + S390X_OFF_RN(len), (size_t)len, 0) != 1) {
+            ERR_raise(ERR_LIB_EC, EC_R_RANDOM_NUMBER_GENERATION_FAILED);
+            goto ret;
+        }
     } else {
         bn_ctx = BN_CTX_secure_new_ex(ossl_ec_key_get_libctx(eckey));
         if (bn_ctx == NULL)
@@ -227,19 +225,22 @@ ret:
     return sig;
 }
 
-static int ecdsa_s390x_nistp_verify_sig(const unsigned char *dgst, int dgstlen,
-                                        const ECDSA_SIG *sig, EC_KEY *eckey,
-                                        unsigned int fc, int len)
+static int ecdsa_s390x_nistp_verify_sig(const unsigned char *dgst,
+                                        int                  dgstlen,
+                                        const ECDSA_SIG     *sig,
+                                        EC_KEY              *eckey,
+                                        unsigned int         fc,
+                                        int                  len)
 {
-    unsigned char param[S390X_SIZE_PARAM];
-    int rc = -1;
-    BN_CTX *ctx;
-    BIGNUM *x, *y;
+    unsigned char   param[S390X_SIZE_PARAM];
+    int             rc = -1;
+    BN_CTX         *ctx;
+    BIGNUM         *x, *y;
     const EC_GROUP *group;
     const EC_POINT *pubkey;
-    int off;
+    int             off;
 
-    group = EC_KEY_get0_group(eckey);
+    group  = EC_KEY_get0_group(eckey);
     pubkey = EC_KEY_get0_public_key(eckey);
     if (eckey == NULL || group == NULL || pubkey == NULL || sig == NULL) {
         ERR_raise(ERR_LIB_EC, EC_R_MISSING_PARAMETERS);
@@ -270,8 +271,7 @@ static int ecdsa_s390x_nistp_verify_sig(const unsigned char *dgst, int dgstlen,
     off = len - (dgstlen > len ? len : dgstlen);
     memcpy(param + S390X_OFF_H(len) + off, dgst, len - off);
 
-    if (group->meth->point_get_affine_coordinates(group, pubkey,
-                                                  x, y, ctx) != 1
+    if (group->meth->point_get_affine_coordinates(group, pubkey, x, y, ctx) != 1
         || BN_bn2binpad(sig->r, param + S390X_OFF_R(len), len) == -1
         || BN_bn2binpad(sig->s, param + S390X_OFF_S(len), len) == -1
         || BN_bn2binpad(x, param + S390X_OFF_X(len), len) == -1

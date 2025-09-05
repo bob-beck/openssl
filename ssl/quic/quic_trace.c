@@ -80,42 +80,38 @@ static void put_token(BIO *bio, const uint8_t *token, size_t token_len)
 
 static int frame_ack(BIO *bio, PACKET *pkt)
 {
-    OSSL_QUIC_FRAME_ACK ack;
-    OSSL_QUIC_ACK_RANGE *ack_ranges = NULL;
-    uint64_t total_ranges = 0;
-    uint64_t i;
-    int ret = 0;
+    OSSL_QUIC_FRAME_ACK  ack;
+    OSSL_QUIC_ACK_RANGE *ack_ranges   = NULL;
+    uint64_t             total_ranges = 0;
+    uint64_t             i;
+    int                  ret = 0;
 
     if (!ossl_quic_wire_peek_frame_ack_num_ranges(pkt, &total_ranges)
         /* In case sizeof(uint64_t) > sizeof(size_t) */
         || total_ranges > SIZE_MAX / sizeof(ack_ranges[0])
-        || (ack_ranges = OPENSSL_zalloc(sizeof(ack_ranges[0])
-                                        * (size_t)total_ranges)) == NULL)
+        || (ack_ranges = OPENSSL_zalloc(sizeof(ack_ranges[0]) * (size_t)total_ranges)) == NULL)
         return ret;
 
-    ack.ack_ranges = ack_ranges;
+    ack.ack_ranges     = ack_ranges;
     ack.num_ack_ranges = (size_t)total_ranges;
 
     /* Ack delay exponent is 0, so we can get the raw delay time below */
     if (!ossl_quic_wire_decode_frame_ack(pkt, 0, &ack, NULL))
         goto end;
 
-    BIO_printf(bio, "    Largest acked: %llu\n",
-               (unsigned long long)ack.ack_ranges[0].end);
-    BIO_printf(bio, "    Ack delay (raw) %llu\n",
-               (unsigned long long)ossl_time2ticks(ack.delay_time));
-    BIO_printf(bio, "    Ack range count: %llu\n",
-               (unsigned long long)total_ranges - 1);
-    BIO_printf(bio, "    First ack range: %llu\n",
-               (unsigned long long)(ack.ack_ranges[0].end
-                                    - ack.ack_ranges[0].start));
+    BIO_printf(bio, "    Largest acked: %llu\n", (unsigned long long)ack.ack_ranges[0].end);
+    BIO_printf(bio, "    Ack delay (raw) %llu\n", (unsigned long long)ossl_time2ticks(ack.delay_time));
+    BIO_printf(bio, "    Ack range count: %llu\n", (unsigned long long)total_ranges - 1);
+    BIO_printf(bio,
+               "    First ack range: %llu\n",
+               (unsigned long long)(ack.ack_ranges[0].end - ack.ack_ranges[0].start));
     for (i = 1; i < total_ranges; i++) {
-        BIO_printf(bio, "    Gap: %llu\n",
-                   (unsigned long long)(ack.ack_ranges[i - 1].start
-                                        - ack.ack_ranges[i].end - 2));
-        BIO_printf(bio, "    Ack range len: %llu\n",
-                   (unsigned long long)(ack.ack_ranges[i].end
-                                        - ack.ack_ranges[i].start));
+        BIO_printf(bio,
+                   "    Gap: %llu\n",
+                   (unsigned long long)(ack.ack_ranges[i - 1].start - ack.ack_ranges[i].end - 2));
+        BIO_printf(bio,
+                   "    Ack range len: %llu\n",
+                   (unsigned long long)(ack.ack_ranges[i].end - ack.ack_ranges[i].start));
     }
 
     ret = 1;
@@ -131,12 +127,9 @@ static int frame_reset_stream(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_reset_stream(pkt, &frame_data))
         return 0;
 
-    BIO_printf(bio, "    Stream id: %llu\n",
-               (unsigned long long)frame_data.stream_id);
-    BIO_printf(bio, "    App Protocol Error Code: %llu\n",
-               (unsigned long long)frame_data.app_error_code);
-    BIO_printf(bio, "    Final size: %llu\n",
-               (unsigned long long)frame_data.final_size);
+    BIO_printf(bio, "    Stream id: %llu\n", (unsigned long long)frame_data.stream_id);
+    BIO_printf(bio, "    App Protocol Error Code: %llu\n", (unsigned long long)frame_data.app_error_code);
+    BIO_printf(bio, "    Final size: %llu\n", (unsigned long long)frame_data.final_size);
 
     return 1;
 }
@@ -148,10 +141,8 @@ static int frame_stop_sending(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_stop_sending(pkt, &frame_data))
         return 0;
 
-    BIO_printf(bio, "    Stream id: %llu\n",
-               (unsigned long long)frame_data.stream_id);
-    BIO_printf(bio, "    App Protocol Error Code: %llu\n",
-               (unsigned long long)frame_data.app_error_code);
+    BIO_printf(bio, "    Stream id: %llu\n", (unsigned long long)frame_data.stream_id);
+    BIO_printf(bio, "    App Protocol Error Code: %llu\n", (unsigned long long)frame_data.app_error_code);
 
     return 1;
 }
@@ -172,7 +163,7 @@ static int frame_crypto(BIO *bio, PACKET *pkt)
 static int frame_new_token(BIO *bio, PACKET *pkt)
 {
     const uint8_t *token;
-    size_t token_len;
+    size_t         token_len;
 
     if (!ossl_quic_wire_decode_frame_new_token(pkt, &token, &token_len))
         return 0;
@@ -186,11 +177,10 @@ static int frame_new_token(BIO *bio, PACKET *pkt)
 
 static int frame_stream(BIO *bio, PACKET *pkt, uint64_t frame_type)
 {
-
     OSSL_QUIC_FRAME_STREAM frame_data;
 
     BIO_puts(bio, "Stream");
-    switch(frame_type) {
+    switch (frame_type) {
     case OSSL_QUIC_FRAME_TYPE_STREAM:
         BIO_puts(bio, "\n");
         break;
@@ -230,10 +220,8 @@ static int frame_stream(BIO *bio, PACKET *pkt, uint64_t frame_type)
     if (!ossl_quic_wire_decode_frame_stream(pkt, 1, &frame_data))
         return 0;
 
-    BIO_printf(bio, "    Stream id: %llu\n",
-               (unsigned long long)frame_data.stream_id);
-    BIO_printf(bio, "    Offset: %llu\n",
-               (unsigned long long)frame_data.offset);
+    BIO_printf(bio, "    Stream id: %llu\n", (unsigned long long)frame_data.stream_id);
+    BIO_printf(bio, "    Offset: %llu\n", (unsigned long long)frame_data.offset);
     /*
      * It would be nice to find a way of passing the implicit length through
      * to the msg_callback. But this is not currently possible.
@@ -260,15 +248,13 @@ static int frame_max_data(BIO *bio, PACKET *pkt)
 
 static int frame_max_stream_data(BIO *bio, PACKET *pkt)
 {
-    uint64_t stream_id = 0;
+    uint64_t stream_id       = 0;
     uint64_t max_stream_data = 0;
 
-    if (!ossl_quic_wire_decode_frame_max_stream_data(pkt, &stream_id,
-                                                     &max_stream_data))
+    if (!ossl_quic_wire_decode_frame_max_stream_data(pkt, &stream_id, &max_stream_data))
         return 0;
 
-    BIO_printf(bio, "    Max Stream Data: %llu\n",
-               (unsigned long long)max_stream_data);
+    BIO_printf(bio, "    Max Stream Data: %llu\n", (unsigned long long)max_stream_data);
 
     return 1;
 }
@@ -300,10 +286,9 @@ static int frame_data_blocked(BIO *bio, PACKET *pkt)
 static int frame_stream_data_blocked(BIO *bio, PACKET *pkt)
 {
     uint64_t stream_id = 0;
-    uint64_t max_data = 0;
+    uint64_t max_data  = 0;
 
-    if (!ossl_quic_wire_decode_frame_stream_data_blocked(pkt, &stream_id,
-                                                         &max_data))
+    if (!ossl_quic_wire_decode_frame_stream_data_blocked(pkt, &stream_id, &max_data))
         return 0;
 
     BIO_printf(bio, "    Stream id: %llu\n", (unsigned long long)stream_id);
@@ -331,15 +316,12 @@ static int frame_new_conn_id(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_new_conn_id(pkt, &frame_data))
         return 0;
 
-    BIO_printf(bio, "    Sequence Number: %llu\n",
-               (unsigned long long)frame_data.seq_num);
-    BIO_printf(bio, "    Retire prior to: %llu\n",
-               (unsigned long long)frame_data.retire_prior_to);
+    BIO_printf(bio, "    Sequence Number: %llu\n", (unsigned long long)frame_data.seq_num);
+    BIO_printf(bio, "    Retire prior to: %llu\n", (unsigned long long)frame_data.retire_prior_to);
     BIO_puts(bio, "    Connection id: ");
     put_conn_id(bio, &frame_data.conn_id);
     BIO_puts(bio, "\n    Stateless Reset Token: ");
-    put_data(bio, frame_data.stateless_reset.token,
-             sizeof(frame_data.stateless_reset.token));
+    put_data(bio, frame_data.stateless_reset.token, sizeof(frame_data.stateless_reset.token));
     BIO_puts(bio, "\n");
 
     return 1;
@@ -388,8 +370,7 @@ static int frame_conn_closed(BIO *bio, PACKET *pkt)
     if (!ossl_quic_wire_decode_frame_conn_close(pkt, &frame_data))
         return 0;
 
-    BIO_printf(bio, "    Error Code: %llu\n",
-               (unsigned long long)frame_data.error_code);
+    BIO_printf(bio, "    Error Code: %llu\n", (unsigned long long)frame_data.error_code);
     BIO_puts(bio, "    Reason: ");
     put_str(bio, frame_data.reason, frame_data.reason_len);
     BIO_puts(bio, "\n");
@@ -561,12 +542,11 @@ static int trace_frame_data(BIO *bio, PACKET *pkt)
     return 1;
 }
 
-int ossl_quic_trace(int write_p, int version, int content_type,
-                    const void *buf, size_t msglen, SSL *ssl, void *arg)
+int ossl_quic_trace(int write_p, int version, int content_type, const void *buf, size_t msglen, SSL *ssl, void *arg)
 {
-    BIO *bio = arg;
-    PACKET pkt;
-    size_t id_len = 0;
+    BIO          *bio = arg;
+    PACKET        pkt;
+    size_t        id_len = 0;
     QUIC_CHANNEL *ch;
 
     switch (content_type) {
@@ -580,66 +560,60 @@ int ossl_quic_trace(int write_p, int version, int content_type,
         BIO_printf(bio, " Datagram\n  Length: %zu\n", msglen);
         break;
 
-    case SSL3_RT_QUIC_PACKET:
-        {
-            QUIC_PKT_HDR hdr;
-            size_t i;
+    case SSL3_RT_QUIC_PACKET: {
+        QUIC_PKT_HDR hdr;
+        size_t       i;
 
-            if (!PACKET_buf_init(&pkt, buf, msglen))
-                return 0;
-            /* Decode the packet header */
-            ch = ossl_quic_conn_get_channel(ssl);
-            id_len = ossl_quic_channel_get_short_header_conn_id_len(ch);
-            if (ossl_quic_wire_decode_pkt_hdr(&pkt, id_len, 0, 1, &hdr, NULL,
-                                              NULL) != 1)
-                return 0;
+        if (!PACKET_buf_init(&pkt, buf, msglen))
+            return 0;
+        /* Decode the packet header */
+        ch     = ossl_quic_conn_get_channel(ssl);
+        id_len = ossl_quic_channel_get_short_header_conn_id_len(ch);
+        if (ossl_quic_wire_decode_pkt_hdr(&pkt, id_len, 0, 1, &hdr, NULL, NULL) != 1)
+            return 0;
 
-            BIO_puts(bio, write_p ? "Sent" : "Received");
-            BIO_puts(bio, " Packet\n");
-            BIO_printf(bio, "  Packet Type: %s\n", packet_type(hdr.type));
-            if (hdr.type != QUIC_PKT_TYPE_1RTT)
-                BIO_printf(bio, "  Version: 0x%08lx\n",
-                           (unsigned long)hdr.version);
-            BIO_puts(bio, "  Destination Conn Id: ");
-            put_conn_id(bio, &hdr.dst_conn_id);
+        BIO_puts(bio, write_p ? "Sent" : "Received");
+        BIO_puts(bio, " Packet\n");
+        BIO_printf(bio, "  Packet Type: %s\n", packet_type(hdr.type));
+        if (hdr.type != QUIC_PKT_TYPE_1RTT)
+            BIO_printf(bio, "  Version: 0x%08lx\n", (unsigned long)hdr.version);
+        BIO_puts(bio, "  Destination Conn Id: ");
+        put_conn_id(bio, &hdr.dst_conn_id);
+        BIO_puts(bio, "\n");
+        if (hdr.type != QUIC_PKT_TYPE_1RTT) {
+            BIO_puts(bio, "  Source Conn Id: ");
+            put_conn_id(bio, &hdr.src_conn_id);
             BIO_puts(bio, "\n");
-            if (hdr.type != QUIC_PKT_TYPE_1RTT) {
-                BIO_puts(bio, "  Source Conn Id: ");
-                put_conn_id(bio, &hdr.src_conn_id);
-                BIO_puts(bio, "\n");
-            }
-            BIO_printf(bio, "  Payload length: %zu\n", hdr.len);
-            if (hdr.type == QUIC_PKT_TYPE_INITIAL) {
-                BIO_puts(bio, "  Token: ");
-                put_token(bio, hdr.token, hdr.token_len);
-                BIO_puts(bio, "\n");
-            }
-            if (hdr.type != QUIC_PKT_TYPE_VERSION_NEG
-                    && hdr.type != QUIC_PKT_TYPE_RETRY) {
-                BIO_puts(bio, "  Packet Number: 0x");
-                /* Will always be at least 1 byte */
-                for (i = 0; i < hdr.pn_len; i++)
-                    BIO_printf(bio, "%02x", hdr.pn[i]);
-                BIO_puts(bio, "\n");
-            }
-            break;
         }
+        BIO_printf(bio, "  Payload length: %zu\n", hdr.len);
+        if (hdr.type == QUIC_PKT_TYPE_INITIAL) {
+            BIO_puts(bio, "  Token: ");
+            put_token(bio, hdr.token, hdr.token_len);
+            BIO_puts(bio, "\n");
+        }
+        if (hdr.type != QUIC_PKT_TYPE_VERSION_NEG && hdr.type != QUIC_PKT_TYPE_RETRY) {
+            BIO_puts(bio, "  Packet Number: 0x");
+            /* Will always be at least 1 byte */
+            for (i = 0; i < hdr.pn_len; i++)
+                BIO_printf(bio, "%02x", hdr.pn[i]);
+            BIO_puts(bio, "\n");
+        }
+        break;
+    }
 
     case SSL3_RT_QUIC_FRAME_PADDING:
     case SSL3_RT_QUIC_FRAME_FULL:
-    case SSL3_RT_QUIC_FRAME_HEADER:
-        {
-            BIO_puts(bio, write_p ? "Sent" : "Received");
-            BIO_puts(bio, " Frame: ");
+    case SSL3_RT_QUIC_FRAME_HEADER: {
+        BIO_puts(bio, write_p ? "Sent" : "Received");
+        BIO_puts(bio, " Frame: ");
 
-            if (!PACKET_buf_init(&pkt, buf, msglen))
-                return 0;
-            if (!trace_frame_data(bio, &pkt)) {
-                BIO_puts(bio, "  <error processing frame data>\n");
-                return 0;
-            }
+        if (!PACKET_buf_init(&pkt, buf, msglen))
+            return 0;
+        if (!trace_frame_data(bio, &pkt)) {
+            BIO_puts(bio, "  <error processing frame data>\n");
+            return 0;
         }
-        break;
+    } break;
 
     default:
         /* Unrecognised content_type. We defer to SSL_trace */

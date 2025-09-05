@@ -73,7 +73,7 @@ static void print_escaped_value(BIO *out, const char *value)
 static void print_section(BIO *out, const CONF *cnf, OPENSSL_CSTRING section_name)
 {
     STACK_OF(CONF_VALUE) *values = NCONF_get_section(cnf, section_name);
-    int idx;
+    int                   idx;
 
     for (idx = 0; idx < sk_CONF_VALUE_num(values); idx++) {
         CONF_VALUE *value = sk_CONF_VALUE_value(values, idx);
@@ -84,12 +84,7 @@ static void print_section(BIO *out, const CONF *cnf, OPENSSL_CSTRING section_nam
     }
 }
 
-typedef enum OPTION_choice {
-    OPT_COMMON,
-    OPT_OUT,
-    OPT_NOHEADER,
-    OPT_CONFIG
-} OPTION_CHOICE;
+typedef enum OPTION_choice { OPT_COMMON, OPT_OUT, OPT_NOHEADER, OPT_CONFIG } OPTION_CHOICE;
 
 const OPTIONS configutl_options[] = {
     OPT_SECTION("General"),
@@ -108,18 +103,18 @@ const OPTIONS configutl_options[] = {
  */
 int configutl_main(int argc, char *argv[])
 {
-    int ret = 1;
-    char *prog, *configfile = NULL;
-    OPTION_CHOICE o;
-    CONF *cnf = NULL;
-    long eline = 0;
-    int default_section_idx, idx;
-    int no_header = 0;
-    STACK_OF(OPENSSL_CSTRING) *sections = NULL;
-    BIO *out = NULL;
-    const char *outfile = NULL;
+    int                        ret = 1;
+    char                      *prog, *configfile = NULL;
+    OPTION_CHOICE              o;
+    CONF                      *cnf   = NULL;
+    long                       eline = 0;
+    int                        default_section_idx, idx;
+    int                        no_header = 0;
+    STACK_OF(OPENSSL_CSTRING) *sections  = NULL;
+    BIO                       *out       = NULL;
+    const char                *outfile   = NULL;
 
-    prog = opt_init(argc, argv, configutl_options);
+    prog                                 = opt_init(argc, argv, configutl_options);
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_HELP:
@@ -173,8 +168,7 @@ int configutl_main(int argc, char *argv[])
         goto end;
 
     if (no_header == 0)
-        BIO_printf(out, "# This configuration file was linearized and expanded from %s\n",
-                   configfile);
+        BIO_printf(out, "# This configuration file was linearized and expanded from %s\n", configfile);
 
     default_section_idx = sk_OPENSSL_CSTRING_find(sections, "default");
     if (default_section_idx != -1)

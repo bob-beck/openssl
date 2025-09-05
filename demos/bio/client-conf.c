@@ -14,20 +14,20 @@
 
 int main(int argc, char **argv)
 {
-    BIO *sbio = NULL, *out = NULL;
-    int i, len, rv;
-    char tmpbuf[1024];
-    SSL_CTX *ctx = NULL;
-    SSL_CONF_CTX *cctx = NULL;
-    SSL *ssl = NULL;
-    CONF *conf = NULL;
+    BIO                  *sbio = NULL, *out = NULL;
+    int                   i, len, rv;
+    char                  tmpbuf[1024];
+    SSL_CTX              *ctx  = NULL;
+    SSL_CONF_CTX         *cctx = NULL;
+    SSL                  *ssl  = NULL;
+    CONF                 *conf = NULL;
     STACK_OF(CONF_VALUE) *sect = NULL;
-    CONF_VALUE *cnf;
-    const char *connect_str = "localhost:4433";
-    long errline = -1;
-    int ret = EXIT_FAILURE;
+    CONF_VALUE           *cnf;
+    const char           *connect_str = "localhost:4433";
+    long                  errline     = -1;
+    int                   ret         = EXIT_FAILURE;
 
-    conf = NCONF_new(NULL);
+    conf                              = NCONF_new(NULL);
 
     if (NCONF_load(conf, "connect.cnf", &errline) <= 0) {
         if (errline <= 0)
@@ -44,19 +44,18 @@ int main(int argc, char **argv)
         goto end;
     }
 
-    ctx = SSL_CTX_new(TLS_client_method());
+    ctx  = SSL_CTX_new(TLS_client_method());
     cctx = SSL_CONF_CTX_new();
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_CLIENT);
     SSL_CONF_CTX_set_flags(cctx, SSL_CONF_FLAG_FILE);
     SSL_CONF_CTX_set_ssl_ctx(cctx, ctx);
     for (i = 0; i < sk_CONF_VALUE_num(sect); i++) {
         cnf = sk_CONF_VALUE_value(sect, i);
-        rv = SSL_CONF_cmd(cctx, cnf->name, cnf->value);
+        rv  = SSL_CONF_cmd(cctx, cnf->name, cnf->value);
         if (rv > 0)
             continue;
         if (rv != -2) {
-            fprintf(stderr, "Error processing %s = %s\n",
-                    cnf->name, cnf->value);
+            fprintf(stderr, "Error processing %s = %s\n", cnf->name, cnf->value);
             ERR_print_errors_fp(stderr);
             goto end;
         }
@@ -111,7 +110,7 @@ int main(int argc, char **argv)
     }
     ret = EXIT_SUCCESS;
 
- end:
+end:
     SSL_CONF_CTX_free(cctx);
     BIO_free_all(sbio);
     BIO_free(out);

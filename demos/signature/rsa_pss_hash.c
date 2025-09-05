@@ -18,11 +18,10 @@
 #include "rsa_pss.h"
 
 /* The data to be signed. This will be hashed. */
-static const char test_message[] =
-    "This is an example message to be signed.";
+static const char  test_message[] = "This is an example message to be signed.";
 
 /* A property query used for selecting algorithm implementations. */
-static const char *propq = NULL;
+static const char *propq          = NULL;
 
 /*
  * This function demonstrates RSA signing of an arbitrary-length message.
@@ -30,20 +29,19 @@ static const char *propq = NULL;
  * have already hashed your message and simply want to sign the hash directly,
  * see rsa_pss_direct.c.
  */
-static int sign(OSSL_LIB_CTX *libctx, unsigned char **sig, size_t *sig_len)
+static int         sign(OSSL_LIB_CTX *libctx, unsigned char **sig, size_t *sig_len)
 {
-    int ret = 0;
-    EVP_PKEY *pkey = NULL;
-    EVP_MD_CTX *mctx = NULL;
-    OSSL_PARAM params[2], *p = params;
+    int                  ret  = 0;
+    EVP_PKEY            *pkey = NULL;
+    EVP_MD_CTX          *mctx = NULL;
+    OSSL_PARAM           params[2], *p = params;
     const unsigned char *ppriv_key = NULL;
 
-    *sig = NULL;
+    *sig                           = NULL;
 
     /* Load DER-encoded RSA private key. */
-    ppriv_key = rsa_priv_key;
-    pkey = d2i_PrivateKey_ex(EVP_PKEY_RSA, NULL, &ppriv_key,
-                             sizeof(rsa_priv_key), libctx, propq);
+    ppriv_key                      = rsa_priv_key;
+    pkey = d2i_PrivateKey_ex(EVP_PKEY_RSA, NULL, &ppriv_key, sizeof(rsa_priv_key), libctx, propq);
     if (pkey == NULL) {
         fprintf(stderr, "Failed to load private key\n");
         goto end;
@@ -57,12 +55,10 @@ static int sign(OSSL_LIB_CTX *libctx, unsigned char **sig, size_t *sig_len)
     }
 
     /* Initialize MD context for signing. */
-    *p++ = OSSL_PARAM_construct_utf8_string(OSSL_SIGNATURE_PARAM_PAD_MODE,
-                                            OSSL_PKEY_RSA_PAD_MODE_PSS, 0);
-    *p = OSSL_PARAM_construct_end();
+    *p++ = OSSL_PARAM_construct_utf8_string(OSSL_SIGNATURE_PARAM_PAD_MODE, OSSL_PKEY_RSA_PAD_MODE_PSS, 0);
+    *p   = OSSL_PARAM_construct_end();
 
-    if (EVP_DigestSignInit_ex(mctx, NULL, "SHA256", libctx, propq,
-                              pkey, params) == 0) {
+    if (EVP_DigestSignInit_ex(mctx, NULL, "SHA256", libctx, propq, pkey, params) == 0) {
         fprintf(stderr, "Failed to initialize signing context\n");
         goto end;
     }
@@ -113,15 +109,15 @@ end:
  */
 static int verify(OSSL_LIB_CTX *libctx, const unsigned char *sig, size_t sig_len)
 {
-    int ret = 0;
-    EVP_PKEY *pkey = NULL;
-    EVP_MD_CTX *mctx = NULL;
-    OSSL_PARAM params[2], *p = params;
+    int                  ret  = 0;
+    EVP_PKEY            *pkey = NULL;
+    EVP_MD_CTX          *mctx = NULL;
+    OSSL_PARAM           params[2], *p = params;
     const unsigned char *ppub_key = NULL;
 
     /* Load DER-encoded RSA public key. */
-    ppub_key = rsa_pub_key;
-    pkey = d2i_PublicKey(EVP_PKEY_RSA, NULL, &ppub_key, sizeof(rsa_pub_key));
+    ppub_key                      = rsa_pub_key;
+    pkey                          = d2i_PublicKey(EVP_PKEY_RSA, NULL, &ppub_key, sizeof(rsa_pub_key));
     if (pkey == NULL) {
         fprintf(stderr, "Failed to load public key\n");
         goto end;
@@ -135,12 +131,10 @@ static int verify(OSSL_LIB_CTX *libctx, const unsigned char *sig, size_t sig_len
     }
 
     /* Initialize MD context for verification. */
-    *p++ = OSSL_PARAM_construct_utf8_string(OSSL_SIGNATURE_PARAM_PAD_MODE,
-                                            OSSL_PKEY_RSA_PAD_MODE_PSS, 0);
-    *p = OSSL_PARAM_construct_end();
+    *p++ = OSSL_PARAM_construct_utf8_string(OSSL_SIGNATURE_PARAM_PAD_MODE, OSSL_PKEY_RSA_PAD_MODE_PSS, 0);
+    *p   = OSSL_PARAM_construct_end();
 
-    if (EVP_DigestVerifyInit_ex(mctx, NULL, "SHA256", libctx, propq,
-                                pkey, params) == 0) {
+    if (EVP_DigestVerifyInit_ex(mctx, NULL, "SHA256", libctx, propq, pkey, params) == 0) {
         fprintf(stderr, "Failed to initialize signing context\n");
         goto end;
     }
@@ -156,7 +150,8 @@ static int verify(OSSL_LIB_CTX *libctx, const unsigned char *sig, size_t sig_len
 
     /* Verify signature. */
     if (EVP_DigestVerifyFinal(mctx, sig, sig_len) == 0) {
-        fprintf(stderr, "Failed to verify signature; "
+        fprintf(stderr,
+                "Failed to verify signature; "
                 "signature may be invalid\n");
         goto end;
     }
@@ -170,10 +165,10 @@ end:
 
 int main(int argc, char **argv)
 {
-    int ret = EXIT_FAILURE;
-    OSSL_LIB_CTX *libctx = NULL;
-    unsigned char *sig = NULL;
-    size_t sig_len = 0;
+    int            ret     = EXIT_FAILURE;
+    OSSL_LIB_CTX  *libctx  = NULL;
+    unsigned char *sig     = NULL;
+    size_t         sig_len = 0;
 
     if (sign(libctx, &sig, &sig_len) == 0)
         goto end;

@@ -35,14 +35,14 @@ OSSL_SAFE_MATH_UNSIGNED(size_t, size_t)
  */
 
 struct pq_heap_st {
-    void *data;     /* User supplied data pointer */
-    size_t index;   /* Constant index in elements[] */
+    void  *data;  /* User supplied data pointer */
+    size_t index; /* Constant index in elements[] */
 };
 
 struct pq_elem_st {
-    size_t posn;    /* Current index in heap[] or link in free list */
+    size_t posn; /* Current index in heap[] or link in free list */
 #ifndef NDEBUG
-    int used;       /* Debug flag indicating that this is in use */
+    int used; /* Debug flag indicating that this is in use */
 #endif
 };
 
@@ -50,9 +50,9 @@ struct ossl_pqueue_st {
     struct pq_heap_st *heap;
     struct pq_elem_st *elements;
     int (*compare)(const void *, const void *);
-    size_t htop;        /* Highest used heap element */
-    size_t hmax;        /* Allocated heap & element space */
-    size_t freelist;    /* Index into elements[], start of free element list */
+    size_t htop;     /* Highest used heap element */
+    size_t hmax;     /* Allocated heap & element space */
+    size_t freelist; /* Index into elements[], start of free element list */
 };
 
 /*
@@ -60,8 +60,8 @@ struct ossl_pqueue_st {
  */
 static const size_t min_nodes = 8;
 static const size_t max_nodes =
-        SIZE_MAX / (sizeof(struct pq_heap_st) > sizeof(struct pq_elem_st)
-                    ? sizeof(struct pq_heap_st) : sizeof(struct pq_elem_st));
+    SIZE_MAX
+    / (sizeof(struct pq_heap_st) > sizeof(struct pq_elem_st) ? sizeof(struct pq_heap_st) : sizeof(struct pq_elem_st));
 
 #ifndef NDEBUG
 /* Some basic sanity checking of the data structure */
@@ -110,9 +110,9 @@ static ossl_inline void pqueue_swap_elem(OSSL_PQUEUE *pq, size_t i, size_t j)
     ASSERT_USED(pq, i);
     ASSERT_USED(pq, j);
 
-    t_h = h[i];
-    h[i] = h[j];
-    h[j] = t_h;
+    t_h                = h[i];
+    h[i]               = h[j];
+    h[j]               = t_h;
 
     e[h[i].index].posn = i;
     e[h[j].index].posn = j;
@@ -125,7 +125,7 @@ static ossl_inline void pqueue_move_elem(OSSL_PQUEUE *pq, size_t from, size_t to
 
     ASSERT_USED(pq, from);
 
-    h[to] = h[from];
+    h[to]               = h[from];
     e[h[to].index].posn = to;
 }
 
@@ -172,7 +172,7 @@ static ossl_inline void pqueue_move_down(OSSL_PQUEUE *pq, size_t n)
 static ossl_inline void pqueue_move_up(OSSL_PQUEUE *pq, size_t n)
 {
     struct pq_heap_st *h = pq->heap;
-    size_t p = n * 2 + 1;
+    size_t             p = n * 2 + 1;
 
     ASSERT_USED(pq, n);
     if (pq->htop > p + 1) {
@@ -201,12 +201,12 @@ int ossl_pqueue_push(OSSL_PQUEUE *pq, void *data, size_t *elem)
     if (!ossl_pqueue_reserve(pq, 1))
         return 0;
 
-    n = pq->htop++;
-    m = pq->freelist;
-    pq->freelist = pq->elements[m].posn;
+    n                    = pq->htop++;
+    m                    = pq->freelist;
+    pq->freelist         = pq->elements[m].posn;
 
-    pq->heap[n].data = data;
-    pq->heap[n].index = m;
+    pq->heap[n].data     = data;
+    pq->heap[n].index    = m;
 
     pq->elements[m].posn = n;
 #ifndef NDEBUG
@@ -229,14 +229,14 @@ void *ossl_pqueue_peek(const OSSL_PQUEUE *pq)
 
 void *ossl_pqueue_pop(OSSL_PQUEUE *pq)
 {
-    void *res;
+    void  *res;
     size_t elem;
 
     if (pq == NULL || pq->htop == 0)
         return NULL;
 
     ASSERT_USED(pq, 0);
-    res = pq->heap->data;
+    res  = pq->heap->data;
     elem = pq->heap->index;
 
     if (--pq->htop != 0) {
@@ -245,7 +245,7 @@ void *ossl_pqueue_pop(OSSL_PQUEUE *pq)
     }
 
     pq->elements[elem].posn = pq->freelist;
-    pq->freelist = elem;
+    pq->freelist            = elem;
 #ifndef NDEBUG
     pq->elements[elem].used = 0;
 #endif
@@ -266,7 +266,7 @@ void *ossl_pqueue_remove(OSSL_PQUEUE *pq, size_t elem)
 
     if (n == pq->htop - 1) {
         pq->elements[elem].posn = pq->freelist;
-        pq->freelist = elem;
+        pq->freelist            = elem;
 #ifndef NDEBUG
         pq->elements[elem].used = 0;
 #endif
@@ -280,7 +280,7 @@ void *ossl_pqueue_remove(OSSL_PQUEUE *pq, size_t elem)
 static void pqueue_add_freelist(OSSL_PQUEUE *pq, size_t from)
 {
     struct pq_elem_st *e = pq->elements;
-    size_t i;
+    size_t             i;
 
 #ifndef NDEBUG
     for (i = from; i < pq->hmax; i++)
@@ -294,7 +294,7 @@ static void pqueue_add_freelist(OSSL_PQUEUE *pq, size_t from)
 
 int ossl_pqueue_reserve(OSSL_PQUEUE *pq, size_t n)
 {
-    size_t new_max, cur_max;
+    size_t             new_max, cur_max;
     struct pq_heap_st *h;
     struct pq_elem_st *e;
 
@@ -315,12 +315,12 @@ int ossl_pqueue_reserve(OSSL_PQUEUE *pq, size_t n)
         return 0;
     pq->heap = h;
 
-    e = OPENSSL_realloc_array(pq->elements, new_max, sizeof(*pq->elements));
+    e        = OPENSSL_realloc_array(pq->elements, new_max, sizeof(*pq->elements));
     if (e == NULL)
         return 0;
     pq->elements = e;
 
-    pq->hmax = new_max;
+    pq->hmax     = new_max;
     pqueue_add_freelist(pq, cur_max);
     return 1;
 }
@@ -335,11 +335,11 @@ OSSL_PQUEUE *ossl_pqueue_new(int (*compare)(const void *, const void *))
     pq = OPENSSL_malloc(sizeof(*pq));
     if (pq == NULL)
         return NULL;
-    pq->compare = compare;
-    pq->hmax = min_nodes;
-    pq->htop = 0;
+    pq->compare  = compare;
+    pq->hmax     = min_nodes;
+    pq->htop     = 0;
     pq->freelist = 0;
-    pq->heap = OPENSSL_malloc_array(min_nodes, sizeof(*pq->heap));
+    pq->heap     = OPENSSL_malloc_array(min_nodes, sizeof(*pq->heap));
     pq->elements = OPENSSL_malloc_array(min_nodes, sizeof(*pq->elements));
     if (pq->heap == NULL || pq->elements == NULL) {
         ossl_pqueue_free(pq);

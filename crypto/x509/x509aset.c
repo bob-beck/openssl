@@ -36,9 +36,9 @@ static int replace_gentime(ASN1_STRING **dest, const ASN1_GENERALIZEDTIME *src)
 
 static int replace_dirName(GENERAL_NAMES **names, const X509_NAME *dirName)
 {
-    GENERAL_NAME *gen_name = NULL;
+    GENERAL_NAME           *gen_name  = NULL;
     STACK_OF(GENERAL_NAME) *new_names = NULL;
-    X509_NAME *name_copy;
+    X509_NAME              *name_copy;
 
     if ((name_copy = X509_NAME_dup(dirName)) == NULL) {
         ERR_raise(ERR_LIB_X509, ERR_R_ASN1_LIB);
@@ -75,11 +75,10 @@ err:
 }
 
 int OSSL_OBJECT_DIGEST_INFO_set1_digest(OSSL_OBJECT_DIGEST_INFO *o,
-                                        int digestedObjectType,
-                                        X509_ALGOR *digestAlgorithm,
-                                        ASN1_BIT_STRING *digest)
+                                        int                      digestedObjectType,
+                                        X509_ALGOR              *digestAlgorithm,
+                                        ASN1_BIT_STRING         *digest)
 {
-
     if (ASN1_ENUMERATED_set(&o->digestedObjectType, digestedObjectType) <= 0)
         return 0;
 
@@ -92,20 +91,17 @@ int OSSL_OBJECT_DIGEST_INFO_set1_digest(OSSL_OBJECT_DIGEST_INFO *o,
     return 1;
 }
 
-int OSSL_ISSUER_SERIAL_set1_issuer(OSSL_ISSUER_SERIAL *isss,
-                                   const X509_NAME *issuer)
+int OSSL_ISSUER_SERIAL_set1_issuer(OSSL_ISSUER_SERIAL *isss, const X509_NAME *issuer)
 {
     return replace_dirName(&isss->issuer, issuer);
 }
 
-int OSSL_ISSUER_SERIAL_set1_serial(OSSL_ISSUER_SERIAL *isss,
-                                   const ASN1_INTEGER *serial)
+int OSSL_ISSUER_SERIAL_set1_serial(OSSL_ISSUER_SERIAL *isss, const ASN1_INTEGER *serial)
 {
     return ASN1_STRING_copy(&isss->serial, serial);
 }
 
-int OSSL_ISSUER_SERIAL_set1_issuerUID(OSSL_ISSUER_SERIAL *isss,
-                                      const ASN1_BIT_STRING *uid)
+int OSSL_ISSUER_SERIAL_set1_issuerUID(OSSL_ISSUER_SERIAL *isss, const ASN1_BIT_STRING *uid)
 {
     ASN1_BIT_STRING_free(isss->issuerUID);
     isss->issuerUID = ASN1_STRING_dup(uid);
@@ -127,15 +123,13 @@ void X509_ACERT_set0_holder_entityName(X509_ACERT *x, GENERAL_NAMES *names)
     x->acinfo->holder.entityName = names;
 }
 
-void X509_ACERT_set0_holder_baseCertId(X509_ACERT *x,
-                                       OSSL_ISSUER_SERIAL *isss)
+void X509_ACERT_set0_holder_baseCertId(X509_ACERT *x, OSSL_ISSUER_SERIAL *isss)
 {
     OSSL_ISSUER_SERIAL_free(x->acinfo->holder.baseCertificateID);
     x->acinfo->holder.baseCertificateID = isss;
 }
 
-void X509_ACERT_set0_holder_digest(X509_ACERT *x,
-                                   OSSL_OBJECT_DIGEST_INFO *dinfo)
+void X509_ACERT_set0_holder_digest(X509_ACERT *x, OSSL_OBJECT_DIGEST_INFO *dinfo)
 {
     OSSL_OBJECT_DIGEST_INFO_free(x->acinfo->holder.objectDigestInfo);
     x->acinfo->holder.objectDigestInfo = dinfo;
@@ -155,7 +149,7 @@ int X509_ACERT_set1_issuerName(X509_ACERT *x, const X509_NAME *name)
             return 0;
         }
         x->acinfo->issuer.u.v2Form = v2Form;
-        x->acinfo->issuer.type = X509_ACERT_ISSUER_V2;
+        x->acinfo->issuer.type     = X509_ACERT_ISSUER_V2;
     }
 
     return replace_dirName(&v2Form->issuerName, name);

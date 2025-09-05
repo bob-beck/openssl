@@ -29,6 +29,7 @@ HT_DEF_KEY_FIELD(fuzzkey, uint16_t)
 HT_END_KEY_DEFN(FUZZER_KEY)
 
 #define FZ_FLAG_ALLOCATED (1 << 0)
+
 typedef struct fuzzer_value_st {
     uint64_t flags;
     uint64_t value;
@@ -36,18 +37,18 @@ typedef struct fuzzer_value_st {
 
 IMPLEMENT_HT_VALUE_TYPE_FNS(FUZZER_VALUE, fz, static)
 
-static size_t skipped_values = 0;
-static size_t inserts = 0;
-static size_t replacements = 0;
-static size_t deletes = 0;
-static size_t flushes = 0;
-static size_t lookups = 0;
-static size_t foreaches = 0;
-static size_t filters = 0;
-static int valfound;
+static size_t        skipped_values = 0;
+static size_t        inserts        = 0;
+static size_t        replacements   = 0;
+static size_t        deletes        = 0;
+static size_t        flushes        = 0;
+static size_t        lookups        = 0;
+static size_t        foreaches      = 0;
+static size_t        filters        = 0;
+static int           valfound;
 
 static FUZZER_VALUE *prediction_table = NULL;
-static HT *fuzzer_table = NULL;
+static HT           *fuzzer_table     = NULL;
 
 /*
  * Operational values
@@ -58,7 +59,7 @@ static HT *fuzzer_table = NULL;
 #define OP_FLUSH   3
 #define OP_FOREACH 4
 #define OP_FILTER  5
-#define OP_END     6 
+#define OP_END     6
 
 #define OP_MASK 0x3f
 #define INSERT_REPLACE_MASK 0x40
@@ -67,8 +68,8 @@ static HT *fuzzer_table = NULL;
 
 static int table_iterator(HT_VALUE *v, void *arg)
 {
-    uint16_t keyval = (*(uint16_t *)arg);
-    FUZZER_VALUE *f = ossl_ht_fz_FUZZER_VALUE_from_value(v);
+    uint16_t      keyval = (*(uint16_t *)arg);
+    FUZZER_VALUE *f      = ossl_ht_fz_FUZZER_VALUE_from_value(v);
 
     if (f != NULL && f == &prediction_table[keyval]) {
         valfound = 1;
@@ -80,8 +81,8 @@ static int table_iterator(HT_VALUE *v, void *arg)
 
 static int filter_iterator(HT_VALUE *v, void *arg)
 {
-    uint16_t keyval = (*(uint16_t *)arg);
-    FUZZER_VALUE *f = ossl_ht_fz_FUZZER_VALUE_from_value(v);
+    uint16_t      keyval = (*(uint16_t *)arg);
+    FUZZER_VALUE *f      = ossl_ht_fz_FUZZER_VALUE_from_value(v);
 
     if (f != NULL && f == &prediction_table[keyval])
         return 1;
@@ -117,15 +118,15 @@ int FuzzerInitialize(int *argc, char ***argv)
 
 int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 {
-    uint8_t op_flags;
-    uint16_t keyval;
-    int rc;
-    int rc_prediction = 1;
-    size_t i;
-    FUZZER_VALUE *valptr, *lval;
-    FUZZER_KEY key;
-    HT_VALUE *v = NULL;
-    HT_VALUE tv;
+    uint8_t        op_flags;
+    uint16_t       keyval;
+    int            rc;
+    int            rc_prediction = 1;
+    size_t         i;
+    FUZZER_VALUE  *valptr, *lval;
+    FUZZER_KEY     key;
+    HT_VALUE      *v = NULL;
+    HT_VALUE       tv;
     HT_VALUE_LIST *htvlist;
 
     /*
@@ -152,7 +153,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     /*
      * Now do our operation
      */
-    switch(OPERATION(op_flags)) {
+    switch (OPERATION(op_flags)) {
     case OP_INSERT:
         valptr = &prediction_table[keyval];
 
@@ -182,11 +183,9 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
          * do the insert/replace
          */
         if (IS_REPLACE(op_flags))
-            rc = ossl_ht_fz_FUZZER_VALUE_insert(fuzzer_table, TO_HT_KEY(&key),
-                                                valptr, &lval);
+            rc = ossl_ht_fz_FUZZER_VALUE_insert(fuzzer_table, TO_HT_KEY(&key), valptr, &lval);
         else
-            rc = ossl_ht_fz_FUZZER_VALUE_insert(fuzzer_table, TO_HT_KEY(&key),
-                                                valptr, NULL);
+            rc = ossl_ht_fz_FUZZER_VALUE_insert(fuzzer_table, TO_HT_KEY(&key), valptr, NULL);
 
         if (rc == -1)
             /* failed to grow the hash table due to too many collisions */
@@ -267,7 +266,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 
     case OP_LOOKUP:
         valptr = &prediction_table[keyval];
-        lval = NULL;
+        lval   = NULL;
 
         /* reset our key */
         HT_KEY_RESET(&key);
@@ -324,7 +323,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 
     case OP_FLUSH:
         /*
-         * only flush the table rarely 
+         * only flush the table rarely
          */
         if ((flushes % 100000) != 1) {
             skipped_values++;
@@ -342,7 +341,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         /*
          * now check to make sure everything is free
          */
-       for (i = 0; i < USHRT_MAX; i++)
+        for (i = 0; i < USHRT_MAX; i++)
             OPENSSL_assert((prediction_table[i].flags & FZ_FLAG_ALLOCATED) == 0);
 
         /* good flush */
@@ -350,8 +349,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         break;
 
     case OP_FOREACH:
-        valfound = 0;
-        valptr = &prediction_table[keyval];
+        valfound      = 0;
+        valptr        = &prediction_table[keyval];
 
         rc_prediction = 0;
         if (valptr->flags & FZ_FLAG_ALLOCATED)
@@ -365,7 +364,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         break;
 
     case OP_FILTER:
-        valptr = &prediction_table[keyval];
+        valptr        = &prediction_table[keyval];
 
         rc_prediction = 0;
         if (valptr->flags & FZ_FLAG_ALLOCATED)

@@ -41,7 +41,7 @@ uint64_t OSSL_get_max_threads(OSSL_LIB_CTX *ctx)
 
 uint64_t OSSL_get_max_threads(OSSL_LIB_CTX *ctx)
 {
-    uint64_t ret = 0;
+    uint64_t              ret   = 0;
     OSSL_LIB_CTX_THREADS *tdata = OSSL_LIB_CTX_GET_THREADS(ctx);
 
     if (tdata == NULL)

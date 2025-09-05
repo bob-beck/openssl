@@ -13,9 +13,9 @@
 #include <openssl/safestack.h>
 #include "opt.h"
 
-static BIO *bio_in = NULL;
-static BIO *bio_out = NULL;
-static BIO *bio_err = NULL;
+static BIO   *bio_in  = NULL;
+static BIO   *bio_out = NULL;
+static BIO   *bio_err = NULL;
 
 /*-
  * This program sets up a chain of BIO_f_filter() on top of bio_out, how
@@ -36,32 +36,26 @@ static BIO *bio_err = NULL;
  *  +-------------------------- 3 spaces from filter 0
  */
 
-static size_t amount = 0;
-static BIO **chain = NULL;
+static size_t amount  = 0;
+static BIO  **chain   = NULL;
 
-typedef enum OPTION_choice {
-    OPT_ERR = -1,
-    OPT_EOF = 0,
-    OPT_AMOUNT,
-    OPT_INDENT,
-    OPT_PREFIX
-} OPTION_CHOICE;
+typedef enum OPTION_choice { OPT_ERR = -1, OPT_EOF = 0, OPT_AMOUNT, OPT_INDENT, OPT_PREFIX } OPTION_CHOICE;
 
 static const OPTIONS options[] = {
-    { "n", OPT_AMOUNT, 'p', "Amount of BIO_f_prefix() filters" },
+    {"n", OPT_AMOUNT, 'p', "Amount of BIO_f_prefix() filters"},
     /*
      * idx is the index to the BIO_f_filter chain(), where 0 is closest
      * to the source/sink BIO.  If idx isn't given, 0 is assumed
      */
-    { "i", OPT_INDENT, 's', "Indentation in form '[idx:]indent'" },
-    { "p", OPT_PREFIX, 's', "Prefix in form '[idx:]prefix'" },
-    { NULL }
+    {"i", OPT_INDENT, 's', "Indentation in form '[idx:]indent'"},
+    {"p", OPT_PREFIX, 's', "Prefix in form '[idx:]prefix'"},
+    {NULL}
 };
 
 int opt_printf_stderr(const char *fmt, ...)
 {
     va_list ap;
-    int ret;
+    int     ret;
 
     va_start(ap, fmt);
     ret = BIO_vprintf(bio_err, fmt, ap);
@@ -93,10 +87,10 @@ static int run_pipe(void)
 
 static int setup_bio_chain(const char *progname)
 {
-    BIO *next = NULL;
-    size_t n = amount;
+    BIO   *next = NULL;
+    size_t n    = amount;
 
-    chain = OPENSSL_calloc(n, sizeof(*chain));
+    chain       = OPENSSL_calloc(n, sizeof(*chain));
 
     if (chain != NULL) {
         size_t i;
@@ -118,7 +112,7 @@ static int setup_bio_chain(const char *progname)
         }
     }
     return chain != NULL;
- err:
+err:
     /* Free the chain we built up */
     BIO_free_all(next);
     OPENSSL_free(chain);
@@ -140,15 +134,15 @@ static void cleanup(void)
 static int setup(void)
 {
     OPTION_CHOICE o;
-    char *arg;
-    char *colon;
-    char *endptr;
-    size_t idx, indent;
-    const char *progname = opt_getprog();
+    char         *arg;
+    char         *colon;
+    char         *endptr;
+    size_t        idx, indent;
+    const char   *progname = opt_getprog();
 
-    bio_in = BIO_new_fp(stdin, BIO_NOCLOSE | BIO_FP_TEXT);
-    bio_out = BIO_new_fp(stdout, BIO_NOCLOSE | BIO_FP_TEXT);
-    bio_err = BIO_new_fp(stderr, BIO_NOCLOSE | BIO_FP_TEXT);
+    bio_in                 = BIO_new_fp(stdin, BIO_NOCLOSE | BIO_FP_TEXT);
+    bio_out                = BIO_new_fp(stdout, BIO_NOCLOSE | BIO_FP_TEXT);
+    bio_err                = BIO_new_fp(stderr, BIO_NOCLOSE | BIO_FP_TEXT);
 #ifdef __VMS
     bio_out = BIO_push(BIO_new(BIO_f_linebuffer()), bio_out);
     bio_err = BIO_push(BIO_new(BIO_f_linebuffer()), bio_err);
@@ -158,26 +152,21 @@ static int setup(void)
     OPENSSL_assert(bio_out != NULL);
     OPENSSL_assert(bio_err != NULL);
 
-
     while ((o = opt_next()) != OPT_EOF) {
         switch (o) {
         case OPT_AMOUNT:
-            arg = opt_arg();
+            arg    = opt_arg();
             amount = strtoul(arg, &endptr, 10);
             if (endptr[0] != '\0') {
-                BIO_printf(bio_err,
-                           "%s: -n argument isn't a decimal number: %s",
-                           progname, arg);
+                BIO_printf(bio_err, "%s: -n argument isn't a decimal number: %s", progname, arg);
                 return 0;
             }
             if (amount < 1) {
-                BIO_printf(bio_err, "%s: must set up at least one filter",
-                           progname);
+                BIO_printf(bio_err, "%s: must set up at least one filter", progname);
                 return 0;
             }
             if (!setup_bio_chain(progname)) {
-                BIO_printf(bio_err, "%s: failed setting up filter chain",
-                           progname);
+                BIO_printf(bio_err, "%s: failed setting up filter chain", progname);
                 return 0;
             }
             break;
@@ -186,15 +175,13 @@ static int setup(void)
                 BIO_printf(bio_err, "%s: -i given before -n", progname);
                 return 0;
             }
-            arg = opt_arg();
+            arg   = opt_arg();
             colon = strchr(arg, ':');
-            idx = 0;
+            idx   = 0;
             if (colon != NULL) {
                 idx = strtoul(arg, &endptr, 10);
                 if (endptr[0] != ':') {
-                    BIO_printf(bio_err,
-                               "%s: -i index isn't a decimal number: %s",
-                               progname, arg);
+                    BIO_printf(bio_err, "%s: -i index isn't a decimal number: %s", progname, arg);
                     return 0;
                 }
                 colon++;
@@ -203,19 +190,15 @@ static int setup(void)
             }
             indent = strtoul(colon, &endptr, 10);
             if (endptr[0] != '\0') {
-                BIO_printf(bio_err,
-                           "%s: -i value isn't a decimal number: %s",
-                           progname, arg);
+                BIO_printf(bio_err, "%s: -i value isn't a decimal number: %s", progname, arg);
                 return 0;
             }
             if (idx >= amount) {
-                BIO_printf(bio_err, "%s: index (%zu) not within range 0..%zu",
-                           progname, idx, amount - 1);
+                BIO_printf(bio_err, "%s: index (%zu) not within range 0..%zu", progname, idx, amount - 1);
                 return 0;
             }
             if (BIO_set_indent(chain[idx], (long)indent) <= 0) {
-                BIO_printf(bio_err, "%s: failed setting indentation: %s",
-                           progname, arg);
+                BIO_printf(bio_err, "%s: failed setting indentation: %s", progname, arg);
                 return 0;
             }
             break;
@@ -224,15 +207,13 @@ static int setup(void)
                 BIO_printf(bio_err, "%s: -p given before -n", progname);
                 return 0;
             }
-            arg = opt_arg();
+            arg   = opt_arg();
             colon = strchr(arg, ':');
-            idx = 0;
+            idx   = 0;
             if (colon != NULL) {
                 idx = strtoul(arg, &endptr, 10);
                 if (endptr[0] != ':') {
-                    BIO_printf(bio_err,
-                               "%s: -p index isn't a decimal number: %s",
-                               progname, arg);
+                    BIO_printf(bio_err, "%s: -p index isn't a decimal number: %s", progname, arg);
                     return 0;
                 }
                 colon++;
@@ -240,13 +221,11 @@ static int setup(void)
                 colon = arg;
             }
             if (idx >= amount) {
-                BIO_printf(bio_err, "%s: index (%zu) not within range 0..%zu",
-                           progname, idx, amount - 1);
+                BIO_printf(bio_err, "%s: index (%zu) not within range 0..%zu", progname, idx, amount - 1);
                 return 0;
             }
             if (BIO_set_prefix(chain[idx], colon) <= 0) {
-                BIO_printf(bio_err, "%s: failed setting prefix: %s",
-                           progname, arg);
+                BIO_printf(bio_err, "%s: failed setting prefix: %s", progname, arg);
                 return 0;
             }
             break;

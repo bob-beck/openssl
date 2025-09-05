@@ -17,7 +17,7 @@
 #include "internal/quic_ssl.h"
 
 /* unused, to avoid warning. */
-static int idx;
+static int       idx;
 
 static OSSL_TIME fake_now;
 
@@ -35,7 +35,7 @@ int FuzzerInitialize(int *argc, char ***argv)
     OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS, NULL);
     ERR_clear_error();
     CRYPTO_free_ex_index(0, -1);
-    idx = SSL_get_ex_data_X509_STORE_CTX_idx();
+    idx          = SSL_get_ex_data_X509_STORE_CTX_idx();
     comp_methods = SSL_COMP_get_compression_methods();
     if (comp_methods != NULL)
         sk_SSL_COMP_sort(comp_methods);
@@ -54,25 +54,28 @@ int FuzzerInitialize(int *argc, char ***argv)
  * This callback validates and negotiates the desired ALPN on the server side.
  * Accept any ALPN.
  */
-static int select_alpn(SSL *ssl, const unsigned char **out,
-                       unsigned char *out_len, const unsigned char *in,
-                       unsigned int in_len, void *arg)
+static int select_alpn(SSL                  *ssl,
+                       const unsigned char **out,
+                       unsigned char        *out_len,
+                       const unsigned char  *in,
+                       unsigned int          in_len,
+                       void                 *arg)
 {
     return SSL_TLSEXT_ERR_OK;
 }
 
 int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 {
-    SSL *server = NULL, *stream = NULL;
-    SSL *allstreams[] = {NULL, NULL, NULL, NULL};
-    size_t i, thisstream = 0, numstreams = 1;
-    BIO *in;
-    BIO *out;
-    SSL_CTX *ctx;
+    SSL           *server = NULL, *stream = NULL;
+    SSL           *allstreams[] = {NULL, NULL, NULL, NULL};
+    size_t         i, thisstream = 0, numstreams = 1;
+    BIO           *in;
+    BIO           *out;
+    SSL_CTX       *ctx;
     struct timeval tv;
-    int state = HANDSHAKING;
-    uint8_t tmp[1024];
-    int writelen = 0;
+    int            state = HANDSHAKING;
+    uint8_t        tmp[1024];
+    int            writelen = 0;
 
     if (len == 0)
         return 0;
@@ -83,7 +86,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 
     SSL_CTX_set_alpn_select_cb(ctx, select_alpn, NULL);
 
-    server = SSL_new_listener(ctx, 0);
+    server        = SSL_new_listener(ctx, 0);
     allstreams[0] = stream = server;
     if (server == NULL)
         goto end;
@@ -109,10 +112,10 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     SSL_set_accept_state(server);
 
     for (;;) {
-        size_t size;
-        uint64_t nxtpktms = 0;
-        OSSL_TIME nxtpkt = ossl_time_zero(), nxttimeout;
-        int isinf, ret = 0;
+        size_t    size;
+        uint64_t  nxtpktms = 0;
+        OSSL_TIME nxtpkt   = ossl_time_zero(), nxttimeout;
+        int       isinf, ret = 0;
 
         if (len >= 2) {
             if (len >= 5 && buf[0] == 0xff && buf[1] == 0xff) {
@@ -136,10 +139,10 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
                 len -= 3;
                 buf += 3;
             }
-            nxtpktms = buf[0] + (buf[1] << 8);
-            nxtpkt = ossl_time_add(fake_now, ossl_ms2time(nxtpktms));
-            len -= 2;
-            buf += 2;
+            nxtpktms  = buf[0] + (buf[1] << 8);
+            nxtpkt    = ossl_time_add(fake_now, ossl_ms2time(nxtpktms));
+            len      -= 2;
+            buf      += 2;
         }
 
         for (;;) {
@@ -153,7 +156,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
             case READING:
                 ret = SSL_read(stream, tmp, sizeof(tmp));
                 if (ret > 0) {
-                    state = WRITING;
+                    state    = WRITING;
                     writelen = ret;
                     assert(writelen <= (int)sizeof(tmp));
                 }
@@ -167,9 +170,8 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 
             case ACCEPTING_STREAM:
                 state = READING;
-                ret = 1;
-                if (numstreams == OSSL_NELEM(allstreams)
-                        || SSL_get_accept_stream_queue_len(server) == 0)
+                ret   = 1;
+                if (numstreams == OSSL_NELEM(allstreams) || SSL_get_accept_stream_queue_len(server) == 0)
                     break;
                 thisstream = numstreams;
                 stream = allstreams[numstreams++] = SSL_accept_stream(server, 0);
@@ -179,7 +181,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 
             case CREATING_STREAM:
                 state = READING;
-                ret = 1;
+                ret   = 1;
                 if (numstreams == OSSL_NELEM(allstreams))
                     break;
                 stream = SSL_new_stream(server, 0);
@@ -188,13 +190,13 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
                     stream = allstreams[thisstream];
                     break;
                 }
-                thisstream = numstreams;
+                thisstream               = numstreams;
                 allstreams[numstreams++] = stream;
                 break;
 
             case SWAPPING_STREAM:
                 state = READING;
-                ret = 1;
+                ret   = 1;
                 if (numstreams == 1)
                     break;
                 if (++thisstream == numstreams)
@@ -221,8 +223,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
                 fake_now = nxtpkt;
                 break;
             } else {
-                nxttimeout = ossl_time_add(fake_now,
-                                           ossl_time_from_timeval(tv));
+                nxttimeout = ossl_time_add(fake_now, ossl_time_from_timeval(tv));
                 if (len > 3 && ossl_time_compare(nxttimeout, nxtpkt) >= 0) {
                     fake_now = nxtpkt;
                     break;
@@ -243,7 +244,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
         len -= size + 2;
         buf += size + 2;
     }
- end:
+end:
     for (i = 0; i < numstreams; i++)
         SSL_free(allstreams[i]);
     ERR_clear_error();

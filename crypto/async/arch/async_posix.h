@@ -11,16 +11,14 @@
 #define OSSL_CRYPTO_ASYNC_POSIX_H
 #include <openssl/e_os2.h>
 
-#if defined(OPENSSL_SYS_UNIX) \
-    && defined(OPENSSL_THREADS) && !defined(OPENSSL_NO_ASYNC) \
-    && !defined(__ANDROID__) && !defined(__OpenBSD__)
+#if defined(OPENSSL_SYS_UNIX) && defined(OPENSSL_THREADS) && !defined(OPENSSL_NO_ASYNC) && !defined(__ANDROID__) \
+    && !defined(__OpenBSD__)
 
 # include <unistd.h>
 
-# if _POSIX_VERSION >= 200112L \
-    && (_POSIX_VERSION < 200809L || defined(__GLIBC__) || defined(__FreeBSD__))
+# if _POSIX_VERSION >= 200112L && (_POSIX_VERSION < 200809L || defined(__GLIBC__) || defined(__FreeBSD__))
 
-# include <pthread.h>
+#  include <pthread.h>
 
 #  define ASYNC_POSIX
 #  define ASYNC_ARCH
@@ -36,8 +34,7 @@
  */
 #   define USE_SWAPCONTEXT
 #  endif
-#  if defined(__aarch64__) && defined(__clang__) \
-    && defined(__ARM_FEATURE_BTI_DEFAULT) && __ARM_FEATURE_BTI_DEFAULT == 1
+#  if defined(__aarch64__) && defined(__clang__) && defined(__ARM_FEATURE_BTI_DEFAULT) && __ARM_FEATURE_BTI_DEFAULT == 1
 /*
  * setjmp/longjmp don't currently work with BTI on all libc implementations
  * when compiled by clang. This is because clang doesn't put a BTI after the
@@ -57,12 +54,12 @@ typedef struct async_fibre_st {
     ucontext_t fibre;
 #  ifndef USE_SWAPCONTEXT
     jmp_buf env;
-    int env_init;
+    int     env_init;
 #  endif
 } async_fibre;
 
-int async_local_init(void);
-void async_local_deinit(void);
+int                    async_local_init(void);
+void                   async_local_deinit(void);
 
 static ossl_inline int async_fibre_swapcontext(async_fibre *o, async_fibre *n, int r)
 {
@@ -84,7 +81,7 @@ static ossl_inline int async_fibre_swapcontext(async_fibre *o, async_fibre *n, i
 
 #  define async_fibre_init_dispatcher(d)
 
-int async_fibre_makecontext(async_fibre *fibre);
+int  async_fibre_makecontext(async_fibre *fibre);
 void async_fibre_free(async_fibre *fibre);
 
 # endif

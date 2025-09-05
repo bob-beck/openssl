@@ -21,8 +21,7 @@
 IMPLEMENT_ASN1_DUP_FUNCTION(ASN1_GENERALIZEDTIME)
 
 /* This is the primary function used to parse ASN1_GENERALIZEDTIME */
-static int asn1_generalizedtime_to_tm(struct tm *tm,
-                                      const ASN1_GENERALIZEDTIME *d)
+static int asn1_generalizedtime_to_tm(struct tm *tm, const ASN1_GENERALIZEDTIME *d)
 {
     /* wrapper around ossl_asn1_time_to_tm */
     if (d->type != V_ASN1_GENERALIZEDTIME)
@@ -38,15 +37,15 @@ int ASN1_GENERALIZEDTIME_check(const ASN1_GENERALIZEDTIME *d)
 int ASN1_GENERALIZEDTIME_set_string(ASN1_GENERALIZEDTIME *s, const char *str)
 {
     ASN1_GENERALIZEDTIME t;
-    size_t len;
+    size_t               len;
 
     if ((len = strlen(str)) >= INT_MAX)
         return 0;
 
-    t.type = V_ASN1_GENERALIZEDTIME;
+    t.type   = V_ASN1_GENERALIZEDTIME;
     t.length = (int)len;
-    t.data = (unsigned char *)str;
-    t.flags = 0;
+    t.data   = (unsigned char *)str;
+    t.flags  = 0;
 
     if (!ASN1_GENERALIZEDTIME_check(&t))
         return 0;
@@ -57,18 +56,15 @@ int ASN1_GENERALIZEDTIME_set_string(ASN1_GENERALIZEDTIME *s, const char *str)
     return 1;
 }
 
-ASN1_GENERALIZEDTIME *ASN1_GENERALIZEDTIME_set(ASN1_GENERALIZEDTIME *s,
-                                               time_t t)
+ASN1_GENERALIZEDTIME *ASN1_GENERALIZEDTIME_set(ASN1_GENERALIZEDTIME *s, time_t t)
 {
     return ASN1_GENERALIZEDTIME_adj(s, t, 0, 0);
 }
 
-ASN1_GENERALIZEDTIME *ASN1_GENERALIZEDTIME_adj(ASN1_GENERALIZEDTIME *s,
-                                               time_t t, int offset_day,
-                                               long offset_sec)
+ASN1_GENERALIZEDTIME *ASN1_GENERALIZEDTIME_adj(ASN1_GENERALIZEDTIME *s, time_t t, int offset_day, long offset_sec)
 {
     struct tm *ts;
-    struct tm data;
+    struct tm  data;
 
     ts = OPENSSL_gmtime(&t, &data);
     if (ts == NULL)

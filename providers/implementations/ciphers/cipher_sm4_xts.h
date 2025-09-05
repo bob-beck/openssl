@@ -11,10 +11,15 @@
 #include "prov/ciphercommon.h"
 #include "crypto/sm4_platform.h"
 
-PROV_CIPHER_FUNC(void, xts_stream,
-                 (const unsigned char *in, unsigned char *out, size_t len,
-                  const SM4_KEY *key1, const SM4_KEY *key2,
-                  const unsigned char iv[16], const int enc));
+PROV_CIPHER_FUNC(void,
+                 xts_stream,
+                 (const unsigned char *in,
+                  unsigned char       *out,
+                  size_t               len,
+                  const SM4_KEY       *key1,
+                  const SM4_KEY       *key2,
+                  const unsigned char  iv[16],
+                  const int            enc));
 
 typedef struct prov_sm4_xts_ctx_st {
     /* Must be first */
@@ -33,9 +38,9 @@ typedef struct prov_sm4_xts_ctx_st {
      * 0 for XTS mode specified by GB/T 17964-2021
      * 1 for XTS mode specified by IEEE Std 1619-2007
      */
-    int xts_standard;
+    int                xts_standard;
 
-    XTS128_CONTEXT xts;
+    XTS128_CONTEXT     xts;
 
     /* Stream function for XTS mode specified by GB/T 17964-2021 */
     OSSL_xts_stream_fn stream_gb;

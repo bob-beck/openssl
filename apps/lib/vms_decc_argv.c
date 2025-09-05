@@ -9,9 +9,9 @@
 
 #include <stdlib.h>
 #include <openssl/crypto.h>
-#include "platform.h"            /* for copy_argv() */
+#include "platform.h" /* for copy_argv() */
 
-char **newargv = NULL;
+char      **newargv = NULL;
 
 static void cleanup_argv(void)
 {
@@ -45,7 +45,7 @@ char **copy_argv(int *argc, char *argv[])
      * deciding at compile- or run-time is tiny.
      */
 
-    int i, count = *argc;
+    int    i, count = *argc;
     char **p = newargv;
 
     cleanup_argv();
@@ -67,6 +67,6 @@ char **copy_argv(int *argc, char *argv[])
     for (i = 0; i < count; i++)
         newargv[i] = argv[i];
     newargv[i] = NULL;
-    *argc = i;
+    *argc      = i;
     return newargv;
 }

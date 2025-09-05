@@ -17,32 +17,31 @@
 #include "cipher_aes.h"
 #include "cipher_aes_cfb.h"
 
-static int cipher_hw_aes_initkey(PROV_CIPHER_CTX *dat,
-                                 const unsigned char *key, size_t keylen)
+static int cipher_hw_aes_initkey(PROV_CIPHER_CTX *dat, const unsigned char *key, size_t keylen)
 {
-    int ret;
+    int           ret;
     PROV_AES_CTX *adat = (PROV_AES_CTX *)dat;
-    AES_KEY *ks = &adat->ks.ks;
+    AES_KEY      *ks   = &adat->ks.ks;
 
-    dat->ks = ks;
+    dat->ks            = ks;
 
 #ifdef HWAES_CAPABLE
     if (HWAES_CAPABLE) {
-        ret = HWAES_set_encrypt_key(key, (int)(keylen * 8), ks);
-        dat->block = (block128_f)HWAES_encrypt;
+        ret             = HWAES_set_encrypt_key(key, (int)(keylen * 8), ks);
+        dat->block      = (block128_f)HWAES_encrypt;
         dat->stream.cbc = NULL;
     } else {
 #endif
 #ifdef VPAES_CAPABLE
         if (VPAES_CAPABLE) {
-            ret = vpaes_set_encrypt_key(key, (int)(keylen * 8), ks);
-            dat->block = (block128_f)vpaes_encrypt;
+            ret             = vpaes_set_encrypt_key(key, (int)(keylen * 8), ks);
+            dat->block      = (block128_f)vpaes_encrypt;
             dat->stream.cbc = NULL;
         } else {
 #endif
             {
-                ret = AES_set_encrypt_key(key, (int)(keylen * 8), ks);
-                dat->block = (block128_f)AES_encrypt;
+                ret             = AES_set_encrypt_key(key, (int)(keylen * 8), ks);
+                dat->block      = (block128_f)AES_encrypt;
                 dat->stream.cbc = NULL;
             }
 #ifdef VPAES_CAPABLE
@@ -93,6 +92,4 @@ IMPLEMENT_CIPHER_HW_COPYCTX(cipher_hw_aes_copyctx, PROV_AES_CTX)
 # define PROV_CIPHER_HW_select(mode)
 #endif
 
-PROV_CIPHER_HW_aes_mode(cfb128)
-PROV_CIPHER_HW_aes_mode(cfb1)
-PROV_CIPHER_HW_aes_mode(cfb8)
+PROV_CIPHER_HW_aes_mode(cfb128) PROV_CIPHER_HW_aes_mode(cfb1) PROV_CIPHER_HW_aes_mode(cfb8)
