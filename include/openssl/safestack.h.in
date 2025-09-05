@@ -29,9 +29,9 @@ use OpenSSL::stackhash qw(generate_stack_string_macros
 # include <openssl/stack.h>
 # include <openssl/e_os2.h>
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 # define STACK_OF(type) struct stack_st_##type
 
@@ -220,7 +220,7 @@ extern "C" {
  * string. For now, I'm settling for dealing with the fact it is a
  * string at all.
  */
-typedef char *OPENSSL_STRING;
+typedef char       *OPENSSL_STRING;
 typedef const char *OPENSSL_CSTRING;
 
 /*-
@@ -237,7 +237,7 @@ typedef const char *OPENSSL_CSTRING;
 -}
 /* clang-format on */
 
-#if !defined(OPENSSL_NO_DEPRECATED_3_0)
+# if !defined(OPENSSL_NO_DEPRECATED_3_0)
 /*
  * This is not used by OpenSSL.  A block of bytes,  NOT nul-terminated.
  * These should also be distinguished from "normal" stacks.
@@ -248,9 +248,9 @@ typedef void *OPENSSL_BLOCK;
     generate_stack_block_macros();
 -}
 /* clang-format on */
-#endif
+# endif
 
-# ifdef  __cplusplus
+# ifdef __cplusplus
 }
 # endif
 #endif

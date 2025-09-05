@@ -31,8 +31,7 @@ static OSSL_FUNC_digest_settable_ctx_params_fn blake_settable_ctx_params;
                          )); -}
 /* clang-format on */
 
-static const OSSL_PARAM *blake_gettable_ctx_params(ossl_unused void *ctx,
-                                                   ossl_unused void *pctx)
+static const OSSL_PARAM                       *blake_gettable_ctx_params(ossl_unused void *ctx, ossl_unused void *pctx)
 {
     return blake_get_ctx_params_list;
 }
@@ -43,8 +42,7 @@ static const OSSL_PARAM *blake_gettable_ctx_params(ossl_unused void *ctx,
                          )); -}
 /* clang-format on */
 
-static const OSSL_PARAM *blake_settable_ctx_params(ossl_unused void *ctx,
-                                                   ossl_unused void *pctx)
+static const OSSL_PARAM *blake_settable_ctx_params(ossl_unused void *ctx, ossl_unused void *pctx)
 {
     return blake_set_ctx_params_list;
 }
