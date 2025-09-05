@@ -10,23 +10,24 @@
 #include <assert.h>
 
 /*
- * AES_encrypt/AES_decrypt are deprecated - but we need to use them to implement
- * AES_ecb_encrypt
+ * AES_encrypt/AES_decrypt are deprecated - but we need to use them to
+ * implement AES_ecb_encrypt
  */
 #include "internal/deprecated.h"
 
 #include <openssl/aes.h>
 #include "aes_local.h"
 
-void AES_ecb_encrypt(const unsigned char *in, unsigned char *out,
-                     const AES_KEY *key, const int enc)
+void
+AES_ecb_encrypt (const unsigned char *in, unsigned char *out,
+                 const AES_KEY *key, const int enc)
 {
 
-    assert(in && out && key);
-    assert((AES_ENCRYPT == enc) || (AES_DECRYPT == enc));
+  assert (in && out && key);
+  assert ((AES_ENCRYPT == enc) || (AES_DECRYPT == enc));
 
-    if (AES_ENCRYPT == enc)
-        AES_encrypt(in, out, key);
-    else
-        AES_decrypt(in, out, key);
+  if (AES_ENCRYPT == enc)
+    AES_encrypt (in, out, key);
+  else
+    AES_decrypt (in, out, key);
 }

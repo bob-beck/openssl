@@ -7,13 +7,13 @@
  * https://www.openssl.org/source/license.html
  */
 #ifndef OSSL_QUIC_REACTOR_WAIT_CTX_H
-# define OSSL_QUIC_REACTOR_WAIT_CTX_H
+#define OSSL_QUIC_REACTOR_WAIT_CTX_H
 
-# include "internal/quic_predef.h"
-# include "internal/quic_reactor.h"
-# include "internal/list.h"
+#include "internal/quic_predef.h"
+#include "internal/quic_reactor.h"
+#include "internal/list.h"
 
-# ifndef OPENSSL_NO_QUIC
+#ifndef OPENSSL_NO_QUIC
 
 /*
  * QUIC_REACTOR_WAIT_CTX
@@ -27,24 +27,24 @@
  * ossl_quic_reactor_block_until_pred().
  *
  * The core mechanism for such tracking is
- * ossl_quic_reactor_(enter/leave)_blocking_section(), however this API does not
- * support recursive usage to keep the internal implementation simple. In some
- * cases, an API which can be used in a recursive fashion (with multiple
+ * ossl_quic_reactor_(enter/leave)_blocking_section(), however this API does
+ * not support recursive usage to keep the internal implementation simple. In
+ * some cases, an API which can be used in a recursive fashion (with multiple
  * balanced calls to enter()/leave() on a single thread) is more convenient.
  *
  * This utility allows multiple blocking operations to be registered on a given
  * thread. Moreover, it allows multiple blocking operations to be registered
  * across an arbitrarily large number of QUIC_REACTORs from a given thread.
  *
- * In short, this allows multiple 'concurrent' blocking calls to be ongoing on a
- * given thread for a given reactor. While on the face of it the notion of
+ * In short, this allows multiple 'concurrent' blocking calls to be ongoing on
+ * a given thread for a given reactor. While on the face of it the notion of
  * multiple concurrent blocking calls on a single thread makes no sense, the
  * implementation of our immediate-mode polling implementation (SSL_poll) makes
  * it natural for us to implement it simply by registering a blocking call per
- * SSL object passed in. Since multiple SSL objects may be passed to an SSL_poll
- * call, and some SSL objects may correspond to the same reactor, and other SSL
- * objects may correspond to a different reactor, we need to be able to
- * determine when a SSL_poll() call has finished with all of the SSL objects
+ * SSL object passed in. Since multiple SSL objects may be passed to an
+ * SSL_poll call, and some SSL objects may correspond to the same reactor, and
+ * other SSL objects may correspond to a different reactor, we need to be able
+ * to determine when a SSL_poll() call has finished with all of the SSL objects
  * *corresponding to a given reactor*.
  *
  * Doing this requires some ephemeral state tracking as a SSL_poll() call may
@@ -56,18 +56,18 @@
  * QUIC_REACTOR_WAIT_CTX before commencing a blocking operation, and then calls
  * ossl_quic_reactor_wait_ctx_enter() whenever encountering a reactor involved
  * in the imminent blocking operation. Later it must ensure it calls
- * ossl_quic_reactor_wait_ctx_leave() the same number of times for each reactor.
- * enter() and leave() may be called multiple times for the same reactor and
- * wait context so long as the number of calls is balanced. The last leave()
- * call for a given thread's wait context *and a given reactor* causes that
- * reactor to do the inter-thread notification housekeeping needed for
- * multithreaded blocking to work correctly.
+ * ossl_quic_reactor_wait_ctx_leave() the same number of times for each
+ * reactor. enter() and leave() may be called multiple times for the same
+ * reactor and wait context so long as the number of calls is balanced. The
+ * last leave() call for a given thread's wait context *and a given reactor*
+ * causes that reactor to do the inter-thread notification housekeeping needed
+ * for multithreaded blocking to work correctly.
  *
- * The gist is that a simple reactor-level counter of active concurrent blocking
- * calls across all threads is not accurate and we need an accurate count of how
- * many 'concurrent' blocking calls for a given reactor are active *on a given
- * thread* in order to avoid deadlocks. Conceptually, you can think of this as
- * refcounting a refcount (which is actually how it is implemented).
+ * The gist is that a simple reactor-level counter of active concurrent
+ * blocking calls across all threads is not accurate and we need an accurate
+ * count of how many 'concurrent' blocking calls for a given reactor are active
+ * *on a given thread* in order to avoid deadlocks. Conceptually, you can think
+ * of this as refcounting a refcount (which is actually how it is implemented).
  *
  * Logically, a wait context is a map from a reactor pointer (i.e., a unique
  * identifier for the reactor) to the number of 'recursive' calls outstanding:
@@ -83,32 +83,33 @@
  */
 typedef struct quic_reactor_wait_slot_st QUIC_REACTOR_WAIT_SLOT;
 
-DECLARE_LIST_OF(quic_reactor_wait_slot, QUIC_REACTOR_WAIT_SLOT);
+DECLARE_LIST_OF (quic_reactor_wait_slot, QUIC_REACTOR_WAIT_SLOT);
 
-struct quic_reactor_wait_ctx_st {
-    OSSL_LIST(quic_reactor_wait_slot) slots;
+struct quic_reactor_wait_ctx_st
+{
+  OSSL_LIST (quic_reactor_wait_slot) slots;
 };
 
 /* Initialises a wait context. */
-void ossl_quic_reactor_wait_ctx_init(QUIC_REACTOR_WAIT_CTX *ctx);
+void ossl_quic_reactor_wait_ctx_init (QUIC_REACTOR_WAIT_CTX *ctx);
 
 /* Uprefs a given reactor. */
-int ossl_quic_reactor_wait_ctx_enter(QUIC_REACTOR_WAIT_CTX *ctx,
-                                     QUIC_REACTOR *rtor);
+int ossl_quic_reactor_wait_ctx_enter (QUIC_REACTOR_WAIT_CTX *ctx,
+                                      QUIC_REACTOR *rtor);
 
 /* Downrefs a given reactor. */
-void ossl_quic_reactor_wait_ctx_leave(QUIC_REACTOR_WAIT_CTX *ctx,
-                                      QUIC_REACTOR *rtor);
+void ossl_quic_reactor_wait_ctx_leave (QUIC_REACTOR_WAIT_CTX *ctx,
+                                       QUIC_REACTOR *rtor);
 
 /*
  * Destroys a wait context. Must be called after calling init().
  *
- * Precondition: All prior calls to ossl_quic_reactor_wait_ctx_enter() must have
- * been balanced with corresponding leave() calls before calling this
+ * Precondition: All prior calls to ossl_quic_reactor_wait_ctx_enter() must
+ * have been balanced with corresponding leave() calls before calling this
  * (unchecked).
  */
-void ossl_quic_reactor_wait_ctx_cleanup(QUIC_REACTOR_WAIT_CTX *ctx);
+void ossl_quic_reactor_wait_ctx_cleanup (QUIC_REACTOR_WAIT_CTX *ctx);
 
-# endif
+#endif
 
 #endif

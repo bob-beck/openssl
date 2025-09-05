@@ -12,9 +12,9 @@
  */
 
 #ifndef OSSL_CRYPTO_CRMF_LOCAL_H
-# define OSSL_CRYPTO_CRMF_LOCAL_H
+#define OSSL_CRYPTO_CRMF_LOCAL_H
 
-# include "internal/crmf.h"
+#include "internal/crmf.h"
 
 /*-
  * EncryptedValue ::= SEQUENCE {
@@ -27,7 +27,8 @@
  * keyAlg        [3] AlgorithmIdentifier  OPTIONAL,
  *                  -- algorithm used to encrypt the symmetric key
  * valueHint     [4] OCTET STRING         OPTIONAL,
- *                  -- a brief description or identifier of the encValue content
+ *                  -- a brief description or identifier of the encValue
+ * content
  *                  -- (may be meaningful only to the sending entity, and
  *                  --  used only if EncryptedValue might be re-examined
  *                  --  by the sending entity in the future)
@@ -35,13 +36,14 @@
  *                  -- the encrypted value itself
  * }
  */
-struct ossl_crmf_encryptedvalue_st {
-    X509_ALGOR *intendedAlg;      /* 0 */
-    X509_ALGOR *symmAlg;          /* 1 */
-    ASN1_BIT_STRING *encSymmKey;  /* 2 */
-    X509_ALGOR *keyAlg;           /* 3 */
-    ASN1_OCTET_STRING *valueHint; /* 4 */
-    ASN1_BIT_STRING *encValue;
+struct ossl_crmf_encryptedvalue_st
+{
+  X509_ALGOR *intendedAlg;      /* 0 */
+  X509_ALGOR *symmAlg;          /* 1 */
+  ASN1_BIT_STRING *encSymmKey;  /* 2 */
+  X509_ALGOR *keyAlg;           /* 3 */
+  ASN1_OCTET_STRING *valueHint; /* 4 */
+  ASN1_BIT_STRING *encValue;
 } /* OSSL_CRMF_ENCRYPTEDVALUE */;
 
 /*
@@ -51,16 +53,18 @@ struct ossl_crmf_encryptedvalue_st {
  *       -- The encrypted private key MUST be placed in the envelopedData
  *       -- encryptedContentInfo encryptedContent OCTET STRING.
  */
-# define OSSL_CRMF_ENCRYPTEDKEY_ENVELOPEDDATA 1
+#define OSSL_CRMF_ENCRYPTEDKEY_ENVELOPEDDATA 1
 
-struct ossl_crmf_encryptedkey_st {
-    int type;
-    union {
-        OSSL_CRMF_ENCRYPTEDVALUE *encryptedValue; /* 0 */ /* Deprecated */
-# ifndef OPENSSL_NO_CMS
-        CMS_EnvelopedData *envelopedData; /* 1 */
-# endif
-    } value;
+struct ossl_crmf_encryptedkey_st
+{
+  int type;
+  union
+  {
+    OSSL_CRMF_ENCRYPTEDVALUE *encryptedValue; /* 0 */ /* Deprecated */
+#ifndef OPENSSL_NO_CMS
+    CMS_EnvelopedData *envelopedData; /* 1 */
+#endif
+  } value;
 } /* OSSL_CRMF_ENCRYPTEDKEY */;
 
 /*-
@@ -74,13 +78,14 @@ struct ossl_crmf_encryptedkey_st {
  *     attributes                    [0] IMPLICIT Attributes OPTIONAL
  *  }
  */
-typedef struct ossl_crmf_privatekeyinfo_st {
-    ASN1_INTEGER *version;
-    X509_ALGOR *privateKeyAlgorithm;
-    ASN1_OCTET_STRING *privateKey;
-    STACK_OF(X509_ATTRIBUTE) *attributes; /* [ 0 ] */
+typedef struct ossl_crmf_privatekeyinfo_st
+{
+  ASN1_INTEGER *version;
+  X509_ALGOR *privateKeyAlgorithm;
+  ASN1_OCTET_STRING *privateKey;
+  STACK_OF (X509_ATTRIBUTE) *attributes; /* [ 0 ] */
 } OSSL_CRMF_PRIVATEKEYINFO;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_PRIVATEKEYINFO)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_PRIVATEKEYINFO)
 
 /*-
  * section 4.2.1 Private Key Info Content Type
@@ -94,21 +99,24 @@ DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_PRIVATEKEYINFO)
  *                } OPTIONAL
  * }
  */
-typedef struct ossl_crmf_enckeywithid_identifier_st {
-    int type;
-    union {
-        ASN1_UTF8STRING *string;
-        GENERAL_NAME *generalName;
-    } value;
+typedef struct ossl_crmf_enckeywithid_identifier_st
+{
+  int type;
+  union
+  {
+    ASN1_UTF8STRING *string;
+    GENERAL_NAME *generalName;
+  } value;
 } OSSL_CRMF_ENCKEYWITHID_IDENTIFIER;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_ENCKEYWITHID_IDENTIFIER)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_ENCKEYWITHID_IDENTIFIER)
 
-typedef struct ossl_crmf_enckeywithid_st {
-    OSSL_CRMF_PRIVATEKEYINFO *privateKey;
-    /* [0] */
-    OSSL_CRMF_ENCKEYWITHID_IDENTIFIER *identifier;
+typedef struct ossl_crmf_enckeywithid_st
+{
+  OSSL_CRMF_PRIVATEKEYINFO *privateKey;
+  /* [0] */
+  OSSL_CRMF_ENCKEYWITHID_IDENTIFIER *identifier;
 } OSSL_CRMF_ENCKEYWITHID;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_ENCKEYWITHID)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_ENCKEYWITHID)
 
 /*-
  * CertId ::= SEQUENCE {
@@ -116,9 +124,10 @@ DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_ENCKEYWITHID)
  *      serialNumber     INTEGER
  * }
  */
-struct ossl_crmf_certid_st {
-    GENERAL_NAME *issuer;
-    ASN1_INTEGER *serialNumber;
+struct ossl_crmf_certid_st
+{
+  GENERAL_NAME *issuer;
+  ASN1_INTEGER *serialNumber;
 } /* OSSL_CRMF_CERTID */;
 
 /*-
@@ -131,12 +140,13 @@ struct ossl_crmf_certid_st {
  *  pubLocation  GeneralName OPTIONAL
  * }
  */
-struct ossl_crmf_singlepubinfo_st {
-    ASN1_INTEGER *pubMethod;
-    GENERAL_NAME *pubLocation;
+struct ossl_crmf_singlepubinfo_st
+{
+  ASN1_INTEGER *pubMethod;
+  GENERAL_NAME *pubLocation;
 } /* OSSL_CRMF_SINGLEPUBINFO */;
-DEFINE_STACK_OF(OSSL_CRMF_SINGLEPUBINFO)
-typedef STACK_OF(OSSL_CRMF_SINGLEPUBINFO) OSSL_CRMF_PUBINFOS;
+DEFINE_STACK_OF (OSSL_CRMF_SINGLEPUBINFO)
+typedef STACK_OF (OSSL_CRMF_SINGLEPUBINFO) OSSL_CRMF_PUBINFOS;
 
 /*-
  * PKIPublicationInfo ::= SEQUENCE {
@@ -149,11 +159,12 @@ typedef STACK_OF(OSSL_CRMF_SINGLEPUBINFO) OSSL_CRMF_PUBINFOS;
  *      -- "dontCare" is assumed)
  * }
  */
-struct ossl_crmf_pkipublicationinfo_st {
-    ASN1_INTEGER *action;
-    OSSL_CRMF_PUBINFOS *pubInfos;
+struct ossl_crmf_pkipublicationinfo_st
+{
+  ASN1_INTEGER *action;
+  OSSL_CRMF_PUBINFOS *pubInfos;
 } /* OSSL_CRMF_PKIPUBLICATIONINFO */;
-DECLARE_ASN1_DUP_FUNCTION(OSSL_CRMF_PKIPUBLICATIONINFO)
+DECLARE_ASN1_DUP_FUNCTION (OSSL_CRMF_PKIPUBLICATIONINFO)
 
 /*-
  * PKMACValue ::= SEQUENCE {
@@ -163,11 +174,12 @@ DECLARE_ASN1_DUP_FUNCTION(OSSL_CRMF_PKIPUBLICATIONINFO)
  * value  BIT STRING
  * }
  */
-typedef struct ossl_crmf_pkmacvalue_st {
-    X509_ALGOR *algId;
-    ASN1_BIT_STRING *value;
+typedef struct ossl_crmf_pkmacvalue_st
+{
+  X509_ALGOR *algId;
+  ASN1_BIT_STRING *value;
 } OSSL_CRMF_PKMACVALUE;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_PKMACVALUE)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_PKMACVALUE)
 
 /*-
  * SubsequentMessage ::= INTEGER {
@@ -192,18 +204,20 @@ DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_PKMACVALUE)
  * }
  */
 
-typedef struct ossl_crmf_popoprivkey_st {
-    int type;
-    union {
-        ASN1_BIT_STRING *thisMessage; /* 0 */ /* Deprecated */
-        ASN1_INTEGER *subsequentMessage; /* 1 */
-        ASN1_BIT_STRING *dhMAC; /* 2 */ /* Deprecated */
-        OSSL_CRMF_PKMACVALUE *agreeMAC; /* 3 */
-        ASN1_NULL *encryptedKey; /* 4 */
-        /* When supported, ASN1_NULL needs to be replaced by CMS_ENVELOPEDDATA */
-    } value;
+typedef struct ossl_crmf_popoprivkey_st
+{
+  int type;
+  union
+  {
+    ASN1_BIT_STRING *thisMessage; /* 0 */ /* Deprecated */
+    ASN1_INTEGER *subsequentMessage;      /* 1 */
+    ASN1_BIT_STRING *dhMAC; /* 2 */       /* Deprecated */
+    OSSL_CRMF_PKMACVALUE *agreeMAC;       /* 3 */
+    ASN1_NULL *encryptedKey;              /* 4 */
+    /* When supported, ASN1_NULL needs to be replaced by CMS_ENVELOPEDDATA */
+  } value;
 } OSSL_CRMF_POPOPRIVKEY;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_POPOPRIVKEY)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_POPOPRIVKEY)
 
 /*-
  * PBMParameter ::= SEQUENCE {
@@ -217,13 +231,15 @@ DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_POPOPRIVKEY)
  *    -- or HMAC [HMAC, RFC2202])
  * }
  */
-struct ossl_crmf_pbmparameter_st {
-    ASN1_OCTET_STRING *salt;
-    X509_ALGOR *owf;
-    ASN1_INTEGER *iterationCount;
-    X509_ALGOR *mac;
+struct ossl_crmf_pbmparameter_st
+{
+  ASN1_OCTET_STRING *salt;
+  X509_ALGOR *owf;
+  ASN1_INTEGER *iterationCount;
+  X509_ALGOR *mac;
 } /* OSSL_CRMF_PBMPARAMETER */;
-# define OSSL_CRMF_PBM_MAX_ITERATION_COUNT 100000 /* if too large allows DoS */
+#define OSSL_CRMF_PBM_MAX_ITERATION_COUNT 100000 /* if too large allows DoS   \
+                                                  */
 
 /*-
  * POPOSigningKeyInput ::= SEQUENCE {
@@ -239,20 +255,23 @@ struct ossl_crmf_pbmparameter_st {
  * publicKey      SubjectPublicKeyInfo  -- from CertTemplate
  * }
  */
-typedef struct ossl_crmf_poposigningkeyinput_authinfo_st {
-    int type;
-    union {
-        /* 0 */ GENERAL_NAME *sender;
-        /* 1 */ OSSL_CRMF_PKMACVALUE *publicKeyMAC;
-    } value;
+typedef struct ossl_crmf_poposigningkeyinput_authinfo_st
+{
+  int type;
+  union
+  {
+    /* 0 */ GENERAL_NAME *sender;
+    /* 1 */ OSSL_CRMF_PKMACVALUE *publicKeyMAC;
+  } value;
 } OSSL_CRMF_POPOSIGNINGKEYINPUT_AUTHINFO;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_POPOSIGNINGKEYINPUT_AUTHINFO)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_POPOSIGNINGKEYINPUT_AUTHINFO)
 
-typedef struct ossl_crmf_poposigningkeyinput_st {
-    OSSL_CRMF_POPOSIGNINGKEYINPUT_AUTHINFO *authInfo;
-    X509_PUBKEY *publicKey;
+typedef struct ossl_crmf_poposigningkeyinput_st
+{
+  OSSL_CRMF_POPOSIGNINGKEYINPUT_AUTHINFO *authInfo;
+  X509_PUBKEY *publicKey;
 } OSSL_CRMF_POPOSIGNINGKEYINPUT;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_POPOSIGNINGKEYINPUT)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_POPOSIGNINGKEYINPUT)
 
 /*-
  * POPOSigningKey ::= SEQUENCE {
@@ -261,12 +280,13 @@ DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_POPOSIGNINGKEYINPUT)
  *  signature             BIT STRING
  * }
  */
-struct ossl_crmf_poposigningkey_st {
-    OSSL_CRMF_POPOSIGNINGKEYINPUT *poposkInput;
-    X509_ALGOR *algorithmIdentifier;
-    ASN1_BIT_STRING *signature;
+struct ossl_crmf_poposigningkey_st
+{
+  OSSL_CRMF_POPOSIGNINGKEYINPUT *poposkInput;
+  X509_ALGOR *algorithmIdentifier;
+  ASN1_BIT_STRING *signature;
 } /* OSSL_CRMF_POPOSIGNINGKEY */;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_POPOSIGNINGKEY)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_POPOSIGNINGKEY)
 
 /*-
  * ProofOfPossession ::= CHOICE {
@@ -278,16 +298,18 @@ DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_POPOSIGNINGKEY)
  *  keyAgreement      [3] POPOPrivKey
  * }
  */
-typedef struct ossl_crmf_popo_st {
-    int type;
-    union {
-        ASN1_NULL *raVerified; /* 0 */
-        OSSL_CRMF_POPOSIGNINGKEY *signature; /* 1 */
-        OSSL_CRMF_POPOPRIVKEY *keyEncipherment; /* 2 */
-        OSSL_CRMF_POPOPRIVKEY *keyAgreement; /* 3 */
-    } value;
+typedef struct ossl_crmf_popo_st
+{
+  int type;
+  union
+  {
+    ASN1_NULL *raVerified;                  /* 0 */
+    OSSL_CRMF_POPOSIGNINGKEY *signature;    /* 1 */
+    OSSL_CRMF_POPOPRIVKEY *keyEncipherment; /* 2 */
+    OSSL_CRMF_POPOPRIVKEY *keyAgreement;    /* 3 */
+  } value;
 } OSSL_CRMF_POPO;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_POPO)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_POPO)
 
 /*-
  * OptionalValidity ::= SEQUENCE {
@@ -295,11 +317,12 @@ DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_POPO)
  *  notAfter       [1] Time OPTIONAL  -- at least one MUST be present
  * }
  */
-struct ossl_crmf_optionalvalidity_st {
-    /* 0 */ ASN1_TIME *notBefore;
-    /* 1 */ ASN1_TIME *notAfter;
+struct ossl_crmf_optionalvalidity_st
+{
+  /* 0 */ ASN1_TIME *notBefore;
+  /* 1 */ ASN1_TIME *notAfter;
 } /* OSSL_CRMF_OPTIONALVALIDITY */;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_OPTIONALVALIDITY)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_OPTIONALVALIDITY)
 
 /*-
  * CertTemplate ::= SEQUENCE {
@@ -315,21 +338,22 @@ DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_OPTIONALVALIDITY)
  * extensions       [9] Extensions                OPTIONAL
  * }
  */
-struct ossl_crmf_certtemplate_st {
-    ASN1_INTEGER *version;
-    ASN1_INTEGER *serialNumber; /* serialNumber MUST be omitted */
-    /* This field is assigned by the CA during certificate creation */
-    X509_ALGOR *signingAlg; /* signingAlg MUST be omitted */
-    /* This field is assigned by the CA during certificate creation */
-    const X509_NAME *issuer;
-    OSSL_CRMF_OPTIONALVALIDITY *validity;
-    const X509_NAME *subject;
-    X509_PUBKEY *publicKey;
-    ASN1_BIT_STRING *issuerUID; /* deprecated in version 2 */
-    /* According to rfc 3280: UniqueIdentifier ::= BIT STRING */
-    ASN1_BIT_STRING *subjectUID; /* deprecated in version 2 */
-    /* Could be X509_EXTENSION*S*, but that's only cosmetic */
-    STACK_OF(X509_EXTENSION) *extensions;
+struct ossl_crmf_certtemplate_st
+{
+  ASN1_INTEGER *version;
+  ASN1_INTEGER *serialNumber; /* serialNumber MUST be omitted */
+  /* This field is assigned by the CA during certificate creation */
+  X509_ALGOR *signingAlg; /* signingAlg MUST be omitted */
+  /* This field is assigned by the CA during certificate creation */
+  const X509_NAME *issuer;
+  OSSL_CRMF_OPTIONALVALIDITY *validity;
+  const X509_NAME *subject;
+  X509_PUBKEY *publicKey;
+  ASN1_BIT_STRING *issuerUID; /* deprecated in version 2 */
+  /* According to rfc 3280: UniqueIdentifier ::= BIT STRING */
+  ASN1_BIT_STRING *subjectUID; /* deprecated in version 2 */
+  /* Could be X509_EXTENSION*S*, but that's only cosmetic */
+  STACK_OF (X509_EXTENSION) *extensions;
 } /* OSSL_CRMF_CERTTEMPLATE */;
 
 /*-
@@ -339,13 +363,14 @@ struct ossl_crmf_certtemplate_st {
  *  controls         Controls OPTIONAL -- Attributes affecting issuance
  * }
  */
-struct ossl_crmf_certrequest_st {
-    ASN1_INTEGER *certReqId;
-    OSSL_CRMF_CERTTEMPLATE *certTemplate;
-    STACK_OF(OSSL_CRMF_ATTRIBUTETYPEANDVALUE /* Controls expanded */) *controls;
+struct ossl_crmf_certrequest_st
+{
+  ASN1_INTEGER *certReqId;
+  OSSL_CRMF_CERTTEMPLATE *certTemplate;
+  STACK_OF (OSSL_CRMF_ATTRIBUTETYPEANDVALUE /* Controls expanded */) *controls;
 } /* OSSL_CRMF_CERTREQUEST */;
-DECLARE_ASN1_FUNCTIONS(OSSL_CRMF_CERTREQUEST)
-DECLARE_ASN1_DUP_FUNCTION(OSSL_CRMF_CERTREQUEST)
+DECLARE_ASN1_FUNCTIONS (OSSL_CRMF_CERTREQUEST)
+DECLARE_ASN1_DUP_FUNCTION (OSSL_CRMF_CERTREQUEST)
 
 /*-
  * CertReqMessages ::= SEQUENCE SIZE (1..MAX) OF CertReqMsg
@@ -356,11 +381,12 @@ DECLARE_ASN1_DUP_FUNCTION(OSSL_CRMF_CERTREQUEST)
  *  regInfo   SEQUENCE SIZE(1..MAX) OF AttributeTypeAndValue OPTIONAL
  * }
  */
-struct ossl_crmf_msg_st {
-    OSSL_CRMF_CERTREQUEST *certReq;
-    /* 0 */
-    OSSL_CRMF_POPO *popo;
-    /* 1 */
-    STACK_OF(OSSL_CRMF_ATTRIBUTETYPEANDVALUE) *regInfo;
+struct ossl_crmf_msg_st
+{
+  OSSL_CRMF_CERTREQUEST *certReq;
+  /* 0 */
+  OSSL_CRMF_POPO *popo;
+  /* 1 */
+  STACK_OF (OSSL_CRMF_ATTRIBUTETYPEANDVALUE) *regInfo;
 } /* OSSL_CRMF_MSG */;
 #endif
