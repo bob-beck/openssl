@@ -56,6 +56,7 @@ OPENSSL_sk_sort, OPENSSL_sk_unshift, OPENSSL_sk_value, OPENSSL_sk_zero
  int sk_TYPE_find_ex(STACK_OF(TYPE) *sk, TYPE *ptr);
  int sk_TYPE_find_all(STACK_OF(TYPE) *sk, TYPE *ptr, int *pnum);
  void sk_TYPE_sort(const STACK_OF(TYPE) *sk);
+ int sk_TYPE_find_sorted(STACK_OF(TYPE) *sk, TYPE *ptr);
  int sk_TYPE_is_sorted(const STACK_OF(TYPE) *sk);
  STACK_OF(TYPE) *sk_TYPE_dup(const STACK_OF(TYPE) *sk);
  STACK_OF(TYPE) *sk_TYPE_deep_copy(const STACK_OF(TYPE) *sk,
@@ -191,6 +192,10 @@ B<sk_I<TYPE>_find_all>() operates like B<sk_I<TYPE>_find>() but it also
 sets the I<*pnum> to number of matching elements in the stack. In case
 no comparison function has been specified the I<*pnum> will be always set
 to 1 if matching element was found, 0 otherwise.
+
+B<sk_I<TYPE>_find_sorted() operates like B<sk_I<TYPE>_find>() but I<sk>
+is required to be sorted. In the case where a comparison function
+has been specified, if I<sk> is not sorted B<-1> will be returned.
 
 B<sk_I<TYPE>_sort>() sorts I<sk> using the supplied comparison function.
 
