@@ -284,6 +284,9 @@ struct rcu_lock_st {
 
     /* signal to wake threads waiting on prior_lock */
     pthread_cond_t prior_signal;
+
+    /* signal to wake thread waiting on zero users for retirement */
+    pthread_cond_t zero_users_signal;
 };
 
 /* Read side acquisition of the current qp */
@@ -400,6 +403,9 @@ void ossl_rcu_read_unlock(CRYPTO_RCU_LOCK *lock)
                 OPENSSL_assert(ret != UINT64_MAX);
                 data->thread_qps[i].qp = NULL;
                 data->thread_qps[i].lock = NULL;
+                /* Awaken threads waiting for zero users to retire a qp. */
+                if (ret == 0)
+                    pthread_cond_broadcast(&lock->zero_users_signal);
             }
             return;
         }
@@ -522,7 +528,9 @@ void ossl_synchronize_rcu(CRYPTO_RCU_LOCK *lock)
      */
     do {
         count = ATOMIC_LOAD_N(uint64_t, &qp->users, __ATOMIC_ACQUIRE);
-    } while (count != (uint64_t)0);
+    } while (count != (uint64_t)0
+             && pthread_cond_wait(&lock->zero_users_signal, &lock->prior_lock)
+             == 0);
 
     lock->next_to_retire++;
     pthread_cond_broadcast(&lock->prior_signal);
@@ -594,6 +602,7 @@ CRYPTO_RCU_LOCK *ossl_rcu_lock_new(int num_writers, OSSL_LIB_CTX *ctx)
     pthread_mutex_init(&new->alloc_lock, NULL);
     pthread_cond_init(&new->prior_signal, NULL);
     pthread_cond_init(&new->alloc_signal, NULL);
+    pthread_cond_init(&new->zero_users_signal, NULL);
 
     new->qp_group = allocate_new_qp_group(new, num_writers);
     if (new->qp_group == NULL) {
