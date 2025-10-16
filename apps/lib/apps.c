@@ -679,23 +679,125 @@ static void warn_cert_msg(const char *uri, X509 *cert, const char *msg)
     OPENSSL_free(subj);
 }
 
+static int check_RFC5280_type(const ASN1_TIME *t, struct tm *tm)
+{
+    if (tm->tm_year < 50  || tm->tm_year > 149)
+        return ASN1_GENERALIZEDTIME_check(t);
+    return ASN1_UTCTIME_check(t);
+}
+
+/*
+ * Given a tm and asn1_time representing the same time, check the verification
+ * time against it.
+ */
+static int compare_verify_time_against_tm(X509_VERIFY_PARAM *vpm, struct tm *tm,
+                                          int *cmp)
+{
+    unsigned long flags = vpm == NULL ? 0 : X509_VERIFY_PARAM_get_flags(vpm);
+    /* This is the smallest ASN1 time, in seconds since the posix epoch */
+    const int64_t min_asn1_time = INT64_C(-62167219200);
+    /* This is the largest ASN1 time, in seconds since the posix epoch */
+    const int64_t max_asn1_time = INT64_C(253402300799);
+    time_t check_time = time(NULL);
+    int64_t check_time_bounds;
+    struct tm check_tm;
+
+    if ((flags & X509_V_FLAG_USE_CHECK_TIME) != 0) {
+        check_time = X509_VERIFY_PARAM_get_time(vpm);
+    } else if ((flags & X509_V_FLAG_NO_CHECK_TIME) != 0) {
+        *cmp = 0; /* return equal */
+        return 1;
+    }
+
+    /*
+     * We only call this function with a tm converted from
+     * ASN1_TIME_to_tm. This means we can bounds check our time
+     * value. There is no need to call OPENSSL_gmtime() with values
+     * that are out of range of an ASN1 time and risk failure of
+     * underlying platform time conversion.
+     */
+    check_time_bounds = (int64_t) check_time;
+    if (check_time_bounds < min_asn1_time) {
+        *cmp = -1;
+        return 1;
+    }
+    if (check_time_bounds > max_asn1_time) {
+        *cmp = 1;
+        return 1;
+    }
+
+    /* we have a check time, see if we can compare the tm to it */
+    if (OPENSSL_gmtime(&check_time, &check_tm) != NULL) {
+        int pday, psec;
+        if (OPENSSL_gmtime_diff(&pday, &psec, &check_tm, tm)) {
+            /*
+             * We have successfully converted check_time to a tm, and
+             * successfully compared it. We can return a result based
+             * on the value of pday and sec
+             */
+            *cmp = 0;
+            if (pday > 0 && psec > 0)
+                *cmp = 1;
+            if (pday < 0 && psec < 0)
+                *cmp = -1;
+            return 1;
+        }
+    }
+    /*
+     * If we are here, a time was out of range due to limitations in
+     * the underlying platform's time implementation being unable to
+     * support times in the range of an ASN1 time, thereby causing one
+     * of the OPENSSL_gmtime() functions to fail.
+     */
+    return 0;
+}
+
 static void warn_cert(const char *uri, X509 *cert, int warn_EE,
                       X509_VERIFY_PARAM *vpm)
 {
     uint32_t ex_flags = X509_get_extension_flags(cert);
-    /*
-     * This should not be used as as example for how to verify
-     * certificates. This treats an invalid not before or an invalid
-     * not after time in the certificate as infinitely valid, which
-     * you don't want outside of a toy testing function like this.
-     */
-    int res = X509_cmp_timeframe(vpm, X509_get0_notBefore(cert),
-                                 X509_get0_notAfter(cert));
+    const ASN1_TIME *notBefore = X509_get0_notBefore(cert);
+    const ASN1_TIME *notAfter = X509_get0_notAfter(cert);
+    const char *na_string = (const char *)ASN1_STRING_data((ASN1_STRING *)
+                                                           notAfter);
+    struct tm tm_nb, tm_na;
+    int res;
 
-    if (res != 0)
-        warn_cert_msg(uri, cert, res > 0 ? "has expired" : "not yet valid");
     if (warn_EE && (ex_flags & EXFLAG_V1) == 0 && (ex_flags & EXFLAG_CA) == 0)
         warn_cert_msg(uri, cert, "is not a CA cert");
+
+    if (!ASN1_TIME_to_tm(notBefore, &tm_nb)) {
+        warn_cert_msg(uri, cert, "ASN1_TIME_to_tm failed on notBefore field");
+    } else {
+        if (!check_RFC5280_type(notBefore, &tm_nb))
+            warn_cert_msg(uri, cert, "notBefore field has incorrect format");
+
+        if (!compare_verify_time_against_tm(vpm, &tm_nb, &res)) {
+            warn_cert_msg(uri, cert, "time out of range when checking notBefore");
+        } else {
+            if (res > 0)
+                warn_cert_msg(uri, cert, "not yet valid");
+        }
+    }
+
+    /* RFC 5280 Section 4.1.2.5 */
+    if (strcmp(na_string, "99991231235959Z") == 0)
+        return;
+
+    if (!ASN1_TIME_to_tm(notAfter, &tm_na)) {
+        warn_cert_msg(uri, cert, "ASN1_TIME_to_tm failed on notAfter field");
+    } else {
+
+        if (!check_RFC5280_type(notAfter, &tm_na))
+            warn_cert_msg(uri, cert, "notAfter field has incorrect format");
+
+        if (!compare_verify_time_against_tm(vpm, &tm_na, &res)) {
+            warn_cert_msg(uri, cert, "time out of range when checking notAfter");
+        } else {
+            if (res < 0)
+                warn_cert_msg(uri, cert, "has expired");
+        }
+    }
 }
 
 static void warn_certs(const char *uri, STACK_OF(X509) *certs, int warn_EE,
