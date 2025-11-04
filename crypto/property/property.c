@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <openssl/crypto.h>
+#include <openssl/evp.h>
 #include "internal/core.h"
 #include "internal/property.h"
 #include "internal/provider.h"
@@ -25,6 +26,7 @@
 #include "crypto/sparse_array.h"
 #include "property_local.h"
 #include "crypto/context.h"
+#include "crypto/evp.h"
 
 /*
  * The number of elements in the query cache before we initiate a flush.
@@ -853,6 +855,12 @@ static void ossl_method_cache_flush_some(OSSL_METHOD_STORE *store)
         tsan_add(&global_seed, state.seed);
 }
 
+/* Andrew.. */
+static int andrew = -1;
+static int andrew_nid;
+static EVP_MD andrew_md;
+static void *andrew_method;
+
 int ossl_method_store_cache_get(OSSL_METHOD_STORE *store, OSSL_PROVIDER *prov,
                                 int nid, const char *prop_query, void **method)
 {
@@ -862,6 +870,11 @@ int ossl_method_store_cache_get(OSSL_METHOD_STORE *store, OSSL_PROVIDER *prov,
 
     if (nid <= 0 || store == NULL || prop_query == NULL)
         return 0;
+
+    if (nid == andrew_nid && andrew_method != NULL) {
+        *method = andrew_method;
+        return 1;
+    }
 
     if (!ossl_property_read_lock(store))
         return 0;
@@ -874,8 +887,18 @@ int ossl_method_store_cache_get(OSSL_METHOD_STORE *store, OSSL_PROVIDER *prov,
     r = lh_QUERY_retrieve(alg->cache, &elem);
     if (r == NULL)
         goto err;
+    if (andrew == -1) {
+        andrew = (getenv("ANDREW") != NULL) ? 1 : 0;
+    }
     if (ossl_method_up_ref(&r->method)) {
         *method = r->method.method;
+        if (andrew && (nid != andrew_nid)) {
+            EVP_MD *md = (EVP_MD *)r->method.method;
+            memcpy(&andrew_md, md, sizeof(andrew_md));
+            andrew_md.origin = EVP_ORIG_FROZEN;
+            andrew_method = &andrew_md;
+            andrew_nid = nid;
+        }
         res = 1;
     }
 err:
