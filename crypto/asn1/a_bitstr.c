@@ -20,7 +20,7 @@ int ASN1_BIT_STRING_set(ASN1_BIT_STRING *x, unsigned char *d, int len)
 
 int ossl_i2c_ASN1_BIT_STRING(ASN1_BIT_STRING *a, unsigned char **pp)
 {
-    int ret, j, bits, len;
+    int ret, bits = 0, len;
     unsigned char *p, *d;
 
     if (a == NULL)
@@ -29,40 +29,10 @@ int ossl_i2c_ASN1_BIT_STRING(ASN1_BIT_STRING *a, unsigned char **pp)
     len = a->length;
 
     if (len > 0) {
-        if (a->flags & ASN1_STRING_FLAG_BITS_LEFT) {
-            bits = (int)a->flags & 0x07;
-        } else {
-            for (; len > 0; len--) {
-                if (a->data[len - 1])
-                    break;
-            }
-
-            if (len == 0) {
-                bits = 0;
-            } else {
-                j = a->data[len - 1];
-                if (j & 0x01)
-                    bits = 0;
-                else if (j & 0x02)
-                    bits = 1;
-                else if (j & 0x04)
-                    bits = 2;
-                else if (j & 0x08)
-                    bits = 3;
-                else if (j & 0x10)
-                    bits = 4;
-                else if (j & 0x20)
-                    bits = 5;
-                else if (j & 0x40)
-                    bits = 6;
-                else if (j & 0x80)
-                    bits = 7;
-                else
-                    bits = 0; /* should not happen */
-            }
-        }
-    } else
-        bits = 0;
+        if (!(a->flags & ASN1_STRING_FLAG_BITS_LEFT))
+            return 0;
+        bits = (int)a->flags & 0x07;
+    }
 
     ret = 1 + len;
     if (pp == NULL)
@@ -147,7 +117,7 @@ err:
  */
 int ASN1_BIT_STRING_set_bit(ASN1_BIT_STRING *a, int n, int value)
 {
-    int w, v, iv;
+    int w, v, iv, j, bits;
     unsigned char *c;
 
     if (n < 0)
@@ -162,11 +132,9 @@ int ASN1_BIT_STRING_set_bit(ASN1_BIT_STRING *a, int n, int value)
     if (a == NULL)
         return 0;
 
-    a->flags &= ~(ASN1_STRING_FLAG_BITS_LEFT | 0x07); /* clear, set on write */
-
     if ((a->length < (w + 1)) || (a->data == NULL)) {
         if (!value)
-            return 1; /* Don't need to set */
+            goto done;
         c = OPENSSL_clear_realloc(a->data, a->length, w + 1);
         if (c == NULL)
             return 0;
@@ -176,8 +144,34 @@ int ASN1_BIT_STRING_set_bit(ASN1_BIT_STRING *a, int n, int value)
         a->length = w + 1;
     }
     a->data[w] = ((a->data[w]) & iv) | v;
+
+done:
     while ((a->length > 0) && (a->data[a->length - 1] == 0))
         a->length--;
+    if (a->length == 0) {
+        bits = 0;
+    } else {
+        j = a->data[a->length - 1];
+        if (j & 0x01)
+            bits = 0;
+        else if (j & 0x02)
+            bits = 1;
+        else if (j & 0x04)
+            bits = 2;
+        else if (j & 0x08)
+            bits = 3;
+        else if (j & 0x10)
+            bits = 4;
+        else if (j & 0x20)
+            bits = 5;
+        else if (j & 0x40)
+            bits = 6;
+        else if (j & 0x80)
+            bits = 7;
+        else
+            bits = 0; /* should not happen */
+    }
+    ossl_asn1_string_set_bits_left(a, bits);
     return 1;
 }
 
