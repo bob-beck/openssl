@@ -287,6 +287,15 @@ typedef uint64_t ossl_uintmax_t;
 #define ossl_unused
 #endif
 
+/* GCC/clang has had this forever */
+#if defined(__GNUC__)
+#define OSSL_PREDICT_FALSE(A) __builtin_expect(!!(A), 0)
+#define OSSL_PREDICT_TRUE(A) __builtin_expect(!!(A), 1)
+#else
+#define OSSL_PREDICT_FALSE(A) (A)
+#define OSSL_PREDICT_TRUE(A) (A)
+#endif
+
 #ifdef __cplusplus
 }
 #endif
