@@ -186,12 +186,9 @@ int X509_cmp(const X509 *a, const X509 *b)
     if (a->cert_info.enc.modified || b->cert_info.enc.modified)
         return a->cert_info.enc.modified ? 1 : -1;
 
-    /* attempt to compute cert hash */
-    (void)X509_check_purpose((X509 *)a, -1, 0);
-    (void)X509_check_purpose((X509 *)b, -1, 0);
-
-    if ((a->ex_flags & EXFLAG_NO_FINGERPRINT) == 0
-        && (b->ex_flags & EXFLAG_NO_FINGERPRINT) == 0)
+    /* The fingerprints are only there on finalized certificates */
+    if ((a->ex_flags & (EXFLAG_SET | EXFLAG_NO_FINGERPRINT)) == EXFLAG_SET
+        && (b->ex_flags & (EXFLAG_SET | EXFLAG_NO_FINGERPRINT)) == EXFLAG_SET)
         rv = memcmp(a->fingerprint, b->fingerprint, sizeof(a->fingerprint));
     if (rv != 0)
         return rv < 0 ? -1 : 1;
