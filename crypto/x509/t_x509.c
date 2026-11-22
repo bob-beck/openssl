@@ -185,7 +185,7 @@ int X509_print_ex(BIO *bp, const X509 *x, unsigned long nmflags, unsigned long c
             goto err;
     }
     if (!(cflag & X509_FLAG_NO_AUX)) {
-        if (!X509_aux_print(bp, x, 0))
+        if (!ossl_X509_aux_print(bp, x, 0))
             goto err;
     }
     ret = 1;
@@ -319,17 +319,17 @@ int X509_signature_print(BIO *bp, const X509_ALGOR *sigalg,
     return 1;
 }
 
-int X509_aux_print(BIO *out, const X509 *x, int indent)
+int ossl_X509_aux_print(BIO *out, const X509 *x, int indent)
 {
     char oidstr[80], first;
     const STACK_OF(ASN1_OBJECT) *trust, *reject;
     const unsigned char *alias, *keyid;
     int keyidlen;
     int i;
-    if (X509_trusted(x) == 0)
+    if (ossl_X509_trusted(x) == 0)
         return 1;
-    trust = X509_get0_trust_objects(x);
-    reject = X509_get0_reject_objects(x);
+    trust = ossl_X509_get0_trust_objects(x);
+    reject = ossl_X509_get0_reject_objects(x);
     if (trust) {
         first = 1;
         BIO_printf(out, "%*sTrusted Uses:\n%*s", indent, "", indent + 2, "");
@@ -372,6 +372,13 @@ int X509_aux_print(BIO *out, const X509 *x, int indent)
     }
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_aux_print(BIO *out, const X509 *x, int indent)
+{
+    return ossl_X509_aux_print(out, x, indent);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Helper functions for improving certificate verification error diagnostics

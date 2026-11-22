@@ -10,6 +10,7 @@
 #include "internal/cryptlib.h"
 #include "internal/nelem.h"
 #include "bn_local.h"
+#include "crypto/bn.h"
 
 int BN_nnmod(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
 {
@@ -187,7 +188,7 @@ int bn_mod_sub_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
  * BN_mod_sub variant that may be used if both a and b are non-negative and
  * less than m
  */
-int BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int ossl_BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const BIGNUM *m)
 {
     if (r == m) {
@@ -201,6 +202,14 @@ int BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
         return BN_add(r, r, m);
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+    const BIGNUM *m)
+{
+    return ossl_BN_mod_sub_quick(r, a, b, m);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* slow but works */
 int BN_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
@@ -252,7 +261,7 @@ int BN_mod_lshift1(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
  * BN_mod_lshift1 variant that may be used if a is non-negative and less than
  * m
  */
-int BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m)
+int ossl_BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m)
 {
     if (!BN_lshift1(r, a))
         return 0;
@@ -261,6 +270,13 @@ int BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m)
         return BN_sub(r, r, m);
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m)
+{
+    return ossl_BN_mod_lshift1_quick(r, a, m);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
     BN_CTX *ctx)
@@ -278,7 +294,7 @@ int BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
         abs_m->neg = 0;
     }
 
-    ret = BN_mod_lshift_quick(r, r, n, (abs_m ? abs_m : m));
+    ret = ossl_BN_mod_lshift_quick(r, r, n, (abs_m ? abs_m : m));
     bn_check_top(r);
 
     BN_free(abs_m);
@@ -289,7 +305,7 @@ int BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
  * BN_mod_lshift variant that may be used if a is non-negative and less than
  * m
  */
-int BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m)
+int ossl_BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m)
 {
     if (r != a) {
         if (BN_copy(r, a) == NULL)
@@ -332,3 +348,10 @@ int BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m)
 
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m)
+{
+    return ossl_BN_mod_lshift_quick(r, a, n, m);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

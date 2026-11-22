@@ -79,6 +79,10 @@ Defined above.
 The functions DH_get_1024_160(), DH_get_2048_224() and DH_get_2048_256() were
 deprecated in OpenSSL 3.0.
 
+BN_get0_nist_prime_192(), BN_get0_nist_prime_224(), BN_get0_nist_prime_256(),
+BN_get0_nist_prime_384() and BN_get0_nist_prime_521() were deprecated in
+OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2016-2021 The OpenSSL Project Authors. All Rights Reserved.

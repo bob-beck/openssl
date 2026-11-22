@@ -645,7 +645,13 @@ void EVP_MD_CTX_free(EVP_MD_CTX *ctx);
 __owur EVP_MD_CTX *EVP_MD_CTX_dup(const EVP_MD_CTX *in);
 __owur int EVP_MD_CTX_copy_ex(EVP_MD_CTX *out, const EVP_MD_CTX *in);
 void EVP_MD_CTX_set_flags(EVP_MD_CTX *ctx, int flags);
-void EVP_MD_CTX_clear_flags(EVP_MD_CTX *ctx, int flags);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Clear flags in a digest context.
+ * @see EVP_MD_CTX_clear_flags(3)
+ */
+OSSL_DEPRECATEDIN_4_2 void EVP_MD_CTX_clear_flags(EVP_MD_CTX *ctx, int flags);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int EVP_MD_CTX_test_flags(const EVP_MD_CTX *ctx, int flags);
 __owur int EVP_DigestInit_ex2(EVP_MD_CTX *ctx, const EVP_MD *type,
     const OSSL_PARAM params[]);
@@ -827,7 +833,13 @@ __owur int EVP_SealFinal(EVP_CIPHER_CTX *ctx, unsigned char *out, int *outl);
 EVP_ENCODE_CTX *EVP_ENCODE_CTX_new(void);
 void EVP_ENCODE_CTX_free(EVP_ENCODE_CTX *ctx);
 int EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, const EVP_ENCODE_CTX *sctx);
-int EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Get the number of bytes pending in an encoding context.
+ * @see EVP_ENCODE_CTX_num(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 void EVP_EncodeInit(EVP_ENCODE_CTX *ctx);
 int EVP_EncodeUpdate(EVP_ENCODE_CTX *ctx, unsigned char *out, int *outl,
     const unsigned char *in, int inl);
@@ -1299,7 +1311,13 @@ int EVP_PKEY_get_size(const EVP_PKEY *pkey);
 #define EVP_PKEY_size EVP_PKEY_get_size
 int EVP_PKEY_can_sign(const EVP_PKEY *pkey);
 int EVP_PKEY_set_type(EVP_PKEY *pkey, int type);
-int EVP_PKEY_set_type_str(EVP_PKEY *pkey, const char *str, int len);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Set the type of a key from an algorithm name.
+ * @see EVP_PKEY_set_type_str(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int EVP_PKEY_set_type_str(EVP_PKEY *pkey, const char *str, int len);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int EVP_PKEY_set_type_by_keymgmt(EVP_PKEY *pkey, EVP_KEYMGMT *keymgmt);
 #ifndef OPENSSL_NO_DEPRECATED_3_0
 OSSL_DEPRECATEDIN_3_0
@@ -1449,9 +1467,15 @@ int EVP_CIPHER_set_asn1_iv(EVP_CIPHER_CTX *c, ASN1_TYPE *type);
 int EVP_CIPHER_get_asn1_iv(EVP_CIPHER_CTX *c, ASN1_TYPE *type);
 
 /* PKCS5 password based encryption */
-int PKCS5_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Derive a key and IV with PKCS#5 v1.5 and initialise a cipher context.
+ * @see PKCS5_PBE_keyivgen(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int PKCS5_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
     ASN1_TYPE *param, const EVP_CIPHER *cipher,
     const EVP_MD *md, int en_de);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int PKCS5_PBE_keyivgen_ex(EVP_CIPHER_CTX *cctx, const char *pass, int passlen,
     ASN1_TYPE *param, const EVP_CIPHER *cipher,
     const EVP_MD *md, int en_de, OSSL_LIB_CTX *libctx,
@@ -1462,9 +1486,16 @@ int PKCS5_PBKDF2_HMAC_SHA1(const char *pass, int passlen,
 int PKCS5_PBKDF2_HMAC(const char *pass, int passlen,
     const unsigned char *salt, int saltlen, int iter,
     const EVP_MD *digest, int keylen, unsigned char *out);
-int PKCS5_v2_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Derive a key and IV with PKCS#5 v2.0 PBES2 and initialise a cipher
+ * context.
+ * @see PKCS5_v2_PBE_keyivgen(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int PKCS5_v2_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
     ASN1_TYPE *param, const EVP_CIPHER *cipher,
     const EVP_MD *md, int en_de);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int PKCS5_v2_PBE_keyivgen_ex(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
     ASN1_TYPE *param, const EVP_CIPHER *cipher,
     const EVP_MD *md, int en_de,
@@ -1481,9 +1512,16 @@ int EVP_PBE_scrypt_ex(const char *pass, size_t passlen,
     unsigned char *key, size_t keylen,
     OSSL_LIB_CTX *ctx, const char *propq);
 
-int PKCS5_v2_scrypt_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Derive a cipher key from a password with scrypt parameters and
+ * initialise a cipher context with it.
+ * @see PKCS5_v2_scrypt_keyivgen(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int PKCS5_v2_scrypt_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass,
     int passlen, ASN1_TYPE *param,
     const EVP_CIPHER *c, const EVP_MD *md, int en_de);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int PKCS5_v2_scrypt_keyivgen_ex(EVP_CIPHER_CTX *ctx, const char *pass,
     int passlen, ASN1_TYPE *param,
     const EVP_CIPHER *c, const EVP_MD *md, int en_de,
@@ -1508,15 +1546,27 @@ int EVP_PBE_CipherInit_ex(ASN1_OBJECT *pbe_obj, const char *pass, int passlen,
 /* Is a PKCS#5 v2.0 KDF */
 #define EVP_PBE_TYPE_KDF 0x2
 
-int EVP_PBE_alg_add_type(int pbe_type, int pbe_nid, int cipher_nid,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Add a password-based encryption algorithm to the PBE table.
+ * @see EVP_PBE_alg_add_type(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int EVP_PBE_alg_add_type(int pbe_type, int pbe_nid, int cipher_nid,
     int md_nid, EVP_PBE_KEYGEN *keygen);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int EVP_PBE_alg_add(int nid, const EVP_CIPHER *cipher, const EVP_MD *md,
     EVP_PBE_KEYGEN *keygen);
 int EVP_PBE_find(int type, int pbe_nid, int *pcnid, int *pmnid,
     EVP_PBE_KEYGEN **pkeygen);
 int EVP_PBE_find_ex(int type, int pbe_nid, int *pcnid, int *pmnid,
     EVP_PBE_KEYGEN **pkeygen, EVP_PBE_KEYGEN_EX **pkeygen_ex);
-void EVP_PBE_cleanup(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Free all application-added PBE algorithms.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void EVP_PBE_cleanup(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int EVP_PBE_get(int *ptype, int *ppbe_nid, size_t num);
 
 #define ASN1_PKEY_ALIAS 0x1
@@ -1680,8 +1730,14 @@ int EVP_PKEY_CTX_ctrl(EVP_PKEY_CTX *ctx, int keytype, int optype,
     int cmd, int p1, void *p2);
 int EVP_PKEY_CTX_ctrl_str(EVP_PKEY_CTX *ctx, const char *type,
     const char *value);
-int EVP_PKEY_CTX_ctrl_uint64(EVP_PKEY_CTX *ctx, int keytype, int optype,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Send a control operation with a uint64_t argument to a key context.
+ * @see EVP_PKEY_CTX_ctrl_uint64(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int EVP_PKEY_CTX_ctrl_uint64(EVP_PKEY_CTX *ctx, int keytype, int optype,
     int cmd, uint64_t value);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int EVP_PKEY_CTX_str2ctrl(EVP_PKEY_CTX *ctx, int cmd, const char *str);
 int EVP_PKEY_CTX_hex2ctrl(EVP_PKEY_CTX *ctx, int cmd, const char *hex);
@@ -1930,7 +1986,13 @@ int EVP_KEYEXCH_names_do_all(const EVP_KEYEXCH *keyexch,
 const OSSL_PARAM *EVP_KEYEXCH_gettable_ctx_params(const EVP_KEYEXCH *keyexch);
 const OSSL_PARAM *EVP_KEYEXCH_settable_ctx_params(const EVP_KEYEXCH *keyexch);
 
-void EVP_add_alg_module(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Register the "alg_section" configuration module.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void EVP_add_alg_module(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int EVP_PKEY_CTX_set_group_name(EVP_PKEY_CTX *ctx, const char *name);
 int EVP_PKEY_CTX_get_group_name(EVP_PKEY_CTX *ctx, char *name, size_t namelen);

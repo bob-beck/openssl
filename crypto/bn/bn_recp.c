@@ -9,6 +9,7 @@
 
 #include "internal/cryptlib.h"
 #include "bn_local.h"
+#include "crypto/bn.h"
 
 void BN_RECP_CTX_init(BN_RECP_CTX *recp)
 {
@@ -30,7 +31,7 @@ BN_RECP_CTX *BN_RECP_CTX_new(void)
     return ret;
 }
 
-void BN_RECP_CTX_free(BN_RECP_CTX *recp)
+void ossl_BN_RECP_CTX_free(BN_RECP_CTX *recp)
 {
     if (recp == NULL)
         return;
@@ -40,7 +41,14 @@ void BN_RECP_CTX_free(BN_RECP_CTX *recp)
         OPENSSL_free(recp);
 }
 
-int BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *d, BN_CTX *ctx)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void BN_RECP_CTX_free(BN_RECP_CTX *recp)
+{
+    ossl_BN_RECP_CTX_free(recp);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *d, BN_CTX *ctx)
 {
     if (BN_is_zero(d) || BN_copy(&(recp->N), d) == NULL)
         return 0;
@@ -50,7 +58,14 @@ int BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *d, BN_CTX *ctx)
     return 1;
 }
 
-int BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *d, BN_CTX *ctx)
+{
+    return ossl_BN_RECP_CTX_set(recp, d, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
     BN_RECP_CTX *recp, BN_CTX *ctx)
 {
     int ret = 0;
@@ -72,14 +87,22 @@ int BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
     } else
         ca = x; /* Just do the mod */
 
-    ret = BN_div_recp(NULL, r, ca, recp, ctx);
+    ret = ossl_BN_div_recp(NULL, r, ca, recp, ctx);
 err:
     BN_CTX_end(ctx);
     bn_check_top(r);
     return ret;
 }
 
-int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
+    BN_RECP_CTX *recp, BN_CTX *ctx)
+{
+    return ossl_BN_mod_mul_reciprocal(r, x, y, recp, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
     BN_RECP_CTX *recp, BN_CTX *ctx)
 {
     int i, j, ret = 0;
@@ -116,7 +139,7 @@ int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
 
     /* Nr := round(2^i / N) */
     if (i != recp->shift)
-        recp->shift = BN_reciprocal(&(recp->Nr), &(recp->N), i, ctx);
+        recp->shift = ossl_BN_reciprocal(&(recp->Nr), &(recp->N), i, ctx);
     /* BN_reciprocal could have returned -1 for an error */
     if (recp->shift == -1)
         goto err;
@@ -137,7 +160,7 @@ int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
 
     if (!BN_mul(b, &(recp->N), d, ctx))
         goto err;
-    if (!BN_usub(r, m, b))
+    if (!ossl_BN_usub(r, m, b))
         goto err;
     r->neg = 0;
 
@@ -147,7 +170,7 @@ int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
             ERR_raise(ERR_LIB_BN, BN_R_BAD_RECIPROCAL);
             goto err;
         }
-        if (!BN_usub(r, r, &(recp->N)))
+        if (!ossl_BN_usub(r, r, &(recp->N)))
             goto err;
         if (!BN_add_word(d, 1))
             goto err;
@@ -163,13 +186,21 @@ err:
     return ret;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
+    BN_RECP_CTX *recp, BN_CTX *ctx)
+{
+    return ossl_BN_div_recp(dv, rem, m, recp, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * len is the expected size of the result We actually calculate with an extra
  * word of precision, so we can do faster division if the remainder is not
  * required.
  */
 /* r := 2^len / m */
-int BN_reciprocal(BIGNUM *r, const BIGNUM *m, int len, BN_CTX *ctx)
+int ossl_BN_reciprocal(BIGNUM *r, const BIGNUM *m, int len, BN_CTX *ctx)
 {
     int ret = -1;
     BIGNUM *t;
@@ -190,3 +221,10 @@ err:
     BN_CTX_end(ctx);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_reciprocal(BIGNUM *r, const BIGNUM *m, int len, BN_CTX *ctx)
+{
+    return ossl_BN_reciprocal(r, m, len, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

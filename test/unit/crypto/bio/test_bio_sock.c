@@ -8,6 +8,7 @@
  */
 
 #include "internal/sockets.h"
+#include "internal/bio.h"
 
 #ifndef OPENSSL_NO_SOCK
 
@@ -289,7 +290,7 @@ static void test_sock_error_value(void **state)
     /* getsockopt succeeds: SO_ERROR value is returned verbatim */
     (void)state;
     expect_getsockopt(FAKE_SOCKET, 0, ECONNREFUSED);
-    assert_int_equal(BIO_sock_error(FAKE_SOCKET), ECONNREFUSED);
+    assert_int_equal(ossl_BIO_sock_error(FAKE_SOCKET), ECONNREFUSED);
 }
 
 static void test_sock_error_getsockopt_fails(void **state)
@@ -297,7 +298,7 @@ static void test_sock_error_getsockopt_fails(void **state)
     /* getsockopt fails: the last socket error (errno) is returned */
     (void)state;
     expect_getsockopt(FAKE_SOCKET, -1, EBADF);
-    assert_int_equal(BIO_sock_error(FAKE_SOCKET), EBADF);
+    assert_int_equal(ossl_BIO_sock_error(FAKE_SOCKET), EBADF);
 }
 
 /* BIO_socket_ioctl */
@@ -309,7 +310,7 @@ static void test_socket_ioctl_success(void **state)
 
     (void)state;
     expect_ioctl(FAKE_SOCKET, FIONBIO, 0);
-    assert_int_equal(BIO_socket_ioctl(FAKE_SOCKET, FIONBIO, &arg), 0);
+    assert_int_equal(ossl_BIO_socket_ioctl(FAKE_SOCKET, FIONBIO, &arg), 0);
 }
 
 static void test_socket_ioctl_error(void **state)
@@ -318,7 +319,7 @@ static void test_socket_ioctl_error(void **state)
 
     (void)state;
     expect_ioctl(FAKE_SOCKET, FIONBIO, -1);
-    assert_int_equal(BIO_socket_ioctl(FAKE_SOCKET, FIONBIO, &arg), -1);
+    assert_int_equal(ossl_BIO_socket_ioctl(FAKE_SOCKET, FIONBIO, &arg), -1);
 }
 #endif
 

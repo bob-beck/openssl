@@ -226,7 +226,13 @@ int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs);
 int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req);
 
 int OCSP_request_set1_name(OCSP_REQUEST *req, const X509_NAME *nm);
-int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Add a certificate to the signature of an OCSP request.
+ * @see OCSP_request_add1_cert(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int OCSP_request_sign(OCSP_REQUEST *req,
     X509 *signer,
@@ -297,10 +303,22 @@ int OCSP_basic_sign(OCSP_BASICRESP *brsp,
 int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
     X509 *signer, EVP_MD_CTX *ctx,
     const STACK_OF(X509) *certs, unsigned long flags);
-int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Set a responder ID to a certificate's subject name.
+ * @see OCSP_RESPID_set_by_name(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int OCSP_RESPID_set_by_key_ex(OCSP_RESPID *respid, X509 *cert,
     OSSL_LIB_CTX *libctx, const char *propq);
-int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Set a responder ID to the SHA-1 hash of a certificate's public key.
+ * @see OCSP_RESPID_set_by_key(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int OCSP_RESPID_match_ex(OCSP_RESPID *respid, X509 *cert, OSSL_LIB_CTX *libctx,
     const char *propq);
 int OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert);
@@ -314,11 +332,23 @@ X509_EXTENSION *OCSP_archive_cutoff_new(char *tim);
 X509_EXTENSION *OCSP_url_svcloc_new(const X509_NAME *issuer, const char **urls);
 
 int OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x);
-int OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Find the next request extension of an OCSP request with a given NID.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
     int lastpos);
 int OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos);
-const X509_EXTENSION *OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Get the request extension at a given position of an OCSP request.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 const X509_EXTENSION *OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 X509_EXTENSION *OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc);
 void *OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit,
     int *idx);
@@ -349,7 +379,14 @@ void *OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
     int *idx);
 int OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
     int crit, unsigned long flags);
-int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, const X509_EXTENSION *ex, int loc);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Insert a copy of an extension into the response extensions of a basic
+ * OCSP response.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, const X509_EXTENSION *ex, int loc);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x);
 int OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos);

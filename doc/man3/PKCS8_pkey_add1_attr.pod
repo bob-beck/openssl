@@ -42,6 +42,10 @@ them have the corresponding set of similar functions.
 
 L<crypto(7)>
 
+=head1 HISTORY
+
+PKCS8_pkey_add1_attr_by_NID() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2020 The OpenSSL Project Authors. All Rights Reserved.

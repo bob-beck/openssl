@@ -20,6 +20,7 @@
 #include "prov/implementations.h"
 #include "prov/providercommon.h"
 #include "providers/implementations/ciphers/cipher_aes_xts.inc"
+#include "crypto/modes.h"
 
 #define AES_XTS_FLAGS PROV_CIPHER_FLAG_CUSTOM_IV
 #define AES_XTS_IV_BITS 128
@@ -203,7 +204,7 @@ static int aes_xts_cipher(void *vctx, unsigned char *out, size_t *outl,
 
     if (ctx->stream != NULL)
         (*ctx->stream)(in, out, inl, ctx->xts.key1, ctx->xts.key2, ctx->base.iv);
-    else if (CRYPTO_xts128_encrypt(&ctx->xts, ctx->base.iv, in, out, inl,
+    else if (ossl_CRYPTO_xts128_encrypt(&ctx->xts, ctx->base.iv, in, out, inl,
                  ctx->base.enc))
         return 0;
 

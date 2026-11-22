@@ -233,7 +233,14 @@ int BN_pseudo_rand_range(BIGNUM *rnd, const BIGNUM *range);
 #endif
 int BN_num_bits(const BIGNUM *a);
 int BN_num_bits_word(BN_ULONG l);
-int BN_security_bits(int L, int N);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Return the security strength in bits of a finite-field group with
+ * modulus size L and subgroup size N.
+ * @see BN_security_bits(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int BN_security_bits(int L, int N);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 BIGNUM *BN_new(void);
 BIGNUM *BN_secure_new(void);
 void BN_clear_free(BIGNUM *a);
@@ -255,7 +262,14 @@ int BN_signed_bn2native(const BIGNUM *a, unsigned char *to, int tolen);
 BIGNUM *BN_mpi2bn(const unsigned char *s, int len, BIGNUM *ret);
 int BN_bn2mpi(const BIGNUM *a, unsigned char *to);
 int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
-int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Subtract the magnitude of b from the magnitude of a, assuming |a| >=
+ * |b|.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
 int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
 int BN_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx);
@@ -281,16 +295,34 @@ int BN_mod_add_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const BIGNUM *m);
 int BN_mod_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
     BN_CTX *ctx);
-int BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute a - b modulo m for a and b in the range [0, m).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const BIGNUM *m);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BN_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
     BN_CTX *ctx);
 int BN_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx);
 int BN_mod_lshift1(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx);
-int BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute 2a modulo m for a non-negative a less than m.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
     BN_CTX *ctx);
-int BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute a * 2^n modulo m for a non-negative a less than m.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 BN_ULONG BN_mod_word(const BIGNUM *a, BN_ULONG w);
 BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w);
@@ -316,11 +348,22 @@ int BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
     BN_MONT_CTX *in_mont);
 int BN_mod_exp_mont_word(BIGNUM *r, BN_ULONG a, const BIGNUM *p,
     const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *m_ctx);
-int BN_mod_exp2_mont(BIGNUM *r, const BIGNUM *a1, const BIGNUM *p1,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute a1^p1 * a2^p2 modulo an odd m using Montgomery multiplication.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_mod_exp2_mont(BIGNUM *r, const BIGNUM *a1, const BIGNUM *p1,
     const BIGNUM *a2, const BIGNUM *p2, const BIGNUM *m,
     BN_CTX *ctx, BN_MONT_CTX *m_ctx);
-int BN_mod_exp_simple(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+/**
+ * @brief Compute a^p modulo m by sliding-window exponentiation with
+ * BN_mod_mul().
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_mod_exp_simple(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
     const BIGNUM *m, BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BN_mod_exp_mont_consttime_x2(BIGNUM *rr1, const BIGNUM *a1, const BIGNUM *p1,
     const BIGNUM *m1, BN_MONT_CTX *in_mont1,
     BIGNUM *rr2, const BIGNUM *a2, const BIGNUM *p2,
@@ -332,7 +375,13 @@ int BN_mask_bits(BIGNUM *a, int n);
 int BN_print_fp(FILE *fp, const BIGNUM *a);
 #endif
 int BN_print(BIO *bio, const BIGNUM *a);
-int BN_reciprocal(BIGNUM *r, const BIGNUM *m, int len, BN_CTX *ctx);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute floor(2^len / m).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_reciprocal(BIGNUM *r, const BIGNUM *m, int len, BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BN_rshift(BIGNUM *r, const BIGNUM *a, int n);
 int BN_rshift1(BIGNUM *r, const BIGNUM *a);
 void BN_clear(BIGNUM *a);
@@ -346,16 +395,28 @@ int BN_hex2bn(BIGNUM **a, const char *str);
 int BN_dec2bn(BIGNUM **a, const char *str);
 int BN_asc2bn(BIGNUM **a, const char *str);
 int BN_gcd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx);
-int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx); /* returns
-                                                                  * -2 for
-                                                                  * error */
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute the Kronecker symbol (a | b).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx); /* returns
+                                                                                        * -2 for
+                                                                                        * error */
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BN_are_coprime(BIGNUM *a, const BIGNUM *b, BN_CTX *ctx);
 BIGNUM *BN_mod_inverse(BIGNUM *ret,
     const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx);
 BIGNUM *BN_mod_sqrt(BIGNUM *ret,
     const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx);
 
-void BN_consttime_swap(BN_ULONG swap, BIGNUM *a, BIGNUM *b, int nwords);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Swap two BIGNUMs in constant time when condition is nonzero.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void BN_consttime_swap(BN_ULONG swap, BIGNUM *a, BIGNUM *b, int nwords);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* Deprecated versions */
 #ifndef OPENSSL_NO_DEPRECATED_0_9_8
@@ -414,16 +475,37 @@ int BN_from_montgomery(BIGNUM *r, const BIGNUM *a, BN_MONT_CTX *mont,
 void BN_MONT_CTX_free(BN_MONT_CTX *mont);
 int BN_MONT_CTX_set(BN_MONT_CTX *mont, const BIGNUM *mod, BN_CTX *ctx);
 BN_MONT_CTX *BN_MONT_CTX_copy(BN_MONT_CTX *to, BN_MONT_CTX *from);
-BN_MONT_CTX *BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Return the Montgomery context cached at *pmont, creating and storing
+ * it under lock on first use.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 BN_MONT_CTX *BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
     const BIGNUM *mod, BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* BN_BLINDING flags */
 #define BN_BLINDING_NO_UPDATE 0x00000001
 #define BN_BLINDING_NO_RECREATE 0x00000002
 
-BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Allocate a blinding object holding copies of the blinding value, its
+ * inverse and the modulus.
+ * @see BN_BLINDING_new(3)
+ */
+OSSL_DEPRECATEDIN_4_2 BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 void BN_BLINDING_free(BN_BLINDING *b);
-int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Advance the blinding values, regenerating them after a fixed number of
+ * uses.
+ * @see BN_BLINDING_update(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BN_BLINDING_convert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx);
 int BN_BLINDING_invert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx);
 int BN_BLINDING_convert_ex(BIGNUM *n, BIGNUM *r, BN_BLINDING *b, BN_CTX *);
@@ -431,13 +513,25 @@ int BN_BLINDING_invert_ex(BIGNUM *n, const BIGNUM *r, BN_BLINDING *b,
     BN_CTX *);
 
 int BN_BLINDING_is_current_thread(BN_BLINDING *b);
-void BN_BLINDING_set_current_thread(BN_BLINDING *b);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Record the calling thread as the owner of a blinding object.
+ * @see BN_BLINDING_set_current_thread(3)
+ */
+OSSL_DEPRECATEDIN_4_2 void BN_BLINDING_set_current_thread(BN_BLINDING *b);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BN_BLINDING_lock(BN_BLINDING *b);
 int BN_BLINDING_unlock(BN_BLINDING *b);
 
 unsigned long BN_BLINDING_get_flags(const BN_BLINDING *);
 void BN_BLINDING_set_flags(BN_BLINDING *, unsigned long);
-BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Create or reinitialise a blinding object with fresh random blinding
+ * values for modulus m and exponent e.
+ * @see BN_BLINDING_create_param(3)
+ */
+OSSL_DEPRECATEDIN_4_2 BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
     const BIGNUM *e, BIGNUM *m, BN_CTX *ctx,
     int (*bn_mod_exp)(BIGNUM *r,
         const BIGNUM *a,
@@ -446,6 +540,7 @@ BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
         BN_CTX *ctx,
         BN_MONT_CTX *m_ctx),
     BN_MONT_CTX *m_ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #ifndef OPENSSL_NO_DEPRECATED_0_9_8
 OSSL_DEPRECATEDIN_0_9_8
 void BN_set_params(int mul, int high, int low, int mont);
@@ -454,14 +549,37 @@ int BN_get_params(int which); /* 0, mul, 1 high, 2 low, 3 mont */
 #endif
 
 BN_RECP_CTX *BN_RECP_CTX_new(void);
-void BN_RECP_CTX_free(BN_RECP_CTX *recp);
-int BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *rdiv, BN_CTX *ctx);
-int BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Free a reciprocal context and the values it holds.
+ * @see BN_RECP_CTX_free(3)
+ */
+OSSL_DEPRECATEDIN_4_2 void BN_RECP_CTX_free(BN_RECP_CTX *recp);
+/**
+ * @brief Store the divisor d and its reciprocal in a reciprocal context.
+ * @see BN_RECP_CTX_set(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *rdiv, BN_CTX *ctx);
+/**
+ * @brief Compute x * y modulo the divisor held in a reciprocal context.
+ * @see BN_mod_mul_reciprocal(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
     BN_RECP_CTX *recp, BN_CTX *ctx);
-int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+/**
+ * @brief Compute a^p modulo m using reciprocal (Barrett) reduction.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
     const BIGNUM *m, BN_CTX *ctx);
-int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
+/**
+ * @brief Divide m by the divisor held in a reciprocal context, producing
+ * quotient and remainder.
+ * @see BN_div_recp(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
     BN_RECP_CTX *recp, BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #ifndef OPENSSL_NO_EC2M
 
@@ -480,17 +598,42 @@ int BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
 /*
  * r=a mod p
  */
-int BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Reduce a polynomial over GF(2) modulo p.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 /* r = (a * b) mod p */
-int BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute a * b modulo p over GF(2).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const BIGNUM *p, BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 /* r = (a * a) mod p */
 int BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
 /* r = (1 / b) mod p */
-int BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *b, const BIGNUM *p, BN_CTX *ctx);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute the inverse of a modulo p over GF(2), blinding the computation
+ * with a random multiplier.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *b, const BIGNUM *p, BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 /* r = (a / b) mod p */
-int BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute y/x modulo p over GF(2).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const BIGNUM *p, BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 /* r = (a ^ b) mod p */
 int BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const BIGNUM *p, BN_CTX *ctx);
@@ -508,13 +651,34 @@ int BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
  * where m = p[0] > p[1] > ... > p[k] = 0.
  */
 /* r = a mod p */
-int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[]);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Reduce a polynomial over GF(2) modulo the polynomial given as an array
+ * of term degrees.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[]);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 /* r = (a * b) mod p */
-int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute a * b modulo p over GF(2), with p given as an array of term
+ * degrees.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const int p[], BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 /* r = (a * a) mod p */
-int BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute a^2 modulo p over GF(2), with p given as an array of term
+ * degrees.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
     BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 /* r = (1 / b) mod p */
 int BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *b, const int p[],
     BN_CTX *ctx);
@@ -522,36 +686,112 @@ int BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *b, const int p[],
 int BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const int p[], BN_CTX *ctx);
 /* r = (a ^ b) mod p */
-int BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute a^b modulo p over GF(2), with p given as an array of term
+ * degrees.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const int p[], BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 /* r = sqrt(a) mod p */
-int BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute the square root of a modulo p over GF(2) as a^(2^(m-1)), where
+ * m is p[0].
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a,
     const int p[], BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 /* r^2 + r = a mod p */
-int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Find a solution z of z^2 + z = a_ modulo p over GF(2).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a,
     const int p[], BN_CTX *ctx);
-int BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max);
-int BN_GF2m_arr2poly(const int p[], BIGNUM *a);
+/**
+ * @brief Convert a polynomial over GF(2) into an array of its term degrees in
+ * decreasing order, terminated by -1.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max);
+/**
+ * @brief Convert an array of term degrees into the polynomial it represents
+ * over GF(2).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_GF2m_arr2poly(const int p[], BIGNUM *a);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #endif
 
 /*
  * faster mod functions for the 'NIST primes' 0 <= a < p^2
  */
-int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
-int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
-int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
-int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
-int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Reduce a modulo the NIST P-192 prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+/**
+ * @brief Reduce a modulo the NIST P-224 prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+/**
+ * @brief Reduce a modulo the NIST P-256 prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+/**
+ * @brief Reduce a modulo the NIST P-384 prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+/**
+ * @brief Reduce a modulo the NIST P-521 prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
 
-const BIGNUM *BN_get0_nist_prime_192(void);
-const BIGNUM *BN_get0_nist_prime_224(void);
-const BIGNUM *BN_get0_nist_prime_256(void);
-const BIGNUM *BN_get0_nist_prime_384(void);
-const BIGNUM *BN_get0_nist_prime_521(void);
+/**
+ * @brief Return the NIST P-192 prime as a static BIGNUM.
+ * @see BN_get0_nist_prime_192(3)
+ */
+OSSL_DEPRECATEDIN_4_2 const BIGNUM *BN_get0_nist_prime_192(void);
+/**
+ * @brief Return the NIST P-224 prime as a static BIGNUM.
+ * @see BN_get0_nist_prime_224(3)
+ */
+OSSL_DEPRECATEDIN_4_2 const BIGNUM *BN_get0_nist_prime_224(void);
+/**
+ * @brief Return the NIST P-256 prime as a static BIGNUM.
+ * @see BN_get0_nist_prime_256(3)
+ */
+OSSL_DEPRECATEDIN_4_2 const BIGNUM *BN_get0_nist_prime_256(void);
+/**
+ * @brief Return the NIST P-384 prime as a static BIGNUM.
+ * @see BN_get0_nist_prime_384(3)
+ */
+OSSL_DEPRECATEDIN_4_2 const BIGNUM *BN_get0_nist_prime_384(void);
+/**
+ * @brief Return the NIST P-521 prime as a static BIGNUM.
+ * @see BN_get0_nist_prime_521(3)
+ */
+OSSL_DEPRECATEDIN_4_2 const BIGNUM *BN_get0_nist_prime_521(void);
 
-int (*BN_nist_mod_func(const BIGNUM *p))(BIGNUM *r, const BIGNUM *a,
+/**
+ * @brief Look up the NIST fast-reduction function for a prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int (*BN_nist_mod_func(const BIGNUM *p))(BIGNUM *r, const BIGNUM *a,
     const BIGNUM *field, BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
     const BIGNUM *priv, const unsigned char *message,

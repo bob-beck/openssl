@@ -254,6 +254,9 @@ EC_GROUP_get0_order(), EC_GROUP_order_bits() and EC_GROUP_get0_cofactor() were a
 
 EC_GROUP_security_bits() was added in OpenSSL 4.0.
 
+EC_GROUP_check_discriminant(), EC_GROUP_get_trinomial_basis() and
+EC_GROUP_get_pentanomial_basis() were deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2013-2026 The OpenSSL Project Authors. All Rights Reserved.

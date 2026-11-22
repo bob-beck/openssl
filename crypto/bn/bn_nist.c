@@ -9,6 +9,7 @@
 
 #include "bn_local.h"
 #include "internal/cryptlib.h"
+#include "crypto/bn.h"
 
 #define BN_NIST_192_TOP (192 + BN_BITS2 - 1) / BN_BITS2
 #define BN_NIST_224_TOP (224 + BN_BITS2 - 1) / BN_BITS2
@@ -223,30 +224,65 @@ static const BIGNUM ossl_bignum_nist_p_521 = {
     BN_FLG_STATIC_DATA
 };
 
-const BIGNUM *BN_get0_nist_prime_192(void)
+const BIGNUM *ossl_BN_get0_nist_prime_192(void)
 {
     return &ossl_bignum_nist_p_192;
 }
 
-const BIGNUM *BN_get0_nist_prime_224(void)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const BIGNUM *BN_get0_nist_prime_192(void)
+{
+    return ossl_BN_get0_nist_prime_192();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+const BIGNUM *ossl_BN_get0_nist_prime_224(void)
 {
     return &ossl_bignum_nist_p_224;
 }
 
-const BIGNUM *BN_get0_nist_prime_256(void)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const BIGNUM *BN_get0_nist_prime_224(void)
+{
+    return ossl_BN_get0_nist_prime_224();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+const BIGNUM *ossl_BN_get0_nist_prime_256(void)
 {
     return &ossl_bignum_nist_p_256;
 }
 
-const BIGNUM *BN_get0_nist_prime_384(void)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const BIGNUM *BN_get0_nist_prime_256(void)
+{
+    return ossl_BN_get0_nist_prime_256();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+const BIGNUM *ossl_BN_get0_nist_prime_384(void)
 {
     return &ossl_bignum_nist_p_384;
 }
 
-const BIGNUM *BN_get0_nist_prime_521(void)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const BIGNUM *BN_get0_nist_prime_384(void)
+{
+    return ossl_BN_get0_nist_prime_384();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+const BIGNUM *ossl_BN_get0_nist_prime_521(void)
 {
     return &ossl_bignum_nist_p_521;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const BIGNUM *BN_get0_nist_prime_521(void)
+{
+    return ossl_BN_get0_nist_prime_521();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * To avoid more recent compilers (specifically clang-14) from treating this
@@ -347,7 +383,7 @@ static ossl_inline void store_lo32(void *ptr, NIST_INT64 val)
         bn_cp_64(to, 2, from, (a1) - 3);   \
     }
 
-int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+int ossl_BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     BN_CTX *ctx)
 {
     int top = a->top, i;
@@ -468,6 +504,14 @@ int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+    BN_CTX *ctx)
+{
+    return ossl_BN_nist_mod_192(r, a, field, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 typedef BN_ULONG (*bn_addsub_f)(BN_ULONG *, const BN_ULONG *,
     const BN_ULONG *, int);
 
@@ -482,7 +526,7 @@ typedef BN_ULONG (*bn_addsub_f)(BN_ULONG *, const BN_ULONG *,
         bn_cp_32(to, 6, from, (a1) - 7);                   \
     }
 
-int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+int ossl_BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     BN_CTX *ctx)
 {
     int top = a->top, i;
@@ -636,6 +680,14 @@ int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+    BN_CTX *ctx)
+{
+    return ossl_BN_nist_mod_224(r, a, field, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 #define nist_set_256(to, from, a1, a2, a3, a4, a5, a6, a7, a8) \
     {                                                          \
         bn_cp_32(to, 0, from, (a8) - 8);                       \
@@ -648,7 +700,7 @@ int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         bn_cp_32(to, 7, from, (a1) - 8);                       \
     }
 
-int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+int ossl_BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     BN_CTX *ctx)
 {
     int i, top = a->top;
@@ -865,6 +917,14 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+    BN_CTX *ctx)
+{
+    return ossl_BN_nist_mod_256(r, a, field, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 #define nist_set_384(to, from, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12) \
     {                                                                             \
         bn_cp_32(to, 0, from, (a12) - 12);                                        \
@@ -881,7 +941,7 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
         bn_cp_32(to, 11, from, (a1) - 12);                                        \
     }
 
-int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+int ossl_BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     BN_CTX *ctx)
 {
     int i, top = a->top;
@@ -1132,11 +1192,19 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+    BN_CTX *ctx)
+{
+    return ossl_BN_nist_mod_384(r, a, field, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 #define BN_NIST_521_RSHIFT (521 % BN_BITS2)
 #define BN_NIST_521_LSHIFT (BN_BITS2 - BN_NIST_521_RSHIFT)
 #define BN_NIST_521_TOP_MASK ((BN_ULONG)BN_MASK2 >> BN_NIST_521_LSHIFT)
 
-int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+int ossl_BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     BN_CTX *ctx)
 {
     int top = a->top, i;
@@ -1203,18 +1271,34 @@ int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
     return 1;
 }
 
-int (*BN_nist_mod_func(const BIGNUM *p))(BIGNUM *r, const BIGNUM *a,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+    BN_CTX *ctx)
+{
+    return ossl_BN_nist_mod_521(r, a, field, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int (*ossl_BN_nist_mod_func(const BIGNUM *p))(BIGNUM *r, const BIGNUM *a,
     const BIGNUM *field, BN_CTX *ctx)
 {
     if (BN_ucmp(&ossl_bignum_nist_p_192, p) == 0)
-        return BN_nist_mod_192;
+        return ossl_BN_nist_mod_192;
     if (BN_ucmp(&ossl_bignum_nist_p_224, p) == 0)
-        return BN_nist_mod_224;
+        return ossl_BN_nist_mod_224;
     if (BN_ucmp(&ossl_bignum_nist_p_256, p) == 0)
-        return BN_nist_mod_256;
+        return ossl_BN_nist_mod_256;
     if (BN_ucmp(&ossl_bignum_nist_p_384, p) == 0)
-        return BN_nist_mod_384;
+        return ossl_BN_nist_mod_384;
     if (BN_ucmp(&ossl_bignum_nist_p_521, p) == 0)
-        return BN_nist_mod_521;
+        return ossl_BN_nist_mod_521;
     return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int (*BN_nist_mod_func(const BIGNUM *p))(BIGNUM *r, const BIGNUM *a,
+    const BIGNUM *field, BN_CTX *ctx)
+{
+    return ossl_BN_nist_mod_func(p);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

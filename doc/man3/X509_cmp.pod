@@ -81,6 +81,10 @@ circumstances, which could cause confusion for the applications.
 
 L<i2d_X509_NAME(3)>, L<i2d_X509(3)>
 
+=head1 HISTORY
+
+X509_CRL_match() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2019-2022 The OpenSSL Project Authors. All Rights Reserved.

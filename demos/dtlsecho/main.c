@@ -351,8 +351,8 @@ int main(int argc, char **argv)
 
         /* Resolve server hostname or IP address (IPv4 or IPv6) */
         snprintf(port_str, sizeof(port_str), "%d", server_port);
-        if (!BIO_lookup(rem_server_name, port_str, BIO_LOOKUP_CLIENT,
-                AF_UNSPEC, SOCK_DGRAM, &res)) {
+        if (!BIO_lookup_ex(rem_server_name, port_str, BIO_LOOKUP_CLIENT,
+                AF_UNSPEC, SOCK_DGRAM, 0, &res)) {
             fprintf(stderr, "Unable to resolve server: %s\n", rem_server_name);
             ERR_print_errors_fp(stderr);
             goto exit;

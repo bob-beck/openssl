@@ -18,6 +18,7 @@
 #include <openssl/symhacks.h>
 
 #include "ec_local.h"
+#include "crypto/bn.h"
 
 int ossl_ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
     EC_POINT *point,
@@ -68,11 +69,11 @@ int ossl_ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
 
     /* tmp1 := tmp1 + a*x */
     if (group->a_is_minus3) {
-        if (!BN_mod_lshift1_quick(tmp2, x, group->field))
+        if (!ossl_BN_mod_lshift1_quick(tmp2, x, group->field))
             goto err;
         if (!BN_mod_add_quick(tmp2, tmp2, x, group->field))
             goto err;
-        if (!BN_mod_sub_quick(tmp1, tmp1, tmp2, group->field))
+        if (!ossl_BN_mod_sub_quick(tmp1, tmp1, tmp2, group->field))
             goto err;
     } else {
         if (group->meth->field_decode) {
@@ -124,7 +125,7 @@ int ossl_ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
         if (BN_is_zero(y)) {
             int kron;
 
-            kron = BN_kronecker(x, group->field, ctx);
+            kron = ossl_BN_kronecker(x, group->field, ctx);
             if (kron == -2)
                 goto err;
 
@@ -137,7 +138,7 @@ int ossl_ec_GFp_simple_set_compressed_coordinates(const EC_GROUP *group,
                 ERR_raise(ERR_LIB_EC, EC_R_INVALID_COMPRESSED_POINT);
             goto err;
         }
-        if (!BN_usub(y, group->field, y))
+        if (!ossl_BN_usub(y, group->field, y))
             goto err;
     }
     if (y_bit != BN_is_odd(y)) {

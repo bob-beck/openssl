@@ -869,13 +869,13 @@ static int test_gcm128(int idx)
 
     AES_set_encrypt_key(K.data, (int)(K.size * 8), &key);
 
-    CRYPTO_gcm128_init(&ctx, &key, (block128_f)AES_encrypt);
+    ossl_CRYPTO_gcm128_init(&ctx, &key, (block128_f)AES_encrypt);
     CRYPTO_gcm128_setiv(&ctx, IV.data, IV.size);
     memset(out, 0, P.size);
     if (A.data != NULL)
         CRYPTO_gcm128_aad(&ctx, A.data, A.size);
     if (P.data != NULL)
-        if (!TEST_int_ge(CRYPTO_gcm128_encrypt(&ctx, P.data, out, P.size), 0))
+        if (!TEST_int_ge(ossl_CRYPTO_gcm128_encrypt(&ctx, P.data, out, P.size), 0))
             return 0;
     if (!TEST_false(CRYPTO_gcm128_finish(&ctx, T.data, 16))
         || (C.data != NULL

@@ -10,10 +10,11 @@
 #include <stdio.h>
 #include "internal/cryptlib.h"
 #include "bn_local.h"
+#include "crypto/bn.h"
 
 #define TABLE_SIZE 32
 
-int BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
+int ossl_BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
     const BIGNUM *a2, const BIGNUM *p2, const BIGNUM *m,
     BN_CTX *ctx, BN_MONT_CTX *in_mont)
 {
@@ -196,3 +197,12 @@ err:
     bn_check_top(rr);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
+    const BIGNUM *a2, const BIGNUM *p2, const BIGNUM *m,
+    BN_CTX *ctx, BN_MONT_CTX *in_mont)
+{
+    return ossl_BN_mod_exp2_mont(rr, a1, p1, a2, p2, m, ctx, in_mont);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

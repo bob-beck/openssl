@@ -12,6 +12,7 @@
 #include "internal/cryptlib.h"
 #include <openssl/asn1.h>
 #include "asn1_local.h"
+#include "crypto/asn1.h"
 
 #if defined(__has_feature)
 #if __has_feature(address_sanitizer)
@@ -601,13 +602,20 @@ void ASN1_STRING_free(ASN1_STRING *a)
     ossl_asn1_string_free_internal(a, 0, a->flags & ASN1_STRING_FLAG_EMBED);
 }
 
-void ASN1_STRING_clear_free(ASN1_STRING *a)
+void ossl_ASN1_STRING_clear_free(ASN1_STRING *a)
 {
     if (a == NULL)
         return;
 
     ossl_asn1_string_free_internal(a, 1, a->flags & ASN1_STRING_FLAG_EMBED);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void ASN1_STRING_clear_free(ASN1_STRING *a)
+{
+    ossl_ASN1_STRING_clear_free(a);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int ASN1_STRING_cmp(const ASN1_STRING *a, const ASN1_STRING *b)
 {

@@ -272,7 +272,7 @@ static int verify_chain(X509_STORE_CTX *ctx)
         || (ok = check_extensions(ctx)) <= 0
         || (ok = check_auth_level(ctx)) <= 0
         || (ok = check_id(ctx)) <= 0
-        || (ok = X509_get_pubkey_parameters(NULL, ctx->chain) ? 1 : -1) <= 0
+        || (ok = ossl_X509_get_pubkey_parameters(NULL, ctx->chain) ? 1 : -1) <= 0
         || (ok = ctx->check_revocation(ctx)) <= 0)
         return ok;
 
@@ -2311,7 +2311,7 @@ static int check_crl(X509_STORE_CTX *ctx, X509_CRL *crl)
         return 0;
 
     if (ikey != NULL) {
-        int rv = X509_CRL_check_suiteb(crl, ikey, ctx->param->flags);
+        int rv = ossl_X509_CRL_check_suiteb(crl, ikey, ctx->param->flags);
 
         if (rv != X509_V_OK && !verify_cb_crl(ctx, rv))
             return 0;
@@ -2373,7 +2373,7 @@ static int check_policy(X509_STORE_CTX *ctx)
         ERR_raise(ERR_LIB_X509, ERR_R_CRYPTO_LIB);
         goto memerr;
     }
-    ret = X509_policy_check(&ctx->tree, &ctx->explicit_policy, ctx->chain,
+    ret = ossl_X509_policy_check(&ctx->tree, &ctx->explicit_policy, ctx->chain,
         ctx->param->policies, ctx->param->flags);
     if (ctx->bare_ta_signed)
         (void)sk_X509_pop(ctx->chain);
@@ -2769,7 +2769,7 @@ ASN1_TIME *X509_time_adj_ex(ASN1_TIME *s,
 }
 
 /* Copy any missing public key parameters up the chain towards pkey */
-int X509_get_pubkey_parameters(EVP_PKEY *pkey, const STACK_OF(X509) *chain)
+int ossl_X509_get_pubkey_parameters(EVP_PKEY *pkey, const STACK_OF(X509) *chain)
 {
     EVP_PKEY *ktmp = NULL, *ktmp2;
     int i, j;
@@ -2803,6 +2803,13 @@ int X509_get_pubkey_parameters(EVP_PKEY *pkey, const STACK_OF(X509) *chain)
         return EVP_PKEY_copy_parameters(pkey, ktmp);
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_get_pubkey_parameters(EVP_PKEY *pkey, const STACK_OF(X509) *chain)
+{
+    return ossl_X509_get_pubkey_parameters(pkey, chain);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Make a delta CRL as the difference between two full CRLs.
@@ -3024,7 +3031,7 @@ int X509_STORE_CTX_set_purpose(X509_STORE_CTX *ctx, int purpose)
      * Should there even be a VPM->trust field at all?  Or should the trust
      * always be inferred from the purpose by X509_STORE_CTX_init().
      */
-    return X509_STORE_CTX_purpose_inherit(ctx, 0, purpose, 0);
+    return ossl_X509_STORE_CTX_purpose_inherit(ctx, 0, purpose, 0);
 }
 
 int X509_STORE_CTX_set_trust(X509_STORE_CTX *ctx, int trust)
@@ -3033,7 +3040,7 @@ int X509_STORE_CTX_set_trust(X509_STORE_CTX *ctx, int trust)
      * XXX: See above, this function would only be needed when the default
      * trust for the purpose needs an override in a corner case.
      */
-    return X509_STORE_CTX_purpose_inherit(ctx, 0, 0, trust);
+    return ossl_X509_STORE_CTX_purpose_inherit(ctx, 0, 0, trust);
 }
 
 /*
@@ -3049,7 +3056,7 @@ int X509_STORE_CTX_set_trust(X509_STORE_CTX *ctx, int trust)
  * application can set: if they aren't set then we use the default of SSL
  * client/server.
  */
-int X509_STORE_CTX_purpose_inherit(X509_STORE_CTX *ctx, int def_purpose,
+int ossl_X509_STORE_CTX_purpose_inherit(X509_STORE_CTX *ctx, int def_purpose,
     int purpose, int trust)
 {
     int idx;
@@ -3086,7 +3093,7 @@ int X509_STORE_CTX_purpose_inherit(X509_STORE_CTX *ctx, int def_purpose,
             trust = ptmp->trust;
     }
     if (trust != X509_TRUST_DEFAULT) {
-        idx = X509_TRUST_get_by_id(trust);
+        idx = ossl_X509_TRUST_get_by_id(trust);
         if (idx == -1) {
             ERR_raise(ERR_LIB_X509, X509_R_UNKNOWN_TRUST_ID);
             return 0;
@@ -3099,6 +3106,14 @@ int X509_STORE_CTX_purpose_inherit(X509_STORE_CTX *ctx, int def_purpose,
         ctx->param->trust = trust;
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_STORE_CTX_purpose_inherit(X509_STORE_CTX *ctx, int def_purpose,
+    int purpose, int trust)
+{
+    return ossl_X509_STORE_CTX_purpose_inherit(ctx, def_purpose, purpose, trust);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 X509_STORE_CTX *X509_STORE_CTX_new_ex(OSSL_LIB_CTX *libctx, const char *propq)
 {
@@ -3263,7 +3278,7 @@ int X509_STORE_CTX_init(X509_STORE_CTX *ctx, X509_STORE *store, const X509 *x509
         X509_PURPOSE *xp = X509_PURPOSE_get0(idx);
 
         if (xp != NULL)
-            ctx->param->trust = X509_PURPOSE_get_trust(xp);
+            ctx->param->trust = ossl_X509_PURPOSE_get_trust(xp);
     }
 
     if (CRYPTO_new_ex_data(CRYPTO_EX_INDEX_X509_STORE_CTX, ctx,
@@ -3309,7 +3324,7 @@ void X509_STORE_CTX_cleanup(X509_STORE_CTX *ctx)
             X509_VERIFY_PARAM_free(ctx->param);
         ctx->param = NULL;
     }
-    X509_policy_tree_free(ctx->tree);
+    ossl_X509_policy_tree_free(ctx->tree);
     ctx->tree = NULL;
     OSSL_STACK_OF_X509_free(ctx->chain);
     ctx->chain = NULL;
@@ -3865,7 +3880,7 @@ static int dane_verify(X509_STORE_CTX *ctx)
     matched = dane_match_cert(ctx, ctx->cert, 0);
     done = matched != 0 || (!DANETLS_HAS_TA(dane) && dane->mdpth < 0);
 
-    if (done && !X509_get_pubkey_parameters(NULL, ctx->chain))
+    if (done && !ossl_X509_get_pubkey_parameters(NULL, ctx->chain))
         return -1;
 
     if (matched > 0) {

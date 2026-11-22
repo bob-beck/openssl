@@ -694,10 +694,17 @@ int EVP_PKEY_set_type(EVP_PKEY *pkey, int type)
     return pkey_set_type(pkey, type, NULL, -1, NULL);
 }
 
-int EVP_PKEY_set_type_str(EVP_PKEY *pkey, const char *str, int len)
+int ossl_EVP_PKEY_set_type_str(EVP_PKEY *pkey, const char *str, int len)
 {
     return pkey_set_type(pkey, EVP_PKEY_NONE, str, len, NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int EVP_PKEY_set_type_str(EVP_PKEY *pkey, const char *str, int len)
+{
+    return ossl_EVP_PKEY_set_type_str(pkey, str, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #ifndef OPENSSL_NO_DEPRECATED_3_0
 int EVP_PKEY_assign(EVP_PKEY *pkey, int type, void *key)

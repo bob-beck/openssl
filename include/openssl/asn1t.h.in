@@ -892,15 +892,34 @@ DECLARE_ASN1_ITEM(ZLONG)
 
 /* Functions used internally by the ASN1 code */
 
-int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
-void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Allocate and initialise an ASN.1 value of a given item type.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
+/**
+ * @brief Free an ASN.1 value of a given item type.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
 
-int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
+/**
+ * @brief Decode a DER-encoded ASN.1 item, with optional implicit tagging.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
     const ASN1_ITEM *it, int tag, int aclass, char opt,
     ASN1_TLC *ctx);
 
-int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
+/**
+ * @brief DER-encode an ASN.1 value of a given item type, with optional implicit
+ * tagging.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
     const ASN1_ITEM *it, int tag, int aclass);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* Legacy compatibility */
 #define IMPLEMENT_ASN1_FUNCTIONS_const(name) IMPLEMENT_ASN1_FUNCTIONS(name)

@@ -14,6 +14,7 @@
 
 #include <openssl/asn1.h>
 #include "testutil.h"
+#include "crypto/asn1.h"
 
 static int test_string_tbl(void)
 {
@@ -26,13 +27,13 @@ static int test_string_tbl(void)
         goto out;
     }
 
-    ret = ASN1_STRING_TABLE_add(nid, -1, -1, MBSTRING_ASC, 0);
+    ret = ossl_ASN1_STRING_TABLE_add(nid, -1, -1, MBSTRING_ASC, 0);
     if (!TEST_true(ret)) {
         TEST_info("asn1 string table: add NID(%d) failed", nid);
         goto out;
     }
 
-    ret = ASN1_STRING_TABLE_add(nid2, -1, -1, MBSTRING_ASC, 0);
+    ret = ossl_ASN1_STRING_TABLE_add(nid2, -1, -1, MBSTRING_ASC, 0);
     if (!TEST_true(ret)) {
         TEST_info("asn1 string table: add NID(%d) failed", nid2);
         goto out;
@@ -50,7 +51,7 @@ static int test_string_tbl(void)
         goto out;
     }
 
-    ASN1_STRING_TABLE_cleanup();
+    ossl_ASN1_STRING_TABLE_cleanup();
 
     /* check if all newly added NIDs are cleaned up */
     tmp = ASN1_STRING_TABLE_get(nid);

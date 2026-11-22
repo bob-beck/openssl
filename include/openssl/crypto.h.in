@@ -464,7 +464,13 @@ ossl_noreturn void OPENSSL_die(const char *assertion, const char *file, int line
 #define OPENSSL_assert(e) \
     (void)((e) ? 0 : (OPENSSL_die("assertion failed: " #e, OPENSSL_FILE, OPENSSL_LINE), 1))
 
-int OPENSSL_isservice(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Check whether the process runs as a non-interactive Windows service.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int OPENSSL_isservice(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 void OPENSSL_init(void);
 #ifdef OPENSSL_SYS_UNIX

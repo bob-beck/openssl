@@ -14,10 +14,11 @@
 #include <openssl/pkcs12.h>
 #include "p12_local.h"
 #include "crypto/pkcs7/pk7_local.h"
+#include "crypto/pkcs12.h"
 
 /* Pack an object into an OCTET STRING and turn into a safebag */
 
-PKCS12_SAFEBAG *PKCS12_item_pack_safebag(void *obj, const ASN1_ITEM *it,
+PKCS12_SAFEBAG *ossl_PKCS12_item_pack_safebag(void *obj, const ASN1_ITEM *it,
     int nid1, int nid2)
 {
     PKCS12_BAGS *bag;
@@ -44,6 +45,14 @@ err:
     PKCS12_BAGS_free(bag);
     return NULL;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+PKCS12_SAFEBAG *PKCS12_item_pack_safebag(void *obj, const ASN1_ITEM *it,
+    int nid1, int nid2)
+{
+    return ossl_PKCS12_item_pack_safebag(obj, it, nid1, nid2);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* Turn a stack of SAFEBAGS into a PKCS#7 data Contentinfo */
 PKCS7 *PKCS12_pack_p7data(STACK_OF(PKCS12_SAFEBAG) *sk)

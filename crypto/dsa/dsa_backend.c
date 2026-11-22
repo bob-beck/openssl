@@ -189,7 +189,7 @@ dsaerr:
     dsa = NULL;
 done:
     BN_CTX_free(ctx);
-    ASN1_STRING_clear_free(privkey);
+    ossl_ASN1_STRING_clear_free(privkey);
     return dsa;
 }
 #endif

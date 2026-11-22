@@ -9,12 +9,13 @@
 
 #include "internal/cryptlib.h"
 #include "bn_local.h"
+#include "crypto/bn.h"
 
 /* least significant word */
 #define BN_lsw(n) (((n)->top == 0) ? (BN_ULONG)0 : (n)->d[0])
 
 /* Returns -2 for errors because both -1 and 0 are valid results. */
-int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
+int ossl_BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
 {
     int i;
     int ret = -2; /* avoid 'uninitialized' warning */
@@ -138,3 +139,10 @@ end:
     else
         return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
+{
+    return ossl_BN_kronecker(a, b, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

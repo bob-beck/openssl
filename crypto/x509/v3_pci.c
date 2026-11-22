@@ -50,6 +50,7 @@
 #include "ext_dat.h"
 
 #include <crypto/asn1.h>
+#include "crypto/x509.h"
 
 static int i2r_pci(X509V3_EXT_METHOD *method, PROXY_CERT_INFO_EXTENSION *ext,
     BIO *out, int indent);
@@ -115,7 +116,7 @@ static int process_pci_value(CONF_VALUE *val,
             X509V3_conf_err(val);
             return 0;
         }
-        if (!X509V3_get_value_int(val, pathlen)) {
+        if (!ossl_X509V3_get_value_int(val, pathlen)) {
             ERR_raise(ERR_LIB_X509V3, X509V3_R_POLICY_PATH_LENGTH);
             X509V3_conf_err(val);
             return 0;
@@ -271,7 +272,7 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
             STACK_OF(CONF_VALUE) *sect;
             int success_p = 1;
 
-            sect = X509V3_get_section(ctx, cnf->name + 1);
+            sect = ossl_X509V3_get_section(ctx, cnf->name + 1);
             if (!sect) {
                 ERR_raise(ERR_LIB_X509V3, X509V3_R_INVALID_SECTION);
                 X509V3_conf_err(cnf);
@@ -281,7 +282,7 @@ static PROXY_CERT_INFO_EXTENSION *r2i_pci(X509V3_EXT_METHOD *method,
                 success_p = process_pci_value(sk_CONF_VALUE_value(sect, j),
                     &language, &pathlen, &policy);
             }
-            X509V3_section_free(ctx, sect);
+            ossl_X509V3_section_free(ctx, sect);
             if (!success_p)
                 goto err;
         } else {

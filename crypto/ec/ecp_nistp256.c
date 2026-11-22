@@ -45,6 +45,7 @@
 #include "ec_local.h"
 
 #include "internal/numbers.h"
+#include "crypto/bn.h"
 
 #ifndef INT128_MAX
 #error "Your compiler doesn't appear to support 128-bit integer types"
@@ -1915,7 +1916,7 @@ int ossl_ec_GFp_nistp256_group_set_curve(EC_GROUP *group, const BIGNUM *p,
         ERR_raise(ERR_LIB_EC, EC_R_WRONG_CURVE_PARAMETERS);
         goto err;
     }
-    group->field_mod_func = BN_nist_mod_256;
+    group->field_mod_func = ossl_BN_nist_mod_256;
     ret = ossl_ec_GFp_simple_group_set_curve(group, p, a, b, ctx);
 err:
     BN_CTX_end(ctx);

@@ -766,6 +766,8 @@ were added in OpenSSL 3.5.
 
 d2i_IPAddrBlocks() and i2d_IPAddrBlocks() were added in OpenSSL 4.1.
 
+i2d_PKCS8_PRIV_KEY_INFO_fp() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 1998-2026 The OpenSSL Project Authors. All Rights Reserved.

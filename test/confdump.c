@@ -13,6 +13,7 @@
 #include <openssl/conf.h>
 #include <openssl/safestack.h>
 #include <openssl/err.h>
+#include "internal/conf.h"
 
 static void dump_section(const char *name, const CONF *cnf)
 {
@@ -30,7 +31,7 @@ static void dump_section(const char *name, const CONF *cnf)
 int main(int argc, char **argv)
 {
     long eline;
-    CONF *conf = NCONF_new(NCONF_default());
+    CONF *conf = NCONF_new(ossl_NCONF_default());
     int ret = 1;
     STACK_OF(OPENSSL_CSTRING) *section_names = NULL;
 

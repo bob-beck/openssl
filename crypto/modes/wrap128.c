@@ -15,6 +15,7 @@
 
 #include "internal/cryptlib.h"
 #include <openssl/modes.h>
+#include "crypto/modes.h"
 
 /** RFC 3394 section 2.2.3.1 Default Initial Value */
 static const unsigned char default_iv[] = {
@@ -45,7 +46,7 @@ static const unsigned char default_aiv[] = {
  *                     or if inlen > CRYPTO128_WRAP_MAX.
  *                     Output length if wrapping succeeded.
  */
-size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
+size_t ossl_CRYPTO_128_wrap(void *key, const unsigned char *iv,
     unsigned char *out,
     const unsigned char *in, size_t inlen,
     block128_f block)
@@ -79,6 +80,16 @@ size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
     memcpy(out, A, 8);
     return inlen + 8;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
+    unsigned char *out,
+    const unsigned char *in, size_t inlen,
+    block128_f block)
+{
+    return ossl_CRYPTO_128_wrap(key, iv, out, in, inlen, block);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /** Unwrapping according to RFC 3394 section 2.2.2 steps 1-2.
  *  The IV check (step 3) is responsibility of the caller.
@@ -147,7 +158,7 @@ static size_t crypto_128_unwrap_raw(void *key, unsigned char *iv,
  *                     or if IV doesn't match expected value.
  *                     Output length otherwise.
  */
-size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
+size_t ossl_CRYPTO_128_unwrap(void *key, const unsigned char *iv,
     unsigned char *out, const unsigned char *in,
     size_t inlen, block128_f block)
 {
@@ -167,6 +178,15 @@ size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
     return ret;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
+    unsigned char *out, const unsigned char *in,
+    size_t inlen, block128_f block)
+{
+    return ossl_CRYPTO_128_unwrap(key, iv, out, in, inlen, block);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /** Wrapping according to RFC 5649 section 4.1.
  *
  *  @param[in]  key    Key value.
@@ -182,7 +202,7 @@ size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
  *  @return            0 if inlen is out of range [1, CRYPTO128_WRAP_MAX].
  *                     Output length if wrapping succeeded.
  */
-size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
+size_t ossl_CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
     unsigned char *out,
     const unsigned char *in, size_t inlen,
     block128_f block)
@@ -229,11 +249,21 @@ size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
     } else {
         memmove(out, in, inlen);
         memset(out + inlen, 0, padding_len); /* Section 4.1 step 1 */
-        ret = CRYPTO_128_wrap(key, aiv, out, out, padded_len, block);
+        ret = ossl_CRYPTO_128_wrap(key, aiv, out, out, padded_len, block);
     }
 
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
+    unsigned char *out,
+    const unsigned char *in, size_t inlen,
+    block128_f block)
+{
+    return ossl_CRYPTO_128_wrap_pad(key, icv, out, in, inlen, block);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /** Unwrapping according to RFC 5649 section 4.2.
  *
@@ -250,7 +280,7 @@ size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
  *                     or if IV and message length indicator doesn't match.
  *                     Output length if unwrapping succeeded and IV matches.
  */
-size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
+size_t ossl_CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
     unsigned char *out,
     const unsigned char *in, size_t inlen,
     block128_f block)
@@ -331,3 +361,13 @@ size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
     /* Section 4.2 step 3: Remove padding */
     return ptext_len;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
+    unsigned char *out,
+    const unsigned char *in, size_t inlen,
+    block128_f block)
+{
+    return ossl_CRYPTO_128_unwrap_pad(key, icv, out, in, inlen, block);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

@@ -73,10 +73,10 @@ int X509_check_trust(const X509 *x, int id, int flags)
     if (id == X509_TRUST_DEFAULT)
         return obj_trust(NID_anyExtendedKeyUsage, x,
             flags | X509_TRUST_DO_SS_COMPAT);
-    idx = X509_TRUST_get_by_id(id);
+    idx = ossl_X509_TRUST_get_by_id(id);
     if (idx < 0)
         return default_trust(id, x, flags);
-    pt = X509_TRUST_get0(idx);
+    pt = ossl_X509_TRUST_get0(idx);
     return pt->check_trust(pt, x, flags);
 }
 
@@ -87,7 +87,7 @@ int X509_TRUST_get_count(void)
     return sk_X509_TRUST_num(trtable) + X509_TRUST_COUNT;
 }
 
-X509_TRUST *X509_TRUST_get0(int idx)
+X509_TRUST *ossl_X509_TRUST_get0(int idx)
 {
     if (idx < 0)
         return NULL;
@@ -96,7 +96,14 @@ X509_TRUST *X509_TRUST_get0(int idx)
     return sk_X509_TRUST_value(trtable, idx - X509_TRUST_COUNT);
 }
 
-int X509_TRUST_get_by_id(int id)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+X509_TRUST *X509_TRUST_get0(int idx)
+{
+    return ossl_X509_TRUST_get0(idx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_X509_TRUST_get_by_id(int id)
 {
     X509_TRUST tmp;
     int idx;
@@ -114,15 +121,29 @@ int X509_TRUST_get_by_id(int id)
     return idx + X509_TRUST_COUNT;
 }
 
-int X509_TRUST_set(int *t, int trust)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_TRUST_get_by_id(int id)
 {
-    if (X509_TRUST_get_by_id(trust) < 0) {
+    return ossl_X509_TRUST_get_by_id(id);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_X509_TRUST_set(int *t, int trust)
+{
+    if (ossl_X509_TRUST_get_by_id(trust) < 0) {
         ERR_raise(ERR_LIB_X509, X509_R_INVALID_TRUST);
         return 0;
     }
     *t = trust;
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_TRUST_set(int *t, int trust)
+{
+    return ossl_X509_TRUST_set(t, trust);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int X509_TRUST_add(int id, int flags, int (*ck)(X509_TRUST *, const X509 *, int),
     const char *name, int arg1, void *arg2)
@@ -136,14 +157,14 @@ int X509_TRUST_add(int id, int flags, int (*ck)(X509_TRUST *, const X509 *, int)
     /* This will always be set for application modified trust entries */
     flags |= X509_TRUST_DYNAMIC_NAME;
     /* Get existing entry if any */
-    idx = X509_TRUST_get_by_id(id);
+    idx = ossl_X509_TRUST_get_by_id(id);
     /* Need a new entry */
     if (idx < 0) {
         if ((trtmp = OPENSSL_malloc(sizeof(*trtmp))) == NULL)
             return 0;
         trtmp->flags = X509_TRUST_DYNAMIC;
     } else
-        trtmp = X509_TRUST_get0(idx);
+        trtmp = ossl_X509_TRUST_get0(idx);
 
     /* OPENSSL_free existing name if dynamic */
     if (trtmp->flags & X509_TRUST_DYNAMIC_NAME)

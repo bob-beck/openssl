@@ -20,6 +20,7 @@
 #include "crypto/lhash.h"
 #include "obj_local.h"
 #include "internal/e_os.h"
+#include "crypto/objects.h"
 
 /*
  * I use the ex_data stuff to manage the identifiers for the obj_name_types
@@ -54,10 +55,17 @@ DEFINE_RUN_ONCE_STATIC(o_names_init)
     return names_lh != NULL && obj_lock != NULL;
 }
 
-int OBJ_NAME_init(void)
+int ossl_OBJ_NAME_init(void)
 {
     return RUN_ONCE(&init, o_names_init);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OBJ_NAME_init(void)
+{
+    return ossl_OBJ_NAME_init();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int OBJ_NAME_new_index(unsigned long (*hash_func)(const char *),
     int (*cmp_func)(const char *, const char *),
@@ -66,7 +74,7 @@ int OBJ_NAME_new_index(unsigned long (*hash_func)(const char *),
     int ret = 0, i, push;
     NAME_FUNCS *name_funcs;
 
-    if (!OBJ_NAME_init())
+    if (!ossl_OBJ_NAME_init())
         return 0;
 
     if (!CRYPTO_THREAD_write_lock(obj_lock))
@@ -151,7 +159,7 @@ const char *OBJ_NAME_get(const char *name, int type)
 
     if (name == NULL)
         return NULL;
-    if (!OBJ_NAME_init())
+    if (!ossl_OBJ_NAME_init())
         return NULL;
     if (!CRYPTO_THREAD_read_lock(obj_lock))
         return NULL;
@@ -185,7 +193,7 @@ int OBJ_NAME_add(const char *name, int type, const char *data)
     OBJ_NAME *onp, *ret;
     int alias, ok = 0;
 
-    if (!OBJ_NAME_init())
+    if (!ossl_OBJ_NAME_init())
         return 0;
 
     alias = type & OBJ_NAME_ALIAS;
@@ -240,7 +248,7 @@ int OBJ_NAME_remove(const char *name, int type)
     OBJ_NAME on, *ret;
     int ok = 0;
 
-    if (!OBJ_NAME_init())
+    if (!ossl_OBJ_NAME_init())
         return 0;
 
     if (!CRYPTO_THREAD_write_lock(obj_lock))
@@ -360,7 +368,7 @@ static void name_funcs_free(NAME_FUNCS *ptr)
     OPENSSL_free(ptr);
 }
 
-void OBJ_NAME_cleanup(int type)
+void ossl_OBJ_NAME_cleanup(int type)
 {
     unsigned long down_load;
 
@@ -382,3 +390,10 @@ void OBJ_NAME_cleanup(int type)
     } else
         lh_OBJ_NAME_set_down_load(names_lh, down_load);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void OBJ_NAME_cleanup(int type)
+{
+    ossl_OBJ_NAME_cleanup(type);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

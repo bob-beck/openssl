@@ -24,6 +24,7 @@
 #include "bio_local.h"
 #include <openssl/err.h>
 #include <openssl/crypto.h>
+#include "internal/bio.h"
 
 static int bio_new(BIO *bio);
 static int bio_free(BIO *bio);
@@ -50,10 +51,17 @@ static const BIO_METHOD methods_biop = {
     NULL /* no bio_callback_ctrl */
 };
 
-const BIO_METHOD *BIO_s_bio(void)
+const BIO_METHOD *ossl_BIO_s_bio(void)
 {
     return &methods_biop;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const BIO_METHOD *BIO_s_bio(void)
+{
+    return ossl_BIO_s_bio();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 struct bio_bio_st {
     BIO *peer; /* NULL if buf == NULL. If peer != NULL, then
@@ -686,10 +694,10 @@ int BIO_new_bio_pair(BIO **bio1_p, size_t writebuf1,
     if (writebuf1 > LONG_MAX || writebuf2 > LONG_MAX)
         goto err;
 
-    bio1 = BIO_new(BIO_s_bio());
+    bio1 = BIO_new(ossl_BIO_s_bio());
     if (bio1 == NULL)
         goto err;
-    bio2 = BIO_new(BIO_s_bio());
+    bio2 = BIO_new(ossl_BIO_s_bio());
     if (bio2 == NULL)
         goto err;
 

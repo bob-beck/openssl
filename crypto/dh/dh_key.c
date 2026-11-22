@@ -75,7 +75,7 @@ int ossl_dh_compute_key(unsigned char *key, const BIGNUM *pub_key, DH *dh)
     }
 
     if (dh->flags & DH_FLAG_CACHE_MONT_P) {
-        mont = BN_MONT_CTX_set_locked(&dh->method_mont_p,
+        mont = ossl_BN_MONT_CTX_set_locked(&dh->method_mont_p,
             dh->lock, dh->params.p, ctx);
         BN_set_flags(dh->priv_key, BN_FLG_CONSTTIME);
         if (!mont)
@@ -247,7 +247,7 @@ int ossl_dh_generate_public_key(BN_CTX *ctx, const DH *dh,
          */
         BN_MONT_CTX **pmont = (BN_MONT_CTX **)&dh->method_mont_p;
 
-        mont = BN_MONT_CTX_set_locked(pmont, dh->lock, dh->params.p, ctx);
+        mont = ossl_BN_MONT_CTX_set_locked(pmont, dh->lock, dh->params.p, ctx);
         if (mont == NULL)
             goto err;
     }

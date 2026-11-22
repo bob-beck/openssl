@@ -19,6 +19,7 @@
 /* ASN1 public key method structure */
 
 #include <openssl/core.h>
+#include <openssl/x509.h>
 
 #define ASN1_STRING_FLAG_BITS_LEFT 0x08 /* Set if 0x07 has bits left value */
 /*
@@ -212,5 +213,154 @@ ASN1_TIME *ossl_asn1_time_from_tm(ASN1_TIME *s, struct tm *ts, int type);
 
 int ossl_utf8_getc_internal(const unsigned char *str, int len, uint32_t *val);
 int ossl_utf8_putc_internal(unsigned char *str, int len, uint32_t value);
+
+#if !defined(OPENSSL_NO_STDIO)
+/**
+ * @brief Decode a DER-encoded ASN.1 item read from a FILE.
+ * @see ASN1_item_d2i_fp(3)
+ */
+void *ossl_ASN1_item_d2i_fp(const ASN1_ITEM *it, FILE *in, void *x);
+/**
+ * @brief DER-encode an ASN.1 item and write it to a FILE.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, const void *x);
+#endif /* !defined(OPENSSL_NO_STDIO) */
+
+/**
+ * @brief Set an ASN1_ENUMERATED to a signed 64-bit value.
+ * @see ASN1_ENUMERATED_set_int64(3)
+ */
+int ossl_ASN1_ENUMERATED_set_int64(ASN1_ENUMERATED *a, int64_t r);
+/**
+ * @brief Free all application-added entries in the ASN.1 string table.
+ * @see ASN1_STRING_TABLE_cleanup(3)
+ */
+void ossl_ASN1_STRING_TABLE_cleanup(void);
+/**
+ * @brief Convert a multibyte string to an ASN1_STRING whose type and size
+ * limits come from the string table entry for a NID.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+ASN1_STRING *ossl_ASN1_STRING_set_by_NID(ASN1_STRING **out,
+    const unsigned char *in, int inlen,
+    int inform, int nid);
+/**
+ * @brief Add or update the string table entry for a NID.
+ * @see ASN1_STRING_TABLE_add(3)
+ */
+int ossl_ASN1_STRING_TABLE_add(int nid,
+    long minsize, long maxsize, unsigned long mask,
+    unsigned long flags);
+/**
+ * @brief Compare two ASN1_TYPE values for equality of type and content.
+ * @see ASN1_TYPE_cmp(3)
+ */
+int ossl_ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b);
+/**
+ * @brief Generate an ASN1_TYPE from a text description, resolving section
+ * references in an X509V3_CTX configuration.
+ * @see ASN1_generate_v3(3)
+ */
+ASN1_TYPE *ossl_ASN1_generate_v3(const char *str, X509V3_CTX *cnf);
+/**
+ * @brief Convert a list of string type names separated by '|' to a B_ASN1_*
+ * type mask.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_ASN1_str2mask(const char *str, unsigned long *pmask);
+/**
+ * @brief Zero the data of an ASN1_STRING and free it.
+ * @see ASN1_STRING_clear_free(3)
+ */
+void ossl_ASN1_STRING_clear_free(ASN1_STRING *a);
+/**
+ * @brief Register the oid_section configuration module.
+ * @see ASN1_add_oid_module(3)
+ */
+void ossl_ASN1_add_oid_module(void);
+/**
+ * @brief Register the stbl_section configuration module, which adds ASN.1
+ * string table entries.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_ASN1_add_stable_module(void);
+/**
+ * @brief Set the callbacks of an ASN.1 BIO that produce and free data written
+ * before the content.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BIO_asn1_set_prefix(BIO *b, asn1_ps_func *prefix,
+    asn1_ps_func *prefix_free);
+/**
+ * @brief Set the callbacks of an ASN.1 BIO that produce and free data written
+ * after the content.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BIO_asn1_set_suffix(BIO *b, asn1_ps_func *suffix,
+    asn1_ps_func *suffix_free);
+/**
+ * @brief Return the ASN.1 filter BIO method, which wraps written content in an
+ * ASN.1 header with optional prefix and suffix data.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+const BIO_METHOD *ossl_BIO_f_asn1(void);
+/**
+ * @brief Add an attribute identified by NID to a PKCS#8 private key.
+ * @see PKCS8_pkey_add1_attr_by_NID(3)
+ */
+int ossl_PKCS8_pkey_add1_attr_by_NID(PKCS8_PRIV_KEY_INFO *p8, int nid, int type,
+    const unsigned char *bytes, int len);
+/**
+ * @brief Decode a DER-encoded ASN.1 item, with optional implicit tagging.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
+    const ASN1_ITEM *it,
+    int tag, int aclass, char opt, ASN1_TLC *ctx);
+/**
+ * @brief Map a universal tag number to its B_ASN1_* type mask bit.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+unsigned long ossl_ASN1_tag2bit(int tag);
+/**
+ * @brief DER-encode an ASN.1 value of a given item type, with optional implicit
+ * tagging.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
+    const ASN1_ITEM *it, int tag, int aclass);
+/**
+ * @brief Free an ASN.1 value of a given item type.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
+/**
+ * @brief Allocate and initialise an ASN.1 value of a given item type.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
+/**
+ * @brief Free an X509_PKEY and everything it owns.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_X509_PKEY_free(X509_PKEY *x);
+/**
+ * @brief Allocate an X509_PKEY with an empty algorithm identifier and encrypted
+ * key.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+X509_PKEY *ossl_X509_PKEY_new(void);
+
+#if !defined(OPENSSL_NO_SCRYPT)
+/**
+ * @brief Derive a cipher key from a password with scrypt parameters and
+ * initialise a cipher context with it.
+ * @see PKCS5_v2_scrypt_keyivgen(3)
+ */
+int ossl_PKCS5_v2_scrypt_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass,
+    int passlen, ASN1_TYPE *param,
+    const EVP_CIPHER *c, const EVP_MD *md, int en_de);
+#endif /* !defined(OPENSSL_NO_SCRYPT) */
 
 #endif /* ndef OSSL_CRYPTO_ASN1_H */

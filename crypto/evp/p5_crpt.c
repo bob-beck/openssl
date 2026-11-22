@@ -16,6 +16,7 @@
 #include <openssl/kdf.h>
 
 #include <crypto/asn1.h>
+#include "crypto/evp.h"
 
 /*
  * Doesn't do anything now: Builtin PBE algorithms in static table.
@@ -111,10 +112,19 @@ err:
     return rv;
 }
 
-int PKCS5_PBE_keyivgen(EVP_CIPHER_CTX *cctx, const char *pass, int passlen,
+int ossl_PKCS5_PBE_keyivgen(EVP_CIPHER_CTX *cctx, const char *pass, int passlen,
     ASN1_TYPE *param, const EVP_CIPHER *cipher,
     const EVP_MD *md, int en_de)
 {
     return PKCS5_PBE_keyivgen_ex(cctx, pass, passlen, param, cipher, md, en_de,
         NULL, NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int PKCS5_PBE_keyivgen(EVP_CIPHER_CTX *cctx, const char *pass, int passlen,
+    ASN1_TYPE *param, const EVP_CIPHER *cipher,
+    const EVP_MD *md, int en_de)
+{
+    return ossl_PKCS5_PBE_keyivgen(cctx, pass, passlen, param, cipher, md, en_de);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

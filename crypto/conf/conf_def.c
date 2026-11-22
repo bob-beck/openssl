@@ -25,6 +25,7 @@
 #include "conf_def.h"
 #include <openssl/buffer.h>
 #include <openssl/err.h>
+#include "internal/conf.h"
 #ifndef OPENSSL_NO_POSIX_IO
 #include <sys/stat.h>
 #ifdef _WIN32
@@ -83,10 +84,17 @@ static CONF_METHOD default_method = {
     def_load
 };
 
-CONF_METHOD *NCONF_default(void)
+CONF_METHOD *ossl_NCONF_default(void)
 {
     return &default_method;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+CONF_METHOD *NCONF_default(void)
+{
+    return ossl_NCONF_default();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #ifndef OPENSSL_NO_DEPRECATED_3_0
 static CONF_METHOD WIN32_method = {

@@ -64,4 +64,70 @@ void ossl_no_config_int(void);
 void ossl_config_modules_free(void);
 int ossl_conf_parse_bool(const char *value, int *result);
 
+/**
+ * @brief Return the default configuration method.
+ * @see NCONF_default(3)
+ */
+CONF_METHOD *ossl_NCONF_default(void);
+/**
+ * @brief Look up a configuration value by group and name, or an environment
+ * variable if conf is NULL.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+char *ossl_CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
+    const char *name);
+/**
+ * @brief Free the data of a configuration, keeping the CONF itself.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_NCONF_free_data(CONF *conf);
+/**
+ * @brief Initialise a CONF with the default method and attach a configuration
+ * hash to it.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash);
+/**
+ * @brief Write every value in a configuration to a BIO.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_NCONF_dump_bio(const CONF *conf, BIO *out);
+/**
+ * @brief Parse configuration data from a BIO into a configuration hash.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+LHASH_OF(CONF_VALUE) *ossl_CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
+    long *eline);
+/**
+ * @brief Write every value in a configuration hash to a BIO.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out);
+/**
+ * @brief Get the user data of an initialised configuration module.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void *ossl_CONF_imodule_get_usr_data(const CONF_IMODULE *md);
+/**
+ * @brief Set the user data of an initialised configuration module.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data);
+/**
+ * @brief Get the configuration value of an initialised configuration module.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+const char *ossl_CONF_imodule_get_value(const CONF_IMODULE *md);
+/**
+ * @brief Get the name of an initialised configuration module.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+const char *ossl_CONF_imodule_get_name(const CONF_IMODULE *md);
+/**
+ * @brief Register a configuration module by name.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_CONF_module_add(const char *name, conf_init_func *ifunc,
+    conf_finish_func *ffunc);
+
 #endif

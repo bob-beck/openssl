@@ -154,7 +154,7 @@ static int evp_md_init_internal(EVP_MD_CTX *ctx, const EVP_MD *type,
     }
 #endif
 
-    EVP_MD_CTX_clear_flags(ctx, EVP_MD_CTX_FLAG_CLEANED | EVP_MD_CTX_FLAG_FINALISED);
+    ossl_EVP_MD_CTX_clear_flags(ctx, EVP_MD_CTX_FLAG_CLEANED | EVP_MD_CTX_FLAG_FINALISED);
 
     if (type != NULL) {
         ctx->reqdigest = type;
@@ -528,7 +528,7 @@ int EVP_MD_CTX_copy_ex(EVP_MD_CTX *out, const EVP_MD_CTX *in)
 
 clone_pkey:
     /* copied EVP_MD_CTX should free the copied EVP_PKEY_CTX */
-    EVP_MD_CTX_clear_flags(out, EVP_MD_CTX_FLAG_KEEP_PKEY_CTX);
+    ossl_EVP_MD_CTX_clear_flags(out, EVP_MD_CTX_FLAG_KEEP_PKEY_CTX);
 #ifndef FIPS_MODULE
     if (in->pctx != NULL) {
         out->pctx = EVP_PKEY_CTX_dup(in->pctx);

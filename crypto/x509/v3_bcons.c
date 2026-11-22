@@ -17,6 +17,7 @@
 #include "x509_local.h"
 
 #include <crypto/asn1.h>
+#include "crypto/x509.h"
 
 static STACK_OF(CONF_VALUE) *i2v_BASIC_CONSTRAINTS(X509V3_EXT_METHOD *method,
     BASIC_CONSTRAINTS *bcons,
@@ -49,8 +50,8 @@ static STACK_OF(CONF_VALUE) *i2v_BASIC_CONSTRAINTS(X509V3_EXT_METHOD *method,
     STACK_OF(CONF_VALUE)
         *extlist)
 {
-    X509V3_add_value_bool("CA", bcons->ca, &extlist);
-    X509V3_add_value_int("pathlen", bcons->pathlen, &extlist);
+    ossl_X509V3_add_value_bool("CA", bcons->ca, &extlist);
+    ossl_X509V3_add_value_int("pathlen", bcons->pathlen, &extlist);
     return extlist;
 }
 
@@ -74,7 +75,7 @@ static BASIC_CONSTRAINTS *v2i_BASIC_CONSTRAINTS(X509V3_EXT_METHOD *method,
                     "field=%s", val->name);
                 goto err;
             }
-            if (!X509V3_get_value_bool(val, &bcons->ca))
+            if (!ossl_X509V3_get_value_bool(val, &bcons->ca))
                 goto err;
             ca_seen = 1;
         } else if (strcmp(val->name, "pathlen") == 0) {
@@ -83,7 +84,7 @@ static BASIC_CONSTRAINTS *v2i_BASIC_CONSTRAINTS(X509V3_EXT_METHOD *method,
                     "field=%s", val->name);
                 goto err;
             }
-            if (!X509V3_get_value_int(val, &bcons->pathlen))
+            if (!ossl_X509V3_get_value_int(val, &bcons->pathlen))
                 goto err;
         } else {
             ERR_raise(ERR_LIB_X509V3, X509V3_R_INVALID_NAME);

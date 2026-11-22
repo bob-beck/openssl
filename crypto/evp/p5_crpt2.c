@@ -20,6 +20,7 @@
 #include "evp_local.h"
 
 #include <crypto/asn1.h>
+#include "internal/bio.h"
 
 int ossl_pkcs5_pbkdf2_hmac_ex(const char *pass, int passlen,
     const unsigned char *salt, int saltlen, int iter,
@@ -66,16 +67,16 @@ int ossl_pkcs5_pbkdf2_hmac_ex(const char *pass, int passlen,
     OSSL_TRACE_BEGIN(PKCS5V2)
     {
         BIO_printf(trc_out, "Password:\n");
-        BIO_hex_string(trc_out,
+        ossl_BIO_hex_string(trc_out,
             0, passlen, pass, passlen);
         BIO_printf(trc_out, "\n");
         BIO_printf(trc_out, "Salt:\n");
-        BIO_hex_string(trc_out,
+        ossl_BIO_hex_string(trc_out,
             0, saltlen, salt, saltlen);
         BIO_printf(trc_out, "\n");
         BIO_printf(trc_out, "Iteration count %d\n", iter);
         BIO_printf(trc_out, "Key:\n");
-        BIO_hex_string(trc_out,
+        ossl_BIO_hex_string(trc_out,
             0, keylen, out, keylen);
         BIO_printf(trc_out, "\n");
     }
@@ -167,12 +168,21 @@ err:
     return rv;
 }
 
-int PKCS5_v2_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
+int ossl_PKCS5_v2_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
     ASN1_TYPE *param, const EVP_CIPHER *c,
     const EVP_MD *md, int en_de)
 {
     return PKCS5_v2_PBE_keyivgen_ex(ctx, pass, passlen, param, c, md, en_de, NULL, NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int PKCS5_v2_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
+    ASN1_TYPE *param, const EVP_CIPHER *c,
+    const EVP_MD *md, int en_de)
+{
+    return ossl_PKCS5_v2_PBE_keyivgen(ctx, pass, passlen, param, c, md, en_de);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int PKCS5_v2_PBKDF2_keyivgen_ex(EVP_CIPHER_CTX *ctx, const char *pass,
     int passlen, ASN1_TYPE *param,

@@ -151,6 +151,8 @@ X509_ACERT_get_signature_nid() functions were added in OpenSSL 3.4.
 
 The X509_CRL_get0_tbs_sigalg() function was added in OpenSSL 3.6.
 
+X509_SIG_INFO_get() and X509_SIG_INFO_set() were deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2015-2026 The OpenSSL Project Authors. All Rights Reserved.

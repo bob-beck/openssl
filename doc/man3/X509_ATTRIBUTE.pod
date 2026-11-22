@@ -254,6 +254,10 @@ L<EVP_PKEY_get_attr(3)>,
 L<CMS_signed_get_attr(3)>,
 L<PKCS8_pkey_get0_attrs(3)>,
 
+=head1 HISTORY
+
+X509_ATTRIBUTE_create_by_txt() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2023-2026 The OpenSSL Project Authors. All Rights Reserved.

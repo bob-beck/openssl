@@ -178,18 +178,18 @@ retry:
 
 void evp_cleanup_int(void)
 {
-    OBJ_NAME_cleanup(OBJ_NAME_TYPE_KDF_METH);
-    OBJ_NAME_cleanup(OBJ_NAME_TYPE_CIPHER_METH);
-    OBJ_NAME_cleanup(OBJ_NAME_TYPE_MD_METH);
+    ossl_OBJ_NAME_cleanup(OBJ_NAME_TYPE_KDF_METH);
+    ossl_OBJ_NAME_cleanup(OBJ_NAME_TYPE_CIPHER_METH);
+    ossl_OBJ_NAME_cleanup(OBJ_NAME_TYPE_MD_METH);
     /*
      * The above calls will only clean out the contents of the name hash
      * table, but not the hash table itself.  The following line does that
      * part.  -- Richard Levitte
      */
-    OBJ_NAME_cleanup(-1);
+    ossl_OBJ_NAME_cleanup(-1);
 
-    EVP_PBE_cleanup();
-    OBJ_sigid_free();
+    ossl_EVP_PBE_cleanup();
+    ossl_OBJ_sigid_free();
 }
 
 struct doall_cipher {

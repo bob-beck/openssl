@@ -15,6 +15,7 @@
 #include <openssl/pkcs12.h>
 
 #include <crypto/asn1.h>
+#include "crypto/pkcs12.h"
 
 /* PKCS#12 PBE algorithms now in static table */
 
@@ -77,10 +78,19 @@ int PKCS12_PBE_keyivgen_ex(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
     return ret;
 }
 
-int PKCS12_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
+int ossl_PKCS12_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
     ASN1_TYPE *param, const EVP_CIPHER *cipher,
     const EVP_MD *md, int en_de)
 {
     return PKCS12_PBE_keyivgen_ex(ctx, pass, passlen, param, cipher, md, en_de,
         NULL, NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int PKCS12_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
+    ASN1_TYPE *param, const EVP_CIPHER *cipher,
+    const EVP_MD *md, int en_de)
+{
+    return ossl_PKCS12_PBE_keyivgen(ctx, pass, passlen, param, cipher, md, en_de);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

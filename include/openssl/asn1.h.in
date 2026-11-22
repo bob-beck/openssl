@@ -510,7 +510,13 @@ DECLARE_ASN1_ENCODE_FUNCTIONS(ASN1_TYPE, ASN1_ANY, ASN1_TYPE)
 int ASN1_TYPE_get(const ASN1_TYPE *a);
 void ASN1_TYPE_set(ASN1_TYPE *a, int type, void *value);
 int ASN1_TYPE_set1(ASN1_TYPE *a, int type, const void *value);
-int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compare two ASN1_TYPE values for equality of type and content.
+ * @see ASN1_TYPE_cmp(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 ASN1_TYPE *ASN1_TYPE_pack_sequence(const ASN1_ITEM *it, void *s, ASN1_TYPE **t);
 void *ASN1_TYPE_unpack_sequence(const ASN1_ITEM *it, const ASN1_TYPE *t);
@@ -529,7 +535,13 @@ DECLARE_ASN1_ENCODE_FUNCTIONS_name_attr(extern, ASN1_OBJECT, ASN1_OBJECT)
 
 ASN1_STRING *ASN1_STRING_new(void);
 void ASN1_STRING_free(ASN1_STRING *a);
-void ASN1_STRING_clear_free(ASN1_STRING *a);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Zero the data of an ASN1_STRING and free it.
+ * @see ASN1_STRING_clear_free(3)
+ */
+OSSL_DEPRECATEDIN_4_2 void ASN1_STRING_clear_free(ASN1_STRING *a);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int ASN1_STRING_copy(ASN1_STRING *dst, const ASN1_STRING *str);
 DECLARE_ASN1_DUP_FUNCTION(ASN1_STRING)
 ASN1_STRING *ASN1_STRING_type_new(int type);
@@ -696,7 +708,13 @@ ASN1_INTEGER *BN_to_ASN1_INTEGER(const BIGNUM *bn, ASN1_INTEGER *ai);
 BIGNUM *ASN1_INTEGER_to_BN(const ASN1_INTEGER *ai, BIGNUM *bn);
 
 int ASN1_ENUMERATED_get_int64(int64_t *pr, const ASN1_ENUMERATED *a);
-int ASN1_ENUMERATED_set_int64(ASN1_ENUMERATED *a, int64_t r);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Set an ASN1_ENUMERATED to a signed 64-bit value.
+ * @see ASN1_ENUMERATED_set_int64(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int ASN1_ENUMERATED_set_int64(ASN1_ENUMERATED *a, int64_t r);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v);
 long ASN1_ENUMERATED_get(const ASN1_ENUMERATED *a);
@@ -707,7 +725,13 @@ BIGNUM *ASN1_ENUMERATED_to_BN(const ASN1_ENUMERATED *ai, BIGNUM *bn);
 /* given a string, return the correct type, max is the maximum length */
 int ASN1_PRINTABLE_type(const unsigned char *s, int max);
 
-unsigned long ASN1_tag2bit(int tag);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Map a universal tag number to its B_ASN1_* type mask bit.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 unsigned long ASN1_tag2bit(int tag);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* SPECIALS */
 int ASN1_get_object(const unsigned char **pp, long *plength, int *ptag,
@@ -755,7 +779,13 @@ void *ASN1_d2i_fp(void *(*xnew)(void), d2i_of_void *d2i, FILE *in, void **x);
 
 void *ASN1_item_d2i_fp_ex(const ASN1_ITEM *it, FILE *in, void *x,
     OSSL_LIB_CTX *libctx, const char *propq);
-void *ASN1_item_d2i_fp(const ASN1_ITEM *it, FILE *in, void *x);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Decode a DER-encoded ASN.1 item read from a FILE.
+ * @see ASN1_item_d2i_fp(3)
+ */
+OSSL_DEPRECATEDIN_4_2 void *ASN1_item_d2i_fp(const ASN1_ITEM *it, FILE *in, void *x);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, const void *x);
 
 #define ASN1_i2d_fp_of(type, i2d, out, x)   \
@@ -763,7 +793,13 @@ int ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, const void *x);
         out,                                \
         CHECKED_PTR_OF(const type, x)))
 
-int ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, const void *x);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief DER-encode an ASN.1 item and write it to a FILE.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, const void *x);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int ASN1_STRING_print_ex_fp(FILE *fp, const ASN1_STRING *str, unsigned long flags);
 #endif
 
@@ -830,12 +866,29 @@ int ASN1_mbstring_ncopy(ASN1_STRING **out, const unsigned char *in, int len,
     int inform, unsigned long mask,
     long minsize, long maxsize);
 
-ASN1_STRING *ASN1_STRING_set_by_NID(ASN1_STRING **out,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Convert a multibyte string to an ASN1_STRING whose type and size
+ * limits come from the string table entry for a NID.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 ASN1_STRING *ASN1_STRING_set_by_NID(ASN1_STRING **out,
     const unsigned char *in, int inlen,
     int inform, int nid);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 ASN1_STRING_TABLE *ASN1_STRING_TABLE_get(int nid);
-int ASN1_STRING_TABLE_add(int, long, long, unsigned long, unsigned long);
-void ASN1_STRING_TABLE_cleanup(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Add or update the string table entry for a NID.
+ * @see ASN1_STRING_TABLE_add(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int ASN1_STRING_TABLE_add(int, long, long, unsigned long, unsigned long);
+/**
+ * @brief Free all application-added entries in the ASN.1 string table.
+ * @see ASN1_STRING_TABLE_cleanup(3)
+ */
+OSSL_DEPRECATEDIN_4_2 void ASN1_STRING_TABLE_cleanup(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* ASN1 template functions */
 
@@ -853,12 +906,35 @@ int ASN1_item_i2d(const ASN1_VALUE *val, unsigned char **out, const ASN1_ITEM *i
 int ASN1_item_ndef_i2d(const ASN1_VALUE *val, unsigned char **out,
     const ASN1_ITEM *it);
 
-void ASN1_add_oid_module(void);
-void ASN1_add_stable_module(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Register the oid_section configuration module.
+ * @see ASN1_add_oid_module(3)
+ */
+OSSL_DEPRECATEDIN_4_2 void ASN1_add_oid_module(void);
+/**
+ * @brief Register the stbl_section configuration module, which adds ASN.1
+ * string table entries.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void ASN1_add_stable_module(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 ASN1_TYPE *ASN1_generate_nconf(const char *str, CONF *nconf);
-ASN1_TYPE *ASN1_generate_v3(const char *str, X509V3_CTX *cnf);
-int ASN1_str2mask(const char *str, unsigned long *pmask);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Generate an ASN1_TYPE from a text description, resolving section
+ * references in an X509V3_CTX configuration.
+ * @see ASN1_generate_v3(3)
+ */
+OSSL_DEPRECATEDIN_4_2 ASN1_TYPE *ASN1_generate_v3(const char *str, X509V3_CTX *cnf);
+/**
+ * @brief Convert a list of string type names separated by '|' to a B_ASN1_*
+ * type mask.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int ASN1_str2mask(const char *str, unsigned long *pmask);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* ASN1 Print flags */
 
@@ -904,7 +980,14 @@ unsigned long ASN1_SCTX_get_flags(ASN1_SCTX *p);
 void ASN1_SCTX_set_app_data(ASN1_SCTX *p, void *data);
 void *ASN1_SCTX_get_app_data(ASN1_SCTX *p);
 
-const BIO_METHOD *BIO_f_asn1(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Return the ASN.1 filter BIO method, which wraps written content in an
+ * ASN.1 header with optional prefix and suffix data.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 const BIO_METHOD *BIO_f_asn1(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* cannot constify val because of CMS_stream() */
 BIO *BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it);

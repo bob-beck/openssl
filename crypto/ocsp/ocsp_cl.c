@@ -18,6 +18,7 @@
 #include <openssl/ocsp.h>
 #include <openssl/posix_time.h>
 #include "ocsp_local.h"
+#include "crypto/ocsp.h"
 
 /*
  * Utility functions related to sending OCSP requests and extracting relevant
@@ -51,7 +52,7 @@ int OCSP_request_set1_name(OCSP_REQUEST *req, const X509_NAME *nm)
 }
 
 /* Add a certificate to an OCSP request */
-int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
+int ossl_OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
 {
     if (req->optionalSignature == NULL
         && (req->optionalSignature = OCSP_SIGNATURE_new()) == NULL)
@@ -61,6 +62,13 @@ int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
     return ossl_x509_add_cert_new(&req->optionalSignature->certs, cert,
         X509_ADD_FLAG_UP_REF);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
+{
+    return ossl_OCSP_request_add1_cert(req, cert);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Sign an OCSP request set the requestorName to the subject name of an
@@ -93,7 +101,7 @@ int OCSP_request_sign(OCSP_REQUEST *req,
     }
 
     if ((flags & OCSP_NOCERTS) == 0) {
-        if (!OCSP_request_add1_cert(req, signer)
+        if (!ossl_OCSP_request_add1_cert(req, signer)
             || !X509_add_certs(req->optionalSignature->certs, certs,
                 X509_ADD_FLAG_UP_REF))
             goto err;

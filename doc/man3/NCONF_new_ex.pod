@@ -72,6 +72,8 @@ L<CONF_modules_load_file(3)>,
 NCONF_new_ex(), NCONF_get0_libctx(), and NCONF_get_section_names() were added
 in OpenSSL 3.0.
 
+NCONF_default() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2020-2024 The OpenSSL Project Authors. All Rights Reserved.

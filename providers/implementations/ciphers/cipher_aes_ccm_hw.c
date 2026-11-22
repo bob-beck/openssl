@@ -16,6 +16,7 @@
 #include "internal/deprecated.h"
 #include <openssl/proverr.h>
 #include "cipher_aes_ccm.h"
+#include "crypto/modes.h"
 
 int ossl_cipher_set_ccm_aes_initkey(PROV_CCM_CTX *ctx,
     const unsigned char *key, size_t keylen,
@@ -30,7 +31,7 @@ int ossl_cipher_set_ccm_aes_initkey(PROV_CCM_CTX *ctx,
         ERR_raise(ERR_LIB_PROV, PROV_R_KEY_SETUP_FAILED);
         return 0;
     }
-    CRYPTO_ccm128_init(&ctx->ccm_ctx, (unsigned int)ctx->m,
+    ossl_CRYPTO_ccm128_init(&ctx->ccm_ctx, (unsigned int)ctx->m,
         (unsigned int)ctx->l, ks, (block128_f)fn_block);
 
     ctx->str = ctx->enc ? fn_ccm_enc : fn_ccm_dec;

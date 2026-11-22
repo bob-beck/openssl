@@ -13,10 +13,11 @@
 
 #include "cipher_sm4_gcm.h"
 #include "crypto/sm4_platform.h"
+#include "crypto/modes.h"
 
 #define SM4_GCM_HW_SET_KEY_CTR_FN(ks, fn_set_enc_key, fn_block, fn_ctr) \
     fn_set_enc_key(key, ks);                                            \
-    CRYPTO_gcm128_init(&ctx->gcm, ks, (block128_f)fn_block);            \
+    ossl_CRYPTO_gcm128_init(&ctx->gcm, ks, (block128_f)fn_block);       \
     ctx->ctr = (ctr128_f)fn_ctr;                                        \
     ctx->key_set = 1;
 
@@ -62,15 +63,15 @@ static int hw_gcm_cipher_update(PROV_GCM_CTX *ctx, const unsigned char *in,
 {
     if (ctx->enc) {
         if (ctx->ctr != NULL) {
-            if (CRYPTO_gcm128_encrypt_ctr32(&ctx->gcm, in, out, len, ctx->ctr))
+            if (ossl_CRYPTO_gcm128_encrypt_ctr32(&ctx->gcm, in, out, len, ctx->ctr))
                 return 0;
         } else {
-            if (CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, len))
+            if (ossl_CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, len))
                 return 0;
         }
     } else {
         if (ctx->ctr != NULL) {
-            if (CRYPTO_gcm128_decrypt_ctr32(&ctx->gcm, in, out, len, ctx->ctr))
+            if (ossl_CRYPTO_gcm128_decrypt_ctr32(&ctx->gcm, in, out, len, ctx->ctr))
                 return 0;
         } else {
             if (CRYPTO_gcm128_decrypt(&ctx->gcm, in, out, len))

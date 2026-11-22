@@ -15,6 +15,7 @@
 #include "ext_dat.h"
 
 #include <crypto/asn1.h>
+#include "crypto/x509.h"
 
 static STACK_OF(CONF_VALUE) *i2v_OSSL_BASIC_ATTR_CONSTRAINTS(
     X509V3_EXT_METHOD *method,
@@ -49,8 +50,8 @@ static STACK_OF(CONF_VALUE) *i2v_OSSL_BASIC_ATTR_CONSTRAINTS(
     OSSL_BASIC_ATTR_CONSTRAINTS *battcons,
     STACK_OF(CONF_VALUE) *extlist)
 {
-    X509V3_add_value_bool("authority", battcons->authority, &extlist);
-    X509V3_add_value_int("pathlen", battcons->pathlen, &extlist);
+    ossl_X509V3_add_value_bool("authority", battcons->authority, &extlist);
+    ossl_X509V3_add_value_int("pathlen", battcons->pathlen, &extlist);
     return extlist;
 }
 
@@ -75,7 +76,7 @@ static OSSL_BASIC_ATTR_CONSTRAINTS *v2i_OSSL_BASIC_ATTR_CONSTRAINTS(
                     "field=%s", val->name);
                 goto err;
             }
-            if (!X509V3_get_value_bool(val, &battcons->authority))
+            if (!ossl_X509V3_get_value_bool(val, &battcons->authority))
                 goto err;
             authority_seen = 1;
         } else if (strcmp(val->name, "pathlen") == 0) {
@@ -84,7 +85,7 @@ static OSSL_BASIC_ATTR_CONSTRAINTS *v2i_OSSL_BASIC_ATTR_CONSTRAINTS(
                     "field=%s", val->name);
                 goto err;
             }
-            if (!X509V3_get_value_int(val, &battcons->pathlen))
+            if (!ossl_X509V3_get_value_int(val, &battcons->pathlen))
                 goto err;
         } else {
             ERR_raise(ERR_LIB_X509V3, X509V3_R_INVALID_NAME);

@@ -87,6 +87,9 @@ or NULL if an error occurs.
 
 i2s_ASN1_UTF8STRING() and s2i_ASN1_UTF8STRING() were made public in OpenSSL 3.0.
 
+i2s_ASN1_ENUMERATED() and i2s_ASN1_ENUMERATED_TABLE() were deprecated in
+OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2020-2021 The OpenSSL Project Authors. All Rights Reserved.

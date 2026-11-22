@@ -164,4 +164,62 @@ int ossl_ecdsa_deterministic_sign(const unsigned char *dgst, int dlen,
     const char *digestname,
     OSSL_LIB_CTX *libctx, const char *propq);
 #endif /* OPENSSL_NO_EC */
+
+#if !defined(FIPS_MODULE)
+/**
+ * @brief Create an EC group from ECPKPARAMETERS.
+ * @see EC_GROUP_new_from_ecpkparameters(3)
+ */
+EC_GROUP *ossl_EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params);
+/**
+ * @brief Create an EC group from explicit ECPARAMETERS.
+ * @see EC_GROUP_new_from_ecparameters(3)
+ */
+EC_GROUP *ossl_EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params);
+/**
+ * @brief Convert an EC group to ECPKPARAMETERS, named or explicit.
+ * @see EC_GROUP_get_ecpkparameters(3)
+ */
+ECPKPARAMETERS *ossl_EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
+    ECPKPARAMETERS *params);
+/**
+ * @brief Convert an EC group to explicit ECPARAMETERS.
+ * @see EC_GROUP_get_ecparameters(3)
+ */
+ECPARAMETERS *ossl_EC_GROUP_get_ecparameters(const EC_GROUP *group,
+    ECPARAMETERS *params);
+#endif /* !defined(FIPS_MODULE) */
+
+#if !defined(OPENSSL_NO_EC2M)
+/**
+ * @brief Get the exponents of a pentanomial basis of a binary field EC group.
+ * @see EC_GROUP_get_pentanomial_basis(3)
+ */
+int ossl_EC_GROUP_get_pentanomial_basis(const EC_GROUP *group, unsigned int *k1,
+    unsigned int *k2, unsigned int *k3);
+/**
+ * @brief Get the middle exponent of a trinomial basis of a binary field EC
+ * group.
+ * @see EC_GROUP_get_trinomial_basis(3)
+ */
+int ossl_EC_GROUP_get_trinomial_basis(const EC_GROUP *group, unsigned int *k);
+#endif /* !defined(OPENSSL_NO_EC2M) */
+
+/**
+ * @brief Check that the discriminant of an elliptic curve is nonzero.
+ * @see EC_GROUP_check_discriminant(3)
+ */
+int ossl_EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx);
+/**
+ * @brief Get the Montgomery context of an EC group's order.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+BN_MONT_CTX *ossl_EC_GROUP_get_mont_data(const EC_GROUP *group);
+/**
+ * @brief Double an elliptic curve point.
+ * @see EC_POINT_dbl(3)
+ */
+int ossl_EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+    BN_CTX *ctx);
+
 #endif

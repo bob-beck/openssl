@@ -11,6 +11,7 @@
 #include <openssl/e_os2.h>
 #include <openssl/err.h>
 #include <openssl/ui.h>
+#include "crypto/ui.h"
 
 #ifndef OPENSSL_NO_UI_CONSOLE
 /*
@@ -237,7 +238,7 @@ static int read_string(UI *ui, UI_STRING *uis)
                  UI_get_input_flags(uis) & UI_INPUT_FLAG_ECHO, 1))
             <= 0)
             return ok;
-        if (strcmp(UI_get0_result_string(uis), UI_get0_test_string(uis)) != 0) {
+        if (strcmp(UI_get0_result_string(uis), ossl_UI_get0_test_string(uis)) != 0) {
             fprintf(tty_out, "Verify failure\n");
             fflush(tty_out);
             return 0;

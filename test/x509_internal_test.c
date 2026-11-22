@@ -385,10 +385,10 @@ static int tests_X509_PURPOSE(void)
         && TEST_int_eq(X509_PURPOSE_get_id(xp), id)
         && TEST_str_eq(X509_PURPOSE_get0_name(xp), LN)
         && TEST_str_eq(X509_PURPOSE_get0_sname(xp), SN)
-        && TEST_int_eq(X509_PURPOSE_get_trust(xp), X509_TRUST_MAX)
+        && TEST_int_eq(ossl_X509_PURPOSE_get_trust(xp), X509_TRUST_MAX)
 
         && TEST_int_eq(*(p = &xp->purpose), id)
-        && TEST_int_eq(X509_PURPOSE_set(p, X509_PURPOSE_DEFAULT_ANY), 1)
+        && TEST_int_eq(ossl_X509_PURPOSE_set(p, X509_PURPOSE_DEFAULT_ANY), 1)
         && TEST_int_eq(X509_PURPOSE_get_id(xp), X509_PURPOSE_DEFAULT_ANY);
 }
 
@@ -1463,11 +1463,11 @@ static int test_cmp_modified(void)
         || !TEST_true(X509_CRL_set1_lastUpdate(crl, X509_getm_notBefore(cert)))
         || !TEST_int_gt(X509_CRL_sign(crl, pkey, EVP_sha256()), 0)
         || !TEST_ptr(crl_copy = X509_CRL_dup(crl))
-        || !TEST_int_eq(X509_CRL_match(crl, crl), 0)
+        || !TEST_int_eq(ossl_X509_CRL_match(crl, crl), 0)
         || !TEST_true(X509_CRL_set_version(crl_copy, X509_CRL_VERSION_2))
-        || !TEST_int_eq(X509_CRL_match(crl_copy, crl_copy), 0)
-        || !TEST_int_eq(X509_CRL_match(crl, crl_copy), -1)
-        || !TEST_int_eq(X509_CRL_match(crl_copy, crl), 1))
+        || !TEST_int_eq(ossl_X509_CRL_match(crl_copy, crl_copy), 0)
+        || !TEST_int_eq(ossl_X509_CRL_match(crl, crl_copy), -1)
+        || !TEST_int_eq(ossl_X509_CRL_match(crl_copy, crl), 1))
         goto err;
 
     ret = 1;

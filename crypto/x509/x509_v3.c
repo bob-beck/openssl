@@ -18,6 +18,7 @@
 #include "x509_local.h"
 
 #include <crypto/asn1.h>
+#include "crypto/x509.h"
 
 int X509v3_get_ext_count(const STACK_OF(X509_EXTENSION) *x)
 {
@@ -90,10 +91,17 @@ const X509_EXTENSION *X509v3_get_ext(const STACK_OF(X509_EXTENSION) *x, int loc)
         return sk_X509_EXTENSION_value(x, loc);
 }
 
-X509_EXTENSION *X509v3_delete_ext(STACK_OF(X509_EXTENSION) *x, int loc)
+X509_EXTENSION *ossl_X509v3_delete_ext(STACK_OF(X509_EXTENSION) *x, int loc)
 {
     return sk_X509_EXTENSION_delete(x, loc);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+X509_EXTENSION *X509v3_delete_ext(STACK_OF(X509_EXTENSION) *x, int loc)
+{
+    return ossl_X509v3_delete_ext(x, loc);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 X509_EXTENSION *X509v3_delete_extension(STACK_OF(X509_EXTENSION) **x, int loc)
 {
@@ -103,7 +111,7 @@ X509_EXTENSION *X509v3_delete_extension(STACK_OF(X509_EXTENSION) **x, int loc)
         return NULL;
 
     /* Set extensions to NULL when last element dropped */
-    if ((ext = X509v3_delete_ext(*x, loc)) != NULL
+    if ((ext = ossl_X509v3_delete_ext(*x, loc)) != NULL
         && sk_X509_EXTENSION_num(*x) == 0) {
         sk_X509_EXTENSION_free(*x);
         *x = NULL;

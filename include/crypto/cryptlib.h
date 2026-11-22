@@ -36,4 +36,10 @@ void ossl_malloc_setup_failures(void);
 int ossl_crypto_alloc_ex_data_intern(int class_index, void *obj,
     CRYPTO_EX_DATA *ad, int idx);
 
+/**
+ * @brief Check whether the process runs as a non-interactive Windows service.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_OPENSSL_isservice(void);
+
 #endif /* OSSL_CRYPTO_CRYPTLIB_H */

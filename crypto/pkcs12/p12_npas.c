@@ -16,6 +16,7 @@
 #include "p12_local.h"
 
 #include <crypto/asn1.h>
+#include "crypto/pkcs12.h"
 
 /* PKCS#12 password change routine */
 
@@ -121,7 +122,7 @@ static int newpass_p12(PKCS12 *p12, const char *oldpass, const char *newpass)
         goto err;
 
     if (p12->mac != NULL) {
-        if (!PKCS12_gen_mac(p12, newpass, -1, mac, &maclen))
+        if (!ossl_PKCS12_gen_mac(p12, newpass, -1, mac, &maclen))
             goto err;
         X509_SIG_getm(p12->mac->dinfo, NULL, &macoct);
         if (!ASN1_OCTET_STRING_set(macoct, mac, maclen))

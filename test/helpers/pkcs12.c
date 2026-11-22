@@ -387,8 +387,15 @@ void add_certbag(PKCS12_BUILDER *pb, const unsigned char *bytes, int len,
     TEST_info("Adding certificate <%s>", name);
     OPENSSL_free(name);
 
-    bag = PKCS12_add_cert(&pb->bags, cert);
+    bag = PKCS12_SAFEBAG_create_cert(cert);
     if (!TEST_ptr(bag)) {
+        pb->success = 0;
+        goto err;
+    }
+    if ((pb->bags == NULL
+            && !TEST_ptr(pb->bags = sk_PKCS12_SAFEBAG_new_null()))
+        || !TEST_int_gt(sk_PKCS12_SAFEBAG_push(pb->bags, bag), 0)) {
+        PKCS12_SAFEBAG_free(bag);
         pb->success = 0;
         goto err;
     }

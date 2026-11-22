@@ -12,6 +12,7 @@
  */
 
 #include "cipher_aria_gcm.h"
+#include "crypto/modes.h"
 
 static int aria_gcm_initkey(PROV_GCM_CTX *ctx, const unsigned char *key,
     size_t keylen)
@@ -20,7 +21,7 @@ static int aria_gcm_initkey(PROV_GCM_CTX *ctx, const unsigned char *key,
     ARIA_KEY *ks = &actx->ks.ks;
 
     ossl_aria_set_encrypt_key(key, (int)(keylen * 8), ks);
-    CRYPTO_gcm128_init(&ctx->gcm, ks, (block128_f)ossl_aria_encrypt);
+    ossl_CRYPTO_gcm128_init(&ctx->gcm, ks, (block128_f)ossl_aria_encrypt);
     ctx->ctr = NULL;
     ctx->key_set = 1;
 

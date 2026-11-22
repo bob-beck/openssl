@@ -379,7 +379,7 @@ static int setup_idp(X509_CRL *crl, ISSUING_DIST_POINT *idp)
         crl->idp_reasons &= CRLDP_ALL_REASONS;
     }
 
-    ret = DIST_POINT_set_dpname(idp->distpoint, X509_CRL_get_issuer(crl));
+    ret = ossl_DIST_POINT_set_dpname(idp->distpoint, X509_CRL_get_issuer(crl));
 
     /*
      * RFC5280 specifies that if onlyContainsUserCerts, onlyContainsCACerts,

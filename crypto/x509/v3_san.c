@@ -14,6 +14,7 @@
 #include <openssl/x509v3.h>
 #include <openssl/bio.h>
 #include "ext_dat.h"
+#include "crypto/asn1.h"
 
 static GENERAL_NAMES *v2i_subject_alt(X509V3_EXT_METHOD *method,
     X509V3_CTX *ctx,
@@ -328,7 +329,7 @@ static GENERAL_NAMES *v2i_issuer_alt(X509V3_EXT_METHOD *method,
             if (!copy_issuer(ctx, gens))
                 goto err;
         } else {
-            GENERAL_NAME *gen = v2i_GENERAL_NAME(method, ctx, cnf);
+            GENERAL_NAME *gen = ossl_v2i_GENERAL_NAME(method, ctx, cnf);
 
             if (gen == NULL)
                 goto err;
@@ -411,7 +412,7 @@ static GENERAL_NAMES *v2i_subject_alt(X509V3_EXT_METHOD *method,
                 goto err;
         } else {
             GENERAL_NAME *gen;
-            if ((gen = v2i_GENERAL_NAME(method, ctx, cnf)) == NULL)
+            if ((gen = ossl_v2i_GENERAL_NAME(method, ctx, cnf)) == NULL)
                 goto err;
             sk_GENERAL_NAME_push(gens, gen); /* no failure as it was reserved */
         }
@@ -481,7 +482,7 @@ err:
     return 0;
 }
 
-GENERAL_NAMES *v2i_GENERAL_NAMES(const X509V3_EXT_METHOD *method,
+GENERAL_NAMES *ossl_v2i_GENERAL_NAMES(const X509V3_EXT_METHOD *method,
     X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *nval)
 {
     GENERAL_NAME *gen;
@@ -498,7 +499,7 @@ GENERAL_NAMES *v2i_GENERAL_NAMES(const X509V3_EXT_METHOD *method,
 
     for (i = 0; i < num; i++) {
         cnf = sk_CONF_VALUE_value(nval, i);
-        if ((gen = v2i_GENERAL_NAME(method, ctx, cnf)) == NULL)
+        if ((gen = ossl_v2i_GENERAL_NAME(method, ctx, cnf)) == NULL)
             goto err;
         sk_GENERAL_NAME_push(gens, gen); /* no failure as it was reserved */
     }
@@ -508,11 +509,27 @@ err:
     return NULL;
 }
 
-GENERAL_NAME *v2i_GENERAL_NAME(const X509V3_EXT_METHOD *method,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+GENERAL_NAMES *v2i_GENERAL_NAMES(const X509V3_EXT_METHOD *method,
+    X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *nval)
+{
+    return ossl_v2i_GENERAL_NAMES(method, ctx, nval);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+GENERAL_NAME *ossl_v2i_GENERAL_NAME(const X509V3_EXT_METHOD *method,
     X509V3_CTX *ctx, CONF_VALUE *cnf)
 {
     return v2i_GENERAL_NAME_ex(NULL, method, ctx, cnf, 0);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+GENERAL_NAME *v2i_GENERAL_NAME(const X509V3_EXT_METHOD *method,
+    X509V3_CTX *ctx, CONF_VALUE *cnf)
+{
+    return ossl_v2i_GENERAL_NAME(method, ctx, cnf);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 GENERAL_NAME *a2i_GENERAL_NAME(GENERAL_NAME *out,
     const X509V3_EXT_METHOD *method,
@@ -658,7 +675,7 @@ static int do_othername(GENERAL_NAME *gen, const char *value, X509V3_CTX *ctx)
      * because it is static
      */
     ASN1_TYPE_free(gen->d.otherName->value);
-    if ((gen->d.otherName->value = ASN1_generate_v3(p + 1, ctx)) == NULL)
+    if ((gen->d.otherName->value = ossl_ASN1_generate_v3(p + 1, ctx)) == NULL)
         goto err;
     objlen = p - value;
     objtmp = OPENSSL_strndup(value, objlen);
@@ -684,14 +701,14 @@ static int do_dirname(GENERAL_NAME *gen, const char *value, X509V3_CTX *ctx)
 
     if ((nm = X509_NAME_new()) == NULL)
         goto err;
-    sk = X509V3_get_section(ctx, value);
+    sk = ossl_X509V3_get_section(ctx, value);
     if (!sk) {
         ERR_raise_data(ERR_LIB_X509V3, X509V3_R_SECTION_NOT_FOUND,
             "section=%s", value);
         goto err;
     }
     /* FIXME: should allow other character types... */
-    ret = X509V3_NAME_from_section(nm, sk, MBSTRING_ASC);
+    ret = ossl_X509V3_NAME_from_section(nm, sk, MBSTRING_ASC);
     if (!ret)
         goto err;
     gen->d.dirn = nm;
@@ -699,6 +716,6 @@ static int do_dirname(GENERAL_NAME *gen, const char *value, X509V3_CTX *ctx)
 err:
     if (ret == 0)
         X509_NAME_free(nm);
-    X509V3_section_free(ctx, sk);
+    ossl_X509V3_section_free(ctx, sk);
     return ret;
 }

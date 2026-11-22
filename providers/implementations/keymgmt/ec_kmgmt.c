@@ -666,13 +666,13 @@ static int ec_get_ecm_params(const EC_GROUP *group, const EC_PARAMS *params)
         goto err;
 
     if (basis_nid == NID_X9_62_tpBasis) {
-        if (!EC_GROUP_get_trinomial_basis(group, &k1)
+        if (!ossl_EC_GROUP_get_trinomial_basis(group, &k1)
             || !ossl_param_build_set_int(NULL, params->char2_tp,
                 OSSL_PKEY_PARAM_EC_CHAR2_TP_BASIS,
                 (int)k1))
             goto err;
     } else {
-        if (!EC_GROUP_get_pentanomial_basis(group, &k1, &k2, &k3)
+        if (!ossl_EC_GROUP_get_pentanomial_basis(group, &k1, &k2, &k3)
             || !ossl_param_build_set_int(NULL, params->char2_k1,
                 OSSL_PKEY_PARAM_EC_CHAR2_PP_K1, (int)k1)
             || !ossl_param_build_set_int(NULL, params->char2_k2,

@@ -11,6 +11,7 @@
 #include <openssl/bn.h>
 #include "internal/cryptlib.h"
 #include "bn_local.h"
+#include "crypto/bn.h"
 
 /* The old slow way */
 #if 0
@@ -70,7 +71,7 @@ int BN_div(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m, const BIGNUM *d,
             goto end;
         if (BN_ucmp(rem, D) >= 0) {
             dv->d[0] |= 1;
-            if (!BN_usub(rem, rem, D))
+            if (!ossl_BN_usub(rem, rem, D))
                 goto end;
         }
 /* CAN IMPROVE (and have now :=) */

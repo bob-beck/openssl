@@ -265,6 +265,10 @@ instead.
 
 =back
 
+EC_GROUP_get_ecparameters(), EC_GROUP_get_ecpkparameters(),
+EC_GROUP_new_from_ecparameters() and EC_GROUP_new_from_ecpkparameters() were
+deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2013-2026 The OpenSSL Project Authors. All Rights Reserved.

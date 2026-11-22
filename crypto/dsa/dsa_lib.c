@@ -20,6 +20,7 @@
 #include "crypto/dsa.h"
 #include "crypto/dh.h" /* required by DSA_dup_DH() */
 #include "dsa_local.h"
+#include "crypto/bn.h"
 
 static DSA *dsa_new_intern(OSSL_LIB_CTX *libctx);
 
@@ -307,7 +308,7 @@ int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
 int DSA_security_bits(const DSA *d)
 {
     if (d->params.p != NULL && d->params.q != NULL)
-        return BN_security_bits(BN_num_bits(d->params.p),
+        return ossl_BN_security_bits(BN_num_bits(d->params.p),
             BN_num_bits(d->params.q));
     return -1;
 }

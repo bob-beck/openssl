@@ -250,7 +250,7 @@ end:
 static int x509_pubkey_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
     const ASN1_ITEM *it, int tag, int aclass)
 {
-    return ASN1_item_ex_i2d(pval, out, ASN1_ITEM_rptr(X509_PUBKEY_INTERNAL),
+    return ossl_ASN1_item_ex_i2d(pval, out, ASN1_ITEM_rptr(X509_PUBKEY_INTERNAL),
         tag, aclass);
 }
 

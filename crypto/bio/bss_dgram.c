@@ -15,6 +15,7 @@
 #include <errno.h>
 
 #include "bio_local.h"
+#include "internal/bio.h"
 #ifndef OPENSSL_NO_DGRAM
 
 #ifndef OPENSSL_NO_SCTP
@@ -1766,10 +1767,17 @@ static int dgram_recvmmsg(BIO *b, BIO_MSG *msg,
 }
 
 #ifndef OPENSSL_NO_SCTP
-const BIO_METHOD *BIO_s_datagram_sctp(void)
+const BIO_METHOD *ossl_BIO_s_datagram_sctp(void)
 {
     return &methods_dgramp_sctp;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const BIO_METHOD *BIO_s_datagram_sctp(void)
+{
+    return ossl_BIO_s_datagram_sctp();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 BIO *BIO_new_dgram_sctp(int fd, int close_flag)
 {
@@ -1788,7 +1796,7 @@ BIO *BIO_new_dgram_sctp(int fd, int close_flag)
 #endif
 #endif
 
-    bio = BIO_new(BIO_s_datagram_sctp());
+    bio = BIO_new(ossl_BIO_s_datagram_sctp());
     if (bio == NULL)
         return NULL;
     BIO_set_fd(bio, fd, close_flag);
@@ -2796,12 +2804,12 @@ static int BIO_dgram_should_retry(int i)
          */
 #endif
 
-        return BIO_dgram_non_fatal_error(err);
+        return ossl_BIO_dgram_non_fatal_error(err);
     }
     return 0;
 }
 
-int BIO_dgram_non_fatal_error(int err)
+int ossl_BIO_dgram_non_fatal_error(int err)
 {
     switch (err) {
 #if defined(OPENSSL_SYS_WINDOWS)
@@ -2851,5 +2859,12 @@ int BIO_dgram_non_fatal_error(int err)
     }
     return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BIO_dgram_non_fatal_error(int err)
+{
+    return ossl_BIO_dgram_non_fatal_error(err);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #endif

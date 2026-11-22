@@ -14,6 +14,7 @@
 #include <openssl/asn1t.h>
 #include <openssl/x509v3.h>
 #include "ext_dat.h"
+#include "crypto/x509.h"
 
 /* Support for Thawte strong extranet extension */
 
@@ -103,7 +104,7 @@ static SXNET *sxnet_v2i(X509V3_EXT_METHOD *method, X509V3_CTX *ctx,
     int i;
     for (i = 0; i < sk_CONF_VALUE_num(nval); i++) {
         cnf = sk_CONF_VALUE_value(nval, i);
-        if (!SXNET_add_id_asc(&sx, cnf->name, cnf->value, -1)) {
+        if (!ossl_SXNET_add_id_asc(&sx, cnf->name, cnf->value, -1)) {
             SXNET_free(sx);
             return NULL;
         }
@@ -117,7 +118,7 @@ static SXNET *sxnet_v2i(X509V3_EXT_METHOD *method, X509V3_CTX *ctx,
 
 /* Add an id given the zone as an ASCII number */
 
-int SXNET_add_id_asc(SXNET **psx, const char *zone, const char *user, int userlen)
+int ossl_SXNET_add_id_asc(SXNET **psx, const char *zone, const char *user, int userlen)
 {
     ASN1_INTEGER *izone;
 
@@ -125,12 +126,19 @@ int SXNET_add_id_asc(SXNET **psx, const char *zone, const char *user, int userle
         ERR_raise(ERR_LIB_X509V3, X509V3_R_ERROR_CONVERTING_ZONE);
         return 0;
     }
-    if (!SXNET_add_id_INTEGER(psx, izone, user, userlen)) {
+    if (!ossl_SXNET_add_id_INTEGER(psx, izone, user, userlen)) {
         ASN1_INTEGER_free(izone);
         return 0;
     }
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int SXNET_add_id_asc(SXNET **psx, const char *zone, const char *user, int userlen)
+{
+    return ossl_SXNET_add_id_asc(psx, zone, user, userlen);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* Add an id given the zone as an unsigned long */
 
@@ -145,7 +153,7 @@ int SXNET_add_id_ulong(SXNET **psx, unsigned long lzone, const char *user,
         ASN1_INTEGER_free(izone);
         return 0;
     }
-    if (!SXNET_add_id_INTEGER(psx, izone, user, userlen)) {
+    if (!ossl_SXNET_add_id_INTEGER(psx, izone, user, userlen)) {
         ASN1_INTEGER_free(izone);
         return 0;
     }
@@ -157,7 +165,7 @@ int SXNET_add_id_ulong(SXNET **psx, unsigned long lzone, const char *user,
  * passed integer and doesn't make a copy so don't free it up afterwards.
  */
 
-int SXNET_add_id_INTEGER(SXNET **psx, ASN1_INTEGER *zone, const char *user,
+int ossl_SXNET_add_id_INTEGER(SXNET **psx, ASN1_INTEGER *zone, const char *user,
     int userlen)
 {
     SXNET *sx = NULL;
@@ -184,7 +192,7 @@ int SXNET_add_id_INTEGER(SXNET **psx, ASN1_INTEGER *zone, const char *user,
         }
     } else
         sx = *psx;
-    if (SXNET_get_id_INTEGER(sx, zone)) {
+    if (ossl_SXNET_get_id_INTEGER(sx, zone)) {
         ERR_raise(ERR_LIB_X509V3, X509V3_R_DUPLICATE_ZONE_ID);
         if (*psx == NULL)
             SXNET_free(sx);
@@ -216,6 +224,14 @@ err:
     return 0;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int SXNET_add_id_INTEGER(SXNET **psx, ASN1_INTEGER *zone, const char *user,
+    int userlen)
+{
+    return ossl_SXNET_add_id_INTEGER(psx, zone, user, userlen);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 ASN1_OCTET_STRING *SXNET_get_id_asc(SXNET *sx, const char *zone)
 {
     ASN1_INTEGER *izone;
@@ -225,7 +241,7 @@ ASN1_OCTET_STRING *SXNET_get_id_asc(SXNET *sx, const char *zone)
         ERR_raise(ERR_LIB_X509V3, X509V3_R_ERROR_CONVERTING_ZONE);
         return NULL;
     }
-    oct = SXNET_get_id_INTEGER(sx, izone);
+    oct = ossl_SXNET_get_id_INTEGER(sx, izone);
     ASN1_INTEGER_free(izone);
     return oct;
 }
@@ -241,12 +257,12 @@ ASN1_OCTET_STRING *SXNET_get_id_ulong(SXNET *sx, unsigned long lzone)
         ASN1_INTEGER_free(izone);
         return NULL;
     }
-    oct = SXNET_get_id_INTEGER(sx, izone);
+    oct = ossl_SXNET_get_id_INTEGER(sx, izone);
     ASN1_INTEGER_free(izone);
     return oct;
 }
 
-ASN1_OCTET_STRING *SXNET_get_id_INTEGER(SXNET *sx, ASN1_INTEGER *zone)
+ASN1_OCTET_STRING *ossl_SXNET_get_id_INTEGER(SXNET *sx, ASN1_INTEGER *zone)
 {
     SXNETID *id;
     int i;
@@ -257,3 +273,10 @@ ASN1_OCTET_STRING *SXNET_get_id_INTEGER(SXNET *sx, ASN1_INTEGER *zone)
     }
     return NULL;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+ASN1_OCTET_STRING *SXNET_get_id_INTEGER(SXNET *sx, ASN1_INTEGER *zone)
+{
+    return ossl_SXNET_get_id_INTEGER(sx, zone);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

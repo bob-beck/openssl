@@ -229,7 +229,13 @@ const EC_POINT *EC_GROUP_get0_generator(const EC_GROUP *group);
  *  \param  group  EC_GROUP object
  *  \return the currently used montgomery data (possibly NULL).
  */
-BN_MONT_CTX *EC_GROUP_get_mont_data(const EC_GROUP *group);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Get the Montgomery context of an EC group's order.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 BN_MONT_CTX *EC_GROUP_get_mont_data(const EC_GROUP *group);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /** Gets the order of a EC_GROUP
  *  \param  group  EC_GROUP object
@@ -415,7 +421,13 @@ int EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx);
  *  \param  ctx    BN_CTX object (optional)
  *  \return 1 if the discriminant is not zero and 0 otherwise
  */
-int EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Check that the discriminant of an elliptic curve is nonzero.
+ * @see EC_GROUP_check_discriminant(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /** Compares two EC_GROUP objects
  *  \param  a    first EC_GROUP object
@@ -509,7 +521,13 @@ EC_GROUP *EC_GROUP_new_by_curve_name(int nid);
  *  \return newly created EC_GROUP object with specified curve or NULL
  *          if an error occurred
  */
-EC_GROUP *EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Create an EC group from explicit ECPARAMETERS.
+ * @see EC_GROUP_new_from_ecparameters(3)
+ */
+OSSL_DEPRECATEDIN_4_2 EC_GROUP *EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /** Creates an ECPARAMETERS object for the given EC_GROUP object.
  *  \param  group   pointer to the EC_GROUP object
@@ -517,15 +535,27 @@ EC_GROUP *EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params);
  *  \return pointer to the new ECPARAMETERS object or NULL
  *          if an error occurred.
  */
-ECPARAMETERS *EC_GROUP_get_ecparameters(const EC_GROUP *group,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Convert an EC group to explicit ECPARAMETERS.
+ * @see EC_GROUP_get_ecparameters(3)
+ */
+OSSL_DEPRECATEDIN_4_2 ECPARAMETERS *EC_GROUP_get_ecparameters(const EC_GROUP *group,
     ECPARAMETERS *params);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /** Creates a new EC_GROUP object from an ECPKPARAMETERS object
  *  \param  params  pointer to an existing ECPKPARAMETERS object, or NULL
  *  \return newly created EC_GROUP object with specified curve, or NULL
  *          if an error occurred
  */
-EC_GROUP *EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Create an EC group from ECPKPARAMETERS.
+ * @see EC_GROUP_new_from_ecpkparameters(3)
+ */
+OSSL_DEPRECATEDIN_4_2 EC_GROUP *EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /** Creates an ECPKPARAMETERS object for the given EC_GROUP object.
  *  \param  group   pointer to the EC_GROUP object
@@ -533,8 +563,14 @@ EC_GROUP *EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params);
  *  \return pointer to the new ECPKPARAMETERS object or NULL
  *          if an error occurred.
  */
-ECPKPARAMETERS *EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Convert an EC group to ECPKPARAMETERS, named or explicit.
+ * @see EC_GROUP_get_ecpkparameters(3)
+ */
+OSSL_DEPRECATEDIN_4_2 ECPKPARAMETERS *EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
     ECPKPARAMETERS *params);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /********************************************************************/
 /*               handling of internal curves                        */
@@ -820,8 +856,14 @@ int EC_POINT_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
  *  \param  ctx    BN_CTX object (optional)
  *  \return 1 on success and 0 if an error occurred
  */
-int EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Double an elliptic curve point.
+ * @see EC_POINT_dbl(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
     BN_CTX *ctx);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /** Computes the inverse of a EC_POINT
  *  \param  group  underlying EC_GROUP object
@@ -921,9 +963,20 @@ DECLARE_ASN1_ALLOC_FUNCTIONS(ECPARAMETERS)
  */
 int EC_GROUP_get_basis_type(const EC_GROUP *);
 #ifndef OPENSSL_NO_EC2M
-int EC_GROUP_get_trinomial_basis(const EC_GROUP *, unsigned int *k);
-int EC_GROUP_get_pentanomial_basis(const EC_GROUP *, unsigned int *k1,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Get the middle exponent of a trinomial basis of a binary field EC
+ * group.
+ * @see EC_GROUP_get_trinomial_basis(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int EC_GROUP_get_trinomial_basis(const EC_GROUP *, unsigned int *k);
+/**
+ * @brief Get the exponents of a pentanomial basis of a binary field EC group.
+ * @see EC_GROUP_get_pentanomial_basis(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int EC_GROUP_get_pentanomial_basis(const EC_GROUP *, unsigned int *k1,
     unsigned int *k2, unsigned int *k3);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #endif
 
 EC_GROUP *d2i_ECPKParameters(EC_GROUP **, const unsigned char **in, long len);

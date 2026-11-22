@@ -195,7 +195,7 @@ static int decode_run(struct dec_result *r, const unsigned char *in, int inl,
 
         r->rv[r->ncalls] = rv;
         r->outl[r->ncalls] = outl;
-        r->num[r->ncalls] = EVP_ENCODE_CTX_num(ctx);
+        r->num[r->ncalls] = ossl_EVP_ENCODE_CTX_num(ctx);
         r->ncalls++;
         off += cuts[i];
         outp += outl;
@@ -951,7 +951,7 @@ static int check_update(const struct update_vec *v)
     rv = EVP_DecodeUpdate(ctx, out, &outl, (const unsigned char *)v->in,
         inlen);
     if (!TEST_int_eq(rv, v->rv) || !TEST_int_eq(outl, v->outl)
-        || !TEST_int_eq(EVP_ENCODE_CTX_num(ctx), v->num)
+        || !TEST_int_eq(ossl_EVP_ENCODE_CTX_num(ctx), v->num)
         || !TEST_int_le(outl, (int)sizeof(zeros))
         || !TEST_mem_eq(out, outl, zeros, outl)) {
         TEST_info("EVP_DecodeUpdate semantics: %s", v->desc);

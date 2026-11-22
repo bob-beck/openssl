@@ -550,7 +550,7 @@ static long b64_ctrl(BIO *b, int cmd, long num, void *ptr)
         ret = (long)(ctx->encoded_len - ctx->encoded_off)
             + (ctx->buf_len - ctx->buf_off);
         if (ret == 0 && ctx->encode != B64_NONE
-            && EVP_ENCODE_CTX_num(ctx->base64) != 0)
+            && ossl_EVP_ENCODE_CTX_num(ctx->base64) != 0)
             ret = 1;
         else if (ret <= 0)
             ret = BIO_ctrl(next, cmd, num, ptr);
@@ -573,7 +573,7 @@ static long b64_ctrl(BIO *b, int cmd, long num, void *ptr)
                 if (i < 0 || (i == 0 && b64_write_pending(ctx)))
                     return i;
             }
-            if (EVP_ENCODE_CTX_num(ctx->base64) != 0) {
+            if (ossl_EVP_ENCODE_CTX_num(ctx->base64) != 0) {
                 ctx->buf_off = 0;
                 EVP_EncodeFinal(ctx->base64, ctx->buf, &(ctx->buf_len));
                 /* push out the bytes */

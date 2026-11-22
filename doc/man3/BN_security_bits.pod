@@ -39,6 +39,8 @@ L<DH_security_bits(3)>, L<DSA_security_bits(3)>, L<RSA_security_bits(3)>
 
 The BN_security_bits() function was added in OpenSSL 1.1.0.
 
+BN_security_bits() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2017-2019 The OpenSSL Project Authors. All Rights Reserved.

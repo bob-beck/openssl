@@ -25,6 +25,7 @@ int main(void)
 #include "bio_local.h"
 
 #include <openssl/bio.h>
+#include "internal/bio.h"
 
 #define FAKE_FD 42
 
@@ -195,26 +196,26 @@ static void test_should_retry_positive_i(void **state)
     /* i > 0: always returns 0 regardless of errno */
     (void)state;
     errno = EAGAIN;
-    assert_int_equal(BIO_fd_should_retry(1), 0);
-    assert_int_equal(BIO_fd_should_retry(100), 0);
+    assert_int_equal(ossl_BIO_fd_should_retry(1), 0);
+    assert_int_equal(ossl_BIO_fd_should_retry(100), 0);
 }
 
 static void test_should_retry_fatal_errno(void **state)
 {
     (void)state;
     errno = ENOENT;
-    assert_int_equal(BIO_fd_should_retry(-1), 0);
+    assert_int_equal(ossl_BIO_fd_should_retry(-1), 0);
     errno = ENOENT;
-    assert_int_equal(BIO_fd_should_retry(0), 0);
+    assert_int_equal(ossl_BIO_fd_should_retry(0), 0);
 }
 
 static void test_should_retry_non_fatal_errno(void **state)
 {
     (void)state;
     errno = EAGAIN;
-    assert_int_equal(BIO_fd_should_retry(-1), 1);
+    assert_int_equal(ossl_BIO_fd_should_retry(-1), 1);
     errno = EINTR;
-    assert_int_equal(BIO_fd_should_retry(0), 1);
+    assert_int_equal(ossl_BIO_fd_should_retry(0), 1);
 }
 
 /* fd_read (via BIO_read) */

@@ -18,6 +18,8 @@
 #include <openssl/symhacks.h>
 
 #include "ec_local.h"
+#include "crypto/bn.h"
+#include "crypto/ec.h"
 
 const EC_METHOD *EC_GFp_simple_method(void)
 {
@@ -621,7 +623,7 @@ int ossl_ec_GFp_simple_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a
     int ret = 0;
 
     if (a == b)
-        return EC_POINT_dbl(group, r, a, ctx);
+        return ossl_EC_POINT_dbl(group, r, a, ctx);
     if (EC_POINT_is_at_infinity(group, a))
         return EC_POINT_copy(r, b);
     if (EC_POINT_is_at_infinity(group, b))
@@ -699,9 +701,9 @@ int ossl_ec_GFp_simple_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a
     }
 
     /* n5, n6 */
-    if (!BN_mod_sub_quick(n5, n1, n3, p))
+    if (!ossl_BN_mod_sub_quick(n5, n1, n3, p))
         goto end;
-    if (!BN_mod_sub_quick(n6, n2, n4, p))
+    if (!ossl_BN_mod_sub_quick(n6, n2, n4, p))
         goto end;
     /* n5 = n1 - n3 */
     /* n6 = n2 - n4 */
@@ -710,7 +712,7 @@ int ossl_ec_GFp_simple_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a
         if (BN_is_zero(n6)) {
             /* a is the same point as b */
             BN_CTX_end(ctx);
-            ret = EC_POINT_dbl(group, r, a, ctx);
+            ret = ossl_EC_POINT_dbl(group, r, a, ctx);
             ctx = NULL;
             goto end;
         } else {
@@ -758,14 +760,14 @@ int ossl_ec_GFp_simple_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a
         goto end;
     if (!field_mul(group, n3, n1, n4, ctx))
         goto end;
-    if (!BN_mod_sub_quick(r->X, n0, n3, p))
+    if (!ossl_BN_mod_sub_quick(r->X, n0, n3, p))
         goto end;
     /* X_r = n6^2 - n5^2 * 'n7' */
 
     /* 'n9' */
-    if (!BN_mod_lshift1_quick(n0, r->X, p))
+    if (!ossl_BN_mod_lshift1_quick(n0, r->X, p))
         goto end;
-    if (!BN_mod_sub_quick(n0, n3, n0, p))
+    if (!ossl_BN_mod_sub_quick(n0, n3, n0, p))
         goto end;
     /* n9 = n5^2 * 'n7' - 2 * X_r */
 
@@ -776,7 +778,7 @@ int ossl_ec_GFp_simple_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a
         goto end; /* now n5 is n5^3 */
     if (!field_mul(group, n1, n2, n5, ctx))
         goto end;
-    if (!BN_mod_sub_quick(n0, n0, n1, p))
+    if (!ossl_BN_mod_sub_quick(n0, n0, n1, p))
         goto end;
     if (BN_is_odd(n0))
         if (!BN_add(n0, n0, p))
@@ -839,7 +841,7 @@ int ossl_ec_GFp_simple_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a
     if (a->Z_is_one) {
         if (!field_sqr(group, n0, a->X, ctx))
             goto err;
-        if (!BN_mod_lshift1_quick(n1, n0, p))
+        if (!ossl_BN_mod_lshift1_quick(n1, n0, p))
             goto err;
         if (!BN_mod_add_quick(n0, n0, n1, p))
             goto err;
@@ -851,11 +853,11 @@ int ossl_ec_GFp_simple_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a
             goto err;
         if (!BN_mod_add_quick(n0, a->X, n1, p))
             goto err;
-        if (!BN_mod_sub_quick(n2, a->X, n1, p))
+        if (!ossl_BN_mod_sub_quick(n2, a->X, n1, p))
             goto err;
         if (!field_mul(group, n1, n0, n2, ctx))
             goto err;
-        if (!BN_mod_lshift1_quick(n0, n1, p))
+        if (!ossl_BN_mod_lshift1_quick(n0, n1, p))
             goto err;
         if (!BN_mod_add_quick(n1, n0, n1, p))
             goto err;
@@ -866,7 +868,7 @@ int ossl_ec_GFp_simple_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a
     } else {
         if (!field_sqr(group, n0, a->X, ctx))
             goto err;
-        if (!BN_mod_lshift1_quick(n1, n0, p))
+        if (!ossl_BN_mod_lshift1_quick(n1, n0, p))
             goto err;
         if (!BN_mod_add_quick(n0, n0, n1, p))
             goto err;
@@ -889,7 +891,7 @@ int ossl_ec_GFp_simple_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a
         if (!field_mul(group, n0, a->Y, a->Z, ctx))
             goto err;
     }
-    if (!BN_mod_lshift1_quick(r->Z, n0, p))
+    if (!ossl_BN_mod_lshift1_quick(r->Z, n0, p))
         goto err;
     r->Z_is_one = 0;
     /* Z_r = 2 * Y_a * Z_a */
@@ -899,32 +901,32 @@ int ossl_ec_GFp_simple_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a
         goto err;
     if (!field_mul(group, n2, a->X, n3, ctx))
         goto err;
-    if (!BN_mod_lshift_quick(n2, n2, 2, p))
+    if (!ossl_BN_mod_lshift_quick(n2, n2, 2, p))
         goto err;
     /* n2 = 4 * X_a * Y_a^2 */
 
     /* X_r */
-    if (!BN_mod_lshift1_quick(n0, n2, p))
+    if (!ossl_BN_mod_lshift1_quick(n0, n2, p))
         goto err;
     if (!field_sqr(group, r->X, n1, ctx))
         goto err;
-    if (!BN_mod_sub_quick(r->X, r->X, n0, p))
+    if (!ossl_BN_mod_sub_quick(r->X, r->X, n0, p))
         goto err;
     /* X_r = n1^2 - 2 * n2 */
 
     /* n3 */
     if (!field_sqr(group, n0, n3, ctx))
         goto err;
-    if (!BN_mod_lshift_quick(n3, n0, 3, p))
+    if (!ossl_BN_mod_lshift_quick(n3, n0, 3, p))
         goto err;
     /* n3 = 8 * Y_a^4 */
 
     /* Y_r */
-    if (!BN_mod_sub_quick(n0, n2, r->X, p))
+    if (!ossl_BN_mod_sub_quick(n0, n2, r->X, p))
         goto err;
     if (!field_mul(group, n0, n1, n0, ctx))
         goto err;
-    if (!BN_mod_sub_quick(r->Y, n0, n3, p))
+    if (!ossl_BN_mod_sub_quick(r->Y, n0, n3, p))
         goto err;
     /* Y_r = n1 * (n2 - X_r) - n3 */
 
@@ -943,7 +945,7 @@ int ossl_ec_GFp_simple_invert(const EC_GROUP *group, EC_POINT *point,
         /* point is its own inverse */
         return 1;
 
-    return BN_usub(point->Y, group->field, point->Y);
+    return ossl_BN_usub(point->Y, group->field, point->Y);
 }
 
 int ossl_ec_GFp_simple_is_at_infinity(const EC_GROUP *group,
@@ -1008,11 +1010,11 @@ int ossl_ec_GFp_simple_is_on_curve(const EC_GROUP *group, const EC_POINT *point,
 
         /* rh := (rh + a*Z^4)*X */
         if (group->a_is_minus3) {
-            if (!BN_mod_lshift1_quick(tmp, Z4, p))
+            if (!ossl_BN_mod_lshift1_quick(tmp, Z4, p))
                 goto err;
             if (!BN_mod_add_quick(tmp, tmp, Z4, p))
                 goto err;
-            if (!BN_mod_sub_quick(rh, rh, tmp, p))
+            if (!ossl_BN_mod_sub_quick(rh, rh, tmp, p))
                 goto err;
             if (!field_mul(group, rh, rh, point->X, ctx))
                 goto err;
@@ -1501,17 +1503,17 @@ int ossl_ec_GFp_simple_ladder_pre(const EC_GROUP *group,
 
     if (!p->Z_is_one /* r := 2p */
         || !group->meth->field_sqr(group, t3, p->X, ctx)
-        || !BN_mod_sub_quick(t4, t3, group->a, group->field)
+        || !ossl_BN_mod_sub_quick(t4, t3, group->a, group->field)
         || !group->meth->field_sqr(group, t4, t4, ctx)
         || !group->meth->field_mul(group, t5, p->X, group->b, ctx)
-        || !BN_mod_lshift_quick(t5, t5, 3, group->field)
+        || !ossl_BN_mod_lshift_quick(t5, t5, 3, group->field)
         /* r->X coord output */
-        || !BN_mod_sub_quick(r->X, t4, t5, group->field)
+        || !ossl_BN_mod_sub_quick(r->X, t4, t5, group->field)
         || !BN_mod_add_quick(t1, t3, group->a, group->field)
         || !group->meth->field_mul(group, t2, p->X, t1, ctx)
         || !BN_mod_add_quick(t2, group->b, t2, group->field)
         /* r->Z coord output */
-        || !BN_mod_lshift_quick(r->Z, t2, 2, group->field))
+        || !ossl_BN_mod_lshift_quick(r->Z, t2, 2, group->field))
         return 0;
 
     /* make sure lambda (r->Y here for storage) is not zero */
@@ -1583,34 +1585,34 @@ int ossl_ec_GFp_simple_ladder_step(const EC_GROUP *group,
         || !BN_mod_add_quick(t6, t3, t4, group->field)
         || !group->meth->field_mul(group, t5, t6, t5, ctx)
         || !group->meth->field_sqr(group, t0, t0, ctx)
-        || !BN_mod_lshift_quick(t2, group->b, 2, group->field)
+        || !ossl_BN_mod_lshift_quick(t2, group->b, 2, group->field)
         || !group->meth->field_mul(group, t0, t2, t0, ctx)
-        || !BN_mod_lshift1_quick(t5, t5, group->field)
-        || !BN_mod_sub_quick(t3, t4, t3, group->field)
+        || !ossl_BN_mod_lshift1_quick(t5, t5, group->field)
+        || !ossl_BN_mod_sub_quick(t3, t4, t3, group->field)
         /* s->Z coord output */
         || !group->meth->field_sqr(group, s->Z, t3, ctx)
         || !group->meth->field_mul(group, t4, s->Z, p->X, ctx)
         || !BN_mod_add_quick(t0, t0, t5, group->field)
         /* s->X coord output */
-        || !BN_mod_sub_quick(s->X, t0, t4, group->field)
+        || !ossl_BN_mod_sub_quick(s->X, t0, t4, group->field)
         || !group->meth->field_sqr(group, t4, r->X, ctx)
         || !group->meth->field_sqr(group, t5, r->Z, ctx)
         || !group->meth->field_mul(group, t6, t5, group->a, ctx)
         || !BN_mod_add_quick(t1, r->X, r->Z, group->field)
         || !group->meth->field_sqr(group, t1, t1, ctx)
-        || !BN_mod_sub_quick(t1, t1, t4, group->field)
-        || !BN_mod_sub_quick(t1, t1, t5, group->field)
-        || !BN_mod_sub_quick(t3, t4, t6, group->field)
+        || !ossl_BN_mod_sub_quick(t1, t1, t4, group->field)
+        || !ossl_BN_mod_sub_quick(t1, t1, t5, group->field)
+        || !ossl_BN_mod_sub_quick(t3, t4, t6, group->field)
         || !group->meth->field_sqr(group, t3, t3, ctx)
         || !group->meth->field_mul(group, t0, t5, t1, ctx)
         || !group->meth->field_mul(group, t0, t2, t0, ctx)
         /* r->X coord output */
-        || !BN_mod_sub_quick(r->X, t3, t0, group->field)
+        || !ossl_BN_mod_sub_quick(r->X, t3, t0, group->field)
         || !BN_mod_add_quick(t3, t4, t6, group->field)
         || !group->meth->field_sqr(group, t4, t5, ctx)
         || !group->meth->field_mul(group, t4, t4, t2, ctx)
         || !group->meth->field_mul(group, t1, t1, t3, ctx)
-        || !BN_mod_lshift1_quick(t1, t1, group->field)
+        || !ossl_BN_mod_lshift1_quick(t1, t1, group->field)
         /* r->Z coord output */
         || !BN_mod_add_quick(r->Z, t4, t1, group->field))
         goto err;
@@ -1672,11 +1674,11 @@ int ossl_ec_GFp_simple_ladder_post(const EC_GROUP *group,
     t6 = BN_CTX_get(ctx);
 
     if (t6 == NULL
-        || !BN_mod_lshift1_quick(t4, p->Y, group->field)
+        || !ossl_BN_mod_lshift1_quick(t4, p->Y, group->field)
         || !group->meth->field_mul(group, t6, r->X, t4, ctx)
         || !group->meth->field_mul(group, t6, s->Z, t6, ctx)
         || !group->meth->field_mul(group, t5, r->Z, t6, ctx)
-        || !BN_mod_lshift1_quick(t1, group->b, group->field)
+        || !ossl_BN_mod_lshift1_quick(t1, group->b, group->field)
         || !group->meth->field_mul(group, t1, s->Z, t1, ctx)
         || !group->meth->field_sqr(group, t3, r->Z, ctx)
         || !group->meth->field_mul(group, t2, t3, t1, ctx)
@@ -1688,10 +1690,10 @@ int ossl_ec_GFp_simple_ladder_post(const EC_GROUP *group,
         || !BN_mod_add_quick(t6, r->X, t0, group->field)
         || !group->meth->field_mul(group, t6, t6, t1, ctx)
         || !BN_mod_add_quick(t6, t6, t2, group->field)
-        || !BN_mod_sub_quick(t0, t0, r->X, group->field)
+        || !ossl_BN_mod_sub_quick(t0, t0, r->X, group->field)
         || !group->meth->field_sqr(group, t0, t0, ctx)
         || !group->meth->field_mul(group, t0, t0, s->X, ctx)
-        || !BN_mod_sub_quick(t0, t6, t0, group->field)
+        || !ossl_BN_mod_sub_quick(t0, t6, t0, group->field)
         || !group->meth->field_mul(group, t1, s->Z, t4, ctx)
         || !group->meth->field_mul(group, t1, t3, t1, ctx)
         || (group->meth->field_decode != NULL

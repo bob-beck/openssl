@@ -119,6 +119,8 @@ and ASN1_item_i2d_mem_bio() were added in OpenSSL 3.0.
 
 The function ASN1_item_unpack_ex() was added in OpenSSL 3.2.
 
+ASN1_item_d2i_fp() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2021-2026 The OpenSSL Project Authors. All Rights Reserved.

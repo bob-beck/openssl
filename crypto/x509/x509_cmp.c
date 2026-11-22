@@ -34,7 +34,7 @@ int X509_issuer_and_serial_cmp(const X509 *a, const X509 *b)
 }
 
 #ifndef OPENSSL_NO_MD5
-unsigned long X509_issuer_and_serial_hash(const X509 *a)
+unsigned long ossl_X509_issuer_and_serial_hash(const X509 *a)
 {
     unsigned long ret = 0;
     EVP_MD_CTX *ctx = EVP_MD_CTX_new();
@@ -70,6 +70,13 @@ err:
     EVP_MD_CTX_free(ctx);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+unsigned long X509_issuer_and_serial_hash(const X509 *a)
+{
+    return ossl_X509_issuer_and_serial_hash(a);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #endif
 
 int X509_issuer_name_cmp(const X509 *a, const X509 *b)
@@ -87,7 +94,7 @@ int X509_CRL_cmp(const X509_CRL *a, const X509_CRL *b)
     return X509_NAME_cmp(a->crl.issuer, b->crl.issuer);
 }
 
-int X509_CRL_match(const X509_CRL *a, const X509_CRL *b)
+int ossl_X509_CRL_match(const X509_CRL *a, const X509_CRL *b)
 {
     int rv = 0;
 
@@ -119,6 +126,13 @@ int X509_CRL_match(const X509_CRL *a, const X509_CRL *b)
     rv = ASN1_STRING_cmp(&a->signature, &b->signature);
     return rv < 0 ? -1 : rv > 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_CRL_match(const X509_CRL *a, const X509_CRL *b)
+{
+    return ossl_X509_CRL_match(a, b);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 const X509_NAME *X509_get_issuer_name(const X509 *a)
 {
@@ -581,7 +595,7 @@ end:
     return rv;
 }
 
-int X509_CRL_check_suiteb(X509_CRL *crl, EVP_PKEY *pk, unsigned long flags)
+int ossl_X509_CRL_check_suiteb(X509_CRL *crl, EVP_PKEY *pk, unsigned long flags)
 {
     int sign_nid;
     if (!(flags & X509_V_FLAG_SUITEB_128_LOS))
@@ -590,6 +604,13 @@ int X509_CRL_check_suiteb(X509_CRL *crl, EVP_PKEY *pk, unsigned long flags)
     return check_suite_b(pk, sign_nid, &flags);
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_CRL_check_suiteb(X509_CRL *crl, EVP_PKEY *pk, unsigned long flags)
+{
+    return ossl_X509_CRL_check_suiteb(crl, pk, flags);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 #else
 int X509_chain_check_suiteb(int *perror_depth, const X509 *x, STACK_OF(X509) *chain,
     unsigned long flags)
@@ -597,10 +618,17 @@ int X509_chain_check_suiteb(int *perror_depth, const X509 *x, STACK_OF(X509) *ch
     return 0;
 }
 
-int X509_CRL_check_suiteb(X509_CRL *crl, EVP_PKEY *pk, unsigned long flags)
+int ossl_X509_CRL_check_suiteb(X509_CRL *crl, EVP_PKEY *pk, unsigned long flags)
 {
     return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_CRL_check_suiteb(X509_CRL *crl, EVP_PKEY *pk, unsigned long flags)
+{
+    return ossl_X509_CRL_check_suiteb(crl, pk, flags);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #endif
 

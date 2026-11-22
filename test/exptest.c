@@ -19,6 +19,7 @@
 #include <openssl/err.h>
 
 #include "testutil.h"
+#include "crypto/bn.h"
 
 #define NUM_BITS (BN_BITS2 * 4)
 
@@ -71,13 +72,13 @@ static int test_mod_exp_zero(void)
     if (!TEST_true(a_is_zero_mod_one("BN_mod_exp", r, a)))
         failed = 1;
 
-    if (!TEST_true(BN_mod_exp_recp(r, a, p, m, ctx)))
+    if (!TEST_true(ossl_BN_mod_exp_recp(r, a, p, m, ctx)))
         goto err;
 
     if (!TEST_true(a_is_zero_mod_one("BN_mod_exp_recp", r, a)))
         failed = 1;
 
-    if (!TEST_true(BN_mod_exp_simple(r, a, p, m, ctx)))
+    if (!TEST_true(ossl_BN_mod_exp_simple(r, a, p, m, ctx)))
         goto err;
 
     if (!TEST_true(a_is_zero_mod_one("BN_mod_exp_simple", r, a)))
@@ -197,8 +198,8 @@ static int test_mod_exp(int round)
     if (!TEST_true(BN_mod(a, a, m, ctx))
         || !TEST_true(BN_mod(b, b, m, ctx))
         || !TEST_true(BN_mod_exp_mont(r_mont, a, b, m, ctx, NULL))
-        || !TEST_true(BN_mod_exp_recp(r_recp, a, b, m, ctx))
-        || !TEST_true(BN_mod_exp_simple(r_simple, a, b, m, ctx))
+        || !TEST_true(ossl_BN_mod_exp_recp(r_recp, a, b, m, ctx))
+        || !TEST_true(ossl_BN_mod_exp_simple(r_simple, a, b, m, ctx))
         || !TEST_true(BN_mod_exp_mont_consttime(r_mont_const, a, b, m, ctx, NULL)))
         goto err;
 
@@ -289,8 +290,8 @@ static int test_mod_exp_x2(int idx)
         || !TEST_true(BN_mod(b1, b1, m1, ctx))
         || !TEST_true(BN_mod(a2, a2, m2, ctx))
         || !TEST_true(BN_mod(b2, b2, m2, ctx))
-        || !TEST_true(BN_mod_exp_simple(r_simple1, a1, b1, m1, ctx))
-        || !TEST_true(BN_mod_exp_simple(r_simple2, a2, b2, m2, ctx))
+        || !TEST_true(ossl_BN_mod_exp_simple(r_simple1, a1, b1, m1, ctx))
+        || !TEST_true(ossl_BN_mod_exp_simple(r_simple2, a2, b2, m2, ctx))
         || !TEST_true(BN_mod_exp_mont_consttime_x2(r_mont_const_x2_1, a1, b1, m1, NULL,
             r_mont_const_x2_2, a2, b2, m2, NULL,
             ctx)))

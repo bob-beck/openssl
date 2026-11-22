@@ -10,6 +10,7 @@
  */
 
 #include "helpers/cmp_testlib.h"
+#include "crypto/asn1.h"
 
 static unsigned char rand_data[OSSL_CMP_TRANSACTIONID_LENGTH];
 
@@ -395,7 +396,7 @@ execute_HDR_generalInfo_push1_items_test(CMP_HDR_TEST_FIXTURE *fixture)
         goto err;
 
     pushed_val = OSSL_CMP_ITAV_get0_value(sk_OSSL_CMP_ITAV_value(ginfo, 0));
-    if (!TEST_int_eq(ASN1_TYPE_cmp(itav->infoValue.other, pushed_val), 0))
+    if (!TEST_int_eq(ossl_ASN1_TYPE_cmp(itav->infoValue.other, pushed_val), 0))
         goto err;
 
     res = 1;

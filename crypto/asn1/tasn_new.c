@@ -14,6 +14,7 @@
 #include <openssl/asn1t.h>
 #include <string.h>
 #include "asn1_local.h"
+#include "crypto/asn1.h"
 
 static int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it,
     int embed, OSSL_LIB_CTX *libctx,
@@ -29,7 +30,7 @@ static void asn1_primitive_clear(ASN1_VALUE **pval, const ASN1_ITEM *it);
 ASN1_VALUE *ASN1_item_new(const ASN1_ITEM *it)
 {
     ASN1_VALUE *ret = NULL;
-    if (ASN1_item_ex_new(&ret, it) > 0)
+    if (ossl_ASN1_item_ex_new(&ret, it) > 0)
         return ret;
     return NULL;
 }
@@ -51,10 +52,17 @@ int ossl_asn1_item_ex_new_intern(ASN1_VALUE **pval, const ASN1_ITEM *it,
     return asn1_item_embed_new(pval, it, 0, libctx, propq);
 }
 
-int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
+int ossl_ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     return asn1_item_embed_new(pval, it, 0, NULL, NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
+{
+    return ossl_ASN1_item_ex_new(pval, it);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int asn1_item_embed_new(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed,
     OSSL_LIB_CTX *libctx, const char *propq)

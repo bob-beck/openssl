@@ -20,6 +20,7 @@
 #include "prov/ciphercommon_aead.h"
 #include "prov/implementations.h"
 #include "providers/implementations/ciphers/cipher_aes_ocb.inc"
+#include "crypto/modes.h"
 
 #define AES_OCB_FLAGS AEAD_FLAGS
 
@@ -50,25 +51,25 @@ static ossl_inline int aes_generic_ocb_setiv(PROV_AES_OCB_CTX *ctx,
     const unsigned char *iv,
     size_t ivlen, size_t taglen)
 {
-    return (CRYPTO_ocb128_setiv(&ctx->ocb, iv, ivlen, taglen) == 1);
+    return (ossl_CRYPTO_ocb128_setiv(&ctx->ocb, iv, ivlen, taglen) == 1);
 }
 
 static ossl_inline int aes_generic_ocb_setaad(PROV_AES_OCB_CTX *ctx,
     const unsigned char *aad,
     size_t alen)
 {
-    return CRYPTO_ocb128_aad(&ctx->ocb, aad, alen) == 1;
+    return ossl_CRYPTO_ocb128_aad(&ctx->ocb, aad, alen) == 1;
 }
 
 static ossl_inline int aes_generic_ocb_gettag(PROV_AES_OCB_CTX *ctx,
     unsigned char *tag, size_t tlen)
 {
-    return CRYPTO_ocb128_tag(&ctx->ocb, tag, tlen) > 0;
+    return ossl_CRYPTO_ocb128_tag(&ctx->ocb, tag, tlen) > 0;
 }
 
 static ossl_inline int aes_generic_ocb_final(PROV_AES_OCB_CTX *ctx)
 {
-    int ret = CRYPTO_ocb128_finish(&ctx->ocb, ctx->tag, ctx->taglen);
+    int ret = ossl_CRYPTO_ocb128_finish(&ctx->ocb, ctx->tag, ctx->taglen);
 
     /* ret: -1 = bad tag length, 0 = tag verified, otherwise = tag mismatch */
     if (ret == -1)
@@ -80,7 +81,7 @@ static ossl_inline int aes_generic_ocb_final(PROV_AES_OCB_CTX *ctx)
 
 static ossl_inline void aes_generic_ocb_cleanup(PROV_AES_OCB_CTX *ctx)
 {
-    CRYPTO_ocb128_cleanup(&ctx->ocb);
+    ossl_CRYPTO_ocb128_cleanup(&ctx->ocb);
 }
 
 static ossl_inline int aes_generic_ocb_cipher(PROV_AES_OCB_CTX *ctx,
@@ -88,10 +89,10 @@ static ossl_inline int aes_generic_ocb_cipher(PROV_AES_OCB_CTX *ctx,
     unsigned char *out, size_t len)
 {
     if (ctx->base.enc) {
-        if (!CRYPTO_ocb128_encrypt(&ctx->ocb, in, out, len))
+        if (!ossl_CRYPTO_ocb128_encrypt(&ctx->ocb, in, out, len))
             return 0;
     } else {
-        if (!CRYPTO_ocb128_decrypt(&ctx->ocb, in, out, len))
+        if (!ossl_CRYPTO_ocb128_decrypt(&ctx->ocb, in, out, len))
             return 0;
     }
     return 1;
@@ -100,7 +101,7 @@ static ossl_inline int aes_generic_ocb_cipher(PROV_AES_OCB_CTX *ctx,
 static ossl_inline int aes_generic_ocb_copy_ctx(PROV_AES_OCB_CTX *dst,
     PROV_AES_OCB_CTX *src)
 {
-    return CRYPTO_ocb128_copy_ctx(&dst->ocb, &src->ocb,
+    return ossl_CRYPTO_ocb128_copy_ctx(&dst->ocb, &src->ocb,
         &dst->ksenc.ks, &dst->ksdec.ks);
 }
 

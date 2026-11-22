@@ -17,6 +17,7 @@
 #include <openssl/x509v3.h>
 #include "crypto/x509.h"
 #include "x509_local.h"
+#include "crypto/asn1.h"
 
 int X509at_get_attr_count(const STACK_OF(X509_ATTRIBUTE) *x)
 {
@@ -212,7 +213,7 @@ STACK_OF(X509_ATTRIBUTE) *ossl_x509at_add1_attr_by_txt(STACK_OF(X509_ATTRIBUTE) 
     X509_ATTRIBUTE *attr;
     STACK_OF(X509_ATTRIBUTE) *ret;
 
-    attr = X509_ATTRIBUTE_create_by_txt(NULL, attrname, type, bytes, len);
+    attr = ossl_X509_ATTRIBUTE_create_by_txt(NULL, attrname, type, bytes, len);
     if (attr == NULL)
         return 0;
     ret = ossl_x509at_add1_attr(x, attr);
@@ -230,7 +231,7 @@ STACK_OF(X509_ATTRIBUTE) *X509at_add1_attr_by_txt(STACK_OF(X509_ATTRIBUTE)
     X509_ATTRIBUTE *attr;
     STACK_OF(X509_ATTRIBUTE) *ret;
 
-    attr = X509_ATTRIBUTE_create_by_txt(NULL, attrname, type, bytes, len);
+    attr = ossl_X509_ATTRIBUTE_create_by_txt(NULL, attrname, type, bytes, len);
     if (attr == NULL)
         return 0;
     ret = X509at_add1_attr(x, attr);
@@ -315,7 +316,7 @@ err:
     return NULL;
 }
 
-X509_ATTRIBUTE *X509_ATTRIBUTE_create_by_txt(X509_ATTRIBUTE **attr,
+X509_ATTRIBUTE *ossl_X509_ATTRIBUTE_create_by_txt(X509_ATTRIBUTE **attr,
     const char *atrname, int type,
     const unsigned char *bytes,
     int len)
@@ -332,6 +333,16 @@ X509_ATTRIBUTE *X509_ATTRIBUTE_create_by_txt(X509_ATTRIBUTE **attr,
     ASN1_OBJECT_free(obj);
     return nattr;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+X509_ATTRIBUTE *X509_ATTRIBUTE_create_by_txt(X509_ATTRIBUTE **attr,
+    const char *atrname, int type,
+    const unsigned char *bytes,
+    int len)
+{
+    return ossl_X509_ATTRIBUTE_create_by_txt(attr, atrname, type, bytes, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int X509_ATTRIBUTE_set1_object(X509_ATTRIBUTE *attr, const ASN1_OBJECT *obj)
 {
@@ -356,7 +367,7 @@ int X509_ATTRIBUTE_set1_data(X509_ATTRIBUTE *attr, int attrtype,
         return 0;
     }
     if ((attrtype & MBSTRING_FLAG) != 0) {
-        stmp = ASN1_STRING_set_by_NID(NULL, data, len, attrtype,
+        stmp = ossl_ASN1_STRING_set_by_NID(NULL, data, len, attrtype,
             OBJ_obj2nid(attr->object));
         if (stmp == NULL) {
             ERR_raise(ERR_LIB_X509, ERR_R_ASN1_LIB);

@@ -960,7 +960,7 @@ static int evp_pkey_ctx_set_uint64(EVP_PKEY_CTX *ctx, const char *param,
 
     /* Code below to be removed when legacy support is dropped. */
     if (ctx->op.kex.algctx == NULL)
-        return EVP_PKEY_CTX_ctrl_uint64(ctx, -1, op, ctrl, val);
+        return ossl_EVP_PKEY_CTX_ctrl_uint64(ctx, -1, op, ctrl, val);
     /* end of legacy support */
 
     *p++ = OSSL_PARAM_construct_uint64(param, &val);
@@ -1098,11 +1098,19 @@ int EVP_PKEY_CTX_ctrl(EVP_PKEY_CTX *ctx, int keytype, int optype,
     return evp_pkey_ctx_ctrl_int(ctx, keytype, optype, cmd, p1, p2);
 }
 
-int EVP_PKEY_CTX_ctrl_uint64(EVP_PKEY_CTX *ctx, int keytype, int optype,
+int ossl_EVP_PKEY_CTX_ctrl_uint64(EVP_PKEY_CTX *ctx, int keytype, int optype,
     int cmd, uint64_t value)
 {
     return EVP_PKEY_CTX_ctrl(ctx, keytype, optype, cmd, 0, &value);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int EVP_PKEY_CTX_ctrl_uint64(EVP_PKEY_CTX *ctx, int keytype, int optype,
+    int cmd, uint64_t value)
+{
+    return ossl_EVP_PKEY_CTX_ctrl_uint64(ctx, keytype, optype, cmd, value);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 static int evp_pkey_ctx_ctrl_str_int(EVP_PKEY_CTX *ctx,
     const char *name, const char *value)

@@ -138,7 +138,13 @@ PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_cert(X509 *x509);
 PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_crl(X509_CRL *crl);
 PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_secret(int type, int vtype, const unsigned char *value, int len);
 PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_p8inf(PKCS8_PRIV_KEY_INFO *p8);
-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Create a shrouded key bag holding an encrypted PKCS#8 key.
+ * @see PKCS12_SAFEBAG_create0_pkcs8(3)
+ */
+OSSL_DEPRECATEDIN_4_2 PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_pkcs8_encrypt(int pbe_nid,
     const char *pass,
     int passlen,
@@ -154,8 +160,14 @@ PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_pkcs8_encrypt_ex(int pbe_nid,
     OSSL_LIB_CTX *ctx,
     const char *propq);
 
-PKCS12_SAFEBAG *PKCS12_item_pack_safebag(void *obj, const ASN1_ITEM *it,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Encode an object into a new safe bag.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 PKCS12_SAFEBAG *PKCS12_item_pack_safebag(void *obj, const ASN1_ITEM *it,
     int nid1, int nid2);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 PKCS8_PRIV_KEY_INFO *PKCS8_decrypt(const X509_SIG *p8, const char *pass,
     int passlen);
 PKCS8_PRIV_KEY_INFO *PKCS8_decrypt_ex(const X509_SIG *p8, const char *pass,
@@ -212,18 +224,35 @@ int PKCS12_add1_attr_by_NID(PKCS12_SAFEBAG *bag, int nid, int type,
     const unsigned char *bytes, int len);
 int PKCS12_add1_attr_by_txt(PKCS12_SAFEBAG *bag, const char *attrname, int type,
     const unsigned char *bytes, int len);
-int PKCS8_add_keyusage(PKCS8_PRIV_KEY_INFO *p8, int usage);
-const ASN1_TYPE *PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Add a key usage attribute to a PKCS#8 private key structure.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int PKCS8_add_keyusage(PKCS8_PRIV_KEY_INFO *p8, int usage);
+/**
+ * @brief Get the value of the attribute with a given NID from an attribute
+ * stack.
+ * @see PKCS12_get_attr_gen(3)
+ */
+OSSL_DEPRECATEDIN_4_2 const ASN1_TYPE *PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
     int attr_nid);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 char *PKCS12_get_friendlyname(PKCS12_SAFEBAG *bag);
 const STACK_OF(X509_ATTRIBUTE) *
 PKCS12_SAFEBAG_get0_attrs(const PKCS12_SAFEBAG *bag);
 void PKCS12_SAFEBAG_set0_attrs(PKCS12_SAFEBAG *bag, STACK_OF(X509_ATTRIBUTE) *attrs);
-unsigned char *PKCS12_pbe_crypt(const X509_ALGOR *algor,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Encrypt or decrypt a buffer with a PKCS#12 password-based algorithm.
+ * @see PKCS12_pbe_crypt(3)
+ */
+OSSL_DEPRECATEDIN_4_2 unsigned char *PKCS12_pbe_crypt(const X509_ALGOR *algor,
     const char *pass, int passlen,
     const unsigned char *in, int inlen,
     unsigned char **data, int *datalen,
     int en_de);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 unsigned char *PKCS12_pbe_crypt_ex(const X509_ALGOR *algor,
     const char *pass, int passlen,
     const unsigned char *in, int inlen,
@@ -273,15 +302,28 @@ int PKCS12_key_gen_utf8_ex(const char *pass, int passlen, unsigned char *salt,
     unsigned char *out, const EVP_MD *md_type,
     OSSL_LIB_CTX *ctx, const char *propq);
 
-int PKCS12_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Derive a key and IV with the PKCS#12 algorithm and initialise a cipher
+ * context.
+ * @see PKCS12_PBE_keyivgen(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int PKCS12_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
     ASN1_TYPE *param, const EVP_CIPHER *cipher,
     const EVP_MD *md_type, int en_de);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int PKCS12_PBE_keyivgen_ex(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
     ASN1_TYPE *param, const EVP_CIPHER *cipher,
     const EVP_MD *md_type, int en_de,
     OSSL_LIB_CTX *libctx, const char *propq);
-int PKCS12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Generate the MAC of a PKCS#12 structure.
+ * @see PKCS12_gen_mac(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int PKCS12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
     unsigned char *mac, unsigned int *maclen);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int PKCS12_verify_mac(PKCS12 *p12, const char *pass, int passlen);
 int PKCS12_set_mac(PKCS12 *p12, const char *pass, int passlen,
     unsigned char *salt, int saltlen, int iter,
@@ -289,13 +331,25 @@ int PKCS12_set_mac(PKCS12 *p12, const char *pass, int passlen,
 int PKCS12_set_pbmac1_pbkdf2(PKCS12 *p12, const char *pass, int passlen,
     unsigned char *salt, int saltlen, int iter,
     const EVP_MD *md_type, const char *prf_md_name);
-int PKCS12_setup_mac(PKCS12 *p12, int iter, unsigned char *salt,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Set the MAC parameters of a PKCS#12 structure.
+ * @see PKCS12_setup_mac(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int PKCS12_setup_mac(PKCS12 *p12, int iter, unsigned char *salt,
     int saltlen, const EVP_MD *md_type);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 unsigned char *OPENSSL_asc2uni(const char *asc, int asclen,
     unsigned char **uni, int *unilen);
 char *OPENSSL_uni2asc(const unsigned char *uni, int unilen);
-unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Convert a UTF-8 string to a NUL-terminated big-endian UTF-16 string.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
     unsigned char **uni, int *unilen);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 char *OPENSSL_uni2utf8(const unsigned char *uni, int unilen);
 
 DECLARE_ASN1_FUNCTIONS(PKCS12)
@@ -337,7 +391,13 @@ PKCS12 *PKCS12_create_ex2(const char *pass, const char *name, EVP_PKEY *pkey,
     OSSL_LIB_CTX *ctx, const char *propq,
     PKCS12_create_cb *cb, void *cbarg);
 
-PKCS12_SAFEBAG *PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Add a certificate bag to a stack of safe bags.
+ * @see PKCS12_add_cert(3)
+ */
+OSSL_DEPRECATEDIN_4_2 PKCS12_SAFEBAG *PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 PKCS12_SAFEBAG *PKCS12_add_key(STACK_OF(PKCS12_SAFEBAG) **pbags,
     EVP_PKEY *key, int key_usage, int iter,
     int key_nid, const char *pass);

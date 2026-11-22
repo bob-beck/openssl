@@ -10,11 +10,18 @@
 #ifndef OSSL_CRYPTO_ERR_H
 #define OSSL_CRYPTO_ERR_H
 #pragma once
+#include <stdarg.h>
 
 int ossl_err_load_ERR_strings(void);
 int ossl_err_load_crypto_strings(void);
 void err_cleanup(void);
 int err_shelve_state(void **);
 void err_unshelve_state(void *);
+
+/**
+ * @brief Append strings from a va_list to the error data of the latest error.
+ * @see ERR_add_error_vdata(3)
+ */
+void ossl_ERR_add_error_vdata(int num, va_list args);
 
 #endif

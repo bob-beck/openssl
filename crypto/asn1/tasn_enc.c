@@ -59,13 +59,13 @@ static int asn1_item_flags_i2d(const ASN1_VALUE *val, unsigned char **out,
         unsigned char *p, *buf;
         int len, outlen;
 
-        len = ASN1_item_ex_i2d(&val, NULL, it, -1, flags);
+        len = ossl_ASN1_item_ex_i2d(&val, NULL, it, -1, flags);
         if (len <= 0)
             return len;
         if ((buf = OPENSSL_malloc(len)) == NULL)
             return -1;
         p = buf;
-        outlen = ASN1_item_ex_i2d(&val, &p, it, -1, flags);
+        outlen = ossl_ASN1_item_ex_i2d(&val, &p, it, -1, flags);
         if (outlen != len || p != buf + len) {
             OPENSSL_free(buf);
             return -1;
@@ -74,7 +74,7 @@ static int asn1_item_flags_i2d(const ASN1_VALUE *val, unsigned char **out,
         return len;
     }
 
-    return ASN1_item_ex_i2d(&val, out, it, -1, flags);
+    return ossl_ASN1_item_ex_i2d(&val, out, it, -1, flags);
 }
 
 /*
@@ -82,7 +82,7 @@ static int asn1_item_flags_i2d(const ASN1_VALUE *val, unsigned char **out,
  * performs the normal item handling: it can be used in external types.
  */
 
-int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
+int ossl_ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
     const ASN1_ITEM *it, int tag, int aclass)
 {
     const ASN1_TEMPLATE *tt = NULL;
@@ -211,6 +211,14 @@ int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
     return 0;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int ASN1_item_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
+    const ASN1_ITEM *it, int tag, int aclass)
+{
+    return ossl_ASN1_item_ex_i2d(pval, out, it, tag, aclass);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
     const ASN1_TEMPLATE *tt, int tag, int iclass)
 {
@@ -303,7 +311,7 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
         skcontlen = 0;
         for (i = 0; i < sk_const_ASN1_VALUE_num(sk); i++) {
             skitem = sk_const_ASN1_VALUE_value(sk, i);
-            len = ASN1_item_ex_i2d(&skitem, NULL, ASN1_ITEM_ptr(tt->item),
+            len = ossl_ASN1_item_ex_i2d(&skitem, NULL, ASN1_ITEM_ptr(tt->item),
                 -1, iclass);
             if (len < 0 || (skcontlen > INT_MAX - len))
                 return -1;
@@ -347,7 +355,7 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
     if (flags & ASN1_TFLG_EXPTAG) {
         /* EXPLICIT tagging */
         /* Find length of tagged item */
-        i = ASN1_item_ex_i2d(pval, NULL, ASN1_ITEM_ptr(tt->item), -1, iclass);
+        i = ossl_ASN1_item_ex_i2d(pval, NULL, ASN1_ITEM_ptr(tt->item), -1, iclass);
         if (i < 0)
             return -1;
         if (i == 0) {
@@ -363,7 +371,7 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
             /* Output tag and item */
             ASN1_put_object(out, ndef, i, ttag, tclass);
             p = *out;
-            len = ASN1_item_ex_i2d(pval, out, ASN1_ITEM_ptr(tt->item), -1,
+            len = ossl_ASN1_item_ex_i2d(pval, out, ASN1_ITEM_ptr(tt->item), -1,
                 iclass);
             if (len != i || *out != p + i)
                 return -1;
@@ -374,7 +382,7 @@ static int asn1_template_ex_i2d(const ASN1_VALUE **pval, unsigned char **out,
     }
 
     /* Either normal or IMPLICIT tagging: combine class and flags */
-    len = ASN1_item_ex_i2d(pval, out, ASN1_ITEM_ptr(tt->item),
+    len = ossl_ASN1_item_ex_i2d(pval, out, ASN1_ITEM_ptr(tt->item),
         ttag, tclass | iclass);
     if (len == 0 && (tt->flags & ASN1_TFLG_OPTIONAL) == 0) {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_ZERO_CONTENT);
@@ -432,7 +440,7 @@ static int asn1_set_seq_out(STACK_OF(const_ASN1_VALUE) *sk,
     if (!do_sort) {
         for (i = 0; i < sk_const_ASN1_VALUE_num(sk); i++) {
             skitem = sk_const_ASN1_VALUE_value(sk, i);
-            if (ASN1_item_ex_i2d(&skitem, out, item, -1, iclass) <= 0)
+            if (ossl_ASN1_item_ex_i2d(&skitem, out, item, -1, iclass) <= 0)
                 return 0;
         }
         return 1;
@@ -443,7 +451,7 @@ static int asn1_set_seq_out(STACK_OF(const_ASN1_VALUE) *sk,
     for (i = 0, tder = derlst; i < sk_const_ASN1_VALUE_num(sk); i++, tder++) {
         skitem = sk_const_ASN1_VALUE_value(sk, i);
         tder->data = p;
-        tder->length = ASN1_item_ex_i2d(&skitem, &p, item, -1, iclass);
+        tder->length = ossl_ASN1_item_ex_i2d(&skitem, &p, item, -1, iclass);
         if (tder->length <= 0)
             goto err;
         tder->field = skitem;

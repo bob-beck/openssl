@@ -15,6 +15,8 @@
 #include <openssl/x509v3.h>
 #include <openssl/trace.h>
 #include "crypto/evp.h"
+#include "crypto/x509.h"
+#include "internal/conf.h"
 
 /* Algorithm configuration module. */
 
@@ -26,9 +28,9 @@ static int alg_module_init(CONF_IMODULE *md, const CONF *cnf)
     CONF_VALUE *oval;
 
     OSSL_TRACE2(CONF, "Loading EVP module: name %s, value %s\n",
-        CONF_imodule_get_name(md), CONF_imodule_get_value(md));
+        ossl_CONF_imodule_get_name(md), ossl_CONF_imodule_get_value(md));
 
-    oid_section = CONF_imodule_get_value(md);
+    oid_section = ossl_CONF_imodule_get_value(md);
     if ((sktmp = NCONF_get_section(cnf, oid_section)) == NULL) {
         ERR_raise(ERR_LIB_EVP, EVP_R_ERROR_LOADING_SECTION);
         return 0;
@@ -39,7 +41,7 @@ static int alg_module_init(CONF_IMODULE *md, const CONF *cnf)
             int m;
 
             /* Detailed error already reported. */
-            if (!X509V3_get_value_bool(oval, &m))
+            if (!ossl_X509V3_get_value_bool(oval, &m))
                 return 0;
 
             /*
@@ -66,8 +68,15 @@ static int alg_module_init(CONF_IMODULE *md, const CONF *cnf)
     return 1;
 }
 
-void EVP_add_alg_module(void)
+void ossl_EVP_add_alg_module(void)
 {
     OSSL_TRACE(CONF, "Adding config module 'alg_section'\n");
-    CONF_module_add("alg_section", alg_module_init, 0);
+    ossl_CONF_module_add("alg_section", alg_module_init, 0);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void EVP_add_alg_module(void)
+{
+    ossl_EVP_add_alg_module();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

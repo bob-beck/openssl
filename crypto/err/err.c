@@ -791,11 +791,11 @@ void ERR_add_error_data(int num, ...)
 {
     va_list args;
     va_start(args, num);
-    ERR_add_error_vdata(num, args);
+    ossl_ERR_add_error_vdata(num, args);
     va_end(args);
 }
 
-void ERR_add_error_vdata(int num, va_list args)
+void ossl_ERR_add_error_vdata(int num, va_list args)
 {
     int i;
     size_t len, size;
@@ -855,6 +855,13 @@ void ERR_add_error_vdata(int num, va_list args)
     if (!err_set_error_data_int(str, size, flags, 0))
         OPENSSL_free(str);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void ERR_add_error_vdata(int num, va_list args)
+{
+    ossl_ERR_add_error_vdata(num, args);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 void err_clear_last_constant_time(int clear)
 {

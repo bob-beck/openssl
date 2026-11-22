@@ -15,6 +15,7 @@
 #include "internal/sslconf.h"
 #include "internal/core.h"
 #include "internal/cryptlib.h"
+#include "internal/conf.h"
 
 typedef struct ssl_module_st SSL_MODULE;
 
@@ -25,12 +26,12 @@ struct ssl_module_st {
 
 static void ssl_module_free(CONF_IMODULE *md)
 {
-    SSL_MODULE *ssl = CONF_imodule_get_usr_data(md);
+    SSL_MODULE *ssl = ossl_CONF_imodule_get_usr_data(md);
 
     if (ssl == NULL)
         return;
 
-    CONF_imodule_set_usr_data(md, NULL);
+    ossl_CONF_imodule_set_usr_data(md, NULL);
     ossl_lib_ctx_detach_ssl_conf_imodule(NULL, md);
 
     for (size_t i = 0; i < ssl->names_count; i++) {
@@ -57,7 +58,7 @@ static int ssl_module_init(CONF_IMODULE *md, const CONF *cnf)
     OSSL_LIB_CTX *libctx;
     SSL_MODULE *ssl = NULL;
 
-    ssl_conf_section = CONF_imodule_get_value(md);
+    ssl_conf_section = ossl_CONF_imodule_get_value(md);
     cmd_lists = NCONF_get_section(cnf, ssl_conf_section);
     if (sk_CONF_VALUE_num(cmd_lists) <= 0) {
         int rcode = cmd_lists == NULL
@@ -73,7 +74,7 @@ static int ssl_module_init(CONF_IMODULE *md, const CONF *cnf)
     ssl = OPENSSL_zalloc(sizeof(*ssl));
     if (ssl == NULL)
         goto err;
-    CONF_imodule_set_usr_data(md, ssl);
+    ossl_CONF_imodule_set_usr_data(md, ssl);
 
     ssl->names = OPENSSL_calloc(cnt, sizeof(*ssl->names));
     libctx = ossl_lib_ctx_get_concrete(cnf->libctx);
@@ -135,7 +136,7 @@ err:
  */
 const SSL_CONF_CMD *conf_ssl_get(CONF_IMODULE *md, size_t idx, const char **name, size_t *cnt)
 {
-    SSL_MODULE *ssl = md != NULL ? CONF_imodule_get_usr_data(md) : NULL;
+    SSL_MODULE *ssl = md != NULL ? ossl_CONF_imodule_get_usr_data(md) : NULL;
 
     if (ssl == NULL || ssl->names == NULL)
         return NULL;
@@ -152,7 +153,7 @@ const SSL_CONF_CMD *conf_ssl_get(CONF_IMODULE *md, size_t idx, const char **name
  */
 int conf_ssl_name_find(CONF_IMODULE *md, const char *name, size_t *idx)
 {
-    SSL_MODULE *ssl = md != NULL ? CONF_imodule_get_usr_data(md) : NULL;
+    SSL_MODULE *ssl = md != NULL ? ossl_CONF_imodule_get_usr_data(md) : NULL;
     const struct ssl_conf_name_st *nm;
     size_t i;
 
@@ -183,5 +184,5 @@ void conf_ssl_get_cmd(const SSL_CONF_CMD *cmd, size_t idx, char **cmdstr,
 
 void ossl_config_add_ssl_module(void)
 {
-    CONF_module_add("ssl_conf", ssl_module_init, ssl_module_free);
+    ossl_CONF_module_add("ssl_conf", ssl_module_init, ssl_module_free);
 }

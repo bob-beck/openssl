@@ -1678,6 +1678,13 @@ end:
 }
 
 #if !defined OPENSSL_NO_DES && !defined OPENSSL_NO_MD5
+static int pbe_keygen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
+    ASN1_TYPE *param, const EVP_CIPHER *cipher, const EVP_MD *md, int en_de)
+{
+    return PKCS5_PBE_keyivgen_ex(ctx, pass, passlen, param, cipher, md, en_de,
+        NULL, NULL);
+}
+
 static int test_evp_pbe_alg_add(void)
 {
     int ret = 0;
@@ -1686,7 +1693,7 @@ static int test_evp_pbe_alg_add(void)
     EVP_PBE_KEYGEN *keygen = NULL;
 
     if (!TEST_true(EVP_PBE_alg_add(NID_pbeWithMD5AndDES_CBC, EVP_des_cbc(), EVP_md5(),
-            PKCS5_PBE_keyivgen)))
+            pbe_keygen)))
         goto err;
 
     if (!TEST_true(EVP_PBE_find_ex(EVP_PBE_TYPE_OUTER, NID_pbeWithMD5AndDES_CBC,

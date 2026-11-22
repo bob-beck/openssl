@@ -13,6 +13,7 @@
 #include <openssl/rand.h>
 
 #include "testutil.h"
+#include "internal/bio.h"
 
 #define ENCRYPT 1
 #define DECRYPT 0
@@ -339,7 +340,7 @@ static int test_bio_enc_dup(void)
             KEY, IV, ENCRYPT)))
         goto err;
 
-    if (!TEST_ptr(dup = BIO_dup_chain(b)))
+    if (!TEST_ptr(dup = ossl_BIO_dup_chain(b)))
         goto err;
 
     ret = 1;

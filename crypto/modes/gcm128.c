@@ -608,7 +608,7 @@ void ossl_gcm_ghash_4bit(uint64_t Xi[2], const u128 Htable[16],
     }
 }
 
-void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
+void ossl_CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
 {
     DECLARE_IS_ENDIAN;
 
@@ -636,6 +636,13 @@ void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
     gcm_get_funcs(&ctx->funcs);
     ctx->funcs.ginit(ctx->Htable, ctx->H.u);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
+{
+    ossl_CRYPTO_gcm128_init(ctx, key, block);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
     size_t len)
@@ -784,7 +791,7 @@ int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
     return 0;
 }
 
-int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
+int ossl_CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
     const unsigned char *in, unsigned char *out,
     size_t len)
 {
@@ -1008,6 +1015,15 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
     ctx->mres = mres;
     return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
+    const unsigned char *in, unsigned char *out,
+    size_t len)
+{
+    return ossl_CRYPTO_gcm128_encrypt(ctx, in, out, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
     const unsigned char *in, unsigned char *out,
@@ -1242,12 +1258,12 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
     return 0;
 }
 
-int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
+int ossl_CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
     const unsigned char *in, unsigned char *out,
     size_t len, ctr128_f stream)
 {
 #if defined(OPENSSL_SMALL_FOOTPRINT)
-    return CRYPTO_gcm128_encrypt(ctx, in, out, len);
+    return ossl_CRYPTO_gcm128_encrypt(ctx, in, out, len);
 #else
     DECLARE_IS_ENDIAN;
     unsigned int n, ctr, mres;
@@ -1396,7 +1412,16 @@ int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
 #endif
 }
 
-int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
+    const unsigned char *in, unsigned char *out,
+    size_t len, ctr128_f stream)
+{
+    return ossl_CRYPTO_gcm128_encrypt_ctr32(ctx, in, out, len, stream);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
     const unsigned char *in, unsigned char *out,
     size_t len, ctr128_f stream)
 {
@@ -1557,6 +1582,15 @@ int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
 #endif
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
+    const unsigned char *in, unsigned char *out,
+    size_t len, ctr128_f stream)
+{
+    return ossl_CRYPTO_gcm128_decrypt_ctr32(ctx, in, out, len, stream);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Calculate the tag and verify it against the supplied tag.
  * Returns:
@@ -1628,19 +1662,26 @@ int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
         return -1;
 }
 
-void CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
+void ossl_CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
 {
     CRYPTO_gcm128_finish(ctx, NULL, 0);
     memcpy(tag, ctx->Xi.c,
         len <= sizeof(ctx->Xi.c) ? len : sizeof(ctx->Xi.c));
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
+{
+    ossl_CRYPTO_gcm128_tag(ctx, tag, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block)
 {
     GCM128_CONTEXT *ret;
 
     if ((ret = OPENSSL_malloc(sizeof(*ret))) != NULL)
-        CRYPTO_gcm128_init(ret, key, block);
+        ossl_CRYPTO_gcm128_init(ret, key, block);
 
     return ret;
 }

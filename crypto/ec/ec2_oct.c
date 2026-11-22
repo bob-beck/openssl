@@ -17,6 +17,7 @@
 #include <openssl/err.h>
 
 #include "ec_local.h"
+#include "crypto/bn.h"
 
 #ifndef OPENSSL_NO_EC2M
 
@@ -63,10 +64,10 @@ int ossl_ec_GF2m_simple_set_compressed_coordinates(const EC_GROUP *group,
     if (z == NULL)
         goto err;
 
-    if (!BN_GF2m_mod_arr(x, x_, group->poly))
+    if (!ossl_BN_GF2m_mod_arr(x, x_, group->poly))
         goto err;
     if (BN_is_zero(x)) {
-        if (!BN_GF2m_mod_sqrt_arr(y, group->b, group->poly, ctx))
+        if (!ossl_BN_GF2m_mod_sqrt_arr(y, group->b, group->poly, ctx))
             goto err;
     } else {
         if (!group->meth->field_sqr(group, tmp, x, ctx))
@@ -78,7 +79,7 @@ int ossl_ec_GF2m_simple_set_compressed_coordinates(const EC_GROUP *group,
         if (!BN_GF2m_add(tmp, x, tmp))
             goto err;
         ERR_set_mark();
-        if (!BN_GF2m_mod_solve_quad_arr(z, tmp, group->poly, ctx)) {
+        if (!ossl_BN_GF2m_mod_solve_quad_arr(z, tmp, group->poly, ctx)) {
 #ifndef FIPS_MODULE
             unsigned long err = ERR_peek_last_error();
 

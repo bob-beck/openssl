@@ -259,6 +259,10 @@ structure:
 
 L<ERR_get_error(3)>
 
+=head1 HISTORY
+
+ASN1_generate_v3() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2002-2021 The OpenSSL Project Authors. All Rights Reserved.

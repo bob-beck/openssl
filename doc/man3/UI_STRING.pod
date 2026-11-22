@@ -135,6 +135,11 @@ error.
 
 L<UI(3)>
 
+=head1 HISTORY
+
+UI_get_result_string_length() and UI_get0_test_string() were deprecated in
+OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2001-2018 The OpenSSL Project Authors. All Rights Reserved.

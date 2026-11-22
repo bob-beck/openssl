@@ -12,6 +12,7 @@
 #include <openssl/asn1t.h>
 #include <openssl/objects.h>
 #include "asn1_local.h"
+#include "crypto/asn1.h"
 
 /* Free up an ASN1 structure */
 
@@ -20,10 +21,17 @@ void ASN1_item_free(ASN1_VALUE *val, const ASN1_ITEM *it)
     ossl_asn1_item_embed_free(&val, it, 0);
 }
 
-void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
+void ossl_ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
 {
     ossl_asn1_item_embed_free(pval, it, 0);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
+{
+    ossl_ASN1_item_ex_free(pval, it);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 void ossl_asn1_item_embed_free(ASN1_VALUE **pval, const ASN1_ITEM *it, int embed)
 {

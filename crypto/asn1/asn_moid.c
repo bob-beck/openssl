@@ -15,6 +15,7 @@
 #include <openssl/x509.h>
 #include "crypto/asn1.h"
 #include "crypto/objects.h"
+#include "internal/conf.h"
 
 /* Simple ASN1 OID module: add all objects in a given section */
 
@@ -27,7 +28,7 @@ static int oid_module_init(CONF_IMODULE *md, const CONF *cnf)
     STACK_OF(CONF_VALUE) *sktmp;
     CONF_VALUE *oval;
 
-    oid_section = CONF_imodule_get_value(md);
+    oid_section = ossl_CONF_imodule_get_value(md);
     if ((sktmp = NCONF_get_section(cnf, oid_section)) == NULL) {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_ERROR_LOADING_SECTION);
         return 0;
@@ -46,10 +47,17 @@ static void oid_module_finish(CONF_IMODULE *md)
 {
 }
 
+void ossl_ASN1_add_oid_module(void)
+{
+    ossl_CONF_module_add("oid_section", oid_module_init, oid_module_finish);
+}
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
 void ASN1_add_oid_module(void)
 {
-    CONF_module_add("oid_section", oid_module_init, oid_module_finish);
+    ossl_ASN1_add_oid_module();
 }
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*-
  * Create an OID based on a name value pair. Accept two formats.

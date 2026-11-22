@@ -17,6 +17,7 @@
 #include "internal/bio.h"
 #include <openssl/asn1.h>
 #include "internal/cryptlib.h"
+#include "crypto/asn1.h"
 
 /* Must be large enough for biggest tag+length */
 #define DEFAULT_ASN1_BUF_SIZE 20
@@ -91,10 +92,17 @@ static const BIO_METHOD methods_asn1 = {
     asn1_bio_callback_ctrl,
 };
 
-const BIO_METHOD *BIO_f_asn1(void)
+const BIO_METHOD *ossl_BIO_f_asn1(void)
 {
     return &methods_asn1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const BIO_METHOD *BIO_f_asn1(void)
+{
+    return ossl_BIO_f_asn1();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 static int asn1_bio_new(BIO *b)
 {
@@ -457,11 +465,19 @@ static int asn1_bio_get_ex(BIO *b, int cmd,
     return ret;
 }
 
-int BIO_asn1_set_prefix(BIO *b, asn1_ps_func *prefix,
+int ossl_BIO_asn1_set_prefix(BIO *b, asn1_ps_func *prefix,
     asn1_ps_func *prefix_free)
 {
     return asn1_bio_set_ex(b, BIO_C_SET_PREFIX, prefix, prefix_free);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BIO_asn1_set_prefix(BIO *b, asn1_ps_func *prefix,
+    asn1_ps_func *prefix_free)
+{
+    return ossl_BIO_asn1_set_prefix(b, prefix, prefix_free);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int BIO_asn1_get_prefix(BIO *b, asn1_ps_func **pprefix,
     asn1_ps_func **pprefix_free)
@@ -469,11 +485,19 @@ int BIO_asn1_get_prefix(BIO *b, asn1_ps_func **pprefix,
     return asn1_bio_get_ex(b, BIO_C_GET_PREFIX, pprefix, pprefix_free);
 }
 
-int BIO_asn1_set_suffix(BIO *b, asn1_ps_func *suffix,
+int ossl_BIO_asn1_set_suffix(BIO *b, asn1_ps_func *suffix,
     asn1_ps_func *suffix_free)
 {
     return asn1_bio_set_ex(b, BIO_C_SET_SUFFIX, suffix, suffix_free);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BIO_asn1_set_suffix(BIO *b, asn1_ps_func *suffix,
+    asn1_ps_func *suffix_free)
+{
+    return ossl_BIO_asn1_set_suffix(b, suffix, suffix_free);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int BIO_asn1_get_suffix(BIO *b, asn1_ps_func **psuffix,
     asn1_ps_func **psuffix_free)

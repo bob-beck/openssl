@@ -14,6 +14,7 @@
 #include <openssl/conf.h>
 #include <openssl/x509v3.h>
 #include "ext_dat.h"
+#include "crypto/x509.h"
 
 static STACK_OF(CONF_VALUE) *i2v_POLICY_CONSTRAINTS(const X509V3_EXT_METHOD
                                                         *method,
@@ -45,9 +46,9 @@ static STACK_OF(CONF_VALUE) *i2v_POLICY_CONSTRAINTS(const X509V3_EXT_METHOD
     void *a, STACK_OF(CONF_VALUE) *extlist)
 {
     POLICY_CONSTRAINTS *pcons = a;
-    X509V3_add_value_int("Require Explicit Policy",
+    ossl_X509V3_add_value_int("Require Explicit Policy",
         pcons->requireExplicitPolicy, &extlist);
-    X509V3_add_value_int("Inhibit Policy Mapping",
+    ossl_X509V3_add_value_int("Inhibit Policy Mapping",
         pcons->inhibitPolicyMapping, &extlist);
     return extlist;
 }
@@ -72,7 +73,7 @@ static void *v2i_POLICY_CONSTRAINTS(const X509V3_EXT_METHOD *method,
                     "field=%s", val->name);
                 goto err;
             }
-            if (!X509V3_get_value_int(val, &pcons->requireExplicitPolicy))
+            if (!ossl_X509V3_get_value_int(val, &pcons->requireExplicitPolicy))
                 goto err;
         } else if (strcmp(val->name, "inhibitPolicyMapping") == 0) {
             if (pcons->inhibitPolicyMapping != NULL) {
@@ -80,7 +81,7 @@ static void *v2i_POLICY_CONSTRAINTS(const X509V3_EXT_METHOD *method,
                     "field=%s", val->name);
                 goto err;
             }
-            if (!X509V3_get_value_int(val, &pcons->inhibitPolicyMapping))
+            if (!ossl_X509V3_get_value_int(val, &pcons->inhibitPolicyMapping))
                 goto err;
         } else {
             ERR_raise_data(ERR_LIB_X509V3, X509V3_R_INVALID_NAME,

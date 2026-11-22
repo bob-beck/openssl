@@ -703,12 +703,26 @@ uint64_t BIO_number_read(BIO *bio);
 uint64_t BIO_number_written(BIO *bio);
 
 /* For BIO_f_asn1() */
-int BIO_asn1_set_prefix(BIO *b, asn1_ps_func *prefix,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Set the callbacks of an ASN.1 BIO that produce and free data written
+ * before the content.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BIO_asn1_set_prefix(BIO *b, asn1_ps_func *prefix,
     asn1_ps_func *prefix_free);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BIO_asn1_get_prefix(BIO *b, asn1_ps_func **pprefix,
     asn1_ps_func **pprefix_free);
-int BIO_asn1_set_suffix(BIO *b, asn1_ps_func *suffix,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Set the callbacks of an ASN.1 BIO that produce and free data written
+ * after the content.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BIO_asn1_set_suffix(BIO *b, asn1_ps_func *suffix,
     asn1_ps_func *suffix_free);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BIO_asn1_get_suffix(BIO *b, asn1_ps_func **psuffix,
     asn1_ps_func **psuffix_free);
 
@@ -759,7 +773,14 @@ void BIO_set_next(BIO *b, BIO *next);
 BIO *BIO_get_retry_BIO(BIO *bio, int *reason);
 int BIO_get_retry_reason(BIO *bio);
 void BIO_set_retry_reason(BIO *bio, int reason);
-BIO *BIO_dup_chain(BIO *in);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Duplicate a chain of BIOs, including state, flags, callbacks and
+ * ex_data.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 BIO *BIO_dup_chain(BIO *in);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int BIO_nread0(BIO *bio, char **buf);
 int BIO_nread(BIO *bio, char **buf, int num);
@@ -779,7 +800,13 @@ const BIO_METHOD *BIO_s_accept(void);
 #endif
 const BIO_METHOD *BIO_s_fd(void);
 const BIO_METHOD *BIO_s_log(void);
-const BIO_METHOD *BIO_s_bio(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Return the BIO pair method.
+ * @see BIO_s_bio(3)
+ */
+OSSL_DEPRECATEDIN_4_2 const BIO_METHOD *BIO_s_bio(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 const BIO_METHOD *BIO_s_null(void);
 const BIO_METHOD *BIO_f_null(void);
 const BIO_METHOD *BIO_f_buffer(void);
@@ -791,10 +818,22 @@ const BIO_METHOD *BIO_s_core(void);
 #ifndef OPENSSL_NO_DGRAM
 const BIO_METHOD *BIO_s_dgram_pair(void);
 const BIO_METHOD *BIO_s_datagram(void);
-int BIO_dgram_non_fatal_error(int error);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Report whether a socket error code is transient for a datagram BIO.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BIO_dgram_non_fatal_error(int error);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 BIO *BIO_new_dgram(int fd, int close_flag);
 #ifndef OPENSSL_NO_SCTP
-const BIO_METHOD *BIO_s_datagram_sctp(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Return the SCTP datagram socket BIO method.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 const BIO_METHOD *BIO_s_datagram_sctp(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 BIO *BIO_new_dgram_sctp(int fd, int close_flag);
 int BIO_dgram_is_sctp(BIO *bio);
 int BIO_dgram_sctp_notification_cb(BIO *b,
@@ -816,20 +855,44 @@ long BIO_set_send_flags(BIO *b, int flags);
 int BIO_wait(BIO *bio, time_t max_time, unsigned int nap_milliseconds);
 int BIO_do_connect_retry(BIO *bio, int timeout, int nap_milliseconds);
 
-int BIO_fd_should_retry(int i);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Report whether an fd BIO I/O result is retryable; always reports no.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BIO_fd_should_retry(int i);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BIO_fd_non_fatal_error(int error);
-int BIO_dump_cb(int (*cb)(const void *data, size_t len, void *u),
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Format data as a hex and ASCII dump, passing each line to a callback.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BIO_dump_cb(int (*cb)(const void *data, size_t len, void *u),
     void *u, const void *s, int len);
-int BIO_dump_indent_cb(int (*cb)(const void *data, size_t len, void *u),
+/**
+ * @brief Format data as an indented hex and ASCII dump, passing each line to a
+ * callback.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BIO_dump_indent_cb(int (*cb)(const void *data, size_t len, void *u),
     void *u, const void *s, int len, int indent);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BIO_dump(BIO *b, const void *bytes, int len);
 int BIO_dump_indent(BIO *b, const void *bytes, int len, int indent);
 #ifndef OPENSSL_NO_STDIO
 int BIO_dump_fp(FILE *fp, const void *s, int len);
 int BIO_dump_indent_fp(FILE *fp, const void *s, int len, int indent);
 #endif
-int BIO_hex_string(BIO *out, int indent, int width, const void *data,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Write data to a BIO as colon-separated uppercase hex bytes, wrapping
+ * lines.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BIO_hex_string(BIO *out, int indent, int width, const void *data,
     int datalen);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #ifndef OPENSSL_NO_SOCK
 BIO_ADDR *BIO_ADDR_new(void);
@@ -863,14 +926,31 @@ enum BIO_lookup_type {
     BIO_LOOKUP_CLIENT,
     BIO_LOOKUP_SERVER
 };
-int BIO_lookup(const char *host, const char *service,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Look up a host and service and return the matching addresses as a
+ * BIO_ADDRINFO list.
+ * @see BIO_lookup(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int BIO_lookup(const char *host, const char *service,
     enum BIO_lookup_type lookup_type,
     int family, int socktype, BIO_ADDRINFO **res);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BIO_lookup_ex(const char *host, const char *service,
     int lookup_type, int family, int socktype, int protocol,
     BIO_ADDRINFO **res);
-int BIO_sock_error(int sock);
-int BIO_socket_ioctl(int fd, long type, void *arg);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Get and clear the pending error on a socket.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BIO_sock_error(int sock);
+/**
+ * @brief Perform an ioctl on a socket, raising a system error on failure.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int BIO_socket_ioctl(int fd, long type, void *arg);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int BIO_socket_nbio(int fd, int mode);
 int BIO_sock_init(void);
 #ifndef OPENSSL_NO_DEPRECATED_1_1_0

@@ -53,6 +53,11 @@ ASN1_STRING_TABLE_cleanup() does not return a value.
 
 L<ERR_get_error(3)>
 
+=head1 HISTORY
+
+ASN1_STRING_TABLE_add() and ASN1_STRING_TABLE_cleanup() were deprecated in
+OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2017-2020 The OpenSSL Project Authors. All Rights Reserved.

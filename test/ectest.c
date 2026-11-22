@@ -28,6 +28,8 @@
 #include <openssl/core_names.h>
 #include <openssl/param_build.h>
 #include <openssl/evp.h>
+#include "crypto/bn.h"
+#include "crypto/ec.h"
 
 static size_t crv_len = 0;
 static EC_builtin_curve *curves = NULL;
@@ -115,7 +117,7 @@ static int group_order_tests(EC_GROUP *group)
         points[0] = points[1] = P;
 
         if (!TEST_true(EC_POINTs_mul(group, R, NULL, 2, points, scalars, ctx))
-            || !TEST_true(EC_POINT_dbl(group, S, points[0], ctx))
+            || !TEST_true(ossl_EC_POINT_dbl(group, S, points[0], ctx))
             || !TEST_int_eq(0, EC_POINT_cmp(group, R, S, ctx)))
             goto err;
 
@@ -530,7 +532,7 @@ static int prime_field_tests(void)
         || !TEST_true(EC_POINT_set_affine_coordinates(group, P, x, y, ctx))
         || !TEST_true(EC_POINT_copy(Q, P))
         || !TEST_false(EC_POINT_is_at_infinity(group, Q))
-        || !TEST_true(EC_POINT_dbl(group, P, P, ctx))
+        || !TEST_true(ossl_EC_POINT_dbl(group, P, P, ctx))
         || !TEST_int_gt(EC_POINT_is_on_curve(group, P, ctx), 0)
         || !TEST_true(EC_POINT_invert(group, Q, ctx)) /* P = -2Q */
         || !TEST_true(EC_POINT_add(group, R, P, Q, ctx))
@@ -836,7 +838,7 @@ static int char2_curve_test(int n)
         if (!TEST_true(EC_POINT_set_affine_coordinates(group, P, x, y, ctx))
             || !TEST_true(EC_POINT_copy(Q, P))
             || !TEST_false(EC_POINT_is_at_infinity(group, Q))
-            || !TEST_true(EC_POINT_dbl(group, P, P, ctx))
+            || !TEST_true(ossl_EC_POINT_dbl(group, P, P, ctx))
             || !TEST_int_gt(EC_POINT_is_on_curve(group, P, ctx), 0)
             || !TEST_true(EC_POINT_invert(group, Q, ctx)) /* P = -2Q */
             || !TEST_true(EC_POINT_add(group, R, P, Q, ctx))
@@ -1331,7 +1333,7 @@ static int nistp_single_test(int idx)
     if (!TEST_int_eq(0, EC_POINT_cmp(NISTP, Q, Q_CHECK, ctx))
 
         /* set generator to P = 2*G, where G is the standard generator */
-        || !TEST_true(EC_POINT_dbl(NISTP, P, G, ctx))
+        || !TEST_true(ossl_EC_POINT_dbl(NISTP, P, G, ctx))
         || !TEST_true(EC_GROUP_set_generator(NISTP, P, order, BN_value_one()))
         /* set the scalar to m=n/2, where n is the NIST test scalar */
         || !TEST_true(BN_rshift(m, n, 1)))
@@ -1517,7 +1519,7 @@ static int check_named_curve_test(int id)
          * nist prime. So only select one of these as an alternate prime.
          */
         if (!TEST_ptr(BN_copy(other_p,
-                BN_ucmp(BN_get0_nist_prime_192(), other_p) == 0 ? BN_get0_nist_prime_256() : BN_get0_nist_prime_192())))
+                BN_ucmp(ossl_BN_get0_nist_prime_192(), other_p) == 0 ? ossl_BN_get0_nist_prime_256() : ossl_BN_get0_nist_prime_192())))
             goto err;
     }
 
@@ -1666,12 +1668,12 @@ static int check_named_curve_lookup_test(int id)
     nid = curves[id].nid;
     if (!TEST_ptr(ctx = BN_CTX_new())
         || !TEST_ptr(g = EC_GROUP_new_by_curve_name(nid))
-        || !TEST_ptr(p = EC_GROUP_get_ecparameters(g, NULL)))
+        || !TEST_ptr(p = ossl_EC_GROUP_get_ecparameters(g, NULL)))
         goto err;
 
     /* replace with group from explicit parameters */
     EC_GROUP_free(g);
-    if (!TEST_ptr(g = EC_GROUP_new_from_ecparameters(p)))
+    if (!TEST_ptr(g = ossl_EC_GROUP_new_from_ecparameters(p)))
         goto err;
 
     if (!TEST_int_gt(rv = EC_GROUP_check_named_curve(g, 0, NULL), 0))
@@ -1687,12 +1689,12 @@ static int check_named_curve_lookup_test(int id)
          * EC_METHODs.
          */
         if (!TEST_ptr(ga = EC_GROUP_new_by_curve_name(rv))
-            || !TEST_ptr(pa = EC_GROUP_get_ecparameters(ga, NULL)))
+            || !TEST_ptr(pa = ossl_EC_GROUP_get_ecparameters(ga, NULL)))
             goto err;
 
         /* replace with group from explicit parameters, then compare */
         EC_GROUP_free(ga);
-        if (!TEST_ptr(ga = EC_GROUP_new_from_ecparameters(pa))
+        if (!TEST_ptr(ga = ossl_EC_GROUP_new_from_ecparameters(pa))
             || !TEST_int_eq(EC_GROUP_cmp(g, ga, ctx), 0))
             goto err;
     }
@@ -1815,7 +1817,7 @@ static int check_named_curve_from_ecparameters(int id)
         || !TEST_ptr(other_cofactor = BN_CTX_get(bn_ctx))
         /* Generate reference group and params */
         || !TEST_ptr(group = EC_GROUP_new_by_curve_name(nid))
-        || !TEST_ptr(params = EC_GROUP_get_ecparameters(group, NULL))
+        || !TEST_ptr(params = ossl_EC_GROUP_get_ecparameters(group, NULL))
         || !TEST_ptr(group_gen = EC_GROUP_get0_generator(group))
         || !TEST_ptr(group_order = EC_GROUP_get0_order(group))
         || !TEST_true(EC_GROUP_get_cofactor(group, group_cofactor, NULL))
@@ -1850,7 +1852,7 @@ static int check_named_curve_from_ecparameters(int id)
      * Creating a group from built-in explicit parameters returns a
      * "named" EC_GROUP
      */
-    if (!TEST_ptr(tgroup = *g_next++ = EC_GROUP_new_from_ecparameters(params))
+    if (!TEST_ptr(tgroup = *g_next++ = ossl_EC_GROUP_new_from_ecparameters(params))
         || !TEST_int_ne((tnid = EC_GROUP_get_curve_name(tgroup)), NID_undef))
         goto err;
     /*
@@ -1871,8 +1873,8 @@ static int check_named_curve_from_ecparameters(int id)
      */
     if (!TEST_size_t_eq(EC_GROUP_set_seed(tmpg, invalid_seed, invalid_seed_len),
             invalid_seed_len)
-        || !TEST_ptr(other_params = *p_next++ = EC_GROUP_get_ecparameters(tmpg, NULL))
-        || !TEST_ptr(tgroup = *g_next++ = EC_GROUP_new_from_ecparameters(other_params))
+        || !TEST_ptr(other_params = *p_next++ = ossl_EC_GROUP_get_ecparameters(tmpg, NULL))
+        || !TEST_ptr(tgroup = *g_next++ = ossl_EC_GROUP_new_from_ecparameters(other_params))
         || !TEST_int_ne((tnid = EC_GROUP_get_curve_name(tgroup)), NID_undef)
         || !TEST_true(are_ec_nids_compatible(nid, tnid))
         || !TEST_int_eq(EC_GROUP_get_asn1_flag(tgroup),
@@ -1886,8 +1888,8 @@ static int check_named_curve_from_ecparameters(int id)
      * expect a "named" group.
      */
     if (!TEST_size_t_eq(EC_GROUP_set_seed(tmpg, NULL, 0), 1)
-        || !TEST_ptr(other_params = *p_next++ = EC_GROUP_get_ecparameters(tmpg, NULL))
-        || !TEST_ptr(tgroup = *g_next++ = EC_GROUP_new_from_ecparameters(other_params))
+        || !TEST_ptr(other_params = *p_next++ = ossl_EC_GROUP_get_ecparameters(tmpg, NULL))
+        || !TEST_ptr(tgroup = *g_next++ = ossl_EC_GROUP_new_from_ecparameters(other_params))
         || !TEST_int_ne((tnid = EC_GROUP_get_curve_name(tgroup)), NID_undef)
         || !TEST_true(are_ec_nids_compatible(nid, tnid))
         || !TEST_int_eq(EC_GROUP_get_asn1_flag(tgroup),
@@ -1903,14 +1905,14 @@ static int check_named_curve_from_ecparameters(int id)
     if (/* Other gen, same group order & cofactor */
         !TEST_true(EC_GROUP_set_generator(tmpg, other_gen, group_order,
             group_cofactor))
-        || !TEST_ptr(other_params = *p_next++ = EC_GROUP_get_ecparameters(tmpg, NULL))
-        || !TEST_ptr(tgroup = *g_next++ = EC_GROUP_new_from_ecparameters(other_params))
+        || !TEST_ptr(other_params = *p_next++ = ossl_EC_GROUP_get_ecparameters(tmpg, NULL))
+        || !TEST_ptr(tgroup = *g_next++ = ossl_EC_GROUP_new_from_ecparameters(other_params))
         || !TEST_int_eq((tnid = EC_GROUP_get_curve_name(tgroup)), NID_undef)
         /* Same gen & cofactor, different order */
         || !TEST_true(EC_GROUP_set_generator(tmpg, group_gen, other_order,
             group_cofactor))
-        || !TEST_ptr(other_params = *p_next++ = EC_GROUP_get_ecparameters(tmpg, NULL))
-        || !TEST_ptr(tgroup = *g_next++ = EC_GROUP_new_from_ecparameters(other_params))
+        || !TEST_ptr(other_params = *p_next++ = ossl_EC_GROUP_get_ecparameters(tmpg, NULL))
+        || !TEST_ptr(tgroup = *g_next++ = ossl_EC_GROUP_new_from_ecparameters(other_params))
         || !TEST_int_eq((tnid = EC_GROUP_get_curve_name(tgroup)), NID_undef)
         /* The order is not an optional field, so this should fail */
         || !TEST_false(EC_GROUP_set_generator(tmpg, group_gen, NULL,
@@ -1918,8 +1920,8 @@ static int check_named_curve_from_ecparameters(int id)
         /* Check that a wrong cofactor is ignored, and we still match */
         || !TEST_true(EC_GROUP_set_generator(tmpg, group_gen, group_order,
             other_cofactor))
-        || !TEST_ptr(other_params = *p_next++ = EC_GROUP_get_ecparameters(tmpg, NULL))
-        || !TEST_ptr(tgroup = *g_next++ = EC_GROUP_new_from_ecparameters(other_params))
+        || !TEST_ptr(other_params = *p_next++ = ossl_EC_GROUP_get_ecparameters(tmpg, NULL))
+        || !TEST_ptr(tgroup = *g_next++ = ossl_EC_GROUP_new_from_ecparameters(other_params))
         || !TEST_int_ne((tnid = EC_GROUP_get_curve_name(tgroup)), NID_undef)
         || !TEST_true(are_ec_nids_compatible(nid, tnid))
         || !TEST_int_eq(EC_GROUP_get_asn1_flag(tgroup),
@@ -1927,8 +1929,8 @@ static int check_named_curve_from_ecparameters(int id)
         /* Check that if the cofactor is not set then it still matches */
         || !TEST_true(EC_GROUP_set_generator(tmpg, group_gen, group_order,
             NULL))
-        || !TEST_ptr(other_params = *p_next++ = EC_GROUP_get_ecparameters(tmpg, NULL))
-        || !TEST_ptr(tgroup = *g_next++ = EC_GROUP_new_from_ecparameters(other_params))
+        || !TEST_ptr(other_params = *p_next++ = ossl_EC_GROUP_get_ecparameters(tmpg, NULL))
+        || !TEST_ptr(tgroup = *g_next++ = ossl_EC_GROUP_new_from_ecparameters(other_params))
         || !TEST_int_ne((tnid = EC_GROUP_get_curve_name(tgroup)), NID_undef)
         || !TEST_true(are_ec_nids_compatible(nid, tnid))
         || !TEST_int_eq(EC_GROUP_get_asn1_flag(tgroup),
@@ -1936,8 +1938,8 @@ static int check_named_curve_from_ecparameters(int id)
         /* check that restoring the generator passes */
         || !TEST_true(EC_GROUP_set_generator(tmpg, group_gen, group_order,
             group_cofactor))
-        || !TEST_ptr(other_params = *p_next++ = EC_GROUP_get_ecparameters(tmpg, NULL))
-        || !TEST_ptr(tgroup = *g_next++ = EC_GROUP_new_from_ecparameters(other_params))
+        || !TEST_ptr(other_params = *p_next++ = ossl_EC_GROUP_get_ecparameters(tmpg, NULL))
+        || !TEST_ptr(tgroup = *g_next++ = ossl_EC_GROUP_new_from_ecparameters(other_params))
         || !TEST_int_ne((tnid = EC_GROUP_get_curve_name(tgroup)), NID_undef)
         || !TEST_true(are_ec_nids_compatible(nid, tnid))
         || !TEST_int_eq(EC_GROUP_get_asn1_flag(tgroup),
@@ -1967,8 +1969,8 @@ static int parameter_test(void)
     int r = 0, len;
 
     if (!TEST_ptr(group = EC_GROUP_new_by_curve_name(NID_secp384r1))
-        || !TEST_ptr(ecparameters = EC_GROUP_get_ecparameters(group, NULL))
-        || !TEST_ptr(group2 = EC_GROUP_new_from_ecparameters(ecparameters))
+        || !TEST_ptr(ecparameters = ossl_EC_GROUP_get_ecparameters(group, NULL))
+        || !TEST_ptr(group2 = ossl_EC_GROUP_new_from_ecparameters(ecparameters))
         || !TEST_int_eq(EC_GROUP_cmp(group, group2, NULL), 0))
         goto err;
 
@@ -2605,13 +2607,13 @@ static int do_test_custom_explicit_fromdata(EC_GROUP *group, BN_CTX *ctx,
 #ifndef OPENSSL_NO_EC_EXPLICIT_CURVES
             basis_name = SN_X9_62_tpBasis;
 #endif
-            if (!TEST_true(EC_GROUP_get_trinomial_basis(group, &k1)))
+            if (!TEST_true(ossl_EC_GROUP_get_trinomial_basis(group, &k1)))
                 goto err;
         } else {
 #ifndef OPENSSL_NO_EC_EXPLICIT_CURVES
             basis_name = SN_X9_62_ppBasis;
 #endif
-            if (!TEST_true(EC_GROUP_get_pentanomial_basis(group, &k1, &k2, &k3)))
+            if (!TEST_true(ossl_EC_GROUP_get_pentanomial_basis(group, &k1, &k2, &k3)))
                 goto err;
         }
 #endif /* OPENSSL_NO_EC2M */
@@ -2855,7 +2857,7 @@ static int custom_generator_test(int id)
                                bsize, ctx),
             bsize)
         /* new generator is G2 := 2G */
-        || !TEST_true(EC_POINT_dbl(group, G2, EC_GROUP_get0_generator(group),
+        || !TEST_true(ossl_EC_POINT_dbl(group, G2, EC_GROUP_get0_generator(group),
             ctx))
         || !TEST_true(EC_GROUP_set_generator(group, G2,
             EC_GROUP_get0_order(group),
@@ -2962,7 +2964,7 @@ static int custom_params_test(int id)
     if (!TEST_true(EC_GROUP_get_curve(group, p, a, b, ctx))
         || !TEST_ptr(G2 = EC_POINT_new(group))
         /* new generator is G2 := 2G */
-        || !TEST_true(EC_POINT_dbl(group, G2,
+        || !TEST_true(ossl_EC_POINT_dbl(group, G2,
             EC_GROUP_get0_generator(group), ctx))
         /* pull out the bytes of that */
         || !TEST_size_t_eq(EC_POINT_point2oct(group, G2,

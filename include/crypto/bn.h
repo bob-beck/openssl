@@ -138,6 +138,270 @@ int s390x_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
 int s390x_crt(BIGNUM *r, const BIGNUM *i, const BIGNUM *p, const BIGNUM *q,
     const BIGNUM *dmp, const BIGNUM *dmq, const BIGNUM *iqmp, const BIGNUM *n);
 
+/**
+ * @brief Subtract the magnitude of b from the magnitude of a, assuming |a| >=
+ * |b|.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
+/**
+ * @brief Record the calling thread as the owner of a blinding object.
+ * @see BN_BLINDING_set_current_thread(3)
+ */
+void ossl_BN_BLINDING_set_current_thread(BN_BLINDING *b);
+/**
+ * @brief Create or reinitialise a blinding object with fresh random blinding
+ * values for modulus m and exponent e.
+ * @see BN_BLINDING_create_param(3)
+ */
+BN_BLINDING *ossl_BN_BLINDING_create_param(BN_BLINDING *b,
+    const BIGNUM *e, BIGNUM *m, BN_CTX *ctx,
+    int (*bn_mod_exp)(BIGNUM *r,
+        const BIGNUM *a,
+        const BIGNUM *p,
+        const BIGNUM *m,
+        BN_CTX *ctx,
+        BN_MONT_CTX *m_ctx),
+    BN_MONT_CTX *m_ctx);
+/**
+ * @brief Advance the blinding values, regenerating them after a fixed number of
+ * uses.
+ * @see BN_BLINDING_update(3)
+ */
+int ossl_BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx);
+/**
+ * @brief Allocate a blinding object holding copies of the blinding value, its
+ * inverse and the modulus.
+ * @see BN_BLINDING_new(3)
+ */
+BN_BLINDING *ossl_BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod);
+/**
+ * @brief Compute a^p modulo m by sliding-window exponentiation with
+ * BN_mod_mul().
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_mod_exp_simple(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+    const BIGNUM *m, BN_CTX *ctx);
+/**
+ * @brief Compute a^p modulo m using reciprocal (Barrett) reduction.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+    const BIGNUM *m, BN_CTX *ctx);
+/**
+ * @brief Compute a1^p1 * a2^p2 modulo an odd m using Montgomery multiplication.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
+    const BIGNUM *a2, const BIGNUM *p2, const BIGNUM *m,
+    BN_CTX *ctx, BN_MONT_CTX *in_mont);
+/**
+ * @brief Compute the Kronecker symbol (a | b).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx);
+/**
+ * @brief Swap two BIGNUMs in constant time when condition is nonzero.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords);
+/**
+ * @brief Return the security strength in bits of a finite-field group with
+ * modulus size L and subgroup size N.
+ * @see BN_security_bits(3)
+ */
+int ossl_BN_security_bits(int L, int N);
+/**
+ * @brief Compute 2a modulo m for a non-negative a less than m.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m);
+/**
+ * @brief Compute a * 2^n modulo m for a non-negative a less than m.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m);
+/**
+ * @brief Compute a - b modulo m for a and b in the range [0, m).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+    const BIGNUM *m);
+/**
+ * @brief Return the Montgomery context cached at *pmont, creating and storing
+ * it under lock on first use.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+BN_MONT_CTX *ossl_BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
+    const BIGNUM *mod, BN_CTX *ctx);
+/**
+ * @brief Return the NIST P-192 prime as a static BIGNUM.
+ * @see BN_get0_nist_prime_192(3)
+ */
+const BIGNUM *ossl_BN_get0_nist_prime_192(void);
+/**
+ * @brief Return the NIST P-224 prime as a static BIGNUM.
+ * @see BN_get0_nist_prime_224(3)
+ */
+const BIGNUM *ossl_BN_get0_nist_prime_224(void);
+/**
+ * @brief Return the NIST P-256 prime as a static BIGNUM.
+ * @see BN_get0_nist_prime_256(3)
+ */
+const BIGNUM *ossl_BN_get0_nist_prime_256(void);
+/**
+ * @brief Return the NIST P-384 prime as a static BIGNUM.
+ * @see BN_get0_nist_prime_384(3)
+ */
+const BIGNUM *ossl_BN_get0_nist_prime_384(void);
+/**
+ * @brief Return the NIST P-521 prime as a static BIGNUM.
+ * @see BN_get0_nist_prime_521(3)
+ */
+const BIGNUM *ossl_BN_get0_nist_prime_521(void);
+/**
+ * @brief Look up the NIST fast-reduction function for a prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int (*ossl_BN_nist_mod_func(const BIGNUM *p))(BIGNUM *r, const BIGNUM *a,
+    const BIGNUM *field, BN_CTX *ctx);
+/**
+ * @brief Reduce a modulo the NIST P-192 prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+    BN_CTX *ctx);
+/**
+ * @brief Reduce a modulo the NIST P-224 prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+    BN_CTX *ctx);
+/**
+ * @brief Reduce a modulo the NIST P-256 prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+    BN_CTX *ctx);
+/**
+ * @brief Reduce a modulo the NIST P-384 prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+    BN_CTX *ctx);
+/**
+ * @brief Reduce a modulo the NIST P-521 prime.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+    BN_CTX *ctx);
+/**
+ * @brief Compute x * y modulo the divisor held in a reciprocal context.
+ * @see BN_mod_mul_reciprocal(3)
+ */
+int ossl_BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
+    BN_RECP_CTX *recp, BN_CTX *ctx);
+/**
+ * @brief Free a reciprocal context and the values it holds.
+ * @see BN_RECP_CTX_free(3)
+ */
+void ossl_BN_RECP_CTX_free(BN_RECP_CTX *recp);
+/**
+ * @brief Store the divisor d and its reciprocal in a reciprocal context.
+ * @see BN_RECP_CTX_set(3)
+ */
+int ossl_BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *d, BN_CTX *ctx);
+/**
+ * @brief Compute floor(2^len / m).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_reciprocal(BIGNUM *r, const BIGNUM *m, int len, BN_CTX *ctx);
+/**
+ * @brief Divide m by the divisor held in a reciprocal context, producing
+ * quotient and remainder.
+ * @see BN_div_recp(3)
+ */
+int ossl_BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
+    BN_RECP_CTX *recp, BN_CTX *ctx);
+
+#if !defined(OPENSSL_NO_EC2M)
+/**
+ * @brief Find a solution z of z^2 + z = a_ modulo p over GF(2).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
+    BN_CTX *ctx);
+/**
+ * @brief Compute the square root of a modulo p over GF(2) as a^(2^(m-1)), where
+ * m is p[0].
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+    BN_CTX *ctx);
+/**
+ * @brief Compute a * b modulo p over GF(2), with p given as an array of term
+ * degrees.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+    const int p[], BN_CTX *ctx);
+/**
+ * @brief Compute a^2 modulo p over GF(2), with p given as an array of term
+ * degrees.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+    BN_CTX *ctx);
+/**
+ * @brief Compute a^b modulo p over GF(2), with p given as an array of term
+ * degrees.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+    const int p[], BN_CTX *ctx);
+/**
+ * @brief Convert a polynomial over GF(2) into an array of its term degrees in
+ * decreasing order, terminated by -1.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max);
+/**
+ * @brief Convert an array of term degrees into the polynomial it represents
+ * over GF(2).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_arr2poly(const int p[], BIGNUM *a);
+/**
+ * @brief Reduce a polynomial over GF(2) modulo the polynomial given as an array
+ * of term degrees.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[]);
+/**
+ * @brief Compute a * b modulo p over GF(2).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+    const BIGNUM *p, BN_CTX *ctx);
+/**
+ * @brief Compute the inverse of a modulo p over GF(2), blinding the computation
+ * with a random multiplier.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+/**
+ * @brief Compute y/x modulo p over GF(2).
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
+    const BIGNUM *p, BN_CTX *ctx);
+/**
+ * @brief Reduce a polynomial over GF(2) modulo p.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p);
+#endif /* !defined(OPENSSL_NO_EC2M) */
+
 #endif
 
 int ossl_bn_mont_ctx_set(BN_MONT_CTX *ctx, const BIGNUM *modulus, int ri,

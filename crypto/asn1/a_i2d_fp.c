@@ -11,6 +11,7 @@
 #include "internal/cryptlib.h"
 #include <openssl/buffer.h>
 #include <openssl/asn1.h>
+#include "crypto/asn1.h"
 
 #ifndef NO_OLD_ASN1
 
@@ -66,7 +67,7 @@ int ASN1_i2d_bio(i2d_of_void *i2d, BIO *out, const void *x)
 #endif
 
 #ifndef OPENSSL_NO_STDIO
-int ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, const void *x)
+int ossl_ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, const void *x)
 {
     BIO *b;
     int ret;
@@ -80,6 +81,13 @@ int ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, const void *x)
     BIO_free(b);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int ASN1_item_i2d_fp(const ASN1_ITEM *it, FILE *out, const void *x)
+{
+    return ossl_ASN1_item_i2d_fp(it, out, x);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #endif
 
 int ASN1_item_i2d_bio(const ASN1_ITEM *it, BIO *out, const void *x)

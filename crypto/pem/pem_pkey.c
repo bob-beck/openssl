@@ -189,7 +189,7 @@ static EVP_PKEY *pem_read_bio_key_legacy(BIO *bp, EVP_PKEY **x,
         ret = EVP_PKEY_new();
         if (ret == NULL)
             goto err;
-        if (!EVP_PKEY_set_type_str(ret, nm, slen)
+        if (!ossl_EVP_PKEY_set_type_str(ret, nm, slen)
             || !ret->ameth->param_decode
             || !ret->ameth->param_decode(ret, &p, len)) {
             EVP_PKEY_free(ret);

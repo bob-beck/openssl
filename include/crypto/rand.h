@@ -199,4 +199,10 @@ int ossl_rand_check_random_provider_on_unload(OSSL_LIB_CTX *ctx,
     OSSL_PROVIDER *prov);
 #endif /* FIPS_MODULE */
 
+/**
+ * @brief Read random bytes from an Entropy Gathering Daemon socket.
+ * @see RAND_query_egd_bytes(3)
+ */
+int ossl_RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes);
+
 #endif

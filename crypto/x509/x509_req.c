@@ -165,7 +165,7 @@ STACK_OF(X509_EXTENSION) *X509_REQ_get_extensions(const X509_REQ *req)
  * Add a STACK_OF extensions to a certificate request: allow alternative OIDs
  * in case we want to create a non standard one.
  */
-int X509_REQ_add_extensions_nid(X509_REQ *req,
+int ossl_X509_REQ_add_extensions_nid(X509_REQ *req,
     const STACK_OF(X509_EXTENSION) *exts, int nid)
 {
     int extlen;
@@ -206,10 +206,18 @@ end:
     return rv;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_REQ_add_extensions_nid(X509_REQ *req,
+    const STACK_OF(X509_EXTENSION) *exts, int nid)
+{
+    return ossl_X509_REQ_add_extensions_nid(req, exts, nid);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /* This is the normal usage: use the "official" OID */
 int X509_REQ_add_extensions(X509_REQ *req, const STACK_OF(X509_EXTENSION) *exts)
 {
-    return X509_REQ_add_extensions_nid(req, exts, NID_ext_req);
+    return ossl_X509_REQ_add_extensions_nid(req, exts, NID_ext_req);
 }
 
 /* Request attribute functions */

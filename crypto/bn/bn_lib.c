@@ -14,6 +14,7 @@
 #include "bn_local.h"
 #include <openssl/opensslconf.h>
 #include "internal/constant_time.h"
+#include "crypto/bn.h"
 
 /* This stuff appears to be completely unused, so is deprecated */
 #ifndef OPENSSL_NO_DEPRECATED_0_9_8
@@ -952,7 +953,7 @@ int bn_cmp_part_words(const BN_ULONG *a, const BN_ULONG *b, int cl, int dl)
  * Assumes that at least nwords are allocated in both a and b.
  * Assumes that no more than nwords are used by either a or b.
  */
-void BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
+void ossl_BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
 {
     BN_ULONG t;
     int i;
@@ -1009,11 +1010,18 @@ void BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
     }
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
+{
+    ossl_BN_consttime_swap(condition, a, b, nwords);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 #undef BN_CONSTTIME_SWAP_FLAGS
 
 /* Bits of security, see SP800-57 */
 
-int BN_security_bits(int L, int N)
+int ossl_BN_security_bits(int L, int N)
 {
     int secbits, bits;
     if (L >= 15360)
@@ -1035,6 +1043,13 @@ int BN_security_bits(int L, int N)
         return 0;
     return bits >= secbits ? secbits : bits;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_security_bits(int L, int N)
+{
+    return ossl_BN_security_bits(L, N);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 void BN_zero_ex(BIGNUM *a)
 {

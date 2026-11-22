@@ -9,6 +9,7 @@
 
 #include "internal/cryptlib.h"
 #include "bn_local.h"
+#include "crypto/bn.h"
 
 /* signed add of b to a. */
 int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
@@ -25,10 +26,10 @@ int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
         cmp_res = BN_ucmp(a, b);
         if (cmp_res > 0) {
             r_neg = a->neg;
-            ret = BN_usub(r, a, b);
+            ret = ossl_BN_usub(r, a, b);
         } else if (cmp_res < 0) {
             r_neg = b->neg;
-            ret = BN_usub(r, b, a);
+            ret = ossl_BN_usub(r, b, a);
         } else {
             r_neg = 0;
             BN_zero(r);
@@ -56,10 +57,10 @@ int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
         cmp_res = BN_ucmp(a, b);
         if (cmp_res > 0) {
             r_neg = a->neg;
-            ret = BN_usub(r, a, b);
+            ret = ossl_BN_usub(r, a, b);
         } else if (cmp_res < 0) {
             r_neg = !b->neg;
-            ret = BN_usub(r, b, a);
+            ret = ossl_BN_usub(r, b, a);
         } else {
             r_neg = 0;
             BN_zero(r);
@@ -125,7 +126,7 @@ end:
 }
 
 /* unsigned subtraction of b from a, a must be larger than b. */
-int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+int ossl_BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
 {
     int max, min, dif;
     BN_ULONG t1, t2, borrow, *rp;
@@ -175,3 +176,10 @@ end:
 
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+{
+    return ossl_BN_usub(r, a, b);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

@@ -27,6 +27,7 @@
 #include "ec_local.h"
 #include "curve448/curve448_local.h"
 #include "ecx_backend.h"
+#include "crypto/x509.h"
 
 static int ecx_pub_encode(X509_PUBKEY *pk, const EVP_PKEY *pkey)
 {
@@ -583,7 +584,7 @@ static int ecd_item_sign25519(EVP_MD_CTX *ctx, const ASN1_ITEM *it,
 static int ecd_sig_info_set25519(X509_SIG_INFO *siginf, const X509_ALGOR *alg,
     const ASN1_STRING *sig)
 {
-    X509_SIG_INFO_set(siginf, NID_undef, NID_ED25519, X25519_SECURITY_BITS,
+    ossl_X509_SIG_INFO_set(siginf, NID_undef, NID_ED25519, X25519_SECURITY_BITS,
         X509_SIG_INFO_TLS);
     return 1;
 }
@@ -599,7 +600,7 @@ static int ecd_item_sign448(EVP_MD_CTX *ctx, const ASN1_ITEM *it,
 static int ecd_sig_info_set448(X509_SIG_INFO *siginf, const X509_ALGOR *alg,
     const ASN1_STRING *sig)
 {
-    X509_SIG_INFO_set(siginf, NID_undef, NID_ED448, X448_SECURITY_BITS,
+    ossl_X509_SIG_INFO_set(siginf, NID_undef, NID_ED448, X448_SECURITY_BITS,
         X509_SIG_INFO_TLS);
     return 1;
 }

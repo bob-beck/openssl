@@ -14,6 +14,7 @@
 #include <openssl/asn1.h>
 #include <openssl/bn.h>
 #include "asn1_local.h"
+#include "crypto/asn1.h"
 
 ASN1_INTEGER *ASN1_INTEGER_dup(const ASN1_INTEGER *x)
 {
@@ -595,14 +596,21 @@ int ASN1_ENUMERATED_get_int64(int64_t *pr, const ASN1_ENUMERATED *a)
     return asn1_string_get_int64(pr, a, V_ASN1_ENUMERATED);
 }
 
-int ASN1_ENUMERATED_set_int64(ASN1_ENUMERATED *a, int64_t r)
+int ossl_ASN1_ENUMERATED_set_int64(ASN1_ENUMERATED *a, int64_t r)
 {
     return asn1_string_set_int64(a, r, V_ASN1_ENUMERATED);
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int ASN1_ENUMERATED_set_int64(ASN1_ENUMERATED *a, int64_t r)
+{
+    return ossl_ASN1_ENUMERATED_set_int64(a, r);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 int ASN1_ENUMERATED_set(ASN1_ENUMERATED *a, long v)
 {
-    return ASN1_ENUMERATED_set_int64(a, v);
+    return ossl_ASN1_ENUMERATED_set_int64(a, v);
 }
 
 long ASN1_ENUMERATED_get(const ASN1_ENUMERATED *a)

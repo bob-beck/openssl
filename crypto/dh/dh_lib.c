@@ -23,6 +23,7 @@
 #include "crypto/evp.h"
 #include "crypto/dh.h"
 #include "dh_local.h"
+#include "crypto/bn.h"
 
 static DH *dh_new_intern(OSSL_LIB_CTX *libctx);
 
@@ -197,7 +198,7 @@ int DH_security_bits(const DH *dh)
     else
         N = -1;
     if (dh->params.p != NULL)
-        return BN_security_bits(BN_num_bits(dh->params.p), N);
+        return ossl_BN_security_bits(BN_num_bits(dh->params.p), N);
     return -1;
 }
 

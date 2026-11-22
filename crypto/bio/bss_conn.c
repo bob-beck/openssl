@@ -13,6 +13,7 @@
 #include "bio_local.h"
 #include "internal/bio_tfo.h"
 #include "internal/ktls.h"
+#include "internal/bio.h"
 
 #ifndef OPENSSL_NO_SOCK
 
@@ -116,7 +117,7 @@ static int conn_state(BIO *b, BIO_CONNECT *c)
                 ERR_raise(ERR_LIB_BIO, BIO_R_UNSUPPORTED_IP_FAMILY);
                 goto exit_loop;
             }
-            if (BIO_lookup(c->param_hostname, c->param_service,
+            if (ossl_BIO_lookup(c->param_hostname, c->param_service,
                     BIO_LOOKUP_CLIENT,
                     family, c->connect_sock_type,
                     &c->addr_first)
@@ -192,7 +193,7 @@ static int conn_state(BIO *b, BIO_CONNECT *c)
             /* wait for socket being writable, before querying BIO_sock_error */
             if (BIO_socket_wait(b->num, 0, time(NULL)) == 0)
                 break;
-            i = BIO_sock_error(b->num);
+            i = ossl_BIO_sock_error(b->num);
             if (i != 0) {
                 BIO_clear_retry_flags(b);
                 if ((c->addr_iter = BIO_ADDRINFO_next(c->addr_iter)) != NULL) {

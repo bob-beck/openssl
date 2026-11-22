@@ -381,10 +381,10 @@ static int provider_conf_init(CONF_IMODULE *md, const CONF *cnf)
     int i;
 
     OSSL_TRACE1(CONF, "Loading providers module: section %s\n",
-        CONF_imodule_get_value(md));
+        ossl_CONF_imodule_get_value(md));
 
     /* Value is a section containing PROVIDERs to configure */
-    elist = NCONF_get_section(cnf, CONF_imodule_get_value(md));
+    elist = NCONF_get_section(cnf, ossl_CONF_imodule_get_value(md));
 
     if (!elist) {
         ERR_raise(ERR_LIB_CRYPTO, CRYPTO_R_PROVIDER_SECTION_ERROR);
@@ -404,5 +404,5 @@ static int provider_conf_init(CONF_IMODULE *md, const CONF *cnf)
 void ossl_provider_add_conf_module(void)
 {
     OSSL_TRACE(CONF, "Adding config module 'providers'\n");
-    CONF_module_add("providers", provider_conf_init, NULL);
+    ossl_CONF_module_add("providers", provider_conf_init, NULL);
 }

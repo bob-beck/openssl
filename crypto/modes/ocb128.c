@@ -135,7 +135,7 @@ OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
     int ret;
 
     if ((octx = OPENSSL_malloc(sizeof(*octx))) != NULL) {
-        ret = CRYPTO_ocb128_init(octx, keyenc, keydec, encrypt, decrypt,
+        ret = ossl_CRYPTO_ocb128_init(octx, keyenc, keydec, encrypt, decrypt,
             stream);
         if (ret)
             return octx;
@@ -148,7 +148,7 @@ OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
 /*
  * Initialise an existing OCB128_CONTEXT
  */
-int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
+int ossl_CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
     block128_f encrypt, block128_f decrypt,
     ocb128_f stream)
 {
@@ -188,10 +188,19 @@ int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
+    block128_f encrypt, block128_f decrypt,
+    ocb128_f stream)
+{
+    return ossl_CRYPTO_ocb128_init(ctx, keyenc, keydec, encrypt, decrypt, stream);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Copy an OCB128_CONTEXT object
  */
-int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
+int ossl_CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
     void *keyenc, void *keydec)
 {
     memcpy(dest, src, sizeof(OCB128_CONTEXT));
@@ -207,10 +216,18 @@ int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
+    void *keyenc, void *keydec)
+{
+    return ossl_CRYPTO_ocb128_copy_ctx(dest, src, keyenc, keydec);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Set the IV to be used for this operation. Must be 1 - 15 bytes.
  */
-int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
+int ossl_CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
     size_t len, size_t taglen)
 {
     unsigned char ktop[16], tmp[16], mask;
@@ -256,11 +273,19 @@ int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
+    size_t len, size_t taglen)
+{
+    return ossl_CRYPTO_ocb128_setiv(ctx, iv, len, taglen);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Provide any AAD. This can be called multiple times. Only the final time can
  * have a partial block
  */
-int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
+int ossl_CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
     size_t len)
 {
     uint64_t i, all_num_blocks;
@@ -317,11 +342,19 @@ int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
+    size_t len)
+{
+    return ossl_CRYPTO_ocb128_aad(ctx, aad, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Provide any data to be encrypted. This can be called multiple times. Only
  * the final time can have a partial block
  */
-int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
+int ossl_CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
     const unsigned char *in, unsigned char *out,
     size_t len)
 {
@@ -412,11 +445,20 @@ int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
+    const unsigned char *in, unsigned char *out,
+    size_t len)
+{
+    return ossl_CRYPTO_ocb128_encrypt(ctx, in, out, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Provide any data to be decrypted. This can be called multiple times. Only
  * the final time can have a partial block
  */
-int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
+int ossl_CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
     const unsigned char *in, unsigned char *out,
     size_t len)
 {
@@ -507,6 +549,15 @@ int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
+    const unsigned char *in, unsigned char *out,
+    size_t len)
+{
+    return ossl_CRYPTO_ocb128_decrypt(ctx, in, out, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 static int ocb_finish(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len,
     int write)
 {
@@ -539,29 +590,51 @@ static int ocb_finish(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len,
  *  0: tag verified
  * >0: tag mismatch
  */
-int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
+int ossl_CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
     size_t len)
 {
     return ocb_finish(ctx, (unsigned char *)tag, len, 0);
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
+    size_t len)
+{
+    return ossl_CRYPTO_ocb128_finish(ctx, tag, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Retrieve the calculated tag
  */
-int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
+int ossl_CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
 {
     return ocb_finish(ctx, tag, len, 1);
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
+{
+    return ossl_CRYPTO_ocb128_tag(ctx, tag, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Release all resources
  */
-void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
+void ossl_CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
 {
     if (ctx) {
         OPENSSL_clear_free(ctx->l, ctx->max_l_index * 16);
         OPENSSL_cleanse(ctx, sizeof(*ctx));
     }
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
+{
+    ossl_CRYPTO_ocb128_cleanup(ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #endif /* OPENSSL_NO_OCB */

@@ -26,6 +26,7 @@
 #endif
 
 #include "rsaz_exp.h"
+#include "crypto/bn.h"
 
 #undef SPARC_T4_MONT
 #if defined(OPENSSL_BN_ASM_MONT) && (defined(__sparc__) || defined(__sparc))
@@ -154,11 +155,11 @@ int BN_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, const BIGNUM *m,
 #endif
 #ifdef RECP_MUL_MOD
     {
-        ret = BN_mod_exp_recp(r, a, p, m, ctx);
+        ret = ossl_BN_mod_exp_recp(r, a, p, m, ctx);
     }
 #else
     {
-        ret = BN_mod_exp_simple(r, a, p, m, ctx);
+        ret = ossl_BN_mod_exp_simple(r, a, p, m, ctx);
     }
 #endif
 
@@ -166,7 +167,7 @@ int BN_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, const BIGNUM *m,
     return ret;
 }
 
-int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+int ossl_BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
     const BIGNUM *m, BN_CTX *ctx)
 {
     int i, j, bits, ret = 0, wstart, wend, window;
@@ -209,10 +210,10 @@ int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
         if (BN_copy(aa, m) == NULL)
             goto err;
         aa->neg = 0;
-        if (BN_RECP_CTX_set(&recp, aa, ctx) <= 0)
+        if (ossl_BN_RECP_CTX_set(&recp, aa, ctx) <= 0)
             goto err;
     } else {
-        if (BN_RECP_CTX_set(&recp, m, ctx) <= 0)
+        if (ossl_BN_RECP_CTX_set(&recp, m, ctx) <= 0)
             goto err;
     }
 
@@ -226,11 +227,11 @@ int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
 
     window = BN_window_bits_for_exponent_size(bits);
     if (window > 1) {
-        if (!BN_mod_mul_reciprocal(aa, val[0], val[0], &recp, ctx))
+        if (!ossl_BN_mod_mul_reciprocal(aa, val[0], val[0], &recp, ctx))
             goto err; /* 2 */
         j = 1 << (window - 1);
         for (i = 1; i < j; i++) {
-            if (((val[i] = BN_CTX_get(ctx)) == NULL) || !BN_mod_mul_reciprocal(val[i], val[i - 1], aa, &recp, ctx))
+            if (((val[i] = BN_CTX_get(ctx)) == NULL) || !ossl_BN_mod_mul_reciprocal(val[i], val[i - 1], aa, &recp, ctx))
                 goto err;
         }
     }
@@ -257,7 +258,7 @@ int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
 
         if (BN_is_bit_set(p, wstart) == 0) {
             if (!start)
-                if (!BN_mod_mul_reciprocal(r, r, r, &recp, ctx))
+                if (!ossl_BN_mod_mul_reciprocal(r, r, r, &recp, ctx))
                     goto err;
             if (wstart == 0)
                 break;
@@ -286,12 +287,12 @@ int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
         /* add the 'bytes above' */
         if (!start)
             for (i = 0; i < j; i++) {
-                if (!BN_mod_mul_reciprocal(r, r, r, &recp, ctx))
+                if (!ossl_BN_mod_mul_reciprocal(r, r, r, &recp, ctx))
                     goto err;
             }
 
         /* wvalue will be an odd number < 2^window */
-        if (!BN_mod_mul_reciprocal(r, r, val[wvalue >> 1], &recp, ctx))
+        if (!ossl_BN_mod_mul_reciprocal(r, r, val[wvalue >> 1], &recp, ctx))
             goto err;
 
         /* move the 'window' down further */
@@ -303,10 +304,18 @@ int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
     ret = 1;
 err:
     BN_CTX_end(ctx);
-    BN_RECP_CTX_free(&recp);
+    ossl_BN_RECP_CTX_free(&recp);
     bn_check_top(r);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+    const BIGNUM *m, BN_CTX *ctx)
+{
+    return ossl_BN_mod_exp_recp(r, a, p, m, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int BN_mod_exp_mont(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
     const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *in_mont)
@@ -1304,7 +1313,7 @@ err:
 }
 
 /* The old fallback, simple version :-) */
-int BN_mod_exp_simple(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+int ossl_BN_mod_exp_simple(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
     const BIGNUM *m, BN_CTX *ctx)
 {
     int i, j, bits, ret = 0, wstart, wend, window;
@@ -1434,6 +1443,14 @@ err:
     bn_check_top(r);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_mod_exp_simple(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+    const BIGNUM *m, BN_CTX *ctx)
+{
+    return ossl_BN_mod_exp_simple(r, a, p, m, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * This is a variant of modular exponentiation optimization that does

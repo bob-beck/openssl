@@ -15,6 +15,7 @@
 #include <openssl/x509v3.h>
 #include <openssl/ocsp.h>
 #include "ocsp_local.h"
+#include "crypto/ocsp.h"
 
 /*
  * Utility functions related to sending OCSP responses and extracting
@@ -189,9 +190,9 @@ int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
 
     rid = &brsp->tbsResponseData.responderId;
     if (flags & OCSP_RESPID_KEY) {
-        if (!OCSP_RESPID_set_by_key(rid, signer))
+        if (!ossl_OCSP_RESPID_set_by_key(rid, signer))
             goto err;
-    } else if (!OCSP_RESPID_set_by_name(rid, signer)) {
+    } else if (!ossl_OCSP_RESPID_set_by_name(rid, signer)) {
         goto err;
     }
 
@@ -234,7 +235,7 @@ int OCSP_basic_sign(OCSP_BASICRESP *brsp,
     return i;
 }
 
-int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
+int ossl_OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
 {
     if (!X509_NAME_set(&respid->value.byName, X509_get_subject_name(cert)))
         return 0;
@@ -243,6 +244,13 @@ int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
 
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
+{
+    return ossl_OCSP_RESPID_set_by_name(respid, cert);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int OCSP_RESPID_set_by_key_ex(OCSP_RESPID *respid, X509 *cert,
     OSSL_LIB_CTX *libctx, const char *propq)
@@ -277,7 +285,7 @@ err:
     return ret;
 }
 
-int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
+int ossl_OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
 {
     OSSL_LIB_CTX *libctx;
     const char *propq;
@@ -287,6 +295,13 @@ int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
     ossl_x509_get0_libctx(cert, &libctx, &propq);
     return OCSP_RESPID_set_by_key_ex(respid, cert, libctx, propq);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
+{
+    return ossl_OCSP_RESPID_set_by_key(respid, cert);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int OCSP_RESPID_match_ex(OCSP_RESPID *respid, X509 *cert, OSSL_LIB_CTX *libctx,
     const char *propq)

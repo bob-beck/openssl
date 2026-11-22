@@ -88,6 +88,8 @@ L<PKCS12_add_safes(3)>
 
 PKCS12_SAFEBAG_create_pkcs8_encrypt_ex() was added in OpenSSL 3.0.
 
+PKCS12_SAFEBAG_create0_pkcs8() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2019-2021 The OpenSSL Project Authors. All Rights Reserved.

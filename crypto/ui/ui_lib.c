@@ -14,6 +14,7 @@
 #include <openssl/ui.h>
 #include <openssl/err.h>
 #include "ui_local.h"
+#include "crypto/ui.h"
 
 UI *UI_new(void)
 {
@@ -436,7 +437,7 @@ const char *UI_get0_result(UI *ui, int i)
     return UI_get0_result_string(sk_UI_STRING_value(ui->strings, i));
 }
 
-int UI_get_result_length(UI *ui, int i)
+int ossl_UI_get_result_length(UI *ui, int i)
 {
     if (i < 0) {
         ERR_raise(ERR_LIB_UI, UI_R_INDEX_TOO_SMALL);
@@ -446,8 +447,15 @@ int UI_get_result_length(UI *ui, int i)
         ERR_raise(ERR_LIB_UI, UI_R_INDEX_TOO_LARGE);
         return -1;
     }
-    return UI_get_result_string_length(sk_UI_STRING_value(ui->strings, i));
+    return ossl_UI_get_result_string_length(sk_UI_STRING_value(ui->strings, i));
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int UI_get_result_length(UI *ui, int i)
+{
+    return ossl_UI_get_result_length(ui, i);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 static int print_error(const char *str, size_t len, UI *ui)
 {
@@ -583,11 +591,18 @@ const UI_METHOD *UI_get_method(UI *ui)
     return ui->meth;
 }
 
-const UI_METHOD *UI_set_method(UI *ui, const UI_METHOD *meth)
+const UI_METHOD *ossl_UI_set_method(UI *ui, const UI_METHOD *meth)
 {
     ui->meth = meth;
     return ui->meth;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const UI_METHOD *UI_set_method(UI *ui, const UI_METHOD *meth)
+{
+    return ossl_UI_set_method(ui, meth);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 UI_METHOD *UI_create_method(const char *name)
 {
@@ -811,7 +826,7 @@ const char *UI_get0_result_string(UI_STRING *uis)
     return NULL;
 }
 
-int UI_get_result_string_length(UI_STRING *uis)
+int ossl_UI_get_result_string_length(UI_STRING *uis)
 {
     switch (uis->type) {
     case UIT_PROMPT:
@@ -826,7 +841,14 @@ int UI_get_result_string_length(UI_STRING *uis)
     return -1;
 }
 
-const char *UI_get0_test_string(UI_STRING *uis)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int UI_get_result_string_length(UI_STRING *uis)
+{
+    return ossl_UI_get_result_string_length(uis);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+const char *ossl_UI_get0_test_string(UI_STRING *uis)
 {
     switch (uis->type) {
     case UIT_VERIFY:
@@ -840,6 +862,13 @@ const char *UI_get0_test_string(UI_STRING *uis)
     }
     return NULL;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const char *UI_get0_test_string(UI_STRING *uis)
+{
+    return ossl_UI_get0_test_string(uis);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int UI_get_result_minsize(UI_STRING *uis)
 {

@@ -442,7 +442,7 @@ static int encode_EVP_PKEY_MSBLOB(const char *file, const int line,
         goto end;
 
     if ((selection & OSSL_KEYMGMT_SELECT_PRIVATE_KEY) != 0) {
-        if (!TEST_FL_int_ge(i2b_PrivateKey_bio(mem_ser, pkey), 0))
+        if (!TEST_FL_int_ge(ossl_i2b_PrivateKey_bio(mem_ser, pkey), 0))
             goto end;
     } else {
         if (!TEST_FL_int_ge(i2b_PublicKey_bio(mem_ser, pkey), 0))

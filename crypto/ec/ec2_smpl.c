@@ -105,14 +105,14 @@ int ossl_ec_GF2m_simple_group_set_curve(EC_GROUP *group,
     /* group->field */
     if (BN_copy(group->field, p) == NULL)
         goto err;
-    i = BN_GF2m_poly2arr(group->field, group->poly, 6) - 1;
+    i = ossl_BN_GF2m_poly2arr(group->field, group->poly, 6) - 1;
     if ((i != 5) && (i != 3)) {
         ERR_raise(ERR_LIB_EC, EC_R_UNSUPPORTED_FIELD);
         goto err;
     }
 
     /* group->a */
-    if (!BN_GF2m_mod_arr(group->a, a, group->poly))
+    if (!ossl_BN_GF2m_mod_arr(group->a, a, group->poly))
         goto err;
     if (bn_wexpand(group->a, (int)(group->poly[0] + BN_BITS2 - 1) / BN_BITS2)
         == NULL)
@@ -120,7 +120,7 @@ int ossl_ec_GF2m_simple_group_set_curve(EC_GROUP *group,
     bn_set_all_zero(group->a);
 
     /* group->b */
-    if (!BN_GF2m_mod_arr(group->b, b, group->poly))
+    if (!ossl_BN_GF2m_mod_arr(group->b, b, group->poly))
         goto err;
     if (bn_wexpand(group->b, (int)(group->poly[0] + BN_BITS2 - 1) / BN_BITS2)
         == NULL)
@@ -196,7 +196,7 @@ int ossl_ec_GF2m_simple_group_check_discriminant(const EC_GROUP *group,
     if (b == NULL)
         goto err;
 
-    if (!BN_GF2m_mod_arr(b, group->b, group->poly))
+    if (!ossl_BN_GF2m_mod_arr(b, group->b, group->poly))
         goto err;
 
     /*
@@ -693,21 +693,21 @@ int ossl_ec_GF2m_simple_points_make_affine(const EC_GROUP *group, size_t num,
 int ossl_ec_GF2m_simple_field_mul(const EC_GROUP *group, BIGNUM *r,
     const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
 {
-    return BN_GF2m_mod_mul_arr(r, a, b, group->poly, ctx);
+    return ossl_BN_GF2m_mod_mul_arr(r, a, b, group->poly, ctx);
 }
 
 /* Wrapper to simple binary polynomial field squaring implementation. */
 int ossl_ec_GF2m_simple_field_sqr(const EC_GROUP *group, BIGNUM *r,
     const BIGNUM *a, BN_CTX *ctx)
 {
-    return BN_GF2m_mod_sqr_arr(r, a, group->poly, ctx);
+    return ossl_BN_GF2m_mod_sqr_arr(r, a, group->poly, ctx);
 }
 
 /* Wrapper to simple binary polynomial field division implementation. */
 int ossl_ec_GF2m_simple_field_div(const EC_GROUP *group, BIGNUM *r,
     const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
 {
-    return BN_GF2m_mod_div(r, a, b, group->field, ctx);
+    return ossl_BN_GF2m_mod_div(r, a, b, group->field, ctx);
 }
 
 /*-
@@ -925,7 +925,7 @@ static int ec_GF2m_simple_field_inv(const EC_GROUP *group, BIGNUM *r,
 {
     int ret;
 
-    if (!(ret = BN_GF2m_mod_inv(r, a, group->field, ctx)))
+    if (!(ret = ossl_BN_GF2m_mod_inv(r, a, group->field, ctx)))
         ERR_raise(ERR_LIB_EC, EC_R_CANNOT_INVERT);
     return ret;
 }

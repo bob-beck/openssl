@@ -14,6 +14,7 @@
 #include "prov/implementations.h"
 #include "prov/providercommon.h"
 #include "providers/implementations/ciphers/cipher_sm4_xts.inc"
+#include "crypto/modes.h"
 
 #define SM4_XTS_FLAGS PROV_CIPHER_FLAG_CUSTOM_IV
 #define SM4_XTS_IV_BITS 128
@@ -146,7 +147,7 @@ static int sm4_xts_cipher(void *vctx, unsigned char *out, size_t *outl,
         if (ctx->stream != NULL)
             (*ctx->stream)(in, out, inl, ctx->xts.key1, ctx->xts.key2,
                 ctx->base.iv, ctx->base.enc);
-        else if (CRYPTO_xts128_encrypt(&ctx->xts, ctx->base.iv, in, out, inl,
+        else if (ossl_CRYPTO_xts128_encrypt(&ctx->xts, ctx->base.iv, in, out, inl,
                      ctx->base.enc))
             return 0;
     } else {

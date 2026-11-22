@@ -18,6 +18,7 @@
 #include "prov/providercommon.h"
 #include "prov/implementations.h"
 #include "providers/implementations/ciphers/cipher_aes_wrp.inc"
+#include "crypto/modes.h"
 
 /* AES wrap with padding has IV length of 4, without padding 8 */
 #define AES_WRAP_PAD_IVLEN 4
@@ -105,9 +106,9 @@ static int aes_wrap_init(void *vctx, const unsigned char *key,
     wctx->updated = 0;
     ctx->enc = enc;
     if (ctx->pad)
-        wctx->wrapfn = enc ? CRYPTO_128_wrap_pad : CRYPTO_128_unwrap_pad;
+        wctx->wrapfn = enc ? ossl_CRYPTO_128_wrap_pad : ossl_CRYPTO_128_unwrap_pad;
     else
-        wctx->wrapfn = enc ? CRYPTO_128_wrap : CRYPTO_128_unwrap;
+        wctx->wrapfn = enc ? ossl_CRYPTO_128_wrap : ossl_CRYPTO_128_unwrap;
 
     if (iv != NULL) {
         if (!ossl_cipher_generic_initiv(ctx, iv, ivlen))

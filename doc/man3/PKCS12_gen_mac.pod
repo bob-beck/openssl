@@ -107,6 +107,8 @@ L<passphrase-encoding(7)>
 
 The I<PKCS12_set_pbmac1_pbkdf2> function was added in OpenSSL 3.4.
 
+PKCS12_gen_mac() and PKCS12_setup_mac() were deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2021-2026 The OpenSSL Project Authors. All Rights Reserved.

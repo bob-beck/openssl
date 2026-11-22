@@ -23,14 +23,21 @@ static CONF_METHOD *default_CONF_method = NULL;
 
 /* Init a 'CONF' structure from an old LHASH */
 
-void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash)
+void ossl_CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash)
 {
     if (default_CONF_method == NULL)
-        default_CONF_method = NCONF_default();
+        default_CONF_method = ossl_NCONF_default();
 
     default_CONF_method->init(conf);
     conf->data = hash;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash)
+{
+    ossl_CONF_set_nconf(conf, hash);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * The following section contains the "CONF classic" functions, rewritten in
@@ -59,7 +66,7 @@ LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
         return NULL;
     }
 
-    ltmp = CONF_load_bio(conf, in, eline);
+    ltmp = ossl_CONF_load_bio(conf, in, eline);
     BIO_free(in);
 
     return ltmp;
@@ -75,25 +82,33 @@ LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
         ERR_raise(ERR_LIB_CONF, ERR_R_BUF_LIB);
         return NULL;
     }
-    ltmp = CONF_load_bio(conf, btmp, eline);
+    ltmp = ossl_CONF_load_bio(conf, btmp, eline);
     BIO_free(btmp);
     return ltmp;
 }
 #endif
 
-LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
+LHASH_OF(CONF_VALUE) *ossl_CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
     long *eline)
 {
     CONF ctmp;
     int ret;
 
-    CONF_set_nconf(&ctmp, conf);
+    ossl_CONF_set_nconf(&ctmp, conf);
 
     ret = NCONF_load_bio(&ctmp, bp, eline);
     if (ret)
         return ctmp.data;
     return NULL;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
+    long *eline)
+{
+    return ossl_CONF_load_bio(conf, bp, eline);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
     const char *section)
@@ -103,12 +118,12 @@ STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
     } else {
         CONF ctmp;
 
-        CONF_set_nconf(&ctmp, conf);
+        ossl_CONF_set_nconf(&ctmp, conf);
         return NCONF_get_section(&ctmp, section);
     }
 }
 
-char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
+char *ossl_CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
     const char *name)
 {
     if (conf == NULL) {
@@ -116,10 +131,18 @@ char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
     } else {
         CONF ctmp;
 
-        CONF_set_nconf(&ctmp, conf);
+        ossl_CONF_set_nconf(&ctmp, conf);
         return NCONF_get_string(&ctmp, group, name);
     }
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
+    const char *name)
+{
+    return ossl_CONF_get_string(conf, group, name);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
     const char *name)
@@ -133,7 +156,7 @@ long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
     } else {
         CONF ctmp;
 
-        CONF_set_nconf(&ctmp, conf);
+        ossl_CONF_set_nconf(&ctmp, conf);
         status = NCONF_get_number_e(&ctmp, group, name, &result);
     }
     ERR_pop_to_mark();
@@ -143,8 +166,8 @@ long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
 void CONF_free(LHASH_OF(CONF_VALUE) *conf)
 {
     CONF ctmp;
-    CONF_set_nconf(&ctmp, conf);
-    NCONF_free_data(&ctmp);
+    ossl_CONF_set_nconf(&ctmp, conf);
+    ossl_NCONF_free_data(&ctmp);
 }
 
 #ifndef OPENSSL_NO_STDIO
@@ -157,19 +180,26 @@ int CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out)
         ERR_raise(ERR_LIB_CONF, ERR_R_BUF_LIB);
         return 0;
     }
-    ret = CONF_dump_bio(conf, btmp);
+    ret = ossl_CONF_dump_bio(conf, btmp);
     BIO_free(btmp);
     return ret;
 }
 #endif
 
-int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out)
+int ossl_CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out)
 {
     CONF ctmp;
 
-    CONF_set_nconf(&ctmp, conf);
-    return NCONF_dump_bio(&ctmp, out);
+    ossl_CONF_set_nconf(&ctmp, conf);
+    return ossl_NCONF_dump_bio(&ctmp, out);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out)
+{
+    return ossl_CONF_dump_bio(conf, out);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * The following section contains the "New CONF" functions.  They are
@@ -184,7 +214,7 @@ CONF *NCONF_new_ex(OSSL_LIB_CTX *libctx, CONF_METHOD *meth)
     CONF *ret;
 
     if (meth == NULL)
-        meth = NCONF_default();
+        meth = ossl_NCONF_default();
 
     ret = meth->create(meth);
     if (ret == NULL) {
@@ -208,12 +238,19 @@ void NCONF_free(CONF *conf)
     conf->meth->destroy(conf);
 }
 
-void NCONF_free_data(CONF *conf)
+void ossl_NCONF_free_data(CONF *conf)
 {
     if (conf == NULL)
         return;
     conf->meth->destroy_data(conf);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void NCONF_free_data(CONF *conf)
+{
+    ossl_NCONF_free_data(conf);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 OSSL_LIB_CTX *NCONF_get0_libctx(const CONF *conf)
 {
@@ -387,13 +424,13 @@ int NCONF_dump_fp(const CONF *conf, FILE *out)
         ERR_raise(ERR_LIB_CONF, ERR_R_BUF_LIB);
         return 0;
     }
-    ret = NCONF_dump_bio(conf, btmp);
+    ret = ossl_NCONF_dump_bio(conf, btmp);
     BIO_free(btmp);
     return ret;
 }
 #endif
 
-int NCONF_dump_bio(const CONF *conf, BIO *out)
+int ossl_NCONF_dump_bio(const CONF *conf, BIO *out)
 {
     if (conf == NULL) {
         ERR_raise(ERR_LIB_CONF, CONF_R_NO_CONF);
@@ -402,6 +439,13 @@ int NCONF_dump_bio(const CONF *conf, BIO *out)
 
     return conf->meth->dump(conf, out);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int NCONF_dump_bio(const CONF *conf, BIO *out)
+{
+    return ossl_NCONF_dump_bio(conf, out);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * These routines call the C malloc/free, to avoid intermixing with

@@ -48,14 +48,26 @@ typedef struct obj_name_st {
 
 #define OBJ_create_and_add_object(a, b, c) OBJ_create(a, b, c)
 
-int OBJ_NAME_init(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Initialise the object name table once.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int OBJ_NAME_init(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int OBJ_NAME_new_index(unsigned long (*hash_func)(const char *),
     int (*cmp_func)(const char *, const char *),
     void (*free_func)(const char *, int, const char *));
 const char *OBJ_NAME_get(const char *name, int type);
 int OBJ_NAME_add(const char *name, int type, const char *data);
 int OBJ_NAME_remove(const char *name, int type);
-void OBJ_NAME_cleanup(int type); /* -1 for everything */
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Remove object names of a given type, or all names and the name table.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void OBJ_NAME_cleanup(int type); /* -1 for everything */
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 void OBJ_NAME_do_all(int type, void (*fn)(const OBJ_NAME *, void *arg),
     void *arg);
 void OBJ_NAME_do_all_sorted(int type,
@@ -176,7 +188,13 @@ const unsigned char *OBJ_get0_data(const ASN1_OBJECT *obj);
 int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid);
 int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid);
 int OBJ_add_sigid(int signid, int dig_id, int pkey_id);
-void OBJ_sigid_free(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Free the application-added signature algorithm tables.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void OBJ_sigid_free(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #define SN_ac_auditEntity SN_ac_auditIdentity
 

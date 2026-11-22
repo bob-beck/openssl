@@ -108,7 +108,7 @@ static int bits2octets(unsigned char *out, const BIGNUM *q, int qlen_bits,
 
     /* z2 = z1 mod q (Do a simple subtract, since z1 < 2^qlen_bits) */
     if (BN_cmp(z, q) >= 0
-        && !BN_usub(z, z, q))
+        && !ossl_BN_usub(z, z, q))
         goto err;
 
     ret = int2octets(out, z, rlen);

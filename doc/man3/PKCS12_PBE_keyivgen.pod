@@ -96,6 +96,8 @@ L<passphrase-encoding(7)>
 
 PKCS12_PBE_keyivgen_ex() and PKCS12_pbe_crypt_ex() were added in OpenSSL 3.0.
 
+PKCS12_PBE_keyivgen() and PKCS12_pbe_crypt() were deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2014-2021 The OpenSSL Project Authors. All Rights Reserved.

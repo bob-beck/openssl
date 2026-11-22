@@ -48,4 +48,21 @@ RSA *b2i_RSA_PVK_bio_ex(BIO *in, pem_password_cb *cb, void *u,
     OSSL_LIB_CTX *libctx, const char *propq);
 #endif
 
+/**
+ * @brief Append a Proc-Type header line to a PEM header buffer.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_PEM_proc_type(char *buf, int type);
+/**
+ * @brief Append a DEK-Info header line with a cipher name and hex IV to a PEM
+ * header buffer.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_PEM_dek_info(char *buf, const char *type, int len, const char *str);
+/**
+ * @brief Write a private key to a BIO in Microsoft PRIVATEKEYBLOB format.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_i2b_PrivateKey_bio(BIO *out, const EVP_PKEY *pk);
+
 #endif

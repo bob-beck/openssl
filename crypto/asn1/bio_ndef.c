@@ -71,7 +71,7 @@ BIO *BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
         return NULL;
     }
     ndef_aux = OPENSSL_zalloc(sizeof(*ndef_aux));
-    asn_bio = BIO_new(BIO_f_asn1());
+    asn_bio = BIO_new(ossl_BIO_f_asn1());
     if (ndef_aux == NULL || asn_bio == NULL)
         goto err;
 
@@ -81,8 +81,8 @@ BIO *BIO_new_NDEF(BIO *out, ASN1_VALUE *val, const ASN1_ITEM *it)
         goto err;
     pop_bio = asn_bio;
 
-    if (BIO_asn1_set_prefix(asn_bio, ndef_prefix, ndef_prefix_free) <= 0
-        || BIO_asn1_set_suffix(asn_bio, ndef_suffix, ndef_suffix_free) <= 0
+    if (ossl_BIO_asn1_set_prefix(asn_bio, ndef_prefix, ndef_prefix_free) <= 0
+        || ossl_BIO_asn1_set_suffix(asn_bio, ndef_suffix, ndef_suffix_free) <= 0
         || BIO_ctrl(asn_bio, BIO_C_SET_EX_ARG, 0, ndef_aux) <= 0)
         goto err;
 

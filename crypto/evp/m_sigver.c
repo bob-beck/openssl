@@ -55,7 +55,7 @@ static int do_sigver_init(EVP_MD_CTX *ctx, EVP_PKEY_CTX **pctx,
     if (ctx->pctx == NULL)
         return 0;
 
-    EVP_MD_CTX_clear_flags(ctx, EVP_MD_CTX_FLAG_FINALISED);
+    ossl_EVP_MD_CTX_clear_flags(ctx, EVP_MD_CTX_FLAG_FINALISED);
 
     locpctx = ctx->pctx;
     ERR_set_mark();

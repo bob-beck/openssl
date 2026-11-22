@@ -111,13 +111,21 @@ void X509V3_conf_free(CONF_VALUE *conf)
     OPENSSL_free(conf);
 }
 
-int X509V3_add_value_bool(const char *name, int asn1_bool,
+int ossl_X509V3_add_value_bool(const char *name, int asn1_bool,
     STACK_OF(CONF_VALUE) **extlist)
 {
     if (asn1_bool)
         return X509V3_add_value(name, "TRUE", extlist);
     return X509V3_add_value(name, "FALSE", extlist);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509V3_add_value_bool(const char *name, int asn1_bool,
+    STACK_OF(CONF_VALUE) **extlist)
+{
+    return ossl_X509V3_add_value_bool(name, asn1_bool, extlist);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int X509V3_add_value_bool_nf(const char *name, int asn1_bool,
     STACK_OF(CONF_VALUE) **extlist)
@@ -152,7 +160,7 @@ static char *bignum_to_string(const BIGNUM *bn)
     return ret;
 }
 
-char *i2s_ASN1_ENUMERATED(X509V3_EXT_METHOD *method, const ASN1_ENUMERATED *a)
+char *ossl_i2s_ASN1_ENUMERATED(X509V3_EXT_METHOD *method, const ASN1_ENUMERATED *a)
 {
     BIGNUM *bntmp = NULL;
     char *strtmp = NULL;
@@ -166,6 +174,13 @@ char *i2s_ASN1_ENUMERATED(X509V3_EXT_METHOD *method, const ASN1_ENUMERATED *a)
     BN_free(bntmp);
     return strtmp;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+char *i2s_ASN1_ENUMERATED(X509V3_EXT_METHOD *method, const ASN1_ENUMERATED *a)
+{
+    return ossl_i2s_ASN1_ENUMERATED(method, a);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 char *i2s_ASN1_INTEGER(X509V3_EXT_METHOD *method, const ASN1_INTEGER *a)
 {
@@ -237,7 +252,7 @@ ASN1_INTEGER *s2i_ASN1_INTEGER(X509V3_EXT_METHOD *method, const char *value)
     return aint;
 }
 
-int X509V3_add_value_int(const char *name, const ASN1_INTEGER *aint,
+int ossl_X509V3_add_value_int(const char *name, const ASN1_INTEGER *aint,
     STACK_OF(CONF_VALUE) **extlist)
 {
     char *strtmp;
@@ -252,7 +267,15 @@ int X509V3_add_value_int(const char *name, const ASN1_INTEGER *aint,
     return ret;
 }
 
-int X509V3_get_value_bool(const CONF_VALUE *value, int *asn1_bool)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509V3_add_value_int(const char *name, const ASN1_INTEGER *aint,
+    STACK_OF(CONF_VALUE) **extlist)
+{
+    return ossl_X509V3_add_value_int(name, aint, extlist);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_X509V3_get_value_bool(const CONF_VALUE *value, int *asn1_bool)
 {
     const char *btmp;
 
@@ -282,7 +305,14 @@ err:
     return 0;
 }
 
-int X509V3_get_value_int(const CONF_VALUE *value, ASN1_INTEGER **aint)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509V3_get_value_bool(const CONF_VALUE *value, int *asn1_bool)
+{
+    return ossl_X509V3_get_value_bool(value, asn1_bool);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_X509V3_get_value_int(const CONF_VALUE *value, ASN1_INTEGER **aint)
 {
     ASN1_INTEGER *itmp;
 
@@ -293,6 +323,13 @@ int X509V3_get_value_int(const CONF_VALUE *value, ASN1_INTEGER **aint)
     *aint = itmp;
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509V3_get_value_int(const CONF_VALUE *value, ASN1_INTEGER **aint)
+{
+    return ossl_X509V3_get_value_int(value, aint);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #define HDR_NAME 1
 #define HDR_VALUE 2
@@ -1393,7 +1430,7 @@ static int ipv6_hex(unsigned char *out, const char *in, int inlen)
     return 1;
 }
 
-int X509V3_NAME_from_section(X509_NAME *nm, STACK_OF(CONF_VALUE) *dn_sk,
+int ossl_X509V3_NAME_from_section(X509_NAME *nm, STACK_OF(CONF_VALUE) *dn_sk,
     unsigned long chtype)
 {
     CONF_VALUE *v;
@@ -1441,6 +1478,14 @@ int X509V3_NAME_from_section(X509_NAME *nm, STACK_OF(CONF_VALUE) *dn_sk,
     }
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509V3_NAME_from_section(X509_NAME *nm, STACK_OF(CONF_VALUE) *dn_sk,
+    unsigned long chtype)
+{
+    return ossl_X509V3_NAME_from_section(nm, dn_sk, chtype);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int OSSL_GENERAL_NAMES_print(BIO *out, GENERAL_NAMES *gens, int indent)
 {

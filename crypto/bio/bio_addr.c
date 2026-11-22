@@ -31,6 +31,7 @@
 
 #include "bio_local.h"
 #include <openssl/crypto.h>
+#include "internal/bio.h"
 
 #ifndef OPENSSL_NO_SOCK
 #include <openssl/err.h>
@@ -658,12 +659,21 @@ DEFINE_RUN_ONCE_STATIC(do_bio_lookup_init)
     return bio_lookup_lock != NULL;
 }
 
-int BIO_lookup(const char *host, const char *service,
+int ossl_BIO_lookup(const char *host, const char *service,
     enum BIO_lookup_type lookup_type,
     int family, int socktype, BIO_ADDRINFO **res)
 {
     return BIO_lookup_ex(host, service, lookup_type, family, socktype, 0, res);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BIO_lookup(const char *host, const char *service,
+    enum BIO_lookup_type lookup_type,
+    int family, int socktype, BIO_ADDRINFO **res)
+{
+    return ossl_BIO_lookup(host, service, lookup_type, family, socktype, res);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*-
  * BIO_lookup_ex - look up the host and service you want to connect to.

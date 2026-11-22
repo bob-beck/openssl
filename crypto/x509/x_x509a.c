@@ -33,10 +33,17 @@ ASN1_SEQUENCE(X509_CERT_AUX) = {
 
 IMPLEMENT_ASN1_FUNCTIONS(X509_CERT_AUX)
 
-int X509_trusted(const X509 *x)
+int ossl_X509_trusted(const X509 *x)
 {
     return x->aux ? 1 : 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_trusted(const X509 *x)
+{
+    return ossl_X509_trusted(x);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 static X509_CERT_AUX *aux_get(X509 *x)
 {
@@ -181,16 +188,30 @@ void X509_reject_clear(X509 *x)
     }
 }
 
-const STACK_OF(ASN1_OBJECT) *X509_get0_trust_objects(const X509 *x)
+const STACK_OF(ASN1_OBJECT) *ossl_X509_get0_trust_objects(const X509 *x)
 {
     if (x->aux != NULL)
         return x->aux->trust;
     return NULL;
 }
 
-const STACK_OF(ASN1_OBJECT) *X509_get0_reject_objects(const X509 *x)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const STACK_OF(ASN1_OBJECT) *X509_get0_trust_objects(const X509 *x)
+{
+    return ossl_X509_get0_trust_objects(x);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+const STACK_OF(ASN1_OBJECT) *ossl_X509_get0_reject_objects(const X509 *x)
 {
     if (x->aux != NULL)
         return x->aux->reject;
     return NULL;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const STACK_OF(ASN1_OBJECT) *X509_get0_reject_objects(const X509 *x)
+{
+    return ossl_X509_get0_reject_objects(x);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

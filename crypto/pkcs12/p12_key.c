@@ -15,6 +15,8 @@
 #include <openssl/kdf.h>
 #include <openssl/core_names.h>
 #include "internal/provider.h"
+#include "crypto/pkcs12.h"
+#include "internal/bio.h"
 
 int PKCS12_key_gen_asc_ex(const char *pass, int passlen, unsigned char *salt,
     int saltlen, int id, int iter, int n,
@@ -58,7 +60,7 @@ int PKCS12_key_gen_utf8_ex(const char *pass, int passlen, unsigned char *salt,
     if (pass == NULL) {
         unipass = NULL;
         uniplen = 0;
-    } else if (!OPENSSL_utf82uni(pass, passlen, &unipass, &uniplen)) {
+    } else if (!ossl_OPENSSL_utf82uni(pass, passlen, &unipass, &uniplen)) {
         ERR_raise(ERR_LIB_PKCS12, ERR_R_PKCS12_LIB);
         return 0;
     }
@@ -112,10 +114,10 @@ int PKCS12_key_gen_uni_ex(unsigned char *pass, int passlen, unsigned char *salt,
     {
         BIO_printf(trc_out, "PKCS12_key_gen_uni_ex(): ID %d, ITER %d\n", id, iter);
         BIO_printf(trc_out, "Password (length %d):\n", passlen);
-        BIO_hex_string(trc_out, 0, passlen, pass, passlen);
+        ossl_BIO_hex_string(trc_out, 0, passlen, pass, passlen);
         BIO_printf(trc_out, "\n");
         BIO_printf(trc_out, "Salt (length %d):\n", saltlen);
-        BIO_hex_string(trc_out, 0, saltlen, salt, saltlen);
+        ossl_BIO_hex_string(trc_out, 0, saltlen, salt, saltlen);
         BIO_printf(trc_out, "\n");
     }
     OSSL_TRACE_END(PKCS12_KEYGEN);
@@ -125,7 +127,7 @@ int PKCS12_key_gen_uni_ex(unsigned char *pass, int passlen, unsigned char *salt,
         OSSL_TRACE_BEGIN(PKCS12_KEYGEN)
         {
             BIO_printf(trc_out, "Output KEY (length %d)\n", n);
-            BIO_hex_string(trc_out, 0, n, out, n);
+            ossl_BIO_hex_string(trc_out, 0, n, out, n);
             BIO_printf(trc_out, "\n");
         }
         OSSL_TRACE_END(PKCS12_KEYGEN);

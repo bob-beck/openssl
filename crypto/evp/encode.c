@@ -119,10 +119,17 @@ int EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, const EVP_ENCODE_CTX *sctx)
     return 1;
 }
 
-int EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx)
+int ossl_EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx)
 {
     return ctx->num;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx)
+{
+    return ossl_EVP_ENCODE_CTX_num(ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 void evp_encode_ctx_set_flags(EVP_ENCODE_CTX *ctx, unsigned int flags)
 {

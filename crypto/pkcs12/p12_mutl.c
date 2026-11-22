@@ -23,6 +23,7 @@
 #include "p12_local.h"
 
 #include <crypto/asn1.h>
+#include "crypto/pkcs12.h"
 
 static int pkcs12_pbmac1_pbkdf2_key_gen(const char *pass, int passlen,
     unsigned char *salt, int saltlen,
@@ -299,11 +300,19 @@ err:
     return ret;
 }
 
-int PKCS12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
+int ossl_PKCS12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
     unsigned char *mac, unsigned int *maclen)
 {
     return pkcs12_gen_mac(p12, pass, passlen, mac, maclen, NID_undef, NID_undef, NULL, p12->authsafes->ctx.libctx, p12->authsafes->ctx.propq);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int PKCS12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
+    unsigned char *mac, unsigned int *maclen)
+{
+    return ossl_PKCS12_gen_mac(p12, pass, passlen, mac, maclen);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int ossl_pkcs12_verify_mac(PKCS12 *p12, const char *pass, int passlen,
     OSSL_LIB_CTX *libctx, const char *propq)
@@ -374,7 +383,7 @@ int PKCS12_set_mac(PKCS12 *p12, const char *pass, int passlen,
         md_type = EVP_sha256();
     if (!iter)
         iter = PKCS12_DEFAULT_ITER;
-    if (PKCS12_setup_mac(p12, iter, salt, saltlen, md_type) == PKCS12_ERROR) {
+    if (ossl_PKCS12_setup_mac(p12, iter, salt, saltlen, md_type) == PKCS12_ERROR) {
         ERR_raise(ERR_LIB_PKCS12, PKCS12_R_MAC_SETUP_ERROR);
         return 0;
     }
@@ -449,11 +458,19 @@ static int pkcs12_setup_mac(PKCS12 *p12, int iter, unsigned char *salt, int salt
 }
 
 /* Set up a mac structure */
-int PKCS12_setup_mac(PKCS12 *p12, int iter, unsigned char *salt, int saltlen,
+int ossl_PKCS12_setup_mac(PKCS12 *p12, int iter, unsigned char *salt, int saltlen,
     const EVP_MD *md_type)
 {
     return pkcs12_setup_mac(p12, iter, salt, saltlen, EVP_MD_get_type(md_type));
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int PKCS12_setup_mac(PKCS12 *p12, int iter, unsigned char *salt, int saltlen,
+    const EVP_MD *md_type)
+{
+    return ossl_PKCS12_setup_mac(p12, iter, salt, saltlen, md_type);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int PKCS12_set_pbmac1_pbkdf2(PKCS12 *p12, const char *pass, int passlen,
     unsigned char *salt, int saltlen, int iter,

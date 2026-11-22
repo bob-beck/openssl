@@ -22,13 +22,20 @@
 #if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0333
 #ifdef OPENSSL_SYS_WIN_CORE
 
-int OPENSSL_isservice(void)
+int ossl_OPENSSL_isservice(void)
 {
     /* OneCore API cannot interact with GUI */
     return 1;
 }
-#else
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
 int OPENSSL_isservice(void)
+{
+    return ossl_OPENSSL_isservice();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+#else
+int ossl_OPENSSL_isservice(void)
 {
     HWINSTA h;
     DWORD len;
@@ -87,12 +94,26 @@ int OPENSSL_isservice(void)
     else
         return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OPENSSL_isservice(void)
+{
+    return ossl_OPENSSL_isservice();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #endif
 #else
-int OPENSSL_isservice(void)
+int ossl_OPENSSL_isservice(void)
 {
     return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OPENSSL_isservice(void)
+{
+    return ossl_OPENSSL_isservice();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #endif
 
 void OPENSSL_showfatal(const char *fmta, ...)
@@ -194,7 +215,7 @@ void OPENSSL_showfatal(const char *fmta, ...)
 #endif
 #else
     /* this -------------v--- guards NT-specific calls */
-    if (check_winnt() && OPENSSL_isservice() > 0) {
+    if (check_winnt() && ossl_OPENSSL_isservice() > 0) {
         HANDLE hEventLog = RegisterEventSource(NULL, _T("OpenSSL"));
 
         if (hEventLog != NULL) {
@@ -235,10 +256,17 @@ void OPENSSL_showfatal(const char *fmta, ...)
 #endif
 }
 
-int OPENSSL_isservice(void)
+int ossl_OPENSSL_isservice(void)
 {
     return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OPENSSL_isservice(void)
+{
+    return ossl_OPENSSL_isservice();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #endif
 
 void OPENSSL_die(const char *message, const char *file, int line)

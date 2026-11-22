@@ -16,6 +16,7 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 #include "crypto/x509.h"
+#include "crypto/asn1.h"
 
 OSSL_BEGIN_ALLOW_DEPRECATED
 #if !defined(OPENSSL_NO_DEPRECATED_4_0)
@@ -151,7 +152,7 @@ int X509_NAME_add_entry_by_OBJ(X509_NAME *name, const ASN1_OBJECT *obj, int type
     X509_NAME_ENTRY *ne;
     int ret;
 
-    ne = X509_NAME_ENTRY_create_by_OBJ(NULL, obj, type, bytes, len);
+    ne = ossl_X509_NAME_ENTRY_create_by_OBJ(NULL, obj, type, bytes, len);
     if (!ne)
         return 0;
     ret = X509_NAME_add_entry(name, ne, loc, set);
@@ -259,7 +260,7 @@ X509_NAME_ENTRY *X509_NAME_ENTRY_create_by_txt(X509_NAME_ENTRY **ne,
             "name=%s", field);
         return NULL;
     }
-    nentry = X509_NAME_ENTRY_create_by_OBJ(ne, obj, type, bytes, len);
+    nentry = ossl_X509_NAME_ENTRY_create_by_OBJ(ne, obj, type, bytes, len);
     ASN1_OBJECT_free(obj);
     return nentry;
 }
@@ -277,12 +278,12 @@ X509_NAME_ENTRY *X509_NAME_ENTRY_create_by_NID(X509_NAME_ENTRY **ne, int nid,
         ERR_raise(ERR_LIB_X509, X509_R_UNKNOWN_NID);
         return NULL;
     }
-    nentry = X509_NAME_ENTRY_create_by_OBJ(ne, obj, type, bytes, len);
+    nentry = ossl_X509_NAME_ENTRY_create_by_OBJ(ne, obj, type, bytes, len);
     ASN1_OBJECT_free(obj);
     return nentry;
 }
 
-X509_NAME_ENTRY *X509_NAME_ENTRY_create_by_OBJ(X509_NAME_ENTRY **ne,
+X509_NAME_ENTRY *ossl_X509_NAME_ENTRY_create_by_OBJ(X509_NAME_ENTRY **ne,
     const ASN1_OBJECT *obj, int type,
     const unsigned char *bytes,
     int len)
@@ -295,9 +296,9 @@ X509_NAME_ENTRY *X509_NAME_ENTRY_create_by_OBJ(X509_NAME_ENTRY **ne,
     } else
         ret = *ne;
 
-    if (!X509_NAME_ENTRY_set_object(ret, obj))
+    if (!ossl_X509_NAME_ENTRY_set_object(ret, obj))
         goto err;
-    if (!X509_NAME_ENTRY_set_data(ret, type, bytes, len))
+    if (!ossl_X509_NAME_ENTRY_set_data(ret, type, bytes, len))
         goto err;
 
     if ((ne != NULL) && (*ne == NULL))
@@ -309,7 +310,17 @@ err:
     return NULL;
 }
 
-int X509_NAME_ENTRY_set_object(X509_NAME_ENTRY *ne, const ASN1_OBJECT *obj)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+X509_NAME_ENTRY *X509_NAME_ENTRY_create_by_OBJ(X509_NAME_ENTRY **ne,
+    const ASN1_OBJECT *obj, int type,
+    const unsigned char *bytes,
+    int len)
+{
+    return ossl_X509_NAME_ENTRY_create_by_OBJ(ne, obj, type, bytes, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_X509_NAME_ENTRY_set_object(X509_NAME_ENTRY *ne, const ASN1_OBJECT *obj)
 {
     if ((ne == NULL) || (obj == NULL)) {
         ERR_raise(ERR_LIB_X509, ERR_R_PASSED_NULL_PARAMETER);
@@ -320,7 +331,14 @@ int X509_NAME_ENTRY_set_object(X509_NAME_ENTRY *ne, const ASN1_OBJECT *obj)
     return ((ne->object == NULL) ? 0 : 1);
 }
 
-int X509_NAME_ENTRY_set_data(X509_NAME_ENTRY *ne, int type,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_NAME_ENTRY_set_object(X509_NAME_ENTRY *ne, const ASN1_OBJECT *obj)
+{
+    return ossl_X509_NAME_ENTRY_set_object(ne, obj);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_X509_NAME_ENTRY_set_data(X509_NAME_ENTRY *ne, int type,
     const unsigned char *bytes, int len)
 {
     int i;
@@ -328,7 +346,7 @@ int X509_NAME_ENTRY_set_data(X509_NAME_ENTRY *ne, int type,
     if ((ne == NULL) || ((bytes == NULL) && (len != 0)))
         return 0;
     if ((type > 0) && (type & MBSTRING_FLAG))
-        return ASN1_STRING_set_by_NID(&ne->value, bytes,
+        return ossl_ASN1_STRING_set_by_NID(&ne->value, bytes,
                    len, type,
                    OBJ_obj2nid(ne->object))
             ? 1
@@ -349,6 +367,14 @@ int X509_NAME_ENTRY_set_data(X509_NAME_ENTRY *ne, int type,
     }
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_NAME_ENTRY_set_data(X509_NAME_ENTRY *ne, int type,
+    const unsigned char *bytes, int len)
+{
+    return ossl_X509_NAME_ENTRY_set_data(ne, type, bytes, len);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 const ASN1_OBJECT *X509_NAME_ENTRY_get_object(const X509_NAME_ENTRY *ne)
 {

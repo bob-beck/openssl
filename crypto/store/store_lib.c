@@ -624,7 +624,7 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new(int type, void *data)
     return info;
 }
 
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_NAME(char *name)
+OSSL_STORE_INFO *ossl_OSSL_STORE_INFO_new_NAME(char *name)
 {
     OSSL_STORE_INFO *info = OSSL_STORE_INFO_new(OSSL_STORE_INFO_NAME, NULL);
 
@@ -639,7 +639,14 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_NAME(char *name)
     return info;
 }
 
-int OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+OSSL_STORE_INFO *OSSL_STORE_INFO_new_NAME(char *name)
+{
+    return ossl_OSSL_STORE_INFO_new_NAME(name);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc)
 {
     if (info->type != OSSL_STORE_INFO_NAME) {
         ERR_raise(ERR_LIB_OSSL_STORE, ERR_R_PASSED_INVALID_ARGUMENT);
@@ -650,7 +657,14 @@ int OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc)
 
     return 1;
 }
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params)
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc)
+{
+    return ossl_OSSL_STORE_INFO_set0_NAME_description(info, desc);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+OSSL_STORE_INFO *ossl_OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params)
 {
     OSSL_STORE_INFO *info = OSSL_STORE_INFO_new(OSSL_STORE_INFO_PARAMS, params);
 
@@ -658,6 +672,13 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params)
         ERR_raise(ERR_LIB_OSSL_STORE, ERR_R_OSSL_STORE_LIB);
     return info;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+OSSL_STORE_INFO *OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params)
+{
+    return ossl_OSSL_STORE_INFO_new_PARAMS(params);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 OSSL_STORE_INFO *OSSL_STORE_INFO_new_PUBKEY(EVP_PKEY *pkey)
 {
@@ -668,7 +689,7 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_PUBKEY(EVP_PKEY *pkey)
     return info;
 }
 
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey)
+OSSL_STORE_INFO *ossl_OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey)
 {
     OSSL_STORE_INFO *info = OSSL_STORE_INFO_new(OSSL_STORE_INFO_PKEY, pkey);
 
@@ -677,7 +698,14 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey)
     return info;
 }
 
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_CERT(X509 *x509)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+OSSL_STORE_INFO *OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey)
+{
+    return ossl_OSSL_STORE_INFO_new_PKEY(pkey);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+OSSL_STORE_INFO *ossl_OSSL_STORE_INFO_new_CERT(X509 *x509)
 {
     OSSL_STORE_INFO *info = OSSL_STORE_INFO_new(OSSL_STORE_INFO_CERT, x509);
 
@@ -686,7 +714,14 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_CERT(X509 *x509)
     return info;
 }
 
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_CRL(X509_CRL *crl)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+OSSL_STORE_INFO *OSSL_STORE_INFO_new_CERT(X509 *x509)
+{
+    return ossl_OSSL_STORE_INFO_new_CERT(x509);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+OSSL_STORE_INFO *ossl_OSSL_STORE_INFO_new_CRL(X509_CRL *crl)
 {
     OSSL_STORE_INFO *info = OSSL_STORE_INFO_new(OSSL_STORE_INFO_CRL, crl);
 
@@ -694,6 +729,13 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_CRL(X509_CRL *crl)
         ERR_raise(ERR_LIB_OSSL_STORE, ERR_R_OSSL_STORE_LIB);
     return info;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+OSSL_STORE_INFO *OSSL_STORE_INFO_new_CRL(X509_CRL *crl)
+{
+    return ossl_OSSL_STORE_INFO_new_CRL(crl);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 OSSL_STORE_INFO *OSSL_STORE_INFO_new_SKEY(EVP_SKEY *skey)
 {

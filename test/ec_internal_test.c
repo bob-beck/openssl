@@ -18,6 +18,7 @@
 #include "ec_local.h"
 #include <crypto/bn.h>
 #include <openssl/objects.h>
+#include "crypto/ec.h"
 
 static size_t crv_len = 0;
 static EC_builtin_curve *curves = NULL;
@@ -281,7 +282,7 @@ static int underflow_test(void)
             y1, z1, ctx))
         || !TEST_true(EC_POINT_mul(grp, Q, NULL, P, k, ctx))
         || !TEST_true(EC_POINT_get_affine_coordinates(grp, Q, x1, y1, ctx))
-        || !TEST_true(EC_POINT_dbl(grp, R, P, ctx))
+        || !TEST_true(ossl_EC_POINT_dbl(grp, R, P, ctx))
         || !TEST_true(EC_POINT_get_affine_coordinates(grp, R, x2, y2, ctx)))
         goto err;
 
@@ -365,8 +366,8 @@ static int decoded_flag_test(void)
         goto err;
 
     /* Test EC_GROUP_new_from_ecparameters not setting the flag */
-    if (!TEST_ptr(ecparams = EC_GROUP_get_ecparameters(grp, NULL))
-        || !TEST_ptr(grp_copy = EC_GROUP_new_from_ecparameters(ecparams))
+    if (!TEST_ptr(ecparams = ossl_EC_GROUP_get_ecparameters(grp, NULL))
+        || !TEST_ptr(grp_copy = ossl_EC_GROUP_new_from_ecparameters(ecparams))
         || !TEST_int_eq(grp_copy->decoded_from_explicit_params, 0))
         goto err;
     EC_GROUP_free(grp_copy);
@@ -376,8 +377,8 @@ static int decoded_flag_test(void)
 
     /* Test EC_GROUP_new_from_ecpkparameters not setting the flag */
     if (!TEST_int_eq(EC_GROUP_get_asn1_flag(grp), OPENSSL_EC_NAMED_CURVE)
-        || !TEST_ptr(ecpkparams = EC_GROUP_get_ecpkparameters(grp, NULL))
-        || !TEST_ptr(grp_copy = EC_GROUP_new_from_ecpkparameters(ecpkparams))
+        || !TEST_ptr(ecpkparams = ossl_EC_GROUP_get_ecpkparameters(grp, NULL))
+        || !TEST_ptr(grp_copy = ossl_EC_GROUP_new_from_ecpkparameters(ecpkparams))
         || !TEST_int_eq(grp_copy->decoded_from_explicit_params, 0)
         || !TEST_ptr(key = EC_KEY_new())
         /* Test EC_KEY_decoded_from_explicit_params on key without a group */
@@ -404,8 +405,8 @@ static int decoded_flag_test(void)
 
     /* Asn1 flag stays set to explicit with EC_GROUP_new_from_ecpkparameters */
     EC_GROUP_set_asn1_flag(grp, OPENSSL_EC_EXPLICIT_CURVE);
-    if (!TEST_ptr(ecpkparams = EC_GROUP_get_ecpkparameters(grp, NULL))
-        || !TEST_ptr(grp_copy = EC_GROUP_new_from_ecpkparameters(ecpkparams))
+    if (!TEST_ptr(ecpkparams = ossl_EC_GROUP_get_ecpkparameters(grp, NULL))
+        || !TEST_ptr(grp_copy = ossl_EC_GROUP_new_from_ecpkparameters(ecpkparams))
         || !TEST_int_eq(EC_GROUP_get_asn1_flag(grp_copy), OPENSSL_EC_EXPLICIT_CURVE)
         || !TEST_int_eq(grp_copy->decoded_from_explicit_params, 0))
         goto err;
@@ -451,7 +452,7 @@ static int ecpkparams_reuse_error_test(void)
 
     /* Populate the explicit parameters arm of the CHOICE. */
     EC_GROUP_set_asn1_flag(grp, OPENSSL_EC_EXPLICIT_CURVE);
-    if (!TEST_ptr(params = EC_GROUP_get_ecpkparameters(grp, NULL)))
+    if (!TEST_ptr(params = ossl_EC_GROUP_get_ecpkparameters(grp, NULL)))
         goto err;
 
     /* Take the named curve arm and make it fail on the undefined NID. */
@@ -459,7 +460,7 @@ static int ecpkparams_reuse_error_test(void)
     EC_GROUP_set_asn1_flag(grp, OPENSSL_EC_NAMED_CURVE);
 
     /* On failure the passed in object is consumed, so do not free it again. */
-    params = EC_GROUP_get_ecpkparameters(grp, params);
+    params = ossl_EC_GROUP_get_ecpkparameters(grp, params);
     if (!TEST_ptr_null(params))
         goto err;
     testresult = 1;

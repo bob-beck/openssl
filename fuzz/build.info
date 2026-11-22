@@ -66,7 +66,7 @@ IF[{- !$disabled{"fuzz-afl"} || !$disabled{"fuzz-libfuzzer"} -}]
 
   SOURCE[bignum]=bignum.c driver.c
   INCLUDE[bignum]=../include {- $ex_inc -}
-  DEPEND[bignum]=../libcrypto {- $ex_lib -}
+  DEPEND[bignum]=../libcrypto.a {- $ex_lib -}
 
   SOURCE[bndiv]=bndiv.c driver.c
   INCLUDE[bndiv]=../include {- $ex_inc -}
@@ -186,7 +186,7 @@ IF[{- !$disabled{"fuzz-afl"} || !$disabled{"fuzz-libfuzzer"} -}]
 
   SOURCE[x509]=x509.c driver.c fuzz_rand.c
   INCLUDE[x509]=../include {- $ex_inc -}
-  DEPEND[x509]=../libcrypto {- $ex_lib -}
+  DEPEND[x509]=../libcrypto.a {- $ex_lib -}
 
   SOURCE[provider]=provider.c driver.c
   INCLUDE[provider]=../include {- $ex_inc -}

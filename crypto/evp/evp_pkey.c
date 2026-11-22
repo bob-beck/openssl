@@ -187,10 +187,17 @@ int EVP_PKEY_get_attr_count(const EVP_PKEY *key)
     return X509at_get_attr_count(key->attributes);
 }
 
-int EVP_PKEY_get_attr_by_NID(const EVP_PKEY *key, int nid, int lastpos)
+int ossl_EVP_PKEY_get_attr_by_NID(const EVP_PKEY *key, int nid, int lastpos)
 {
     return X509at_get_attr_by_NID(key->attributes, nid, lastpos);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int EVP_PKEY_get_attr_by_NID(const EVP_PKEY *key, int nid, int lastpos)
+{
+    return ossl_EVP_PKEY_get_attr_by_NID(key, nid, lastpos);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int EVP_PKEY_get_attr_by_OBJ(const EVP_PKEY *key, const ASN1_OBJECT *obj,
     int lastpos)
@@ -198,10 +205,17 @@ int EVP_PKEY_get_attr_by_OBJ(const EVP_PKEY *key, const ASN1_OBJECT *obj,
     return X509at_get_attr_by_OBJ(key->attributes, obj, lastpos);
 }
 
-X509_ATTRIBUTE *EVP_PKEY_get_attr(const EVP_PKEY *key, int loc)
+X509_ATTRIBUTE *ossl_EVP_PKEY_get_attr(const EVP_PKEY *key, int loc)
 {
     return X509at_get_attr(key->attributes, loc);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+X509_ATTRIBUTE *EVP_PKEY_get_attr(const EVP_PKEY *key, int loc)
+{
+    return ossl_EVP_PKEY_get_attr(key, loc);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 X509_ATTRIBUTE *EVP_PKEY_delete_attr(EVP_PKEY *key, int loc)
 {

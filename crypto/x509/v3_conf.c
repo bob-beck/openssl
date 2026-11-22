@@ -16,6 +16,8 @@
 #include <openssl/x509.h>
 #include "crypto/x509.h"
 #include <openssl/x509v3.h>
+#include "crypto/asn1.h"
+#include "internal/conf.h"
 
 static int v3_check_critical(const char **value);
 static int v3_check_generic(const char **value);
@@ -296,7 +298,7 @@ static unsigned char *generic_asn1(const char *value, X509V3_CTX *ctx,
     ASN1_TYPE *typ;
     unsigned char *ext_der = NULL;
 
-    typ = ASN1_generate_v3(value, ctx);
+    typ = ossl_ASN1_generate_v3(value, ctx);
     if (typ == NULL)
         return NULL;
     *ext_len = i2d_ASN1_TYPE(typ, &ext_der);
@@ -311,7 +313,7 @@ static void delete_ext(STACK_OF(X509_EXTENSION) *sk, X509_EXTENSION *dext)
 
     obj = X509_EXTENSION_get_object(dext);
     while ((idx = X509v3_get_ext_by_OBJ(sk, obj, -1)) >= 0)
-        X509_EXTENSION_free(X509v3_delete_ext(sk, idx));
+        X509_EXTENSION_free(ossl_X509v3_delete_ext(sk, idx));
 }
 
 /*
@@ -477,7 +479,7 @@ char *X509V3_get_string(X509V3_CTX *ctx, const char *name, const char *section)
     return ctx->db_meth->get_string(ctx->db, name, section);
 }
 
-STACK_OF(CONF_VALUE) *X509V3_get_section(X509V3_CTX *ctx, const char *section)
+STACK_OF(CONF_VALUE) *ossl_X509V3_get_section(X509V3_CTX *ctx, const char *section)
 {
     if (!ctx->db || !ctx->db_meth || !ctx->db_meth->get_section) {
         ERR_raise(ERR_LIB_X509V3, X509V3_R_OPERATION_NOT_DEFINED);
@@ -485,6 +487,13 @@ STACK_OF(CONF_VALUE) *X509V3_get_section(X509V3_CTX *ctx, const char *section)
     }
     return ctx->db_meth->get_section(ctx->db, section);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+STACK_OF(CONF_VALUE) *X509V3_get_section(X509V3_CTX *ctx, const char *section)
+{
+    return ossl_X509V3_get_section(ctx, section);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 void X509V3_string_free(X509V3_CTX *ctx, char *str)
 {
@@ -494,13 +503,20 @@ void X509V3_string_free(X509V3_CTX *ctx, char *str)
         ctx->db_meth->free_string(ctx->db, str);
 }
 
-void X509V3_section_free(X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *section)
+void ossl_X509V3_section_free(X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *section)
 {
     if (!section)
         return;
     if (ctx->db_meth->free_section)
         ctx->db_meth->free_section(ctx->db, section);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void X509V3_section_free(X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *section)
+{
+    ossl_X509V3_section_free(ctx, section);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 static char *nconf_get_string(void *db, const char *section, const char *value)
 {
@@ -567,9 +583,9 @@ X509_EXTENSION *X509V3_EXT_conf(LHASH_OF(CONF_VALUE) *conf, X509V3_CTX *ctx,
 
     if ((ctmp = NCONF_new(NULL)) == NULL)
         return NULL;
-    CONF_set_nconf(ctmp, conf);
+    ossl_CONF_set_nconf(ctmp, conf);
     ret = X509V3_EXT_nconf(ctmp, ctx, name, value);
-    CONF_set_nconf(ctmp, NULL);
+    ossl_CONF_set_nconf(ctmp, NULL);
     NCONF_free(ctmp);
     return ret;
 }
@@ -582,16 +598,16 @@ X509_EXTENSION *X509V3_EXT_conf_nid(LHASH_OF(CONF_VALUE) *conf,
 
     if ((ctmp = NCONF_new(NULL)) == NULL)
         return NULL;
-    CONF_set_nconf(ctmp, conf);
+    ossl_CONF_set_nconf(ctmp, conf);
     ret = X509V3_EXT_nconf_nid(ctmp, ctx, ext_nid, value);
-    CONF_set_nconf(ctmp, NULL);
+    ossl_CONF_set_nconf(ctmp, NULL);
     NCONF_free(ctmp);
     return ret;
 }
 
 static char *conf_lhash_get_string(void *db, const char *section, const char *value)
 {
-    return CONF_get_string(db, section, value);
+    return ossl_CONF_get_string(db, section, value);
 }
 
 static STACK_OF(CONF_VALUE) *conf_lhash_get_section(void *db, const char *section)
@@ -624,9 +640,9 @@ int X509V3_EXT_add_conf(LHASH_OF(CONF_VALUE) *conf, X509V3_CTX *ctx,
 
     if ((ctmp = NCONF_new(NULL)) == NULL)
         return 0;
-    CONF_set_nconf(ctmp, conf);
+    ossl_CONF_set_nconf(ctmp, conf);
     ret = X509V3_EXT_add_nconf(ctmp, ctx, section, cert);
-    CONF_set_nconf(ctmp, NULL);
+    ossl_CONF_set_nconf(ctmp, NULL);
     NCONF_free(ctmp);
     return ret;
 }
@@ -641,9 +657,9 @@ int X509V3_EXT_CRL_add_conf(LHASH_OF(CONF_VALUE) *conf, X509V3_CTX *ctx,
 
     if ((ctmp = NCONF_new(NULL)) == NULL)
         return 0;
-    CONF_set_nconf(ctmp, conf);
+    ossl_CONF_set_nconf(ctmp, conf);
     ret = X509V3_EXT_CRL_add_nconf(ctmp, ctx, section, crl);
-    CONF_set_nconf(ctmp, NULL);
+    ossl_CONF_set_nconf(ctmp, NULL);
     NCONF_free(ctmp);
     return ret;
 }
@@ -658,9 +674,9 @@ int X509V3_EXT_REQ_add_conf(LHASH_OF(CONF_VALUE) *conf, X509V3_CTX *ctx,
 
     if ((ctmp = NCONF_new(NULL)) == NULL)
         return 0;
-    CONF_set_nconf(ctmp, conf);
+    ossl_CONF_set_nconf(ctmp, conf);
     ret = X509V3_EXT_REQ_add_nconf(ctmp, ctx, section, req);
-    CONF_set_nconf(ctmp, NULL);
+    ossl_CONF_set_nconf(ctmp, NULL);
     NCONF_free(ctmp);
     return ret;
 }

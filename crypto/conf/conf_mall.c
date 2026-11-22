@@ -16,15 +16,17 @@
 #include "internal/provider.h"
 #include "crypto/rand.h"
 #include "conf_local.h"
+#include "crypto/asn1.h"
+#include "crypto/evp.h"
 
 /* Load all OpenSSL builtin modules */
 
 void OPENSSL_load_builtin_modules(void)
 {
     /* Add builtin modules here */
-    ASN1_add_oid_module();
-    ASN1_add_stable_module();
-    EVP_add_alg_module();
+    ossl_ASN1_add_oid_module();
+    ossl_ASN1_add_stable_module();
+    ossl_EVP_add_alg_module();
     ossl_config_add_ssl_module();
     ossl_provider_add_conf_module();
     ossl_random_add_conf_module();

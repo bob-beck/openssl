@@ -15,23 +15,24 @@
 #include <openssl/param_build.h>
 #include "p12_local.h"
 #include "crypto/x509.h"
+#include "crypto/pkcs12.h"
 
 #ifndef OPENSSL_NO_DEPRECATED_1_1_0
 const ASN1_TYPE *PKCS12_get_attr(const PKCS12_SAFEBAG *bag, int attr_nid)
 {
-    return PKCS12_get_attr_gen(bag->attrib, attr_nid);
+    return ossl_PKCS12_get_attr_gen(bag->attrib, attr_nid);
 }
 #endif
 
 const ASN1_TYPE *PKCS12_SAFEBAG_get0_attr(const PKCS12_SAFEBAG *bag,
     int attr_nid)
 {
-    return PKCS12_get_attr_gen(bag->attrib, attr_nid);
+    return ossl_PKCS12_get_attr_gen(bag->attrib, attr_nid);
 }
 
 const ASN1_TYPE *PKCS8_get_attr(PKCS8_PRIV_KEY_INFO *p8, int attr_nid)
 {
-    return PKCS12_get_attr_gen(PKCS8_pkey_get0_attrs(p8), attr_nid);
+    return ossl_PKCS12_get_attr_gen(PKCS8_pkey_get0_attrs(p8), attr_nid);
 }
 
 const PKCS8_PRIV_KEY_INFO *PKCS12_SAFEBAG_get0_p8inf(const PKCS12_SAFEBAG *bag)
@@ -272,13 +273,13 @@ err:
 
 PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_cert(X509 *x509)
 {
-    return PKCS12_item_pack_safebag(x509, ASN1_ITEM_rptr(X509),
+    return ossl_PKCS12_item_pack_safebag(x509, ASN1_ITEM_rptr(X509),
         NID_x509Certificate, NID_certBag);
 }
 
 PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_crl(X509_CRL *crl)
 {
-    return PKCS12_item_pack_safebag(crl, ASN1_ITEM_rptr(X509_CRL),
+    return ossl_PKCS12_item_pack_safebag(crl, ASN1_ITEM_rptr(X509_CRL),
         NID_x509Crl, NID_crlBag);
 }
 
@@ -351,7 +352,7 @@ PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_p8inf(PKCS8_PRIV_KEY_INFO *p8)
 
 /* Turn PKCS8 object into a shrouded keybag */
 
-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8)
+PKCS12_SAFEBAG *ossl_PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8)
 {
     PKCS12_SAFEBAG *bag = PKCS12_SAFEBAG_new();
 
@@ -364,6 +365,13 @@ PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8)
     bag->value.shkeybag = p8;
     return bag;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8)
+{
+    return ossl_PKCS12_SAFEBAG_create0_pkcs8(p8);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_pkcs8_encrypt_ex(int pbe_nid,
     const char *pass,
@@ -390,7 +398,7 @@ PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_pkcs8_encrypt_ex(int pbe_nid,
     if (p8 == NULL)
         goto err;
 
-    bag = PKCS12_SAFEBAG_create0_pkcs8(p8);
+    bag = ossl_PKCS12_SAFEBAG_create0_pkcs8(p8);
     if (bag == NULL)
         X509_SIG_free(p8);
 

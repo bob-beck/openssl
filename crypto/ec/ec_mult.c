@@ -21,6 +21,7 @@
 #include "crypto/bn.h"
 #include "ec_local.h"
 #include "internal/refcount.h"
+#include "crypto/ec.h"
 
 /*
  * This file implements the wNAF-based interleaving multi-exponentiation method
@@ -282,7 +283,7 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
      * k := scalar + 2*cardinality
      */
     kbit = BN_is_bit_set(lambda, cardinality_bits);
-    BN_consttime_swap(kbit, k, lambda, group_top + 2);
+    ossl_BN_consttime_swap(kbit, k, lambda, group_top + 2);
 
     group_top = bn_get_top(group->field);
     if ((bn_wexpand(s->X, group_top) == NULL)
@@ -313,14 +314,14 @@ int ossl_ec_scalar_mul_ladder(const EC_GROUP *group, EC_POINT *r,
     /* top bit is a 1, in a fixed pos */
     pbit = 1;
 
-#define EC_POINT_CSWAP(c, a, b, w, t)              \
-    do {                                           \
-        BN_consttime_swap(c, (a)->X, (b)->X, w);   \
-        BN_consttime_swap(c, (a)->Y, (b)->Y, w);   \
-        BN_consttime_swap(c, (a)->Z, (b)->Z, w);   \
-        t = ((a)->Z_is_one ^ (b)->Z_is_one) & (c); \
-        (a)->Z_is_one ^= (t);                      \
-        (b)->Z_is_one ^= (t);                      \
+#define EC_POINT_CSWAP(c, a, b, w, t)                 \
+    do {                                              \
+        ossl_BN_consttime_swap(c, (a)->X, (b)->X, w); \
+        ossl_BN_consttime_swap(c, (a)->Y, (b)->Y, w); \
+        ossl_BN_consttime_swap(c, (a)->Z, (b)->Z, w); \
+        t = ((a)->Z_is_one ^ (b)->Z_is_one) & (c);    \
+        (a)->Z_is_one ^= (t);                         \
+        (b)->Z_is_one ^= (t);                         \
     } while (0)
 
     /*-
@@ -726,7 +727,7 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
         }
 
         if (wsize[i] > 1) {
-            if (!EC_POINT_dbl(group, tmp, val_sub[i][0], ctx))
+            if (!ossl_EC_POINT_dbl(group, tmp, val_sub[i][0], ctx))
                 goto err;
             for (j = 1; j < ((size_t)1 << (wsize[i] - 1)); j++) {
                 if (!EC_POINT_add(group, val_sub[i][j], val_sub[i][j - 1], tmp, ctx))
@@ -745,7 +746,7 @@ int ossl_ec_wNAF_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
         goto err;
     for (k = (int)(max_len - 1); k >= 0; k--) {
         if (!r_is_at_infinity) {
-            if (!EC_POINT_dbl(group, r, r, ctx))
+            if (!ossl_EC_POINT_dbl(group, r, r, ctx))
                 goto err;
         }
 
@@ -941,7 +942,7 @@ int ossl_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
     for (i = 0; i < numblocks; i++) {
         size_t j;
 
-        if (!EC_POINT_dbl(group, tmp_point, base, ctx))
+        if (!ossl_EC_POINT_dbl(group, tmp_point, base, ctx))
             goto err;
 
         if (!EC_POINT_copy(*var++, base))
@@ -966,10 +967,10 @@ int ossl_ec_wNAF_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
                 goto err;
             }
 
-            if (!EC_POINT_dbl(group, base, tmp_point, ctx))
+            if (!ossl_EC_POINT_dbl(group, base, tmp_point, ctx))
                 goto err;
             for (k = 2; k < blocksize; k++) {
-                if (!EC_POINT_dbl(group, base, base, ctx))
+                if (!ossl_EC_POINT_dbl(group, base, base, ctx))
                     goto err;
             }
         }

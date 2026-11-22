@@ -14,4 +14,20 @@
 
 void ossl_obj_cleanup_int(void);
 
+/**
+ * @brief Remove object names of a given type, or all names and the name table.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_OBJ_NAME_cleanup(int type);
+/**
+ * @brief Initialise the object name table once.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_OBJ_NAME_init(void);
+/**
+ * @brief Free the application-added signature algorithm tables.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_OBJ_sigid_free(void);
+
 #endif /* !defined(OSSL_CRYPTO_OBJECTS_H) */

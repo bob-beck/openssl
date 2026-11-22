@@ -12,6 +12,8 @@
 #include <openssl/asn1t.h>
 #include <openssl/conf.h>
 #include <openssl/x509v3.h>
+#include "crypto/asn1.h"
+#include "crypto/x509.h"
 
 ASN1_SEQUENCE(OTHERNAME) = {
     ASN1_SIMPLE(OTHERNAME, type_id, ASN1_OBJECT),
@@ -128,7 +130,7 @@ int GENERAL_NAME_cmp(GENERAL_NAME *a, GENERAL_NAME *b)
         break;
 
     case GEN_OTHERNAME:
-        result = OTHERNAME_cmp(a->d.otherName, b->d.otherName);
+        result = ossl_OTHERNAME_cmp(a->d.otherName, b->d.otherName);
         break;
 
     case GEN_EMAIL:
@@ -153,7 +155,7 @@ int GENERAL_NAME_cmp(GENERAL_NAME *a, GENERAL_NAME *b)
 }
 
 /* Returns 0 if they are equal, != 0 otherwise. */
-int OTHERNAME_cmp(OTHERNAME *a, OTHERNAME *b)
+int ossl_OTHERNAME_cmp(OTHERNAME *a, OTHERNAME *b)
 {
     int result = -1;
 
@@ -163,9 +165,16 @@ int OTHERNAME_cmp(OTHERNAME *a, OTHERNAME *b)
     if ((result = OBJ_cmp(a->type_id, b->type_id)) != 0)
         return result;
     /* Check the value. */
-    result = ASN1_TYPE_cmp(a->value, b->value);
+    result = ossl_ASN1_TYPE_cmp(a->value, b->value);
     return result;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OTHERNAME_cmp(OTHERNAME *a, OTHERNAME *b)
+{
+    return ossl_OTHERNAME_cmp(a, b);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 void GENERAL_NAME_set0_value(GENERAL_NAME *a, int type, void *value)
 {

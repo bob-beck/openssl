@@ -12,6 +12,8 @@
 #include "internal/cryptlib.h"
 #include <openssl/conf.h>
 #include <openssl/x509v3.h>
+#include "crypto/asn1.h"
+#include "internal/conf.h"
 
 /* Multi string module: add table entries from a given section */
 
@@ -24,7 +26,7 @@ static int stbl_module_init(CONF_IMODULE *md, const CONF *cnf)
     STACK_OF(CONF_VALUE) *sktmp;
     CONF_VALUE *mval;
 
-    stbl_section = CONF_imodule_get_value(md);
+    stbl_section = ossl_CONF_imodule_get_value(md);
     if ((sktmp = NCONF_get_section(cnf, stbl_section)) == NULL) {
         ERR_raise(ERR_LIB_ASN1, ASN1_R_ERROR_LOADING_SECTION);
         return 0;
@@ -41,13 +43,20 @@ static int stbl_module_init(CONF_IMODULE *md, const CONF *cnf)
 
 static void stbl_module_finish(CONF_IMODULE *md)
 {
-    ASN1_STRING_TABLE_cleanup();
+    ossl_ASN1_STRING_TABLE_cleanup();
 }
 
+void ossl_ASN1_add_stable_module(void)
+{
+    ossl_CONF_module_add("stbl_section", stbl_module_init, stbl_module_finish);
+}
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
 void ASN1_add_stable_module(void)
 {
-    CONF_module_add("stbl_section", stbl_module_init, stbl_module_finish);
+    ossl_ASN1_add_stable_module();
 }
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Create an table entry based on a name value pair. format is oid_name =
@@ -83,7 +92,7 @@ static int do_tcreate(const char *value, const char *name)
             if (*eptr)
                 goto err;
         } else if (strcmp(cnf->name, "mask") == 0) {
-            if (!ASN1_str2mask(cnf->value, &tbl_mask) || !tbl_mask)
+            if (!ossl_ASN1_str2mask(cnf->value, &tbl_mask) || !tbl_mask)
                 goto err;
         } else if (strcmp(cnf->name, "flags") == 0) {
             if (strcmp(cnf->value, "nomask") == 0)
@@ -107,7 +116,7 @@ err:
             ERR_raise_data(ERR_LIB_ASN1, ASN1_R_INVALID_STRING_TABLE_VALUE,
                 "name=%s, value=%s", name, value);
     } else {
-        rv = ASN1_STRING_TABLE_add(nid, tbl_min, tbl_max,
+        rv = ossl_ASN1_STRING_TABLE_add(nid, tbl_min, tbl_max,
             tbl_mask, tbl_flags);
         if (!rv)
             ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);

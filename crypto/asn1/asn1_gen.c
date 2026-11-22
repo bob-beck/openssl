@@ -11,6 +11,7 @@
 #include <openssl/x509v3.h>
 #include "internal/cryptlib.h"
 #include "crypto/asn1.h"
+#include "crypto/x509.h"
 
 #define ASN1_GEN_FLAG 0x10000
 #define ASN1_GEN_FLAG_IMP (ASN1_GEN_FLAG | 1)
@@ -81,13 +82,13 @@ ASN1_TYPE *ASN1_generate_nconf(const char *str, CONF *nconf)
     X509V3_CTX cnf;
 
     if (!nconf)
-        return ASN1_generate_v3(str, NULL);
+        return ossl_ASN1_generate_v3(str, NULL);
 
     X509V3_set_nconf(&cnf, nconf);
-    return ASN1_generate_v3(str, &cnf);
+    return ossl_ASN1_generate_v3(str, &cnf);
 }
 
-ASN1_TYPE *ASN1_generate_v3(const char *str, X509V3_CTX *cnf)
+ASN1_TYPE *ossl_ASN1_generate_v3(const char *str, X509V3_CTX *cnf)
 {
     int err = 0;
     ASN1_TYPE *ret = generate_v3(str, cnf, 0, &err);
@@ -95,6 +96,13 @@ ASN1_TYPE *ASN1_generate_v3(const char *str, X509V3_CTX *cnf)
         ERR_raise(ERR_LIB_ASN1, err);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+ASN1_TYPE *ASN1_generate_v3(const char *str, X509V3_CTX *cnf)
+{
+    return ossl_ASN1_generate_v3(str, cnf);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 static ASN1_TYPE *generate_v3(const char *str, X509V3_CTX *cnf, int depth,
     int *perr)
@@ -418,7 +426,7 @@ static ASN1_TYPE *asn1_multi(int utype, const char *section, X509V3_CTX *cnf,
     if (section) {
         if (!cnf)
             goto bad;
-        sect = X509V3_get_section(cnf, (char *)section);
+        sect = ossl_X509V3_get_section(cnf, (char *)section);
         if (!sect)
             goto bad;
         for (i = 0; i < sk_CONF_VALUE_num(sect); i++) {
@@ -464,7 +472,7 @@ bad:
     OPENSSL_free(der);
 
     sk_ASN1_TYPE_pop_free(sk, ASN1_TYPE_free);
-    X509V3_section_free(cnf, sect);
+    ossl_X509V3_section_free(cnf, sect);
 
     return ret;
 }
@@ -616,7 +624,7 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
         vtmp.name = NULL;
         vtmp.section = NULL;
         vtmp.value = (char *)str;
-        if (!X509V3_get_value_bool(&vtmp, &atmp->value.boolean)) {
+        if (!ossl_X509V3_get_value_bool(&vtmp, &atmp->value.boolean)) {
             ERR_raise(ERR_LIB_ASN1, ASN1_R_ILLEGAL_BOOLEAN);
             goto bad_str;
         }
@@ -688,7 +696,7 @@ static ASN1_TYPE *asn1_str2type(const char *str, int format, int utype)
         }
 
         if (ASN1_mbstring_copy(&atmp->value.asn1_string, (unsigned char *)str,
-                -1, format, ASN1_tag2bit(utype))
+                -1, format, ossl_ASN1_tag2bit(utype))
             <= 0) {
             ERR_raise(ERR_LIB_ASN1, ERR_R_ASN1_LIB);
             goto bad_str;
@@ -783,15 +791,22 @@ static int mask_cb(const char *elem, int len, void *arg)
     tag = asn1_str2tag(elem, len);
     if (!tag || (tag & ASN1_GEN_FLAG))
         return 0;
-    tmpmask = ASN1_tag2bit(tag);
+    tmpmask = ossl_ASN1_tag2bit(tag);
     if (!tmpmask)
         return 0;
     *pmask |= tmpmask;
     return 1;
 }
 
-int ASN1_str2mask(const char *str, unsigned long *pmask)
+int ossl_ASN1_str2mask(const char *str, unsigned long *pmask)
 {
     *pmask = 0;
     return CONF_parse_list(str, '|', 1, mask_cb, pmask);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int ASN1_str2mask(const char *str, unsigned long *pmask)
+{
+    return ossl_ASN1_str2mask(str, pmask);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

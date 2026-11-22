@@ -78,26 +78,52 @@ typedef void conf_finish_func(CONF_IMODULE *md);
 #define CONF_MFLAGS_DEFAULT_SECTION 0x20
 
 int CONF_set_default_method(CONF_METHOD *meth);
-void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Initialise a CONF with the default method and attach a configuration
+ * hash to it.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
     long *eline);
 #ifndef OPENSSL_NO_STDIO
 LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
     long *eline);
 #endif
-LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Parse configuration data from a BIO into a configuration hash.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
     long *eline);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
     const char *section);
-char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Look up a configuration value by group and name, or an environment
+ * variable if conf is NULL.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
     const char *name);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
     const char *name);
 void CONF_free(LHASH_OF(CONF_VALUE) *conf);
 #ifndef OPENSSL_NO_STDIO
 int CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out);
 #endif
-int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Write every value in a configuration hash to a BIO.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #ifndef OPENSSL_NO_DEPRECATED_1_1_0
 OSSL_DEPRECATEDIN_1_1_0 void OPENSSL_config(const char *config_name);
 #endif
@@ -115,12 +141,24 @@ OSSL_DEPRECATEDIN_1_1_0 void OPENSSL_config(const char *config_name);
 CONF *NCONF_new_ex(OSSL_LIB_CTX *libctx, CONF_METHOD *meth);
 OSSL_LIB_CTX *NCONF_get0_libctx(const CONF *conf);
 CONF *NCONF_new(CONF_METHOD *meth);
-CONF_METHOD *NCONF_default(void);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Return the default configuration method.
+ * @see NCONF_default(3)
+ */
+OSSL_DEPRECATEDIN_4_2 CONF_METHOD *NCONF_default(void);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #ifndef OPENSSL_NO_DEPRECATED_3_0
 OSSL_DEPRECATEDIN_3_0 CONF_METHOD *NCONF_WIN32(void);
 #endif
 void NCONF_free(CONF *conf);
-void NCONF_free_data(CONF *conf);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Free the data of a configuration, keeping the CONF itself.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void NCONF_free_data(CONF *conf);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int NCONF_load(CONF *conf, const char *file, long *eline);
 #ifndef OPENSSL_NO_STDIO
@@ -136,7 +174,13 @@ int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
 #ifndef OPENSSL_NO_STDIO
 int NCONF_dump_fp(const CONF *conf, FILE *out);
 #endif
-int NCONF_dump_bio(const CONF *conf, BIO *out);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Write every value in a configuration to a BIO.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int NCONF_dump_bio(const CONF *conf, BIO *out);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #define NCONF_get_number(c, g, n, r) NCONF_get_number_e(c, g, n, r)
 
@@ -155,13 +199,35 @@ void CONF_modules_finish(void);
     while (0)               \
     continue
 #endif
-int CONF_module_add(const char *name, conf_init_func *ifunc,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Register a configuration module by name.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int CONF_module_add(const char *name, conf_init_func *ifunc,
     conf_finish_func *ffunc);
 
-const char *CONF_imodule_get_name(const CONF_IMODULE *md);
-const char *CONF_imodule_get_value(const CONF_IMODULE *md);
-void *CONF_imodule_get_usr_data(const CONF_IMODULE *md);
-void CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data);
+/**
+ * @brief Get the name of an initialised configuration module.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 const char *CONF_imodule_get_name(const CONF_IMODULE *md);
+/**
+ * @brief Get the configuration value of an initialised configuration module.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 const char *CONF_imodule_get_value(const CONF_IMODULE *md);
+/**
+ * @brief Get the user data of an initialised configuration module.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void *CONF_imodule_get_usr_data(const CONF_IMODULE *md);
+/**
+ * @brief Set the user data of an initialised configuration module.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 CONF_MODULE *CONF_imodule_get_module(const CONF_IMODULE *md);
 unsigned long CONF_imodule_get_flags(const CONF_IMODULE *md);
 void CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags);

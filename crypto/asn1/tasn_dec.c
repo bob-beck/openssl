@@ -102,12 +102,19 @@ static const unsigned long tag2bit[32] = {
     B_ASN1_UNKNOWN,
 };
 
-unsigned long ASN1_tag2bit(int tag)
+unsigned long ossl_ASN1_tag2bit(int tag)
 {
     if ((tag < 0) || (tag > 30))
         return 0;
     return tag2bit[tag];
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+unsigned long ASN1_tag2bit(int tag)
+{
+    return ossl_ASN1_tag2bit(tag);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* Macro to initialize and invalidate the cache */
 
@@ -143,17 +150,26 @@ static int asn1_item_ex_d2i_intern(ASN1_VALUE **pval, const unsigned char **in,
     rv = asn1_item_embed_d2i(pval, in, len, it, tag, aclass, opt, ctx, 0,
         libctx, propq);
     if (rv <= 0)
-        ASN1_item_ex_free(pval, it);
+        ossl_ASN1_item_ex_free(pval, it);
     return rv;
 }
 
-int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
+int ossl_ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
     const ASN1_ITEM *it,
     int tag, int aclass, char opt, ASN1_TLC *ctx)
 {
     return asn1_item_ex_d2i_intern(pval, in, len, it, tag, aclass, opt, ctx,
         NULL, NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
+    const ASN1_ITEM *it,
+    int tag, int aclass, char opt, ASN1_TLC *ctx)
+{
+    return ossl_ASN1_item_ex_d2i(pval, in, len, it, tag, aclass, opt, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 ASN1_VALUE *ASN1_item_d2i_ex(ASN1_VALUE **pval,
     const unsigned char **in, long len,
@@ -272,7 +288,7 @@ int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
         }
 
         /* Check tag matches bit map */
-        if (!(ASN1_tag2bit(otag) & it->utype)) {
+        if (!(ossl_ASN1_tag2bit(otag) & it->utype)) {
             /* If OPTIONAL, assume this is OK */
             if (opt)
                 return -1;
@@ -344,7 +360,7 @@ int asn1_item_embed_d2i(ASN1_VALUE **pval, const unsigned char **in,
             /* If OPTIONAL, this is OK */
             if (opt) {
                 /* Free and zero it */
-                ASN1_item_ex_free(pval, it);
+                ossl_ASN1_item_ex_free(pval, it);
                 return -1;
             }
             ERR_raise(ERR_LIB_ASN1, ASN1_R_NO_MATCHING_CHOICE_TYPE);
@@ -650,7 +666,7 @@ static int asn1_template_noexp_d2i(ASN1_VALUE **val,
             ASN1_VALUE *vtmp;
             while (sk_ASN1_VALUE_num(sktmp) > 0) {
                 vtmp = sk_ASN1_VALUE_pop(sktmp);
-                ASN1_item_ex_free(&vtmp, ASN1_ITEM_ptr(tt->item));
+                ossl_ASN1_item_ex_free(&vtmp, ASN1_ITEM_ptr(tt->item));
             }
         }
 

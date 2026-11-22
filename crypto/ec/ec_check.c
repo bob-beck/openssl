@@ -15,6 +15,7 @@
 
 #include "ec_local.h"
 #include <openssl/err.h>
+#include "crypto/ec.h"
 
 int EC_GROUP_check_named_curve(const EC_GROUP *group, int nist_only,
     BN_CTX *ctx)
@@ -75,7 +76,7 @@ int EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx)
     }
 
     /* check the discriminant */
-    if (!EC_GROUP_check_discriminant(group, ctx)) {
+    if (!ossl_EC_GROUP_check_discriminant(group, ctx)) {
         ERR_raise(ERR_LIB_EC, EC_R_DISCRIMINANT_IS_ZERO);
         goto err;
     }

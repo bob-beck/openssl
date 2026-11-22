@@ -11,6 +11,8 @@
 #include "internal/cryptlib.h"
 #include <openssl/pkcs12.h>
 #include "p12_local.h"
+#include "crypto/evp.h"
+#include "crypto/pkcs12.h"
 
 static int pkcs12_add_bag(STACK_OF(PKCS12_SAFEBAG) **pbags,
     PKCS12_SAFEBAG *bag);
@@ -25,11 +27,11 @@ static PKCS12_SAFEBAG *pkcs12_add_cert_bag(STACK_OF(PKCS12_SAFEBAG) **pbags,
 
 static int copy_bag_attr(PKCS12_SAFEBAG *bag, EVP_PKEY *pkey, int nid)
 {
-    int idx = EVP_PKEY_get_attr_by_NID(pkey, nid, -1);
+    int idx = ossl_EVP_PKEY_get_attr_by_NID(pkey, nid, -1);
 
     if (idx < 0)
         return 1;
-    return X509at_add1_attr(&bag->attrib, EVP_PKEY_get_attr(pkey, idx)) != NULL;
+    return X509at_add1_attr(&bag->attrib, ossl_EVP_PKEY_get_attr(pkey, idx)) != NULL;
 }
 
 PKCS12 *PKCS12_create_ex2(const char *pass, const char *name, EVP_PKEY *pkey,
@@ -95,7 +97,7 @@ PKCS12 *PKCS12_create_ex2(const char *pass, const char *name, EVP_PKEY *pkey,
 
     /* Add all other certificates */
     for (i = 0; i < sk_X509_num(ca); i++) {
-        if ((bag = PKCS12_add_cert(&bags, sk_X509_value(ca, i))) == NULL)
+        if ((bag = ossl_PKCS12_add_cert(&bags, sk_X509_value(ca, i))) == NULL)
             goto err;
         if (cb != NULL) {
             cbret = cb(bag, cbarg);
@@ -215,7 +217,7 @@ err:
     return NULL;
 }
 
-PKCS12_SAFEBAG *PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert)
+PKCS12_SAFEBAG *ossl_PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert)
 {
     char *name = NULL;
     int namelen = -1;
@@ -231,6 +233,13 @@ PKCS12_SAFEBAG *PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert)
     return pkcs12_add_cert_bag(pbags, cert, name, namelen, keyid, keyidlen);
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+PKCS12_SAFEBAG *PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert)
+{
+    return ossl_PKCS12_add_cert(pbags, cert);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 PKCS12_SAFEBAG *PKCS12_add_key_ex(STACK_OF(PKCS12_SAFEBAG) **pbags,
     EVP_PKEY *key, int key_usage, int iter,
     int nid_key, const char *pass,
@@ -243,7 +252,7 @@ PKCS12_SAFEBAG *PKCS12_add_key_ex(STACK_OF(PKCS12_SAFEBAG) **pbags,
     /* Make a PKCS#8 structure */
     if ((p8 = EVP_PKEY2PKCS8(key)) == NULL)
         goto err;
-    if (key_usage && !PKCS8_add_keyusage(p8, key_usage)) {
+    if (key_usage && !ossl_PKCS8_add_keyusage(p8, key_usage)) {
         PKCS8_PRIV_KEY_INFO_free(p8);
         goto err;
     }

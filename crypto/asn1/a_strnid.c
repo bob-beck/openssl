@@ -12,6 +12,7 @@
 #include <openssl/asn1.h>
 #include <openssl/objects.h>
 #include "tbl_standard.h"
+#include "crypto/asn1.h"
 
 static STACK_OF(ASN1_STRING_TABLE) *stable = NULL;
 static void st_free(ASN1_STRING_TABLE *tbl);
@@ -77,7 +78,7 @@ int ASN1_STRING_set_default_mask_asc(const char *p)
  * a corresponding OID. For example certificates and certificate requests.
  */
 
-ASN1_STRING *ASN1_STRING_set_by_NID(ASN1_STRING **out,
+ASN1_STRING *ossl_ASN1_STRING_set_by_NID(ASN1_STRING **out,
     const unsigned char *in, int inlen,
     int inform, int nid)
 {
@@ -103,6 +104,15 @@ ASN1_STRING *ASN1_STRING_set_by_NID(ASN1_STRING **out,
         return NULL;
     return *out;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+ASN1_STRING *ASN1_STRING_set_by_NID(ASN1_STRING **out,
+    const unsigned char *in, int inlen,
+    int inform, int nid)
+{
+    return ossl_ASN1_STRING_set_by_NID(out, in, inlen, inform, nid);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Now the tables and helper functions for the string table:
@@ -188,7 +198,7 @@ static ASN1_STRING_TABLE *stable_get(int nid)
     return rv;
 }
 
-int ASN1_STRING_TABLE_add(int nid,
+int ossl_ASN1_STRING_TABLE_add(int nid,
     long minsize, long maxsize, unsigned long mask,
     unsigned long flags)
 {
@@ -215,7 +225,16 @@ int ASN1_STRING_TABLE_add(int nid,
     return 1;
 }
 
-void ASN1_STRING_TABLE_cleanup(void)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int ASN1_STRING_TABLE_add(int nid,
+    long minsize, long maxsize, unsigned long mask,
+    unsigned long flags)
+{
+    return ossl_ASN1_STRING_TABLE_add(nid, minsize, maxsize, mask, flags);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+void ossl_ASN1_STRING_TABLE_cleanup(void)
 {
     STACK_OF(ASN1_STRING_TABLE) *tmp;
 
@@ -225,6 +244,13 @@ void ASN1_STRING_TABLE_cleanup(void)
     stable = NULL;
     sk_ASN1_STRING_TABLE_pop_free(tmp, st_free);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void ASN1_STRING_TABLE_cleanup(void)
+{
+    ossl_ASN1_STRING_TABLE_cleanup();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 static void st_free(ASN1_STRING_TABLE *tbl)
 {

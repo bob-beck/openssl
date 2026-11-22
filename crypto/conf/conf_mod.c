@@ -579,7 +579,7 @@ static void module_finish(CONF_IMODULE *imod)
 
 /* Add a static module to OpenSSL */
 
-int CONF_module_add(const char *name, conf_init_func *ifunc,
+int ossl_CONF_module_add(const char *name, conf_init_func *ifunc,
     conf_finish_func *ffunc)
 {
     if (module_add(NULL, name, ifunc, ffunc))
@@ -587,6 +587,14 @@ int CONF_module_add(const char *name, conf_init_func *ifunc,
     else
         return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CONF_module_add(const char *name, conf_init_func *ifunc,
+    conf_finish_func *ffunc)
+{
+    return ossl_CONF_module_add(name, ifunc, ffunc);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 void ossl_config_modules_free(void)
 {
@@ -596,25 +604,53 @@ void ossl_config_modules_free(void)
 
 /* Utility functions */
 
-const char *CONF_imodule_get_name(const CONF_IMODULE *md)
+const char *ossl_CONF_imodule_get_name(const CONF_IMODULE *md)
 {
     return md->name;
 }
 
-const char *CONF_imodule_get_value(const CONF_IMODULE *md)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const char *CONF_imodule_get_name(const CONF_IMODULE *md)
+{
+    return ossl_CONF_imodule_get_name(md);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+const char *ossl_CONF_imodule_get_value(const CONF_IMODULE *md)
 {
     return md->value;
 }
 
-void *CONF_imodule_get_usr_data(const CONF_IMODULE *md)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const char *CONF_imodule_get_value(const CONF_IMODULE *md)
+{
+    return ossl_CONF_imodule_get_value(md);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+void *ossl_CONF_imodule_get_usr_data(const CONF_IMODULE *md)
 {
     return md->usr_data;
 }
 
-void CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void *CONF_imodule_get_usr_data(const CONF_IMODULE *md)
+{
+    return ossl_CONF_imodule_get_usr_data(md);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+void ossl_CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data)
 {
     md->usr_data = usr_data;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data)
+{
+    ossl_CONF_imodule_set_usr_data(md, usr_data);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 CONF_MODULE *CONF_imodule_get_module(const CONF_IMODULE *md)
 {

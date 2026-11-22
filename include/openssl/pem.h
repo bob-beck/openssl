@@ -469,8 +469,19 @@ int PEM_SignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
 
 /* The default pem_password_cb that's used internally */
 int PEM_def_callback(char *buf, int num, int rwflag, void *userdata);
-void PEM_proc_type(char *buf, int type);
-void PEM_dek_info(char *buf, const char *type, int len, const char *str);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Append a Proc-Type header line to a PEM header buffer.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void PEM_proc_type(char *buf, int type);
+/**
+ * @brief Append a DEK-Info header line with a cipher name and hex IV to a PEM
+ * header buffer.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void PEM_dek_info(char *buf, const char *type, int len, const char *str);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #include <openssl/symhacks.h>
 
@@ -562,7 +573,13 @@ EVP_PKEY *b2i_PrivateKey(const unsigned char **in, long length);
 EVP_PKEY *b2i_PublicKey(const unsigned char **in, long length);
 EVP_PKEY *b2i_PrivateKey_bio(BIO *in);
 EVP_PKEY *b2i_PublicKey_bio(BIO *in);
-int i2b_PrivateKey_bio(BIO *out, const EVP_PKEY *pk);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Write a private key to a BIO in Microsoft PRIVATEKEYBLOB format.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int i2b_PrivateKey_bio(BIO *out, const EVP_PKEY *pk);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int i2b_PublicKey_bio(BIO *out, const EVP_PKEY *pk);
 EVP_PKEY *b2i_PVK_bio(BIO *in, pem_password_cb *cb, void *u);
 EVP_PKEY *b2i_PVK_bio_ex(BIO *in, pem_password_cb *cb, void *u,

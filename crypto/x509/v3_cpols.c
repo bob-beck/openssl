@@ -19,6 +19,7 @@
 #include "ext_dat.h"
 
 #include <crypto/asn1.h>
+#include "crypto/x509.h"
 
 /* Certificate policies extension support: this one is a bit complex... */
 
@@ -125,14 +126,14 @@ static STACK_OF(POLICYINFO) *r2i_certpol(X509V3_EXT_METHOD *method,
         } else if (*pstr == '@') {
             STACK_OF(CONF_VALUE) *polsect;
 
-            polsect = X509V3_get_section(ctx, pstr + 1);
+            polsect = ossl_X509V3_get_section(ctx, pstr + 1);
             if (polsect == NULL) {
                 ERR_raise_data(ERR_LIB_X509V3, X509V3_R_INVALID_SECTION,
                     "%s", cnf->name);
                 goto err;
             }
             pol = policy_section(ctx, polsect, ia5org);
-            X509V3_section_free(ctx, polsect);
+            ossl_X509V3_section_free(ctx, polsect);
             if (pol == NULL)
                 goto err;
         } else {
@@ -226,7 +227,7 @@ static POLICYINFO *policy_section(X509V3_CTX *ctx,
                 X509V3_conf_err(cnf);
                 goto err;
             }
-            unot = X509V3_get_section(ctx, cnf->value + 1);
+            unot = ossl_X509V3_get_section(ctx, cnf->value + 1);
             if (!unot) {
                 ERR_raise(ERR_LIB_X509V3, X509V3_R_INVALID_SECTION);
 
@@ -234,7 +235,7 @@ static POLICYINFO *policy_section(X509V3_CTX *ctx,
                 goto err;
             }
             qual = notice_section(ctx, unot, ia5org);
-            X509V3_section_free(ctx, unot);
+            ossl_X509V3_section_free(ctx, unot);
             if (!qual)
                 goto err;
             if (pol->qualifiers == NULL)

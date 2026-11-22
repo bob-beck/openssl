@@ -14,6 +14,7 @@
 #include <openssl/crypto.h>
 #include "internal/numbers.h"
 #include "bio_local.h"
+#include "internal/bio.h"
 
 /*
  * Helper macro for the callback to determine whether an operator expects a
@@ -888,7 +889,7 @@ void BIO_free_all(BIO *bio)
     }
 }
 
-BIO *BIO_dup_chain(BIO *in)
+BIO *ossl_BIO_dup_chain(BIO *in)
 {
     BIO *ret = NULL, *eoc = NULL, *bio, *new_bio;
 
@@ -933,6 +934,13 @@ err:
 
     return NULL;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+BIO *BIO_dup_chain(BIO *in)
+{
+    return ossl_BIO_dup_chain(in);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 void BIO_copy_next_retry(BIO *b)
 {

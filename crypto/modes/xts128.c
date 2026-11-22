@@ -20,7 +20,7 @@ typedef uint64_t u64_a1;
 #endif
 #endif
 
-int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
+int ossl_CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
     const unsigned char iv[16],
     const unsigned char *inp, unsigned char *out,
     size_t len, int enc)
@@ -159,3 +159,13 @@ int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
 
     return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
+    const unsigned char iv[16],
+    const unsigned char *inp, unsigned char *out,
+    size_t len, int enc)
+{
+    return ossl_CRYPTO_xts128_encrypt(ctx, iv, inp, out, len, enc);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

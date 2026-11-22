@@ -101,6 +101,8 @@ explicitly set to IPPROTO_SCTP. The same may be true on other platforms.
 
 The BIO_lookup_ex() function was added in OpenSSL 1.1.1.
 
+BIO_lookup() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2016-2024 The OpenSSL Project Authors. All Rights Reserved.

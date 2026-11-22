@@ -9,6 +9,7 @@
 
 #include "prov/ciphercommon.h"
 #include "prov/ciphercommon_gcm.h"
+#include "crypto/modes.h"
 
 int ossl_gcm_setiv(PROV_GCM_CTX *ctx, const unsigned char *iv, size_t ivlen)
 {
@@ -36,7 +37,7 @@ int ossl_gcm_cipher_update(PROV_GCM_CTX *ctx, const unsigned char *in,
     size_t len, unsigned char *out)
 {
     if (ctx->enc) {
-        if (CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, len))
+        if (ossl_CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, len))
             return 0;
     } else {
         if (CRYPTO_gcm128_decrypt(&ctx->gcm, in, out, len))
@@ -48,7 +49,7 @@ int ossl_gcm_cipher_update(PROV_GCM_CTX *ctx, const unsigned char *in,
 int ossl_gcm_cipher_final(PROV_GCM_CTX *ctx, unsigned char *tag)
 {
     if (ctx->enc) {
-        CRYPTO_gcm128_tag(&ctx->gcm, tag, GCM_TAG_MAX_SIZE);
+        ossl_CRYPTO_gcm128_tag(&ctx->gcm, tag, GCM_TAG_MAX_SIZE);
         ctx->taglen = GCM_TAG_MAX_SIZE;
     } else {
         if (CRYPTO_gcm128_finish(&ctx->gcm, tag, ctx->taglen) != 0)

@@ -105,7 +105,7 @@ int X509_check_purpose(const X509 *x, int id, int non_leaf)
 }
 
 /* resets to default (any) purpose if purpose == X509_PURPOSE_DEFAULT_ANY (0) */
-int X509_PURPOSE_set(int *p, int purpose)
+int ossl_X509_PURPOSE_set(int *p, int purpose)
 {
     if (purpose != X509_PURPOSE_DEFAULT_ANY && X509_PURPOSE_get_by_id(purpose) == -1) {
         ERR_raise(ERR_LIB_X509V3, X509V3_R_INVALID_PURPOSE);
@@ -114,6 +114,13 @@ int X509_PURPOSE_set(int *p, int purpose)
     *p = purpose;
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_PURPOSE_set(int *p, int purpose)
+{
+    return ossl_X509_PURPOSE_set(p, purpose);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int X509_PURPOSE_get_count(void)
 {
@@ -295,10 +302,17 @@ char *X509_PURPOSE_get0_sname(const X509_PURPOSE *xp)
     return xp->sname;
 }
 
-int X509_PURPOSE_get_trust(const X509_PURPOSE *xp)
+int ossl_X509_PURPOSE_get_trust(const X509_PURPOSE *xp)
 {
     return xp->trust;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_PURPOSE_get_trust(const X509_PURPOSE *xp)
+{
+    return ossl_X509_PURPOSE_get_trust(xp);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 static int nid_cmp(const int *a, const int *b)
 {

@@ -17,6 +17,7 @@
 #include <openssl/bn.h>
 #include <openssl/err.h>
 #include "fuzzer.h"
+#include "crypto/bn.h"
 
 int FuzzerInitialize(int *argc, char ***argv)
 {
@@ -80,7 +81,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
 
     if (!BN_mod_exp(b4, b1, b2, b3, ctx))
         goto done;
-    if (!BN_mod_exp_simple(b5, b1, b2, b3, ctx))
+    if (!ossl_BN_mod_exp_simple(b5, b1, b2, b3, ctx))
         goto done;
 
 #ifndef OPENSSL_NO_STDIO

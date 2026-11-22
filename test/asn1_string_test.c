@@ -13,6 +13,7 @@
 
 #include <openssl/asn1.h>
 #include "testutil.h"
+#include "crypto/asn1.h"
 
 struct abs_get_length_test {
     const char *descr;
@@ -401,7 +402,7 @@ asn1_string_new_not_owned_test(void)
     if (!TEST_ptr(tmp = ASN1_STRING_new_not_owned(V_ASN1_OCTET_STRING, data, sizeof(data))))
         goto err;
 
-    ASN1_STRING_clear_free(tmp);
+    ossl_ASN1_STRING_clear_free(tmp);
     tmp = NULL;
 
     if (!TEST_mem_eq(data, sizeof(data), data2, sizeof(data2)))
@@ -422,7 +423,7 @@ asn1_string_new_not_owned_test(void)
     if (!TEST_mem_eq(ASN1_STRING_get0_data(tmp), strlen("muppet"), "muppet", strlen("muppet")))
         goto err;
 
-    ASN1_STRING_clear_free(tmp);
+    ossl_ASN1_STRING_clear_free(tmp);
     tmp = NULL;
 
     if (!TEST_ptr(tmp = ASN1_STRING_new_not_owned(V_ASN1_OCTET_STRING, data, sizeof(data))))
@@ -451,7 +452,7 @@ asn1_string_new_not_owned_test(void)
         goto err;
 
     tmpstring = NULL;
-    ASN1_STRING_clear_free(tmp);
+    ossl_ASN1_STRING_clear_free(tmp);
     tmp = NULL;
 
     if (!TEST_ptr_null(tmp = ASN1_STRING_new_not_owned(V_ASN1_BIT_STRING, data, sizeof(data))))
@@ -469,7 +470,7 @@ asn1_string_new_not_owned_test(void)
     success = 1;
 
 err:
-    ASN1_STRING_clear_free(tmp);
+    ossl_ASN1_STRING_clear_free(tmp);
 
     return success;
 }

@@ -308,11 +308,20 @@ err:
     return rv;
 }
 
-int PKCS5_v2_scrypt_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass,
+int ossl_PKCS5_v2_scrypt_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass,
     int passlen, ASN1_TYPE *param,
     const EVP_CIPHER *c, const EVP_MD *md, int en_de)
 {
     return PKCS5_v2_scrypt_keyivgen_ex(ctx, pass, passlen, param, c, md, en_de, NULL, NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int PKCS5_v2_scrypt_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass,
+    int passlen, ASN1_TYPE *param,
+    const EVP_CIPHER *c, const EVP_MD *md, int en_de)
+{
+    return ossl_PKCS5_v2_scrypt_keyivgen(ctx, pass, passlen, param, c, md, en_de);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #endif /* OPENSSL_NO_SCRYPT */

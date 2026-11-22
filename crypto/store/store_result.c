@@ -24,6 +24,8 @@
 #include "crypto/evp.h"
 #include "crypto/x509.h"
 #include "store_local.h"
+#include "crypto/pkcs12.h"
+#include "crypto/store.h"
 
 #ifndef OSSL_OBJECT_PKCS12
 /*
@@ -187,12 +189,12 @@ static int try_name(struct extracted_param_data_st *data, OSSL_STORE_INFO **v)
         if ((newname = OPENSSL_strdup(data->utf8_data)) == NULL
             || (data->desc != NULL
                 && (newdesc = OPENSSL_strdup(data->desc)) == NULL)
-            || (*v = OSSL_STORE_INFO_new_NAME(newname)) == NULL) {
+            || (*v = ossl_OSSL_STORE_INFO_new_NAME(newname)) == NULL) {
             OPENSSL_free(newname);
             OPENSSL_free(newdesc);
             return 0;
         }
-        OSSL_STORE_INFO_set0_NAME_description(*v, newdesc);
+        ossl_OSSL_STORE_INFO_set0_NAME_description(*v, newdesc);
     }
     return 1;
 }
@@ -377,7 +379,7 @@ static EVP_PKEY *try_key_value_legacy(struct extracted_param_data_st *data,
                  * No need to check the returned value, |new_der|
                  * will be NULL on error anyway.
                  */
-                PKCS12_pbe_crypt(alg, pbuf, (int)plen,
+                ossl_PKCS12_pbe_crypt(alg, pbuf, (int)plen,
                     oct->data, oct->length,
                     &new_der, &len, 0);
                 der_len = len;
@@ -402,7 +404,7 @@ static EVP_PKEY *try_key_value_legacy(struct extracted_param_data_st *data,
         }
 
         if (pk != NULL)
-            *store_info_new = OSSL_STORE_INFO_new_PKEY;
+            *store_info_new = ossl_OSSL_STORE_INFO_new_PKEY;
 
         OPENSSL_free(new_der);
     }
@@ -464,12 +466,12 @@ static int try_key(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
                  * always has the public half.
                  */
                 if (evp_keymgmt_util_has(pk, OSSL_KEYMGMT_SELECT_PRIVATE_KEY))
-                    store_info_new = OSSL_STORE_INFO_new_PKEY;
+                    store_info_new = ossl_OSSL_STORE_INFO_new_PKEY;
                 else if (evp_keymgmt_util_has(pk,
                              OSSL_KEYMGMT_SELECT_PUBLIC_KEY))
                     store_info_new = OSSL_STORE_INFO_new_PUBKEY;
                 else
-                    store_info_new = OSSL_STORE_INFO_new_PARAMS;
+                    store_info_new = ossl_OSSL_STORE_INFO_new_PARAMS;
             }
             *v = store_info_new(pk);
         }
@@ -520,7 +522,7 @@ static int try_cert(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
         if (cert != NULL) {
             /* We determined the object type */
             data->object_type = OSSL_OBJECT_CERT;
-            *v = OSSL_STORE_INFO_new_CERT(cert);
+            *v = ossl_OSSL_STORE_INFO_new_CERT(cert);
             if (*v == NULL)
                 X509_free(cert);
         }
@@ -549,7 +551,7 @@ static int try_crl(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
         }
 
         if (crl != NULL)
-            *v = OSSL_STORE_INFO_new_CRL(crl);
+            *v = ossl_OSSL_STORE_INFO_new_CRL(crl);
         if (*v == NULL)
             X509_CRL_free(crl);
     }
@@ -640,7 +642,7 @@ static int try_pkcs12(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
 
                 if ((infos = sk_OSSL_STORE_INFO_new_null()) != NULL) {
                     if (pkey != NULL) {
-                        if ((osi_pkey = OSSL_STORE_INFO_new_PKEY(pkey)) != NULL
+                        if ((osi_pkey = ossl_OSSL_STORE_INFO_new_PKEY(pkey)) != NULL
                             /* clearing pkey here avoids case distinctions */
                             && (pkey = NULL) == NULL
                             && sk_OSSL_STORE_INFO_push(infos, osi_pkey) != 0)
@@ -649,7 +651,7 @@ static int try_pkcs12(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
                             ok = 0;
                     }
                     if (ok && cert != NULL) {
-                        if ((osi_cert = OSSL_STORE_INFO_new_CERT(cert)) != NULL
+                        if ((osi_cert = ossl_OSSL_STORE_INFO_new_CERT(cert)) != NULL
                             /* clearing cert here avoids case distinctions */
                             && (cert = NULL) == NULL
                             && sk_OSSL_STORE_INFO_push(infos, osi_cert) != 0)
@@ -670,7 +672,7 @@ static int try_pkcs12(struct extracted_param_data_st *data, OSSL_STORE_INFO **v,
                     while (ok && sk_X509_num(chain) > 0) {
                         X509 *ca = sk_X509_value(chain, 0);
 
-                        if ((osi_ca = OSSL_STORE_INFO_new_CERT(ca)) != NULL
+                        if ((osi_ca = ossl_OSSL_STORE_INFO_new_CERT(ca)) != NULL
                             && sk_X509_shift(chain) != NULL
                             && sk_OSSL_STORE_INFO_push(infos, osi_ca) != 0)
                             osi_ca = NULL;

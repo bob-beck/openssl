@@ -12,6 +12,7 @@
 #include "internal/nelem.h"
 #include "internal/thread_once.h"
 #include <openssl/err.h>
+#include "crypto/objects.h"
 
 static STACK_OF(nid_triple) *sig_app, *sigx_app;
 static CRYPTO_RWLOCK *sig_lock;
@@ -211,7 +212,7 @@ static void sid_free(nid_triple *tt)
     OPENSSL_free(tt);
 }
 
-void OBJ_sigid_free(void)
+void ossl_OBJ_sigid_free(void)
 {
     sk_nid_triple_pop_free(sig_app, sid_free);
     sk_nid_triple_free(sigx_app);
@@ -220,3 +221,10 @@ void OBJ_sigid_free(void)
     sigx_app = NULL;
     sig_lock = NULL;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void OBJ_sigid_free(void)
+{
+    ossl_OBJ_sigid_free();
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

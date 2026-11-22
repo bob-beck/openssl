@@ -499,7 +499,7 @@ static int dh_spki_pub_to_der(const void *dh, unsigned char **pder,
 
     ret = i2d_ASN1_INTEGER(pub_key, pder);
 
-    ASN1_STRING_clear_free(pub_key);
+    ossl_ASN1_STRING_clear_free(pub_key);
     return ret;
 }
 
@@ -521,7 +521,7 @@ static int dh_pki_priv_to_der(const void *dh, unsigned char **pder,
 
     ret = i2d_ASN1_INTEGER(priv_key, pder);
 
-    ASN1_STRING_clear_free(priv_key);
+    ossl_ASN1_STRING_clear_free(priv_key);
     return ret;
 }
 
@@ -615,7 +615,7 @@ static int dsa_spki_pub_to_der(const void *dsa, unsigned char **pder,
 
     ret = i2d_ASN1_INTEGER(pub_key, pder);
 
-    ASN1_STRING_clear_free(pub_key);
+    ossl_ASN1_STRING_clear_free(pub_key);
     return ret;
 }
 
@@ -637,7 +637,7 @@ static int dsa_pki_priv_to_der(const void *dsa, unsigned char **pder,
 
     ret = i2d_ASN1_INTEGER(priv_key, pder);
 
-    ASN1_STRING_clear_free(priv_key);
+    ossl_ASN1_STRING_clear_free(priv_key);
     return ret;
 }
 

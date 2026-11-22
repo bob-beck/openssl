@@ -107,4 +107,80 @@ int ossl_core_bio_vprintf(OSSL_CORE_BIO *cb, const char *format, va_list args);
 
 int ossl_bio_init_core(OSSL_LIB_CTX *libctx, const OSSL_DISPATCH *fns);
 
+#if !defined(OPENSSL_NO_SOCK)
+/**
+ * @brief Look up a host and service and return the matching addresses as a
+ * BIO_ADDRINFO list.
+ * @see BIO_lookup(3)
+ */
+int ossl_BIO_lookup(const char *host, const char *service,
+    enum BIO_lookup_type lookup_type,
+    int family, int socktype, BIO_ADDRINFO **res);
+/**
+ * @brief Perform an ioctl on a socket, raising a system error on failure.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BIO_socket_ioctl(int fd, long type, void *arg);
+/**
+ * @brief Get and clear the pending error on a socket.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BIO_sock_error(int sock);
+#endif /* !defined(OPENSSL_NO_SOCK) */
+
+/**
+ * @brief Format data as an indented hex and ASCII dump, passing each line to a
+ * callback.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BIO_dump_indent_cb(int (*cb)(const void *data, size_t len, void *u),
+    void *u, const void *v, int len, int indent);
+/**
+ * @brief Write data to a BIO as colon-separated uppercase hex bytes, wrapping
+ * lines.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BIO_hex_string(BIO *out, int indent, int width, const void *data,
+    int datalen);
+/**
+ * @brief Format data as a hex and ASCII dump, passing each line to a callback.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BIO_dump_cb(int (*cb)(const void *data, size_t len, void *u),
+    void *u, const void *s, int len);
+/**
+ * @brief Duplicate a chain of BIOs, including state, flags, callbacks and
+ * ex_data.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+BIO *ossl_BIO_dup_chain(BIO *in);
+/**
+ * @brief Return the BIO pair method.
+ * @see BIO_s_bio(3)
+ */
+const BIO_METHOD *ossl_BIO_s_bio(void);
+/**
+ * @brief Report whether an fd BIO I/O result is retryable; always reports no.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BIO_fd_should_retry(int i);
+
+#if !defined(OPENSSL_NO_DGRAM)
+/**
+ * @brief Report whether a socket error code is transient for a datagram BIO.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_BIO_dgram_non_fatal_error(int err);
+#endif /* !defined(OPENSSL_NO_DGRAM) */
+
+#if !defined(OPENSSL_NO_DGRAM)
+#if !defined(OPENSSL_NO_SCTP)
+/**
+ * @brief Return the SCTP datagram socket BIO method.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+const BIO_METHOD *ossl_BIO_s_datagram_sctp(void);
+#endif /* !defined(OPENSSL_NO_SCTP) */
+#endif /* !defined(OPENSSL_NO_DGRAM) */
+
 #endif

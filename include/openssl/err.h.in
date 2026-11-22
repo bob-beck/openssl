@@ -413,7 +413,13 @@ void ERR_print_errors_fp(FILE *fp);
 void ERR_print_errors(BIO *bp);
 
 void ERR_add_error_data(int num, ...);
-void ERR_add_error_vdata(int num, va_list args);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Append strings from a va_list to the error data of the latest error.
+ * @see ERR_add_error_vdata(3)
+ */
+OSSL_DEPRECATEDIN_4_2 void ERR_add_error_vdata(int num, va_list args);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 void ERR_add_error_txt(const char *sepr, const char *txt);
 void ERR_add_error_mem_bio(const char *sep, BIO *bio);
 

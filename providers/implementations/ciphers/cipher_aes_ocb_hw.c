@@ -14,14 +14,15 @@
 #include "internal/deprecated.h"
 
 #include "cipher_aes_ocb.h"
+#include "crypto/modes.h"
 
 #define OCB_SET_KEY_FN(fn_set_enc_key, fn_set_dec_key,                          \
     fn_block_enc, fn_block_dec,                                                 \
     fn_stream_enc, fn_stream_dec)                                               \
-    CRYPTO_ocb128_cleanup(&ctx->ocb);                                           \
+    ossl_CRYPTO_ocb128_cleanup(&ctx->ocb);                                      \
     fn_set_enc_key(key, (int)(keylen * 8), &ctx->ksenc.ks);                     \
     fn_set_dec_key(key, (int)(keylen * 8), &ctx->ksdec.ks);                     \
-    if (!CRYPTO_ocb128_init(&ctx->ocb, &ctx->ksenc.ks, &ctx->ksdec.ks,          \
+    if (!ossl_CRYPTO_ocb128_init(&ctx->ocb, &ctx->ksenc.ks, &ctx->ksdec.ks,     \
             (block128_f)fn_block_enc, (block128_f)fn_block_dec,                 \
             ctx->base.enc ? (ocb128_f)fn_stream_enc : (ocb128_f)fn_stream_dec)) \
         return 0;                                                               \

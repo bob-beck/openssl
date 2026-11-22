@@ -242,6 +242,9 @@ The macros X509_LOOKUP_load_file_ex(),
 X509_LOOKUP_load_store_ex() and X509_LOOKUP_add_store_ex() were
 added in OpenSSL 3.0.
 
+X509_LOOKUP_shutdown(), X509_LOOKUP_set_method_data() and
+X509_LOOKUP_get_method_data() were deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2020-2026 The OpenSSL Project Authors. All Rights Reserved.

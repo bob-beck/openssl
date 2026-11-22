@@ -165,7 +165,7 @@ static int x509_name_ex_d2i(ASN1_VALUE **val,
     q = p;
 
     /* Get internal representation of Name */
-    ret = ASN1_item_ex_d2i(&intname.a,
+    ret = ossl_ASN1_item_ex_d2i(&intname.a,
         &p, len, ASN1_ITEM_rptr(X509_NAME_INTERNAL),
         tag, aclass, opt, ctx);
 
@@ -266,7 +266,7 @@ static int x509_name_encode(X509_NAME *a)
         if (!sk_X509_NAME_ENTRY_push(entries, entry))
             goto cerr;
     }
-    len = ASN1_item_ex_i2d(&intname.a, NULL,
+    len = ossl_ASN1_item_ex_i2d(&intname.a, NULL,
         ASN1_ITEM_rptr(X509_NAME_INTERNAL), -1, -1);
     if (len < 0)
         goto err;
@@ -276,7 +276,7 @@ static int x509_name_encode(X509_NAME *a)
     }
     p = (unsigned char *)a->bytes->data;
     start = p;
-    outlen = ASN1_item_ex_i2d(&intname.a,
+    outlen = ossl_ASN1_item_ex_i2d(&intname.a,
         &p, ASN1_ITEM_rptr(X509_NAME_INTERNAL), -1, -1);
     if (outlen != len || p != start + len)
         goto err;
@@ -406,7 +406,7 @@ static int asn1_string_canon(ASN1_STRING *out, const ASN1_STRING *in)
     int len, i;
 
     /* If type not in bitmask just copy string across */
-    if (!(ASN1_tag2bit(in->type) & ASN1_MASK_CANON)) {
+    if (!(ossl_ASN1_tag2bit(in->type) & ASN1_MASK_CANON)) {
         if (!ASN1_STRING_copy(out, in))
             return 0;
         return 1;
@@ -489,7 +489,7 @@ static int i2d_name_canon(const STACK_OF(STACK_OF_X509_NAME_ENTRY) *_intname,
     len = 0;
     for (i = 0; i < sk_ASN1_VALUE_num(intname); i++) {
         v = sk_ASN1_VALUE_value(intname, i);
-        ltmp = ASN1_item_ex_i2d(&v, in,
+        ltmp = ossl_ASN1_item_ex_i2d(&v, in,
             ASN1_ITEM_rptr(X509_NAME_ENTRIES), -1, -1);
         if (ltmp < 0 || len > INT_MAX - ltmp)
             return -1;

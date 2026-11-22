@@ -12,6 +12,7 @@
 #include <openssl/asn1t.h>
 #include <openssl/objects.h>
 #include "asn1_local.h"
+#include "crypto/asn1.h"
 
 int ASN1_TYPE_get(const ASN1_TYPE *a)
 {
@@ -60,7 +61,7 @@ int ASN1_TYPE_set1(ASN1_TYPE *a, int type, const void *value)
 }
 
 /* Returns 0 if they are equal, != 0 otherwise. */
-int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
+int ossl_ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
 {
     int result = -1;
 
@@ -105,6 +106,13 @@ int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
 
     return result;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int ASN1_TYPE_cmp(const ASN1_TYPE *a, const ASN1_TYPE *b)
+{
+    return ossl_ASN1_TYPE_cmp(a, b);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 ASN1_TYPE *ASN1_TYPE_pack_sequence(const ASN1_ITEM *it, void *s, ASN1_TYPE **t)
 {

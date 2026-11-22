@@ -21,6 +21,7 @@
 #include "internal/nelem.h"
 #include "crypto/asn1.h"
 #include "crypto/asn1_dsa.h"
+#include "crypto/ec.h"
 
 #ifndef FIPS_MODULE
 
@@ -247,7 +248,7 @@ static int ec_asn1_group2fieldid(const EC_GROUP *group, X9_62_FIELDID *field)
         if (field_type == NID_X9_62_tpBasis) {
             unsigned int k;
 
-            if (!EC_GROUP_get_trinomial_basis(group, &k))
+            if (!ossl_EC_GROUP_get_trinomial_basis(group, &k))
                 goto err;
 
             char_two->p.tpBasis = ASN1_INTEGER_new();
@@ -262,7 +263,7 @@ static int ec_asn1_group2fieldid(const EC_GROUP *group, X9_62_FIELDID *field)
         } else if (field_type == NID_X9_62_ppBasis) {
             unsigned int k1, k2, k3;
 
-            if (!EC_GROUP_get_pentanomial_basis(group, &k1, &k2, &k3))
+            if (!ossl_EC_GROUP_get_pentanomial_basis(group, &k1, &k2, &k3))
                 goto err;
 
             char_two->p.ppBasis = X9_62_PENTANOMIAL_new();
@@ -368,7 +369,7 @@ err:
     return ok;
 }
 
-ECPARAMETERS *EC_GROUP_get_ecparameters(const EC_GROUP *group,
+ECPARAMETERS *ossl_EC_GROUP_get_ecparameters(const EC_GROUP *group,
     ECPARAMETERS *params)
 {
     size_t len = 0;
@@ -454,7 +455,15 @@ err:
     return NULL;
 }
 
-ECPKPARAMETERS *EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+ECPARAMETERS *EC_GROUP_get_ecparameters(const EC_GROUP *group,
+    ECPARAMETERS *params)
+{
+    return ossl_EC_GROUP_get_ecparameters(group, params);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+ECPKPARAMETERS *ossl_EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
     ECPKPARAMETERS *params)
 {
     int ok = 1, tmp;
@@ -498,7 +507,7 @@ ECPKPARAMETERS *EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
     } else {
         /* use the ECPARAMETERS structure */
         ret->type = ECPKPARAMETERS_TYPE_EXPLICIT;
-        if ((ret->value.parameters = EC_GROUP_get_ecparameters(group, NULL)) == NULL)
+        if ((ret->value.parameters = ossl_EC_GROUP_get_ecparameters(group, NULL)) == NULL)
             ok = 0;
     }
 
@@ -509,7 +518,15 @@ ECPKPARAMETERS *EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
     return ret;
 }
 
-EC_GROUP *EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+ECPKPARAMETERS *EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
+    ECPKPARAMETERS *params)
+{
+    return ossl_EC_GROUP_get_ecpkparameters(group, params);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+EC_GROUP *ossl_EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params)
 {
     int ok = 0, tmp;
     EC_GROUP *ret = NULL, *dup = NULL;
@@ -833,7 +850,14 @@ err:
     return ret;
 }
 
-EC_GROUP *EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+EC_GROUP *EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params)
+{
+    return ossl_EC_GROUP_new_from_ecparameters(params);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+EC_GROUP *ossl_EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params)
 {
     EC_GROUP *ret = NULL;
     int tmp = 0;
@@ -853,7 +877,7 @@ EC_GROUP *EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params)
         EC_GROUP_set_asn1_flag(ret, OPENSSL_EC_NAMED_CURVE);
     } else if (params->type == ECPKPARAMETERS_TYPE_EXPLICIT) {
         /* the parameters are given by an ECPARAMETERS structure */
-        ret = EC_GROUP_new_from_ecparameters(params->value.parameters);
+        ret = ossl_EC_GROUP_new_from_ecparameters(params->value.parameters);
         if (!ret) {
             ERR_raise(ERR_LIB_EC, ERR_R_EC_LIB);
             return NULL;
@@ -870,6 +894,13 @@ EC_GROUP *EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params)
     return ret;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+EC_GROUP *EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params)
+{
+    return ossl_EC_GROUP_new_from_ecpkparameters(params);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /* EC_GROUP <-> DER encoding of ECPKPARAMETERS */
 
 EC_GROUP *d2i_ECPKParameters(EC_GROUP **a, const unsigned char **in, long len)
@@ -883,7 +914,7 @@ EC_GROUP *d2i_ECPKParameters(EC_GROUP **a, const unsigned char **in, long len)
         return NULL;
     }
 
-    if ((group = EC_GROUP_new_from_ecpkparameters(params)) == NULL) {
+    if ((group = ossl_EC_GROUP_new_from_ecpkparameters(params)) == NULL) {
         ECPKPARAMETERS_free(params);
         return NULL;
     }
@@ -912,7 +943,7 @@ EC_GROUP *d2i_ECPKParameters(EC_GROUP **a, const unsigned char **in, long len)
 int i2d_ECPKParameters(const EC_GROUP *a, unsigned char **out)
 {
     int ret = 0;
-    ECPKPARAMETERS *tmp = EC_GROUP_get_ecpkparameters(a, NULL);
+    ECPKPARAMETERS *tmp = ossl_EC_GROUP_get_ecpkparameters(a, NULL);
     if (tmp == NULL) {
         ERR_raise(ERR_LIB_EC, EC_R_GROUP2PKPARAMETERS_FAILURE);
         return 0;
@@ -947,7 +978,7 @@ EC_KEY *d2i_ECPrivateKey(EC_KEY **a, const unsigned char **in, long len)
 
     if (priv_key->parameters) {
         EC_GROUP_free(ret->group);
-        ret->group = EC_GROUP_new_from_ecpkparameters(priv_key->parameters);
+        ret->group = ossl_EC_GROUP_new_from_ecpkparameters(priv_key->parameters);
         if (ret->group != NULL
             && priv_key->parameters->type == ECPKPARAMETERS_TYPE_EXPLICIT)
             ret->group->decoded_from_explicit_params = 1;
@@ -1054,7 +1085,7 @@ int i2d_ECPrivateKey(const EC_KEY *a, unsigned char **out)
     priv = NULL;
 
     if (!(a->enc_flag & EC_PKEY_NO_PARAMETERS)) {
-        if ((priv_key->parameters = EC_GROUP_get_ecpkparameters(a->group,
+        if ((priv_key->parameters = ossl_EC_GROUP_get_ecpkparameters(a->group,
                  priv_key->parameters))
             == NULL) {
             ERR_raise(ERR_LIB_EC, ERR_R_EC_LIB);

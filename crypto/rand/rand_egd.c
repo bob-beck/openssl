@@ -12,16 +12,24 @@
 #include <openssl/crypto.h>
 #include <openssl/e_os2.h>
 #include <openssl/rand.h>
+#include "crypto/rand.h"
 
 /*
  * Query an EGD
  */
 
 #if defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VMS) || defined(OPENSSL_SYS_MSDOS) || defined(OPENSSL_SYS_VXWORKS) || defined(OPENSSL_SYS_VOS) || defined(OPENSSL_SYS_UEFI)
-int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
+int ossl_RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
 {
     return -1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
+{
+    return ossl_RAND_query_egd_bytes(path, buf, bytes);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int RAND_egd(const char *path)
 {
@@ -104,7 +112,7 @@ static int hpns_connect_attempt = 0;
 
 #endif /* defined(OPENSSL_SYS_HPNS) */
 
-int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
+int ossl_RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
 {
     FILE *fp = NULL;
     struct sockaddr_un addr;
@@ -214,11 +222,18 @@ err:
     return ret;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
+{
+    return ossl_RAND_query_egd_bytes(path, buf, bytes);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 int RAND_egd_bytes(const char *path, int bytes)
 {
     int num;
 
-    num = RAND_query_egd_bytes(path, NULL, bytes);
+    num = ossl_RAND_query_egd_bytes(path, NULL, bytes);
     if (num < 0)
         return -1;
     if (RAND_status() != 1)

@@ -10,6 +10,7 @@
 #include "internal/cryptlib.h"
 #include "bn_local.h"
 #include "internal/constant_time.h"
+#include "crypto/bn.h"
 
 /*
  * bn_mod_inverse_no_branch is a special version of BN_mod_inverse. It does
@@ -338,7 +339,7 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
                  * NB: we could use BN_mod_add_quick(X, X, Y, n), but that
                  * actually makes the algorithm slower
                  */
-                if (!BN_usub(B, B, A))
+                if (!ossl_BN_usub(B, B, A))
                     goto err;
             } else {
                 /*  sign*(X + Y)*a == A - B  (mod |n|) */
@@ -347,7 +348,7 @@ BIGNUM *int_bn_mod_inverse(BIGNUM *in,
                 /*
                  * as above, BN_mod_add_quick(Y, Y, X, n) would slow things down
                  */
-                if (!BN_usub(A, A, B))
+                if (!ossl_BN_usub(A, A, B))
                     goto err;
             }
         }
@@ -644,7 +645,7 @@ int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
         goto err;
 
     /* re arrange inputs s.t. r is odd */
-    BN_consttime_swap((~r->d[0]) & 1, r, g, top);
+    ossl_BN_consttime_swap((~r->d[0]) & 1, r, g, top);
 
     /* compute the number of iterations */
     rlen = BN_num_bits(r);
@@ -660,13 +661,13 @@ int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
         delta = (-cond & -delta) | ((cond - 1) & delta);
         r->neg ^= cond;
         /* swap */
-        BN_consttime_swap(cond, r, g, top);
+        ossl_BN_consttime_swap(cond, r, g, top);
 
         /* elimination step */
         delta++;
         if (!BN_add(temp, g, r))
             goto err;
-        BN_consttime_swap((unsigned int)g->d[0] & 1 /* g is odd */
+        ossl_BN_consttime_swap((unsigned int)g->d[0] & 1 /* g is odd */
                 /* make sure g->top > 0 (i.e. if top == 0 then g == 0 always) */
                 & (~((unsigned int)(g->top - 1) >> (sizeof(g->top) * 8 - 1))),
             g, temp, top);

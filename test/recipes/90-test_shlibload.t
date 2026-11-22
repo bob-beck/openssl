@@ -24,7 +24,7 @@ plan skip_all => "Test is disabled on NonStop" if config('target') =~ m|^nonstop
 plan skip_all => "Test only supported in a dso build" if disabled("dso");
 plan skip_all => "Test is disabled in an address sanitizer build" unless disabled("asan");
 
-plan tests => 4;
+plan tests => 3;
 
 my $libcrypto = platform->sharedlib('libcrypto');
 my $libssl = platform->sharedlib('libssl');
@@ -37,6 +37,3 @@ ok(run(test(["shlibloadtest", "-ssl_first", $libcrypto, $libssl])),
 
 ok(run(test(["shlibloadtest", "-just_crypto", $libcrypto, $libssl])),
    "running shlibloadtest -just_crypto");
-
-ok(run(test(["shlibloadtest", "-dso_ref", $libcrypto, $libssl])),
-   "running shlibloadtest -dso_ref");

@@ -13,19 +13,28 @@
 
 #include <stdio.h>
 #include "bio_local.h"
+#include "internal/bio.h"
 
 #define DUMP_WIDTH 16
 #define DUMP_WIDTH_LESS_INDENT(i) (DUMP_WIDTH - ((i - (i > 6 ? 6 : i) + 3) / 4))
 
 #define SPACE(buf, pos, n) (sizeof(buf) - (pos) > (n))
 
+int ossl_BIO_dump_cb(int (*cb)(const void *data, size_t len, void *u),
+    void *u, const void *s, int len)
+{
+    return ossl_BIO_dump_indent_cb(cb, u, s, len, 0);
+}
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
 int BIO_dump_cb(int (*cb)(const void *data, size_t len, void *u),
     void *u, const void *s, int len)
 {
-    return BIO_dump_indent_cb(cb, u, s, len, 0);
+    return ossl_BIO_dump_cb(cb, u, s, len);
 }
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
-int BIO_dump_indent_cb(int (*cb)(const void *data, size_t len, void *u),
+int ossl_BIO_dump_indent_cb(int (*cb)(const void *data, size_t len, void *u),
     void *u, const void *v, int len, int indent)
 {
     const unsigned char *s = v;
@@ -96,6 +105,14 @@ int BIO_dump_indent_cb(int (*cb)(const void *data, size_t len, void *u),
     return ret;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BIO_dump_indent_cb(int (*cb)(const void *data, size_t len, void *u),
+    void *u, const void *v, int len, int indent)
+{
+    return ossl_BIO_dump_indent_cb(cb, u, v, len, indent);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 #ifndef OPENSSL_NO_STDIO
 static int write_fp(const void *data, size_t len, void *fp)
 {
@@ -104,12 +121,12 @@ static int write_fp(const void *data, size_t len, void *fp)
 
 int BIO_dump_fp(FILE *fp, const void *s, int len)
 {
-    return BIO_dump_cb(write_fp, fp, s, len);
+    return ossl_BIO_dump_cb(write_fp, fp, s, len);
 }
 
 int BIO_dump_indent_fp(FILE *fp, const void *s, int len, int indent)
 {
-    return BIO_dump_indent_cb(write_fp, fp, s, len, indent);
+    return ossl_BIO_dump_indent_cb(write_fp, fp, s, len, indent);
 }
 #endif
 
@@ -122,15 +139,15 @@ static int write_bio(const void *data, size_t len, void *bp)
 
 int BIO_dump(BIO *bp, const void *s, int len)
 {
-    return BIO_dump_cb(write_bio, bp, s, len);
+    return ossl_BIO_dump_cb(write_bio, bp, s, len);
 }
 
 int BIO_dump_indent(BIO *bp, const void *s, int len, int indent)
 {
-    return BIO_dump_indent_cb(write_bio, bp, s, len, indent);
+    return ossl_BIO_dump_indent_cb(write_bio, bp, s, len, indent);
 }
 
-int BIO_hex_string(BIO *out, int indent, int width, const void *data,
+int ossl_BIO_hex_string(BIO *out, int indent, int width, const void *data,
     int datalen)
 {
     const unsigned char *d = data;
@@ -156,3 +173,11 @@ int BIO_hex_string(BIO *out, int indent, int width, const void *data,
     BIO_printf(out, "%02X", d[datalen - 1]);
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BIO_hex_string(BIO *out, int indent, int width, const void *data,
+    int datalen)
+{
+    return ossl_BIO_hex_string(out, indent, width, data, datalen);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

@@ -124,7 +124,7 @@ IF[{- !$disabled{tests} -}]
 
   SOURCE[confdump]=confdump.c
   INCLUDE[confdump]=../include ../apps/include
-  DEPEND[confdump]=../libcrypto
+  DEPEND[confdump]=../libcrypto.a
 
   SOURCE[versions]=versions.c
   INCLUDE[versions]=../include ../apps/include
@@ -159,7 +159,7 @@ IF[{- !$disabled{tests} -}]
 
   SOURCE[bntest]=bntest.c
   INCLUDE[bntest]=../include ../apps/include
-  DEPEND[bntest]=../libcrypto libtestutil.a
+  DEPEND[bntest]=../libcrypto.a libtestutil.a
 
   SOURCE[ectest]=ectest.c
   INCLUDE[ectest]=../include ../apps/include
@@ -199,7 +199,7 @@ IF[{- !$disabled{tests} -}]
 
   SOURCE[exptest]=exptest.c
   INCLUDE[exptest]=../include ../apps/include
-  DEPEND[exptest]=../libcrypto libtestutil.a
+  DEPEND[exptest]=../libcrypto.a libtestutil.a
 
   SOURCE[localetest]=localetest.c
   INCLUDE[localetest]=../include ../apps/include
@@ -786,7 +786,7 @@ IF[{- !$disabled{tests} -}]
 
   SOURCE[bio_enc_test]=bio_enc_test.c
   INCLUDE[bio_enc_test]=../include ../apps/include
-  DEPEND[bio_enc_test]=../libcrypto libtestutil.a
+  DEPEND[bio_enc_test]=../libcrypto.a libtestutil.a
 
   SOURCE[pkey_meth_kdf_test]=pkey_meth_kdf_test.c
   INCLUDE[pkey_meth_kdf_test]=../include ../apps/include
@@ -911,7 +911,7 @@ IF[{- !$disabled{tests} -}]
 
   SOURCE[asn1_string_table_test]=asn1_string_table_test.c
   INCLUDE[asn1_string_table_test]=../include ../apps/include
-  DEPEND[asn1_string_table_test]=../libcrypto libtestutil.a
+  DEPEND[asn1_string_table_test]=../libcrypto.a libtestutil.a
 
   SOURCE[asn1_stable_parse_test]=asn1_stable_parse_test.c
   INCLUDE[asn1_stable_parse_test]=../include ../apps/include
@@ -1302,7 +1302,7 @@ IF[{- !$disabled{tests} -}]
   PROGRAMS{noinst}=asn1_string_test
   SOURCE[asn1_string_test]=asn1_string_test.c
   INCLUDE[asn1_string_test]=../include ../apps/include
-  DEPEND[asn1_string_test]=../libcrypto libtestutil.a
+  DEPEND[asn1_string_test]=../libcrypto.a libtestutil.a
 
   # We disable this test completely in a shared build because it deliberately
   # redefines some internal libssl symbols. This doesn't work in a non-shared

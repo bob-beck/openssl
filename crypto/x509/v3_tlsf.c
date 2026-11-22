@@ -15,6 +15,7 @@
 #include <openssl/x509v3.h>
 #include "ext_dat.h"
 #include "x509_local.h"
+#include "crypto/x509.h"
 
 static STACK_OF(CONF_VALUE) *i2v_TLS_FEATURE(const X509V3_EXT_METHOD *method,
     TLS_FEATURE *tls_feature,
@@ -72,7 +73,7 @@ static STACK_OF(CONF_VALUE) *i2v_TLS_FEATURE(const X509V3_EXT_METHOD *method,
         if (j < OSSL_NELEM(tls_feature_tbl))
             X509V3_add_value(NULL, tls_feature_tbl[j].name, &ext_list);
         else
-            X509V3_add_value_int(NULL, ai, &ext_list);
+            ossl_X509V3_add_value_int(NULL, ai, &ext_list);
     }
     return ext_list;
 }

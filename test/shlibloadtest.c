@@ -15,8 +15,6 @@
 #include <openssl/types.h>
 #include "simpledynamic.h"
 
-typedef void DSO;
-
 typedef const SSL_METHOD *(*TLS_method_t)(void);
 typedef SSL_CTX *(*SSL_CTX_new_t)(const SSL_METHOD *meth);
 typedef void (*SSL_CTX_free_t)(SSL_CTX *);
@@ -25,14 +23,11 @@ typedef unsigned long (*ERR_get_error_t)(void);
 typedef unsigned long (*OPENSSL_version_major_t)(void);
 typedef unsigned long (*OPENSSL_version_minor_t)(void);
 typedef unsigned long (*OPENSSL_version_patch_t)(void);
-typedef DSO *(*DSO_dsobyaddr_t)(void (*addr)(void), int flags);
-typedef int (*DSO_free_t)(DSO *dso);
 
 typedef enum test_types_en {
     CRYPTO_FIRST,
     SSL_FIRST,
     JUST_CRYPTO,
-    DSO_REFTEST,
 } TEST_TYPE;
 
 static TEST_TYPE test_type;
@@ -61,7 +56,6 @@ static int test_lib(void)
 
     switch (test_type) {
     case JUST_CRYPTO:
-    case DSO_REFTEST:
     case CRYPTO_FIRST:
         if (!sd_load(path_crypto, &cryptolib, SD_SHLIB)) {
             fprintf(stderr, "Failed to load libcrypto\n");
@@ -85,8 +79,7 @@ static int test_lib(void)
         break;
     }
 
-    if (test_type != JUST_CRYPTO
-        && test_type != DSO_REFTEST) {
+    if (test_type != JUST_CRYPTO) {
         if (!sd_sym(ssllib, "TLS_method", &symbols[0].sym)
             || !sd_sym(ssllib, "SSL_CTX_new", &symbols[1].sym)
             || !sd_sym(ssllib, "SSL_CTX_free", &symbols[2].sym)) {
@@ -126,40 +119,6 @@ static int test_lib(void)
         || myOPENSSL_version_patch() != OPENSSL_VERSION_PATCH) {
         fprintf(stderr, "Invalid library version number\n");
         goto end;
-    }
-
-    if (test_type == DSO_REFTEST) {
-#ifdef DSO_DLFCN
-        DSO_dsobyaddr_t myDSO_dsobyaddr;
-        DSO_free_t myDSO_free;
-
-        /*
-         * This is resembling the code used in ossl_init_base() to block
-         * unloading the library after dlclose().  We are not testing this on
-         * Windows, because it is done there in a completely different way.
-         * Especially as a call to DSO_dsobyaddr() will always return an error,
-         * because DSO_pathbyaddr() is not implemented there.
-         */
-        if (!sd_sym(cryptolib, "DSO_dsobyaddr", &symbols[0].sym)
-            || !sd_sym(cryptolib, "DSO_free", &symbols[1].sym)) {
-            fprintf(stderr, "Unable to load DSO symbols\n");
-            goto end;
-        }
-
-        myDSO_dsobyaddr = (DSO_dsobyaddr_t)symbols[0].func;
-        myDSO_free = (DSO_free_t)symbols[1].func;
-
-        {
-            DSO *hndl;
-            /* use known symbol from crypto module */
-            hndl = myDSO_dsobyaddr((void (*)(void))myERR_get_error, 0);
-            if (hndl == NULL) {
-                fprintf(stderr, "DSO_dsobyaddr() failed\n");
-                goto end;
-            }
-            myDSO_free(hndl);
-        }
-#endif /* DSO_DLFCN */
     }
 
     if (!sd_close(cryptolib)) {
@@ -208,8 +167,6 @@ int main(int argc, char *argv[])
         test_type = SSL_FIRST;
     } else if (strcmp(p, "-just_crypto") == 0) {
         test_type = JUST_CRYPTO;
-    } else if (strcmp(p, "-dso_ref") == 0) {
-        test_type = DSO_REFTEST;
     } else {
         fprintf(stderr, "Unrecognised argument\n");
         return 1;

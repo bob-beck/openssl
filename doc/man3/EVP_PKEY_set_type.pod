@@ -50,6 +50,10 @@ L<EVP_PKEY_assign(3)>, L<EVP_PKEY_get_id(3)>, L<EVP_PKEY_get0_RSA(3)>,
 L<EVP_PKEY_copy_parameters(3)>,
 L<EVP_KEYMGMT(3)>
 
+=head1 HISTORY
+
+EVP_PKEY_set_type_str() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2020-2026 The OpenSSL Project Authors. All Rights Reserved.

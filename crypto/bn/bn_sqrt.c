@@ -9,6 +9,7 @@
 
 #include "internal/cryptlib.h"
 #include "bn_local.h"
+#include "crypto/bn.h"
 
 BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
 /*
@@ -134,7 +135,7 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
          */
 
         /* t := 2*a */
-        if (!BN_mod_lshift1_quick(t, A, p))
+        if (!ossl_BN_mod_lshift1_quick(t, A, p))
             goto end;
 
         /* b := (2*a)^((|p|-5)/8) */
@@ -195,7 +196,7 @@ BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
                     goto end;
         }
 
-        r = BN_kronecker(y, q, ctx); /* here 'q' is |p| */
+        r = ossl_BN_kronecker(y, q, ctx); /* here 'q' is |p| */
         if (r < -1)
             goto end;
         if (r == 0) {

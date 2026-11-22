@@ -25,6 +25,7 @@
 #include "crypto/rsa.h"
 #include "crypto/rsa_params.h"
 #include "rsa_local.h"
+#include "crypto/x509.h"
 
 /* Set any parameters associated with pkey */
 static int rsa_param_encode(const EVP_PKEY *pkey,
@@ -773,7 +774,7 @@ static int rsa_sig_info_set(X509_SIG_INFO *siginf, const X509_ALGOR *sigalg,
         secbits = 68;
     else if (mdnid == NID_md5)
         secbits = 39;
-    X509_SIG_INFO_set(siginf, mdnid, EVP_PKEY_RSA_PSS, secbits,
+    ossl_X509_SIG_INFO_set(siginf, mdnid, EVP_PKEY_RSA_PSS, secbits,
         flags);
     rv = 1;
 err:

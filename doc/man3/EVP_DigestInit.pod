@@ -907,6 +907,8 @@ digests since they do not have a fixed size.
 The EVP_MD_CTX_serialize() and EVP_MD_CTX_deserialize() functions were added in
 OpenSSL 4.0.
 
+EVP_MD_CTX_clear_flags() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2000-2026 The OpenSSL Project Authors. All Rights Reserved.

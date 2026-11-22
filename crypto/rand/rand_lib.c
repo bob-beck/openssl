@@ -1084,10 +1084,10 @@ static int random_conf_init(CONF_IMODULE *md, const CONF *cnf)
     int i, r = 1;
 
     OSSL_TRACE1(CONF, "Loading random module: section %s\n",
-        CONF_imodule_get_value(md));
+        ossl_CONF_imodule_get_value(md));
 
     /* Value is a section containing RANDOM configuration */
-    elist = NCONF_get_section(cnf, CONF_imodule_get_value(md));
+    elist = NCONF_get_section(cnf, ossl_CONF_imodule_get_value(md));
     if (elist == NULL) {
         ERR_raise(ERR_LIB_CRYPTO, CRYPTO_R_RANDOM_SECTION_ERROR);
         return 0;
@@ -1162,7 +1162,7 @@ static void random_conf_deinit(CONF_IMODULE *md)
 void ossl_random_add_conf_module(void)
 {
     OSSL_TRACE(CONF, "Adding config module 'random'\n");
-    CONF_module_add("random", random_conf_init, random_conf_deinit);
+    ossl_CONF_module_add("random", random_conf_init, random_conf_deinit);
 }
 
 int RAND_set_DRBG_type(OSSL_LIB_CTX *ctx, const char *drbg, const char *propq,

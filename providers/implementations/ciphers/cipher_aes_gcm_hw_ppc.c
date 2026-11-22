@@ -13,6 +13,7 @@
  */
 #include "internal/deprecated.h"
 #include "cipher_aes_gcm.h"
+#include "crypto/modes.h"
 
 #if defined(PPC_AES_GCM_CAPABLE) && defined(_ARCH_PPC64)
 
@@ -94,7 +95,7 @@ static int ppc_aes_gcm_cipher_update(PROV_GCM_CTX *ctx, const unsigned char *in,
             if (len >= AES_GCM_ENC_BYTES && AES_GCM_ASM_PPC(ctx)) {
                 size_t res = (16 - ctx->gcm.mres) % 16;
 
-                if (CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, res))
+                if (ossl_CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, res))
                     return 0;
 
                 bulk = ppc_aes_gcm_crypt(in + res, out + res, len - res,
@@ -104,11 +105,11 @@ static int ppc_aes_gcm_cipher_update(PROV_GCM_CTX *ctx, const unsigned char *in,
                 ctx->gcm.len.u[1] += bulk;
                 bulk += res;
             }
-            if (CRYPTO_gcm128_encrypt_ctr32(&ctx->gcm, in + bulk, out + bulk,
+            if (ossl_CRYPTO_gcm128_encrypt_ctr32(&ctx->gcm, in + bulk, out + bulk,
                     len - bulk, ctx->ctr))
                 return 0;
         } else {
-            if (CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, len))
+            if (ossl_CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, len))
                 return 0;
         }
     } else {
@@ -128,7 +129,7 @@ static int ppc_aes_gcm_cipher_update(PROV_GCM_CTX *ctx, const unsigned char *in,
                 ctx->gcm.len.u[1] += bulk;
                 bulk += res;
             }
-            if (CRYPTO_gcm128_decrypt_ctr32(&ctx->gcm, in + bulk, out + bulk,
+            if (ossl_CRYPTO_gcm128_decrypt_ctr32(&ctx->gcm, in + bulk, out + bulk,
                     len - bulk, ctx->ctr))
                 return 0;
         } else {

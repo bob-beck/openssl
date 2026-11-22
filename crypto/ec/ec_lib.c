@@ -443,10 +443,17 @@ const EC_POINT *EC_GROUP_get0_generator(const EC_GROUP *group)
     return group->generator;
 }
 
-BN_MONT_CTX *EC_GROUP_get_mont_data(const EC_GROUP *group)
+BN_MONT_CTX *ossl_EC_GROUP_get_mont_data(const EC_GROUP *group)
 {
     return group->mont_data;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+BN_MONT_CTX *EC_GROUP_get_mont_data(const EC_GROUP *group)
+{
+    return ossl_EC_GROUP_get_mont_data(group);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int EC_GROUP_get_order(const EC_GROUP *group, BIGNUM *order, BN_CTX *ctx)
 {
@@ -640,7 +647,7 @@ int EC_GROUP_get_degree(const EC_GROUP *group)
     return group->meth->group_get_degree(group);
 }
 
-int EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx)
+int ossl_EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx)
 {
     if (group->meth->group_check_discriminant == 0) {
         ERR_raise(ERR_LIB_EC, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
@@ -648,6 +655,13 @@ int EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx)
     }
     return group->meth->group_check_discriminant(group, ctx);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx)
+{
+    return ossl_EC_GROUP_check_discriminant(group, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int EC_GROUP_cmp(const EC_GROUP *a, const EC_GROUP *b, BN_CTX *ctx)
 {
@@ -1006,7 +1020,7 @@ int EC_POINT_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
     return group->meth->add(group, r, a, b, ctx);
 }
 
-int EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+int ossl_EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
     BN_CTX *ctx)
 {
     if (group->meth->dbl == 0) {
@@ -1019,6 +1033,14 @@ int EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
     }
     return group->meth->dbl(group, r, a, ctx);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+    BN_CTX *ctx)
+{
+    return ossl_EC_POINT_dbl(group, r, a, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int EC_POINT_invert(const EC_GROUP *group, EC_POINT *a, BN_CTX *ctx)
 {
@@ -1400,7 +1422,7 @@ int EC_GROUP_get_basis_type(const EC_GROUP *group)
 }
 
 #ifndef OPENSSL_NO_EC2M
-int EC_GROUP_get_trinomial_basis(const EC_GROUP *group, unsigned int *k)
+int ossl_EC_GROUP_get_trinomial_basis(const EC_GROUP *group, unsigned int *k)
 {
     if (group == NULL)
         return 0;
@@ -1418,7 +1440,14 @@ int EC_GROUP_get_trinomial_basis(const EC_GROUP *group, unsigned int *k)
     return 1;
 }
 
-int EC_GROUP_get_pentanomial_basis(const EC_GROUP *group, unsigned int *k1,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int EC_GROUP_get_trinomial_basis(const EC_GROUP *group, unsigned int *k)
+{
+    return ossl_EC_GROUP_get_trinomial_basis(group, k);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+int ossl_EC_GROUP_get_pentanomial_basis(const EC_GROUP *group, unsigned int *k1,
     unsigned int *k2, unsigned int *k3)
 {
     if (group == NULL)
@@ -1441,6 +1470,14 @@ int EC_GROUP_get_pentanomial_basis(const EC_GROUP *group, unsigned int *k1,
 
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int EC_GROUP_get_pentanomial_basis(const EC_GROUP *group, unsigned int *k1,
+    unsigned int *k2, unsigned int *k3)
+{
+    return ossl_EC_GROUP_get_pentanomial_basis(group, k1, k2, k3);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #endif
 
 #ifndef FIPS_MODULE

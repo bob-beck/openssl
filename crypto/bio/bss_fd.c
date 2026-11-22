@@ -11,6 +11,7 @@
 #include <errno.h>
 
 #include "bio_local.h"
+#include "internal/bio.h"
 
 #if defined(OPENSSL_NO_POSIX_IO)
 /*
@@ -26,10 +27,17 @@ int BIO_fd_non_fatal_error(int err)
     return 0;
 }
 
-int BIO_fd_should_retry(int i)
+int ossl_BIO_fd_should_retry(int i)
 {
     return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BIO_fd_should_retry(int i)
+{
+    return ossl_BIO_fd_should_retry(i);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 const BIO_METHOD *BIO_s_fd(void)
 {
@@ -55,7 +63,7 @@ static int fd_gets(BIO *h, char *buf, int size);
 static long fd_ctrl(BIO *h, int cmd, long arg1, void *arg2);
 static int fd_new(BIO *h);
 static int fd_free(BIO *data);
-int BIO_fd_should_retry(int s);
+int ossl_BIO_fd_should_retry(int s);
 
 static const BIO_METHOD methods_fdp = {
     BIO_TYPE_FD,
@@ -120,7 +128,7 @@ static int fd_read(BIO *b, char *out, int outl)
         ret = (int)UP_read(b->num, out, outl);
         BIO_clear_retry_flags(b);
         if (ret <= 0) {
-            if (BIO_fd_should_retry(ret))
+            if (ossl_BIO_fd_should_retry(ret))
                 BIO_set_retry_read(b);
             else if (ret == 0)
                 b->flags |= BIO_FLAGS_IN_EOF;
@@ -136,7 +144,7 @@ static int fd_write(BIO *b, const char *in, int inl)
     ret = (int)UP_write(b->num, in, inl);
     BIO_clear_retry_flags(b);
     if (ret <= 0) {
-        if (BIO_fd_should_retry(ret))
+        if (ossl_BIO_fd_should_retry(ret))
             BIO_set_retry_write(b);
     }
     return ret;
@@ -226,7 +234,7 @@ static int fd_gets(BIO *bp, char *buf, int size)
     return ret;
 }
 
-int BIO_fd_should_retry(int i)
+int ossl_BIO_fd_should_retry(int i)
 {
     int err;
 
@@ -237,6 +245,13 @@ int BIO_fd_should_retry(int i)
     }
     return 0;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BIO_fd_should_retry(int i)
+{
+    return ossl_BIO_fd_should_retry(i);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int BIO_fd_non_fatal_error(int err)
 {

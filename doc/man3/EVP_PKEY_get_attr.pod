@@ -101,6 +101,11 @@ All functions listed assume that the I<key> is not NULL.
 
 L<X509_ATTRIBUTE(3)>
 
+=head1 HISTORY
+
+EVP_PKEY_get_attr() and EVP_PKEY_get_attr_by_NID() were deprecated in OpenSSL
+4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2023-2024 The OpenSSL Project Authors. All Rights Reserved.

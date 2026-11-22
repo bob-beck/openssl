@@ -67,7 +67,7 @@ int X509_LOOKUP_init(X509_LOOKUP *ctx)
         return 1;
 }
 
-int X509_LOOKUP_shutdown(X509_LOOKUP *ctx)
+int ossl_X509_LOOKUP_shutdown(X509_LOOKUP *ctx)
 {
     if (ctx->method == NULL)
         return 0;
@@ -76,6 +76,13 @@ int X509_LOOKUP_shutdown(X509_LOOKUP *ctx)
     else
         return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_LOOKUP_shutdown(X509_LOOKUP *ctx)
+{
+    return ossl_X509_LOOKUP_shutdown(ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int X509_LOOKUP_ctrl_ex(X509_LOOKUP *ctx, int cmd, const char *argc, long argl,
     char **ret, OSSL_LIB_CTX *libctx, const char *propq)
@@ -144,16 +151,30 @@ int X509_LOOKUP_by_alias(X509_LOOKUP *ctx, X509_LOOKUP_TYPE type,
     return ctx->method->get_by_alias(ctx, type, str, len, ret);
 }
 
-int X509_LOOKUP_set_method_data(X509_LOOKUP *ctx, void *data)
+int ossl_X509_LOOKUP_set_method_data(X509_LOOKUP *ctx, void *data)
 {
     ctx->method_data = data;
     return 1;
 }
 
-void *X509_LOOKUP_get_method_data(const X509_LOOKUP *ctx)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_LOOKUP_set_method_data(X509_LOOKUP *ctx, void *data)
+{
+    return ossl_X509_LOOKUP_set_method_data(ctx, data);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+void *ossl_X509_LOOKUP_get_method_data(const X509_LOOKUP *ctx)
 {
     return ctx->method_data;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void *X509_LOOKUP_get_method_data(const X509_LOOKUP *ctx)
+{
+    return ossl_X509_LOOKUP_get_method_data(ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 X509_STORE *X509_LOOKUP_get_store(const X509_LOOKUP *ctx)
 {
@@ -269,7 +290,7 @@ void X509_STORE_free(X509_STORE *xs)
     sk = xs->get_cert_methods;
     for (i = 0; i < sk_X509_LOOKUP_num(sk); i++) {
         lu = sk_X509_LOOKUP_value(sk, i);
-        X509_LOOKUP_shutdown(lu);
+        ossl_X509_LOOKUP_shutdown(lu);
         X509_LOOKUP_free(lu);
     }
     sk_X509_LOOKUP_free(sk);
@@ -722,18 +743,26 @@ static int x509_object_idx_cnt(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
 }
 
 /* Assumes h is locked for read if applicable */
-int X509_OBJECT_idx_by_subject(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
+int ossl_X509_OBJECT_idx_by_subject(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
     const X509_NAME *name)
 {
     return x509_object_idx_cnt(h, type, name, NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_OBJECT_idx_by_subject(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
+    const X509_NAME *name)
+{
+    return ossl_X509_OBJECT_idx_by_subject(h, type, name);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* Assumes h is locked for read if applicable */
 X509_OBJECT *X509_OBJECT_retrieve_by_subject(STACK_OF(X509_OBJECT) *h,
     X509_LOOKUP_TYPE type,
     const X509_NAME *name)
 {
-    int idx = X509_OBJECT_idx_by_subject(h, type, name);
+    int idx = ossl_X509_OBJECT_idx_by_subject(h, type, name);
 
     if (idx == -1)
         return NULL;
@@ -1058,7 +1087,7 @@ X509_OBJECT *X509_OBJECT_retrieve_match(STACK_OF(X509_OBJECT) *h,
             if (!X509_cmp(obj->data.x509, x->data.x509))
                 return obj;
         } else if (x->type == X509_LU_CRL) {
-            if (X509_CRL_match(obj->data.crl, x->data.crl) == 0)
+            if (ossl_X509_CRL_match(obj->data.crl, x->data.crl) == 0)
                 return obj;
         } else {
             return obj;

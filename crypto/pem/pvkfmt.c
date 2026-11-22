@@ -747,10 +747,17 @@ static void write_dsa(unsigned char **out, const DSA *dsa, int ispub)
 }
 #endif
 
-int i2b_PrivateKey_bio(BIO *out, const EVP_PKEY *pk)
+int ossl_i2b_PrivateKey_bio(BIO *out, const EVP_PKEY *pk)
 {
     return do_i2b_bio(out, pk, 0);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int i2b_PrivateKey_bio(BIO *out, const EVP_PKEY *pk)
+{
+    return ossl_i2b_PrivateKey_bio(out, pk);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int i2b_PublicKey_bio(BIO *out, const EVP_PKEY *pk)
 {

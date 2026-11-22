@@ -88,6 +88,8 @@ EC_POINT_make_affine(), EC_POINTs_make_affine(), EC_POINTs_mul(),
 EC_GROUP_precompute_mult(), and EC_GROUP_have_precompute_mult()
 were deprecated in OpenSSL 3.0.
 
+EC_POINT_dbl() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2013-2023 The OpenSSL Project Authors. All Rights Reserved.

@@ -10,6 +10,7 @@
 #include <openssl/opensslconf.h>
 #include "internal/cryptlib.h"
 #include "bn_local.h"
+#include "crypto/bn.h"
 
 #define BN_BLINDING_COUNTER 32
 
@@ -27,7 +28,7 @@ struct bn_blinding_st {
     CRYPTO_RWLOCK *lock;
 };
 
-BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
+BN_BLINDING *ossl_BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
 {
     BN_BLINDING *ret = NULL;
 
@@ -43,7 +44,7 @@ BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
         return NULL;
     }
 
-    BN_BLINDING_set_current_thread(ret);
+    ossl_BN_BLINDING_set_current_thread(ret);
 
     if (A != NULL) {
         if ((ret->A = BN_dup(A)) == NULL)
@@ -76,6 +77,13 @@ err:
     return NULL;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
+{
+    return ossl_BN_BLINDING_new(A, Ai, mod);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 void BN_BLINDING_free(BN_BLINDING *r)
 {
     if (r == NULL)
@@ -88,7 +96,7 @@ void BN_BLINDING_free(BN_BLINDING *r)
     OPENSSL_free(r);
 }
 
-int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
+int ossl_BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
 {
     int ret = 0;
 
@@ -102,7 +110,7 @@ int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
 
     if (++b->counter == BN_BLINDING_COUNTER && b->e != NULL && !(b->flags & BN_BLINDING_NO_RECREATE)) {
         /* re-create blinding parameters */
-        if (!BN_BLINDING_create_param(b, NULL, NULL, ctx, NULL, NULL))
+        if (!ossl_BN_BLINDING_create_param(b, NULL, NULL, ctx, NULL, NULL))
             goto err;
     } else if (!(b->flags & BN_BLINDING_NO_UPDATE)) {
         if (b->m_ctx != NULL) {
@@ -123,6 +131,13 @@ err:
     return ret;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
+{
+    return ossl_BN_BLINDING_update(b, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 int BN_BLINDING_convert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx)
 {
     return BN_BLINDING_convert_ex(n, NULL, b, ctx);
@@ -142,7 +157,7 @@ int BN_BLINDING_convert_ex(BIGNUM *n, BIGNUM *r, BN_BLINDING *b, BN_CTX *ctx)
     if (b->counter == -1)
         /* Fresh blinding, doesn't need updating. */
         b->counter = 0;
-    else if (!BN_BLINDING_update(b, ctx))
+    else if (!ossl_BN_BLINDING_update(b, ctx))
         return 0;
 
     if (r != NULL && (BN_copy(r, b->Ai) == NULL))
@@ -203,10 +218,17 @@ int BN_BLINDING_is_current_thread(BN_BLINDING *b)
     return CRYPTO_THREAD_compare_id(CRYPTO_THREAD_get_current_id(), b->tid);
 }
 
-void BN_BLINDING_set_current_thread(BN_BLINDING *b)
+void ossl_BN_BLINDING_set_current_thread(BN_BLINDING *b)
 {
     b->tid = CRYPTO_THREAD_get_current_id();
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void BN_BLINDING_set_current_thread(BN_BLINDING *b)
+{
+    ossl_BN_BLINDING_set_current_thread(b);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int BN_BLINDING_lock(BN_BLINDING *b)
 {
@@ -228,7 +250,7 @@ void BN_BLINDING_set_flags(BN_BLINDING *b, unsigned long flags)
     b->flags = flags;
 }
 
-BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
+BN_BLINDING *ossl_BN_BLINDING_create_param(BN_BLINDING *b,
     const BIGNUM *e, BIGNUM *m, BN_CTX *ctx,
     int (*bn_mod_exp)(BIGNUM *r,
         const BIGNUM *a,
@@ -242,7 +264,7 @@ BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
     BN_BLINDING *ret = NULL;
 
     if (b == NULL)
-        ret = BN_BLINDING_new(NULL, NULL, m);
+        ret = ossl_BN_BLINDING_new(NULL, NULL, m);
     else
         ret = b;
 
@@ -308,3 +330,18 @@ err:
 
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
+    const BIGNUM *e, BIGNUM *m, BN_CTX *ctx,
+    int (*bn_mod_exp)(BIGNUM *r,
+        const BIGNUM *a,
+        const BIGNUM *p,
+        const BIGNUM *m,
+        BN_CTX *ctx,
+        BN_MONT_CTX *m_ctx),
+    BN_MONT_CTX *m_ctx)
+{
+    return ossl_BN_BLINDING_create_param(b, e, m, ctx, bn_mod_exp, m_ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

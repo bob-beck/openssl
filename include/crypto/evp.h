@@ -15,6 +15,7 @@
 #include <openssl/core_dispatch.h>
 #include "internal/refcount.h"
 #include "crypto/ecx.h"
+#include <openssl/x509.h>
 
 /*
  * Default PKCS5 PBE KDF salt lengths
@@ -742,5 +743,71 @@ int evp_pkey_asn1_get0_info(int *ppkey_id, int *ppkey_base_id,
     const char **ppem_str,
     const EVP_PKEY_ASN1_METHOD *ameth);
 const EVP_PKEY_ASN1_METHOD *evp_pkey_get0_asn1(const EVP_PKEY *pkey);
+
+/**
+ * @brief Get the number of bytes pending in an encoding context.
+ * @see EVP_ENCODE_CTX_num(3)
+ */
+int ossl_EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx);
+/**
+ * @brief Register the "alg_section" configuration module.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_EVP_add_alg_module(void);
+/**
+ * @brief Clear flags in a digest context.
+ * @see EVP_MD_CTX_clear_flags(3)
+ */
+void ossl_EVP_MD_CTX_clear_flags(EVP_MD_CTX *ctx, int flags);
+/**
+ * @brief Add a password-based encryption algorithm to the PBE table.
+ * @see EVP_PBE_alg_add_type(3)
+ */
+int ossl_EVP_PBE_alg_add_type(int pbe_type, int pbe_nid, int cipher_nid,
+    int md_nid, EVP_PBE_KEYGEN *keygen);
+/**
+ * @brief Free all application-added PBE algorithms.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_EVP_PBE_cleanup(void);
+/**
+ * @brief Find the next attribute of a key with a given NID.
+ * @see EVP_PKEY_get_attr_by_NID(3)
+ */
+int ossl_EVP_PKEY_get_attr_by_NID(const EVP_PKEY *key, int nid, int lastpos);
+/**
+ * @brief Get the attribute at a given position of a key.
+ * @see EVP_PKEY_get_attr(3)
+ */
+X509_ATTRIBUTE *ossl_EVP_PKEY_get_attr(const EVP_PKEY *key, int loc);
+/**
+ * @brief Derive a key and IV with PKCS#5 v1.5 and initialise a cipher context.
+ * @see PKCS5_PBE_keyivgen(3)
+ */
+int ossl_PKCS5_PBE_keyivgen(EVP_CIPHER_CTX *cctx, const char *pass, int passlen,
+    ASN1_TYPE *param, const EVP_CIPHER *cipher,
+    const EVP_MD *md, int en_de);
+/**
+ * @brief Derive a key and IV with PKCS#5 v2.0 PBES2 and initialise a cipher
+ * context.
+ * @see PKCS5_v2_PBE_keyivgen(3)
+ */
+int ossl_PKCS5_v2_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
+    ASN1_TYPE *param, const EVP_CIPHER *c,
+    const EVP_MD *md, int en_de);
+
+#if !defined(FIPS_MODULE)
+/**
+ * @brief Set the type of a key from an algorithm name.
+ * @see EVP_PKEY_set_type_str(3)
+ */
+int ossl_EVP_PKEY_set_type_str(EVP_PKEY *pkey, const char *str, int len);
+/**
+ * @brief Send a control operation with a uint64_t argument to a key context.
+ * @see EVP_PKEY_CTX_ctrl_uint64(3)
+ */
+int ossl_EVP_PKEY_CTX_ctrl_uint64(EVP_PKEY_CTX *ctx, int keytype, int optype,
+    int cmd, uint64_t value);
+#endif /* !defined(FIPS_MODULE) */
 
 #endif /* OSSL_CRYPTO_EVP_H */

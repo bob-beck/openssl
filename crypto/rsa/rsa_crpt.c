@@ -140,7 +140,7 @@ BN_BLINDING *RSA_setup_blinding(RSA *rsa, BN_CTX *in_ctx)
         }
         BN_with_flags(n, rsa->n, BN_FLG_CONSTTIME);
 
-        ret = BN_BLINDING_create_param(NULL, e, n, ctx, rsa->meth->bn_mod_exp,
+        ret = ossl_BN_BLINDING_create_param(NULL, e, n, ctx, rsa->meth->bn_mod_exp,
             rsa->_method_mod_n);
         /* We MUST free n before any further use of rsa->n */
         BN_free(n);

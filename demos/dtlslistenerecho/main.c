@@ -637,8 +637,8 @@ static int create_dtls_client(SSL_CTX *ssl_ctx, const char *server_name, int por
      * just records the default peer.
      */
     snprintf(port_str, sizeof(port_str), "%d", port);
-    if (!BIO_lookup(server_name, port_str, BIO_LOOKUP_CLIENT, AF_UNSPEC,
-            SOCK_DGRAM, &res)) {
+    if (!BIO_lookup_ex(server_name, port_str, BIO_LOOKUP_CLIENT, AF_UNSPEC,
+            SOCK_DGRAM, 0, &res)) {
         fprintf(stderr, "Unable to resolve server: %s\n", server_name);
         ERR_print_errors_fp(stderr);
         goto err;

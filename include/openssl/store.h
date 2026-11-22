@@ -170,13 +170,41 @@ OSSL_STORE_CTX *OSSL_STORE_attach(BIO *bio, const char *scheme,
  * and will therefore be freed when the OSSL_STORE_INFO is freed.
  */
 OSSL_STORE_INFO *OSSL_STORE_INFO_new(int type, void *data);
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_NAME(char *name);
-int OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc);
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Create an OSSL_STORE_INFO holding a name.
+ * @see OSSL_STORE_INFO_new_NAME(3)
+ */
+OSSL_DEPRECATEDIN_4_2 OSSL_STORE_INFO *OSSL_STORE_INFO_new_NAME(char *name);
+/**
+ * @brief Set the description of a NAME OSSL_STORE_INFO, taking ownership of it.
+ * @see OSSL_STORE_INFO_set0_NAME_description(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc);
+/**
+ * @brief Create an OSSL_STORE_INFO holding key parameters.
+ * @see OSSL_STORE_INFO_new_PARAMS(3)
+ */
+OSSL_DEPRECATEDIN_4_2 OSSL_STORE_INFO *OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 OSSL_STORE_INFO *OSSL_STORE_INFO_new_PUBKEY(EVP_PKEY *pubkey);
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey);
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_CERT(X509 *x509);
-OSSL_STORE_INFO *OSSL_STORE_INFO_new_CRL(X509_CRL *crl);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Create an OSSL_STORE_INFO holding a private key.
+ * @see OSSL_STORE_INFO_new_PKEY(3)
+ */
+OSSL_DEPRECATEDIN_4_2 OSSL_STORE_INFO *OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey);
+/**
+ * @brief Create an OSSL_STORE_INFO holding a certificate.
+ * @see OSSL_STORE_INFO_new_CERT(3)
+ */
+OSSL_DEPRECATEDIN_4_2 OSSL_STORE_INFO *OSSL_STORE_INFO_new_CERT(X509 *x509);
+/**
+ * @brief Create an OSSL_STORE_INFO holding a CRL.
+ * @see OSSL_STORE_INFO_new_CRL(3)
+ */
+OSSL_DEPRECATEDIN_4_2 OSSL_STORE_INFO *OSSL_STORE_INFO_new_CRL(X509_CRL *crl);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 OSSL_STORE_INFO *OSSL_STORE_INFO_new_SKEY(EVP_SKEY *skey);
 
 /*

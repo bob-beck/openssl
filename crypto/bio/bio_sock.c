@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "bio_local.h"
+#include "internal/bio.h"
 
 #ifndef OPENSSL_NO_SOCK
 #define SOCKET_PROTOCOL IPPROTO_TCP
@@ -50,7 +51,7 @@ int BIO_get_host_ip(const char *str, unsigned char *ip)
     if (BIO_sock_init() != 1)
         return 0; /* don't generate another error code here */
 
-    if (BIO_lookup(str, NULL, BIO_LOOKUP_CLIENT, AF_INET, SOCK_STREAM, &res)) {
+    if (ossl_BIO_lookup(str, NULL, BIO_LOOKUP_CLIENT, AF_INET, SOCK_STREAM, &res)) {
         size_t l;
 
         if (BIO_ADDRINFO_family(res) != AF_INET) {
@@ -84,7 +85,7 @@ int BIO_get_port(const char *str, unsigned short *port_ptr)
     if (BIO_sock_init() != 1)
         return 0; /* don't generate another error code here */
 
-    if (BIO_lookup(NULL, str, BIO_LOOKUP_CLIENT, AF_INET, SOCK_STREAM, &res)) {
+    if (ossl_BIO_lookup(NULL, str, BIO_LOOKUP_CLIENT, AF_INET, SOCK_STREAM, &res)) {
         if (BIO_ADDRINFO_family(res) != AF_INET) {
             ERR_raise(ERR_LIB_BIO, BIO_R_ADDRINFO_ADDR_IS_NOT_AF_INET);
         } else {
@@ -100,7 +101,7 @@ int BIO_get_port(const char *str, unsigned short *port_ptr)
 }
 #endif
 
-int BIO_sock_error(int sock)
+int ossl_BIO_sock_error(int sock)
 {
     int j = 0, i;
     socklen_t size = sizeof(j);
@@ -117,6 +118,13 @@ int BIO_sock_error(int sock)
     else
         return j;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BIO_sock_error(int sock)
+{
+    return ossl_BIO_sock_error(sock);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #ifndef OPENSSL_NO_DEPRECATED_1_1_0
 struct hostent *BIO_gethostbyname(const char *name)
@@ -211,7 +219,7 @@ void bio_sock_cleanup_int(void)
 #endif
 }
 
-int BIO_socket_ioctl(int fd, long type, void *arg)
+int ossl_BIO_socket_ioctl(int fd, long type, void *arg)
 {
     int i;
 
@@ -250,6 +258,13 @@ int BIO_socket_ioctl(int fd, long type, void *arg)
     return i;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BIO_socket_ioctl(int fd, long type, void *arg)
+{
+    return ossl_BIO_socket_ioctl(fd, type, arg);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 #ifndef OPENSSL_NO_DEPRECATED_1_1_0
 int BIO_get_accept_socket(char *host, int bind_mode)
 {
@@ -263,7 +278,7 @@ int BIO_get_accept_socket(char *host, int bind_mode)
     if (BIO_sock_init() != 1)
         goto err;
 
-    if (BIO_lookup(h, p, BIO_LOOKUP_SERVER, AF_UNSPEC, SOCK_STREAM, &res) == 0)
+    if (ossl_BIO_lookup(h, p, BIO_LOOKUP_SERVER, AF_UNSPEC, SOCK_STREAM, &res) == 0)
         goto err;
 
     if ((s = BIO_socket(BIO_ADDRINFO_family(res), BIO_ADDRINFO_socktype(res),
@@ -352,7 +367,7 @@ int BIO_socket_nbio(int s, int mode)
 #ifdef FIONBIO
     l = mode;
 
-    ret = BIO_socket_ioctl(s, FIONBIO, &l);
+    ret = ossl_BIO_socket_ioctl(s, FIONBIO, &l);
 #elif defined(F_GETFL) && defined(F_SETFL) && (defined(O_NONBLOCK) || defined(FNDELAY))
     /* make sure this call always pushes an error level; BIO_socket_ioctl() does so, so we do too. */
 

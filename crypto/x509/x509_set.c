@@ -179,7 +179,7 @@ const X509_ALGOR *X509_get0_tbs_sigalg(const X509 *x)
     return &x->cert_info.signature;
 }
 
-int X509_SIG_INFO_get(const X509_SIG_INFO *siginf, int *mdnid, int *pknid,
+int ossl_X509_SIG_INFO_get(const X509_SIG_INFO *siginf, int *mdnid, int *pknid,
     int *secbits, uint32_t *flags)
 {
     if (mdnid != NULL)
@@ -193,7 +193,15 @@ int X509_SIG_INFO_get(const X509_SIG_INFO *siginf, int *mdnid, int *pknid,
     return (siginf->flags & X509_SIG_INFO_VALID) != 0;
 }
 
-void X509_SIG_INFO_set(X509_SIG_INFO *siginf, int mdnid, int pknid,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_SIG_INFO_get(const X509_SIG_INFO *siginf, int *mdnid, int *pknid,
+    int *secbits, uint32_t *flags)
+{
+    return ossl_X509_SIG_INFO_get(siginf, mdnid, pknid, secbits, flags);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+void ossl_X509_SIG_INFO_set(X509_SIG_INFO *siginf, int mdnid, int pknid,
     int secbits, uint32_t flags)
 {
     siginf->mdnid = mdnid;
@@ -201,6 +209,14 @@ void X509_SIG_INFO_set(X509_SIG_INFO *siginf, int mdnid, int pknid,
     siginf->secbits = secbits;
     siginf->flags = flags;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void X509_SIG_INFO_set(X509_SIG_INFO *siginf, int mdnid, int pknid,
+    int secbits, uint32_t flags)
+{
+    ossl_X509_SIG_INFO_set(siginf, mdnid, pknid, secbits, flags);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* Modify *siginf according to alg and sig. Return 1 on success, else 0. */
 static int x509_sig_info_init(X509_SIG_INFO *siginf, const X509_ALGOR *alg,
@@ -314,7 +330,7 @@ int ossl_x509_get_signature_info_ex(const X509 *x, int *mdnid, int *pknid,
     (void)x509_sig_info_init(&siginf, &x->sig_alg, &x->signature,
         X509_PUBKEY_get0(x->cert_info.key), libctx, propq);
     ERR_pop_to_mark();
-    return X509_SIG_INFO_get(&siginf, mdnid, pknid, secbits, flags);
+    return ossl_X509_SIG_INFO_get(&siginf, mdnid, pknid, secbits, flags);
 }
 
 int X509_get_signature_info(const X509 *x, int *mdnid, int *pknid, int *secbits,

@@ -19,6 +19,7 @@
 #include <openssl/err.h>
 #include <openssl/obj_mac.h>
 #include "ec_local.h"
+#include "crypto/bn.h"
 
 const EC_METHOD *EC_GFp_nist_method(void)
 {
@@ -102,16 +103,16 @@ int ossl_ec_GFp_nist_group_set_curve(EC_GROUP *group, const BIGNUM *p,
 
     BN_CTX_start(ctx);
 
-    if (BN_ucmp(BN_get0_nist_prime_192(), p) == 0)
-        group->field_mod_func = BN_nist_mod_192;
-    else if (BN_ucmp(BN_get0_nist_prime_224(), p) == 0)
-        group->field_mod_func = BN_nist_mod_224;
-    else if (BN_ucmp(BN_get0_nist_prime_256(), p) == 0)
-        group->field_mod_func = BN_nist_mod_256;
-    else if (BN_ucmp(BN_get0_nist_prime_384(), p) == 0)
-        group->field_mod_func = BN_nist_mod_384;
-    else if (BN_ucmp(BN_get0_nist_prime_521(), p) == 0)
-        group->field_mod_func = BN_nist_mod_521;
+    if (BN_ucmp(ossl_BN_get0_nist_prime_192(), p) == 0)
+        group->field_mod_func = ossl_BN_nist_mod_192;
+    else if (BN_ucmp(ossl_BN_get0_nist_prime_224(), p) == 0)
+        group->field_mod_func = ossl_BN_nist_mod_224;
+    else if (BN_ucmp(ossl_BN_get0_nist_prime_256(), p) == 0)
+        group->field_mod_func = ossl_BN_nist_mod_256;
+    else if (BN_ucmp(ossl_BN_get0_nist_prime_384(), p) == 0)
+        group->field_mod_func = ossl_BN_nist_mod_384;
+    else if (BN_ucmp(ossl_BN_get0_nist_prime_521(), p) == 0)
+        group->field_mod_func = ossl_BN_nist_mod_521;
     else {
         ERR_raise(ERR_LIB_EC, EC_R_NOT_A_NIST_PRIME);
         goto err;

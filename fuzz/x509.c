@@ -14,6 +14,7 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 #include "fuzzer.h"
+#include "crypto/x509.h"
 
 int FuzzerInitialize(int *argc, char ***argv)
 {
@@ -60,7 +61,7 @@ int FuzzerTestOneInput(const uint8_t *buf, size_t len)
     X509_print(bio, x509_1);
     BIO_free(bio);
 
-    X509_issuer_and_serial_hash(x509_1);
+    ossl_X509_issuer_and_serial_hash(x509_1);
 
     i2d_X509(x509_1, &der);
     OPENSSL_free(der);

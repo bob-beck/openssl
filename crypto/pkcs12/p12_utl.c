@@ -15,6 +15,7 @@
 #include "p12_local.h"
 #include "crypto/pkcs7/pk7_local.h"
 #include <crypto/asn1.h>
+#include "crypto/pkcs12.h"
 
 OSSL_SAFE_MATH_SIGNED(int, int)
 
@@ -91,7 +92,7 @@ char *OPENSSL_uni2asc(const unsigned char *uni, int unilen)
  * expressed not in number of UTF-16 characters, but in number of
  * bytes the string occupies, and treat it, the length, accordingly.
  */
-unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
+unsigned char *ossl_OPENSSL_utf82uni(const char *asc, int asclen,
     unsigned char **uni, int *unilen)
 {
     int ulen, i, j;
@@ -165,6 +166,14 @@ unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
         *uni = ret;
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
+    unsigned char **uni, int *unilen)
+{
+    return ossl_OPENSSL_utf82uni(asc, asclen, uni, unilen);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 static int bmp_to_utf8(char *str, const unsigned char *utf16, int len)
 {
@@ -260,7 +269,7 @@ int i2d_PKCS12_bio(BIO *bp, const PKCS12 *p12)
 #ifndef OPENSSL_NO_STDIO
 int i2d_PKCS12_fp(FILE *fp, const PKCS12 *p12)
 {
-    return ASN1_item_i2d_fp(ASN1_ITEM_rptr(PKCS12), fp, p12);
+    return ossl_ASN1_item_i2d_fp(ASN1_ITEM_rptr(PKCS12), fp, p12);
 }
 #endif
 

@@ -13,6 +13,7 @@
 #include "p12_local.h"
 
 #include <crypto/asn1.h>
+#include "crypto/pkcs12.h"
 
 /* Add a local keyid to a safebag */
 
@@ -29,12 +30,19 @@ int PKCS12_add_localkeyid(PKCS12_SAFEBAG *bag, const unsigned char *name,
 
 /* Add key usage to PKCS#8 structure */
 
-int PKCS8_add_keyusage(PKCS8_PRIV_KEY_INFO *p8, int usage)
+int ossl_PKCS8_add_keyusage(PKCS8_PRIV_KEY_INFO *p8, int usage)
 {
     unsigned char us_val = (unsigned char)usage;
-    return PKCS8_pkey_add1_attr_by_NID(p8, NID_key_usage,
+    return ossl_PKCS8_pkey_add1_attr_by_NID(p8, NID_key_usage,
         V_ASN1_BIT_STRING, &us_val, 1);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int PKCS8_add_keyusage(PKCS8_PRIV_KEY_INFO *p8, int usage)
+{
+    return ossl_PKCS8_add_keyusage(p8, usage);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* Add a friendlyname to a safebag */
 
@@ -99,7 +107,7 @@ int PKCS12_add1_attr_by_txt(PKCS12_SAFEBAG *bag, const char *attrname, int type,
         return 0;
 }
 
-const ASN1_TYPE *PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
+const ASN1_TYPE *ossl_PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
     int attr_nid)
 {
     int i = X509at_get_attr_by_NID(attrs, attr_nid, -1);
@@ -108,6 +116,14 @@ const ASN1_TYPE *PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
         return NULL;
     return X509_ATTRIBUTE_get0_type(X509at_get_attr(attrs, i), 0);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const ASN1_TYPE *PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
+    int attr_nid)
+{
+    return ossl_PKCS12_get_attr_gen(attrs, attr_nid);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 char *PKCS12_get_friendlyname(PKCS12_SAFEBAG *bag)
 {

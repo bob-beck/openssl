@@ -740,7 +740,7 @@ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
             int num;
 
             buffer = ossl_rand_pool_add_begin(pool, bytes_needed);
-            num = RAND_query_egd_bytes(paths[i],
+            num = ossl_RAND_query_egd_bytes(paths[i],
                 buffer, (int)bytes_needed);
             if (num == (int)bytes_needed)
                 bytes = bytes_needed;

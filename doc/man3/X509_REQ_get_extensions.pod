@@ -44,6 +44,8 @@ return 1 on success, 0 on error.
 
 X509_REQ_get_extensions() was constified in OpenSSL 4.0.
 
+X509_REQ_add_extensions_nid() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2022-2024 The OpenSSL Project Authors. All Rights Reserved.

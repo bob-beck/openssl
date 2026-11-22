@@ -240,7 +240,7 @@ static ECDSA_SIG *sm2_sig_gen(const EC_KEY *key, const BIGNUM *e)
     BIGNUM *s = NULL;
     BIGNUM *x1 = NULL;
     BIGNUM *tmp = NULL;
-    BN_MONT_CTX *mont = EC_GROUP_get_mont_data(group);
+    BN_MONT_CTX *mont = ossl_EC_GROUP_get_mont_data(group);
     OSSL_LIB_CTX *libctx = ossl_ec_key_get_libctx(key);
 
     if (dA == NULL) {

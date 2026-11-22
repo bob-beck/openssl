@@ -26,6 +26,7 @@
 #include "crypto/asn1.h"
 #include <openssl/des.h>
 #include "crypto/evp.h"
+#include "crypto/pem.h"
 
 #define MIN_LENGTH 4
 
@@ -68,7 +69,7 @@ int PEM_def_callback(char *buf, int num, int rwflag, void *userdata)
     return (int)strlen(buf);
 }
 
-void PEM_proc_type(char *buf, int type)
+void ossl_PEM_proc_type(char *buf, int type)
 {
     const char *str;
     char *p = buf + strlen(buf);
@@ -85,7 +86,14 @@ void PEM_proc_type(char *buf, int type)
     snprintf(p, PEM_BUFSIZE - (size_t)(p - buf), "Proc-Type: 4,%s\n", str);
 }
 
-void PEM_dek_info(char *buf, const char *type, int len, const char *str)
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void PEM_proc_type(char *buf, int type)
+{
+    ossl_PEM_proc_type(buf, type);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
+void ossl_PEM_dek_info(char *buf, const char *type, int len, const char *str)
 {
     long i;
     char *p = buf + strlen(buf);
@@ -106,6 +114,13 @@ void PEM_dek_info(char *buf, const char *type, int len, const char *str)
             strcpy(p, "\n");
     }
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void PEM_dek_info(char *buf, const char *type, int len, const char *str)
+{
+    ossl_PEM_dek_info(buf, type, len, str);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #ifndef OPENSSL_NO_STDIO
 void *PEM_ASN1_read(d2i_of_void *d2i, const char *name, FILE *fp, void **x,
@@ -392,8 +407,8 @@ PEM_ASN1_write_bio_internal(
             OPENSSL_cleanse(buf, PEM_BUFSIZE);
 
         buf[0] = '\0';
-        PEM_proc_type(buf, PEM_TYPE_ENCRYPTED);
-        PEM_dek_info(buf, objstr, EVP_CIPHER_get_iv_length(enc), (char *)iv);
+        ossl_PEM_proc_type(buf, PEM_TYPE_ENCRYPTED);
+        ossl_PEM_dek_info(buf, objstr, EVP_CIPHER_get_iv_length(enc), (char *)iv);
         /* k=strlen(buf); */
 
         ret = 1;

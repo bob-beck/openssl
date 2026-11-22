@@ -102,7 +102,13 @@ const char *RAND_file_name(char *file, size_t num);
 int RAND_status(void);
 
 #ifndef OPENSSL_NO_EGD
-int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Read random bytes from an Entropy Gathering Daemon socket.
+ * @see RAND_query_egd_bytes(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int RAND_egd(const char *path);
 int RAND_egd_bytes(const char *path, int bytes);
 #endif

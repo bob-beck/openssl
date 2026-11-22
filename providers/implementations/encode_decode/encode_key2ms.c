@@ -29,6 +29,7 @@
 #include "prov/provider_ctx.h"
 #include "prov/endecoder_local.h"
 #include "providers/implementations/encode_decode/encode_key2ms.inc"
+#include "crypto/pem.h"
 
 struct key2ms_ctx_st {
     PROV_CTX *provctx;
@@ -46,7 +47,7 @@ static int write_msblob(struct key2ms_ctx_st *ctx, OSSL_CORE_BIO *cout,
 
     if (out == NULL)
         return 0;
-    ret = ispub ? i2b_PublicKey_bio(out, pkey) : i2b_PrivateKey_bio(out, pkey);
+    ret = ispub ? i2b_PublicKey_bio(out, pkey) : ossl_i2b_PrivateKey_bio(out, pkey);
 
     BIO_free(out);
     return ret;

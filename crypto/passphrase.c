@@ -12,6 +12,7 @@
 #include <openssl/core_names.h>
 #include "internal/cryptlib.h"
 #include "internal/passphrase.h"
+#include "crypto/ui.h"
 
 void ossl_pw_clear_passphrase_data(struct ossl_passphrase_data_st *data)
 {
@@ -131,7 +132,7 @@ static int do_ui_passphrase(char *pass, size_t pass_size, size_t *pass_len,
     }
 
     if (ui_method != NULL) {
-        UI_set_method(ui, ui_method);
+        ossl_UI_set_method(ui, ui_method);
         if (ui_data != NULL)
             UI_add_user_data(ui, ui_data);
     }
@@ -181,7 +182,7 @@ static int do_ui_passphrase(char *pass, size_t pass_size, size_t *pass_len,
         ERR_raise(ERR_LIB_CRYPTO, ERR_R_UI_LIB);
         break;
     default:
-        res = UI_get_result_length(ui, prompt_idx);
+        res = ossl_UI_get_result_length(ui, prompt_idx);
         if (res < 0) {
             ERR_raise(ERR_LIB_CRYPTO, ERR_R_UI_LIB);
             break;

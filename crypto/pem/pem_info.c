@@ -23,6 +23,8 @@
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 #include "crypto/evp.h"
+#include "crypto/asn1.h"
+#include "crypto/pem.h"
 
 typedef enum {
     PEM_INFO_NONE,
@@ -149,7 +151,7 @@ STACK_OF(X509_INFO) *PEM_X509_INFO_read_bio_ex(BIO *bp, STACK_OF(X509_INFO) *sk,
             xi->enc_len = 0;
 
             itype = PEM_INFO_PKEY;
-            xi->x_pkey = X509_PKEY_new();
+            xi->x_pkey = ossl_X509_PKEY_new();
             if (xi->x_pkey == NULL)
                 goto err;
             pp = &xi->x_pkey->dec_pkey;
@@ -305,8 +307,8 @@ int PEM_X509_INFO_write_bio(BIO *bp, const X509_INFO *xi, EVP_CIPHER *enc,
 
             /* Create the right magic header stuff */
             buf[0] = '\0';
-            PEM_proc_type(buf, PEM_TYPE_ENCRYPTED);
-            PEM_dek_info(buf, objstr, EVP_CIPHER_get_iv_length(enc),
+            ossl_PEM_proc_type(buf, PEM_TYPE_ENCRYPTED);
+            ossl_PEM_dek_info(buf, objstr, EVP_CIPHER_get_iv_length(enc),
                 (const char *)iv);
 
             /* use the normal code to write things out */

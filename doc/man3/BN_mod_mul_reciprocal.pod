@@ -64,6 +64,9 @@ L<BN_CTX_new(3)>
 
 BN_RECP_CTX_init() was removed in OpenSSL 1.1.0
 
+BN_mod_mul_reciprocal(), BN_div_recp(), BN_RECP_CTX_free() and
+BN_RECP_CTX_set() were deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2000-2017 The OpenSSL Project Authors. All Rights Reserved.

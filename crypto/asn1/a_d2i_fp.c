@@ -98,10 +98,17 @@ void *ASN1_item_d2i_fp_ex(const ASN1_ITEM *it, FILE *in, void *x,
     return ret;
 }
 
-void *ASN1_item_d2i_fp(const ASN1_ITEM *it, FILE *in, void *x)
+void *ossl_ASN1_item_d2i_fp(const ASN1_ITEM *it, FILE *in, void *x)
 {
     return ASN1_item_d2i_fp_ex(it, in, x, NULL, NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void *ASN1_item_d2i_fp(const ASN1_ITEM *it, FILE *in, void *x)
+{
+    return ossl_ASN1_item_d2i_fp(it, in, x);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #endif
 
 #define HEADER_SIZE 2

@@ -477,7 +477,7 @@ int X509_VERIFY_PARAM_inherit(X509_VERIFY_PARAM *dest,
     dest->flags |= src->flags;
 
     if (test_x509_verify_param_copy(policies, NULL)) {
-        if (!X509_VERIFY_PARAM_set1_policies(dest, src->policies))
+        if (!ossl_X509_VERIFY_PARAM_set1_policies(dest, src->policies))
             return 0;
     }
 
@@ -568,7 +568,7 @@ int X509_VERIFY_PARAM_set_inh_flags(X509_VERIFY_PARAM *param, uint32_t flags)
 /* resets to default (any) purpose if |purpose| == X509_PURPOSE_DEFAULT_ANY */
 int X509_VERIFY_PARAM_set_purpose(X509_VERIFY_PARAM *param, int purpose)
 {
-    return X509_PURPOSE_set(&param->purpose, purpose);
+    return ossl_X509_PURPOSE_set(&param->purpose, purpose);
 }
 
 int X509_VERIFY_PARAM_get_purpose(const X509_VERIFY_PARAM *param)
@@ -578,7 +578,7 @@ int X509_VERIFY_PARAM_get_purpose(const X509_VERIFY_PARAM *param)
 
 int X509_VERIFY_PARAM_set_trust(X509_VERIFY_PARAM *param, int trust)
 {
-    return X509_TRUST_set(&param->trust, trust);
+    return ossl_X509_TRUST_set(&param->trust, trust);
 }
 
 void X509_VERIFY_PARAM_set_depth(X509_VERIFY_PARAM *param, int depth)
@@ -623,7 +623,7 @@ int X509_VERIFY_PARAM_add0_policy(X509_VERIFY_PARAM *param,
     return 1;
 }
 
-int X509_VERIFY_PARAM_set1_policies(X509_VERIFY_PARAM *param,
+int ossl_X509_VERIFY_PARAM_set1_policies(X509_VERIFY_PARAM *param,
     STACK_OF(ASN1_OBJECT) *policies)
 {
     int i;
@@ -657,6 +657,14 @@ int X509_VERIFY_PARAM_set1_policies(X509_VERIFY_PARAM *param,
     param->flags |= X509_V_FLAG_POLICY_CHECK;
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_VERIFY_PARAM_set1_policies(X509_VERIFY_PARAM *param,
+    STACK_OF(ASN1_OBJECT) *policies)
+{
+    return ossl_X509_VERIFY_PARAM_set1_policies(param, policies);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 char *X509_VERIFY_PARAM_get0_host(X509_VERIFY_PARAM *param, int idx)
 {

@@ -340,6 +340,8 @@ X509_STORE_CTX_set_ocsp_resp() function was added in OpenSSL 3.6.
 
 There is no need to call X509_STORE_CTX_cleanup() explicitly since OpenSSL 3.0.
 
+X509_STORE_CTX_purpose_inherit() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2009-2026 The OpenSSL Project Authors. All Rights Reserved.

@@ -49,6 +49,10 @@ L<RAND_add(3)>,
 L<RAND_bytes(3)>,
 L<RAND(7)>
 
+=head1 HISTORY
+
+RAND_query_egd_bytes() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2000-2018 The OpenSSL Project Authors. All Rights Reserved.

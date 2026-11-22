@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include "internal/cryptlib.h"
 #include "bn_local.h"
+#include "crypto/bn.h"
 
 #ifndef OPENSSL_NO_EC2M
 #include <openssl/ec.h>
@@ -281,7 +282,7 @@ int BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
  */
 
 /* Performs modular reduction of a and store result in r.  r could be a. */
-int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
+int ossl_BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
 {
     int j, k;
     int n, dN, d0, d1;
@@ -372,33 +373,47 @@ int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
     return 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
+{
+    return ossl_BN_GF2m_mod_arr(r, a, p);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Performs modular reduction of a by p and store result in r.  r could be a.
  * This function calls down to the BN_GF2m_mod_arr implementation; this wrapper
  * function is only provided for convenience; for best performance, use the
  * BN_GF2m_mod_arr function.
  */
-int BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p)
+int ossl_BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p)
 {
     int ret = 0;
     int arr[6];
     bn_check_top(a);
     bn_check_top(p);
-    ret = BN_GF2m_poly2arr(p, arr, OSSL_NELEM(arr));
+    ret = ossl_BN_GF2m_poly2arr(p, arr, OSSL_NELEM(arr));
     if (!ret || ret > (int)OSSL_NELEM(arr)) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
         return 0;
     }
-    ret = BN_GF2m_mod_arr(r, a, arr);
+    ret = ossl_BN_GF2m_mod_arr(r, a, arr);
     bn_check_top(r);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p)
+{
+    return ossl_BN_GF2m_mod(r, a, p);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Compute the product of two polynomials a and b, reduce modulo p, and store
  * the result in r.  r could be a or b; a could be b.
  */
-int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int ossl_BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const int p[], BN_CTX *ctx)
 {
     int zlen, i, j, k, ret = 0;
@@ -409,7 +424,7 @@ int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     bn_check_top(b);
 
     if (a == b) {
-        return BN_GF2m_mod_sqr_arr(r, a, p, ctx);
+        return ossl_BN_GF2m_mod_sqr_arr(r, a, p, ctx);
     }
 
     BN_CTX_start(ctx);
@@ -437,7 +452,7 @@ int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     }
 
     bn_correct_top(s);
-    if (BN_GF2m_mod_arr(r, s, p))
+    if (ossl_BN_GF2m_mod_arr(r, s, p))
         ret = 1;
     bn_check_top(r);
 
@@ -446,6 +461,14 @@ err:
     return ret;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+    const int p[], BN_CTX *ctx)
+{
+    return ossl_BN_GF2m_mod_mul_arr(r, a, b, p, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Compute the product of two polynomials a and b, reduce modulo p, and store
  * the result in r.  r could be a or b; a could equal b. This function calls
@@ -453,7 +476,7 @@ err:
  * only provided for convenience; for best performance, use the
  * BN_GF2m_mod_mul_arr function.
  */
-int BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int ossl_BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const BIGNUM *p, BN_CTX *ctx)
 {
     int ret = 0;
@@ -467,20 +490,28 @@ int BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     arr = OPENSSL_malloc_array(max, sizeof(*arr));
     if (arr == NULL)
         return 0;
-    ret = BN_GF2m_poly2arr(p, arr, max);
+    ret = ossl_BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
         goto err;
     }
-    ret = BN_GF2m_mod_mul_arr(r, a, b, arr, ctx);
+    ret = ossl_BN_GF2m_mod_mul_arr(r, a, b, arr, ctx);
     bn_check_top(r);
 err:
     OPENSSL_free(arr);
     return ret;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+    const BIGNUM *p, BN_CTX *ctx)
+{
+    return ossl_BN_GF2m_mod_mul(r, a, b, p, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /* Square a, reduce the result mod p, and store it in a.  r could be a. */
-int BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+int ossl_BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
     BN_CTX *ctx)
 {
     int i, ret = 0;
@@ -500,7 +531,7 @@ int BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
 
     s->top = 2 * a->top;
     bn_correct_top(s);
-    if (!BN_GF2m_mod_arr(r, s, p))
+    if (!ossl_BN_GF2m_mod_arr(r, s, p))
         goto err;
     bn_check_top(r);
     ret = 1;
@@ -508,6 +539,14 @@ err:
     BN_CTX_end(ctx);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+    BN_CTX *ctx)
+{
+    return ossl_BN_GF2m_mod_sqr_arr(r, a, p, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Square a, reduce the result mod p, and store it in a.  r could be a. This
@@ -527,12 +566,12 @@ int BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     arr = OPENSSL_malloc_array(max, sizeof(*arr));
     if (arr == NULL)
         return 0;
-    ret = BN_GF2m_poly2arr(p, arr, max);
+    ret = ossl_BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
         goto err;
     }
-    ret = BN_GF2m_mod_sqr_arr(r, a, arr, ctx);
+    ret = ossl_BN_GF2m_mod_sqr_arr(r, a, arr, ctx);
     bn_check_top(r);
 err:
     OPENSSL_free(arr);
@@ -563,7 +602,7 @@ static int BN_GF2m_mod_inv_vartime(BIGNUM *r, const BIGNUM *a,
     if (v == NULL)
         goto err;
 
-    if (!BN_GF2m_mod(u, a, p))
+    if (!ossl_BN_GF2m_mod(u, a, p))
         goto err;
     if (BN_is_zero(u))
         goto err;
@@ -717,7 +756,7 @@ err:
  * This is not constant time.
  * But it does eliminate first order deduction on the input.
  */
-int BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+int ossl_BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
 {
     BIGNUM *b = NULL;
     int ret = 0;
@@ -740,7 +779,7 @@ int BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     } while (BN_is_zero(b));
 
     /* r := a * b */
-    if (!BN_GF2m_mod_mul(r, a, b, p, ctx))
+    if (!ossl_BN_GF2m_mod_mul(r, a, b, p, ctx))
         goto err;
 
     /* r := 1/(a * b) */
@@ -748,7 +787,7 @@ int BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
         goto err;
 
     /* r := b/(a * b) = 1/a */
-    if (!BN_GF2m_mod_mul(r, r, b, p, ctx))
+    if (!ossl_BN_GF2m_mod_mul(r, r, b, p, ctx))
         goto err;
 
     ret = 1;
@@ -757,6 +796,13 @@ err:
     BN_CTX_end(ctx);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+{
+    return ossl_BN_GF2m_mod_inv(r, a, p, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Invert xx, reduce modulo p, and store the result in r. r could be xx.
@@ -774,10 +820,10 @@ int BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *xx, const int p[],
     BN_CTX_start(ctx);
     if ((field = BN_CTX_get(ctx)) == NULL)
         goto err;
-    if (!BN_GF2m_arr2poly(p, field))
+    if (!ossl_BN_GF2m_arr2poly(p, field))
         goto err;
 
-    ret = BN_GF2m_mod_inv(r, xx, field, ctx);
+    ret = ossl_BN_GF2m_mod_inv(r, xx, field, ctx);
     bn_check_top(r);
 
 err:
@@ -789,7 +835,7 @@ err:
  * Divide y by x, reduce modulo p, and store the result in r. r could be x
  * or y, x could equal y.
  */
-int BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
+int ossl_BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
     const BIGNUM *p, BN_CTX *ctx)
 {
     BIGNUM *xinv = NULL;
@@ -804,9 +850,9 @@ int BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
     if (xinv == NULL)
         goto err;
 
-    if (!BN_GF2m_mod_inv(xinv, x, p, ctx))
+    if (!ossl_BN_GF2m_mod_inv(xinv, x, p, ctx))
         goto err;
-    if (!BN_GF2m_mod_mul(r, y, xinv, p, ctx))
+    if (!ossl_BN_GF2m_mod_mul(r, y, xinv, p, ctx))
         goto err;
     bn_check_top(r);
     ret = 1;
@@ -815,6 +861,14 @@ err:
     BN_CTX_end(ctx);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
+    const BIGNUM *p, BN_CTX *ctx)
+{
+    return ossl_BN_GF2m_mod_div(r, y, x, p, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Divide yy by xx, reduce modulo p, and store the result in r. r could be xx
@@ -834,10 +888,10 @@ int BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *yy, const BIGNUM *xx,
     BN_CTX_start(ctx);
     if ((field = BN_CTX_get(ctx)) == NULL)
         goto err;
-    if (!BN_GF2m_arr2poly(p, field))
+    if (!ossl_BN_GF2m_arr2poly(p, field))
         goto err;
 
-    ret = BN_GF2m_mod_div(r, yy, xx, field, ctx);
+    ret = ossl_BN_GF2m_mod_div(r, yy, xx, field, ctx);
     bn_check_top(r);
 
 err:
@@ -850,7 +904,7 @@ err:
  * could be a. Uses simple square-and-multiply algorithm A.5.1 from IEEE
  * P1363.
  */
-int BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+int ossl_BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     const int p[], BN_CTX *ctx)
 {
     int ret = 0, i, n;
@@ -869,15 +923,15 @@ int BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     if ((u = BN_CTX_get(ctx)) == NULL)
         goto err;
 
-    if (!BN_GF2m_mod_arr(u, a, p))
+    if (!ossl_BN_GF2m_mod_arr(u, a, p))
         goto err;
 
     n = BN_num_bits(b) - 1;
     for (i = n - 1; i >= 0; i--) {
-        if (!BN_GF2m_mod_sqr_arr(u, u, p, ctx))
+        if (!ossl_BN_GF2m_mod_sqr_arr(u, u, p, ctx))
             goto err;
         if (BN_is_bit_set(b, i)) {
-            if (!BN_GF2m_mod_mul_arr(u, u, a, p, ctx))
+            if (!ossl_BN_GF2m_mod_mul_arr(u, u, a, p, ctx))
                 goto err;
         }
     }
@@ -889,6 +943,14 @@ err:
     BN_CTX_end(ctx);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+    const int p[], BN_CTX *ctx)
+{
+    return ossl_BN_GF2m_mod_exp_arr(r, a, b, p, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Compute the bth power of a, reduce modulo p, and store the result in r.  r
@@ -910,12 +972,12 @@ int BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
     arr = OPENSSL_malloc_array(max, sizeof(*arr));
     if (arr == NULL)
         return 0;
-    ret = BN_GF2m_poly2arr(p, arr, max);
+    ret = ossl_BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
         goto err;
     }
-    ret = BN_GF2m_mod_exp_arr(r, a, b, arr, ctx);
+    ret = ossl_BN_GF2m_mod_exp_arr(r, a, b, arr, ctx);
     bn_check_top(r);
 err:
     OPENSSL_free(arr);
@@ -926,7 +988,7 @@ err:
  * Compute the square root of a, reduce modulo p, and store the result in r.
  * r could be a. Uses exponentiation as in algorithm A.4.1 from IEEE P1363.
  */
-int BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+int ossl_BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
     BN_CTX *ctx)
 {
     int ret = 0;
@@ -946,13 +1008,21 @@ int BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
 
     if (!BN_set_bit(u, p[0] - 1))
         goto err;
-    ret = BN_GF2m_mod_exp_arr(r, a, u, p, ctx);
+    ret = ossl_BN_GF2m_mod_exp_arr(r, a, u, p, ctx);
     bn_check_top(r);
 
 err:
     BN_CTX_end(ctx);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+    BN_CTX *ctx)
+{
+    return ossl_BN_GF2m_mod_sqrt_arr(r, a, p, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Compute the square root of a, reduce modulo p, and store the result in r.
@@ -972,12 +1042,12 @@ int BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
     arr = OPENSSL_malloc_array(max, sizeof(*arr));
     if (arr == NULL)
         return 0;
-    ret = BN_GF2m_poly2arr(p, arr, max);
+    ret = ossl_BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
         goto err;
     }
-    ret = BN_GF2m_mod_sqrt_arr(r, a, arr, ctx);
+    ret = ossl_BN_GF2m_mod_sqrt_arr(r, a, arr, ctx);
     bn_check_top(r);
 err:
     OPENSSL_free(arr);
@@ -988,7 +1058,7 @@ err:
  * Find r such that r^2 + r = a mod p.  r could be a. If no r exists returns
  * 0. Uses algorithms A.4.7 and A.4.6 from IEEE P1363.
  */
-int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
+int ossl_BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
     BN_CTX *ctx)
 {
     int ret = 0, count = 0, j;
@@ -1009,7 +1079,7 @@ int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
     if (w == NULL)
         goto err;
 
-    if (!BN_GF2m_mod_arr(a, a_, p))
+    if (!ossl_BN_GF2m_mod_arr(a, a_, p))
         goto err;
 
     if (BN_is_zero(a)) {
@@ -1023,9 +1093,9 @@ int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
         if (BN_copy(z, a) == NULL)
             goto err;
         for (j = 1; j <= (p[0] - 1) / 2; j++) {
-            if (!BN_GF2m_mod_sqr_arr(z, z, p, ctx))
+            if (!ossl_BN_GF2m_mod_sqr_arr(z, z, p, ctx))
                 goto err;
-            if (!BN_GF2m_mod_sqr_arr(z, z, p, ctx))
+            if (!ossl_BN_GF2m_mod_sqr_arr(z, z, p, ctx))
                 goto err;
             if (!BN_GF2m_add(z, z, a))
                 goto err;
@@ -1042,17 +1112,17 @@ int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
             if (!BN_priv_rand_ex(rho, p[0], BN_RAND_TOP_ONE, BN_RAND_BOTTOM_ANY,
                     0, ctx))
                 goto err;
-            if (!BN_GF2m_mod_arr(rho, rho, p))
+            if (!ossl_BN_GF2m_mod_arr(rho, rho, p))
                 goto err;
             BN_zero(z);
             if (BN_copy(w, rho) == NULL)
                 goto err;
             for (j = 1; j <= p[0] - 1; j++) {
-                if (!BN_GF2m_mod_sqr_arr(z, z, p, ctx))
+                if (!ossl_BN_GF2m_mod_sqr_arr(z, z, p, ctx))
                     goto err;
-                if (!BN_GF2m_mod_sqr_arr(w2, w, p, ctx))
+                if (!ossl_BN_GF2m_mod_sqr_arr(w2, w, p, ctx))
                     goto err;
-                if (!BN_GF2m_mod_mul_arr(tmp, w2, a, p, ctx))
+                if (!ossl_BN_GF2m_mod_mul_arr(tmp, w2, a, p, ctx))
                     goto err;
                 if (!BN_GF2m_add(z, z, tmp))
                     goto err;
@@ -1067,7 +1137,7 @@ int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
         }
     }
 
-    if (!BN_GF2m_mod_sqr_arr(w, z, p, ctx))
+    if (!ossl_BN_GF2m_mod_sqr_arr(w, z, p, ctx))
         goto err;
     if (!BN_GF2m_add(w, z, w))
         goto err;
@@ -1086,6 +1156,14 @@ err:
     BN_CTX_end(ctx);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
+    BN_CTX *ctx)
+{
+    return ossl_BN_GF2m_mod_solve_quad_arr(r, a_, p, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Find r such that r^2 + r = a mod p.  r could be a. If no r exists returns
@@ -1106,12 +1184,12 @@ int BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
     arr = OPENSSL_malloc_array(max, sizeof(*arr));
     if (arr == NULL)
         goto err;
-    ret = BN_GF2m_poly2arr(p, arr, max);
+    ret = ossl_BN_GF2m_poly2arr(p, arr, max);
     if (!ret || ret > max) {
         ERR_raise(ERR_LIB_BN, BN_R_INVALID_LENGTH);
         goto err;
     }
-    ret = BN_GF2m_mod_solve_quad_arr(r, a, arr, ctx);
+    ret = ossl_BN_GF2m_mod_solve_quad_arr(r, a, arr, ctx);
     bn_check_top(r);
 err:
     OPENSSL_free(arr);
@@ -1135,7 +1213,7 @@ err:
  * The return value is also `0` when the leading exponent exceeds
  * `OPENSSL_ECC_MAX_FIELD_BITS`, this guards against CPU exhaustion attacks,
  */
-int BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max)
+int ossl_BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max)
 {
     int i, j, k = 0;
     BN_ULONG mask;
@@ -1167,11 +1245,18 @@ int BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max)
     return k + 1;
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max)
+{
+    return ossl_BN_GF2m_poly2arr(a, p, max);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*
  * Convert the coefficient array representation of a polynomial to a
  * bit-string.  The array must be terminated by -1.
  */
-int BN_GF2m_arr2poly(const int p[], BIGNUM *a)
+int ossl_BN_GF2m_arr2poly(const int p[], BIGNUM *a)
 {
     int i;
 
@@ -1185,5 +1270,12 @@ int BN_GF2m_arr2poly(const int p[], BIGNUM *a)
 
     return 1;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int BN_GF2m_arr2poly(const int p[], BIGNUM *a)
+{
+    return ossl_BN_GF2m_arr2poly(p, a);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 #endif

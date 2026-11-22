@@ -890,7 +890,7 @@ void EVP_MD_CTX_set_pkey_ctx(EVP_MD_CTX *ctx, EVP_PKEY_CTX *pctx)
         /* make sure pctx is not freed when destroying EVP_MD_CTX */
         EVP_MD_CTX_set_flags(ctx, EVP_MD_CTX_FLAG_KEEP_PKEY_CTX);
     } else {
-        EVP_MD_CTX_clear_flags(ctx, EVP_MD_CTX_FLAG_KEEP_PKEY_CTX);
+        ossl_EVP_MD_CTX_clear_flags(ctx, EVP_MD_CTX_FLAG_KEEP_PKEY_CTX);
     }
 }
 #endif /* !defined(FIPS_MODULE) */
@@ -907,10 +907,17 @@ void EVP_MD_CTX_set_flags(EVP_MD_CTX *ctx, int flags)
     ctx->flags |= flags;
 }
 
-void EVP_MD_CTX_clear_flags(EVP_MD_CTX *ctx, int flags)
+void ossl_EVP_MD_CTX_clear_flags(EVP_MD_CTX *ctx, int flags)
 {
     ctx->flags &= ~flags;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void EVP_MD_CTX_clear_flags(EVP_MD_CTX *ctx, int flags)
+{
+    ossl_EVP_MD_CTX_clear_flags(ctx, flags);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int EVP_MD_CTX_test_flags(const EVP_MD_CTX *ctx, int flags)
 {

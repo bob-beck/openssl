@@ -22,6 +22,7 @@
 #include "internal/nelem.h"
 #include "internal/numbers.h"
 #include "testutil.h"
+#include "crypto/bn.h"
 
 /*
  * Things in boring, not in openssl.
@@ -179,25 +180,25 @@ static int test_swap(void)
 
     /* conditional swap: true */
     cond = 1;
-    BN_consttime_swap(cond, a, b, top);
+    ossl_BN_consttime_swap(cond, a, b, top);
     if (!equalBN("cswap true", a, c)
         || !equalBN("cswap true", b, d))
         goto err;
 
     /* conditional swap: true, same pointer */
-    BN_consttime_swap(cond, a, a, top);
+    ossl_BN_consttime_swap(cond, a, a, top);
     if (!equalBN("cswap true", a, c))
         goto err;
 
     /* conditional swap: false */
     cond = 0;
-    BN_consttime_swap(cond, a, b, top);
+    ossl_BN_consttime_swap(cond, a, b, top);
     if (!equalBN("cswap false", a, c)
         || !equalBN("cswap false", b, d))
         goto err;
 
     /* conditional swap: false, same pointer */
-    BN_consttime_swap(cond, a, a, top);
+    ossl_BN_consttime_swap(cond, a, a, top);
     if (!equalBN("cswap false", a, c))
         goto err;
 
@@ -212,7 +213,7 @@ static int test_swap(void)
         goto err;
 
     cond = 1;
-    BN_consttime_swap(cond, a, b, top);
+    ossl_BN_consttime_swap(cond, a, b, top);
     if (!equalBN("cswap true, flags", a, c)
         || !equalBN("cswap true, flags", b, d)
         || !TEST_true(BN_get_flags(a, BN_FLG_CONSTTIME))
@@ -220,7 +221,7 @@ static int test_swap(void)
         goto err;
 
     cond = 0;
-    BN_consttime_swap(cond, a, b, top);
+    ossl_BN_consttime_swap(cond, a, b, top);
     if (!equalBN("cswap false, flags", a, c)
         || !equalBN("cswap false, flags", b, d)
         || !TEST_true(BN_get_flags(a, BN_FLG_CONSTTIME))
@@ -300,8 +301,8 @@ static int test_div_recip(void)
         }
         BN_set_negative(a, rand_neg());
         BN_set_negative(b, rand_neg());
-        if (!(TEST_true(BN_RECP_CTX_set(recp, b, ctx))
-                && TEST_true(BN_div_recp(d, c, a, recp, ctx))
+        if (!(TEST_true(ossl_BN_RECP_CTX_set(recp, b, ctx))
+                && TEST_true(ossl_BN_div_recp(d, c, a, recp, ctx))
                 && TEST_true(BN_mul(e, d, b, ctx))
                 && TEST_true(BN_add(d, e, c))
                 && TEST_true(BN_sub(d, d, a))
@@ -315,7 +316,7 @@ err:
     BN_free(c);
     BN_free(d);
     BN_free(e);
-    BN_RECP_CTX_free(recp);
+    ossl_BN_RECP_CTX_free(recp);
     return st;
 }
 
@@ -685,7 +686,7 @@ static int test_modexp_mont5(void)
             || !TEST_true(parse_bigBN(&p, phex))
             || !TEST_true(parse_bigBN(&m, mhex))
             || !TEST_true(BN_mod_exp_mont_consttime(d, e, p, m, ctx, NULL))
-            || !TEST_true(BN_mod_exp_simple(a, e, p, m, ctx))
+            || !TEST_true(ossl_BN_mod_exp_simple(a, e, p, m, ctx))
             || !TEST_BN_eq(a, d))
             goto err;
     }
@@ -708,14 +709,14 @@ static int test_modexp_mont5(void)
         goto err;
     if (!TEST_true(BN_from_montgomery(e, a, mont, ctx))
         || !TEST_true(BN_mod_exp_mont_consttime(d, e, p, m, ctx, NULL))
-        || !TEST_true(BN_mod_exp_simple(a, e, p, m, ctx))
+        || !TEST_true(ossl_BN_mod_exp_simple(a, e, p, m, ctx))
         || !TEST_BN_eq(a, d))
         goto err;
 
     /* Finally, some regular test vectors. */
     if (!(TEST_true(BN_bntest_rand(e, 1024, 0, 0))
             && TEST_true(BN_mod_exp_mont_consttime(d, e, p, m, ctx, NULL))
-            && TEST_true(BN_mod_exp_simple(a, e, p, m, ctx))
+            && TEST_true(ossl_BN_mod_exp_simple(a, e, p, m, ctx))
             && TEST_BN_eq(a, d)))
         goto err;
 
@@ -782,17 +783,17 @@ static int test_gf2m_mod(void)
         || !TEST_ptr(e = BN_new()))
         goto err;
 
-    if (!(TEST_true(BN_GF2m_arr2poly(p0, b[0]))
-            && TEST_true(BN_GF2m_arr2poly(p1, b[1]))))
+    if (!(TEST_true(ossl_BN_GF2m_arr2poly(p0, b[0]))
+            && TEST_true(ossl_BN_GF2m_arr2poly(p1, b[1]))))
         goto err;
 
     for (i = 0; i < NUM0; i++) {
         if (!TEST_true(BN_bntest_rand(a, 1024, 0, 0)))
             goto err;
         for (j = 0; j < 2; j++) {
-            if (!(TEST_true(BN_GF2m_mod(c, a, b[j]))
+            if (!(TEST_true(ossl_BN_GF2m_mod(c, a, b[j]))
                     && TEST_true(BN_GF2m_add(d, a, c))
-                    && TEST_true(BN_GF2m_mod(e, d, b[j]))
+                    && TEST_true(ossl_BN_GF2m_mod(e, d, b[j]))
                     /* Test that a + (a mod p) mod p == 0. */
                     && TEST_BN_eq_zero(e)))
                 goto err;
@@ -826,8 +827,8 @@ static int test_gf2m_mul(void)
         || !TEST_ptr(h = BN_new()))
         goto err;
 
-    if (!(TEST_true(BN_GF2m_arr2poly(p0, b[0]))
-            && TEST_true(BN_GF2m_arr2poly(p1, b[1]))))
+    if (!(TEST_true(ossl_BN_GF2m_arr2poly(p0, b[0]))
+            && TEST_true(ossl_BN_GF2m_arr2poly(p1, b[1]))))
         goto err;
 
     for (i = 0; i < NUM0; i++) {
@@ -836,10 +837,10 @@ static int test_gf2m_mul(void)
                 && TEST_true(BN_bntest_rand(d, 1024, 0, 0))))
             goto err;
         for (j = 0; j < 2; j++) {
-            if (!(TEST_true(BN_GF2m_mod_mul(e, a, c, b[j], ctx))
+            if (!(TEST_true(ossl_BN_GF2m_mod_mul(e, a, c, b[j], ctx))
                     && TEST_true(BN_GF2m_add(f, a, d))
-                    && TEST_true(BN_GF2m_mod_mul(g, f, c, b[j], ctx))
-                    && TEST_true(BN_GF2m_mod_mul(h, d, c, b[j], ctx))
+                    && TEST_true(ossl_BN_GF2m_mod_mul(g, f, c, b[j], ctx))
+                    && TEST_true(ossl_BN_GF2m_mod_mul(h, d, c, b[j], ctx))
                     && TEST_true(BN_GF2m_add(f, e, g))
                     && TEST_true(BN_GF2m_add(f, f, h))
                     /* Test that (a+d)*c = a*c + d*c. */
@@ -874,8 +875,8 @@ static int test_gf2m_sqr(void)
         || !TEST_ptr(d = BN_new()))
         goto err;
 
-    if (!(TEST_true(BN_GF2m_arr2poly(p0, b[0]))
-            && TEST_true(BN_GF2m_arr2poly(p1, b[1]))))
+    if (!(TEST_true(ossl_BN_GF2m_arr2poly(p0, b[0]))
+            && TEST_true(ossl_BN_GF2m_arr2poly(p1, b[1]))))
         goto err;
 
     for (i = 0; i < NUM0; i++) {
@@ -884,7 +885,7 @@ static int test_gf2m_sqr(void)
         for (j = 0; j < 2; j++) {
             if (!(TEST_true(BN_GF2m_mod_sqr(c, a, b[j], ctx))
                     && TEST_true(BN_copy(d, a))
-                    && TEST_true(BN_GF2m_mod_mul(d, a, d, b[j], ctx))
+                    && TEST_true(ossl_BN_GF2m_mod_mul(d, a, d, b[j], ctx))
                     && TEST_true(BN_GF2m_add(d, c, d))
                     /* Test that a*a = a^2. */
                     && TEST_BN_eq_zero(d)))
@@ -918,19 +919,19 @@ static int test_gf2m_modinv(void)
         goto err;
     if (!TEST_true(BN_bntest_rand(a, 512, 0, 0)))
         goto err;
-    if (!TEST_false(BN_GF2m_mod_inv(c, a, b[0], ctx)))
+    if (!TEST_false(ossl_BN_GF2m_mod_inv(c, a, b[0], ctx)))
         goto err;
 
-    if (!(TEST_true(BN_GF2m_arr2poly(p0, b[0]))
-            && TEST_true(BN_GF2m_arr2poly(p1, b[1]))))
+    if (!(TEST_true(ossl_BN_GF2m_arr2poly(p0, b[0]))
+            && TEST_true(ossl_BN_GF2m_arr2poly(p1, b[1]))))
         goto err;
 
     for (i = 0; i < NUM0; i++) {
         if (!TEST_true(BN_bntest_rand(a, 512, 0, 0)))
             goto err;
         for (j = 0; j < 2; j++) {
-            if (!(TEST_true(BN_GF2m_mod_inv(c, a, b[j], ctx))
-                    && TEST_true(BN_GF2m_mod_mul(d, a, c, b[j], ctx))
+            if (!(TEST_true(ossl_BN_GF2m_mod_inv(c, a, b[j], ctx))
+                    && TEST_true(ossl_BN_GF2m_mod_mul(d, a, c, b[j], ctx))
                     /* Test that ((1/a)*a) = 1. */
                     && TEST_BN_eq_one(d)))
                 goto err;
@@ -961,8 +962,8 @@ static int test_gf2m_moddiv(void)
         || !TEST_ptr(f = BN_new()))
         goto err;
 
-    if (!(TEST_true(BN_GF2m_arr2poly(p0, b[0]))
-            && TEST_true(BN_GF2m_arr2poly(p1, b[1]))))
+    if (!(TEST_true(ossl_BN_GF2m_arr2poly(p0, b[0]))
+            && TEST_true(ossl_BN_GF2m_arr2poly(p1, b[1]))))
         goto err;
 
     for (i = 0; i < NUM0; i++) {
@@ -970,9 +971,9 @@ static int test_gf2m_moddiv(void)
                 && TEST_true(BN_bntest_rand(c, 512, 0, 0))))
             goto err;
         for (j = 0; j < 2; j++) {
-            if (!(TEST_true(BN_GF2m_mod_div(d, a, c, b[j], ctx))
-                    && TEST_true(BN_GF2m_mod_mul(e, d, c, b[j], ctx))
-                    && TEST_true(BN_GF2m_mod_div(f, a, e, b[j], ctx))
+            if (!(TEST_true(ossl_BN_GF2m_mod_div(d, a, c, b[j], ctx))
+                    && TEST_true(ossl_BN_GF2m_mod_mul(e, d, c, b[j], ctx))
+                    && TEST_true(ossl_BN_GF2m_mod_div(f, a, e, b[j], ctx))
                     /* Test that ((a/c)*c)/a = 1. */
                     && TEST_BN_eq_one(f)))
                 goto err;
@@ -1005,8 +1006,8 @@ static int test_gf2m_modexp(void)
         || !TEST_ptr(f = BN_new()))
         goto err;
 
-    if (!(TEST_true(BN_GF2m_arr2poly(p0, b[0]))
-            && TEST_true(BN_GF2m_arr2poly(p1, b[1]))))
+    if (!(TEST_true(ossl_BN_GF2m_arr2poly(p0, b[0]))
+            && TEST_true(ossl_BN_GF2m_arr2poly(p1, b[1]))))
         goto err;
 
     for (i = 0; i < NUM0; i++) {
@@ -1017,7 +1018,7 @@ static int test_gf2m_modexp(void)
         for (j = 0; j < 2; j++) {
             if (!(TEST_true(BN_GF2m_mod_exp(e, a, c, b[j], ctx))
                     && TEST_true(BN_GF2m_mod_exp(f, a, d, b[j], ctx))
-                    && TEST_true(BN_GF2m_mod_mul(e, e, f, b[j], ctx))
+                    && TEST_true(ossl_BN_GF2m_mod_mul(e, e, f, b[j], ctx))
                     && TEST_true(BN_add(f, c, d))
                     && TEST_true(BN_GF2m_mod_exp(f, a, f, b[j], ctx))
                     && TEST_true(BN_GF2m_add(f, e, f))
@@ -1053,8 +1054,8 @@ static int test_gf2m_modsqrt(void)
         || !TEST_ptr(f = BN_new()))
         goto err;
 
-    if (!(TEST_true(BN_GF2m_arr2poly(p0, b[0]))
-            && TEST_true(BN_GF2m_arr2poly(p1, b[1]))))
+    if (!(TEST_true(ossl_BN_GF2m_arr2poly(p0, b[0]))
+            && TEST_true(ossl_BN_GF2m_arr2poly(p1, b[1]))))
         goto err;
 
     for (i = 0; i < NUM0; i++) {
@@ -1062,7 +1063,7 @@ static int test_gf2m_modsqrt(void)
             goto err;
 
         for (j = 0; j < 2; j++) {
-            if (!(TEST_true(BN_GF2m_mod(c, a, b[j]))
+            if (!(TEST_true(ossl_BN_GF2m_mod(c, a, b[j]))
                     && TEST_true(BN_GF2m_mod_sqrt(d, a, b[j], ctx))
                     && TEST_true(BN_GF2m_mod_sqr(e, d, b[j], ctx))
                     && TEST_true(BN_GF2m_add(f, c, e))
@@ -1097,8 +1098,8 @@ static int test_gf2m_modsolvequad(void)
         || !TEST_ptr(e = BN_new()))
         goto err;
 
-    if (!(TEST_true(BN_GF2m_arr2poly(p0, b[0]))
-            && TEST_true(BN_GF2m_arr2poly(p1, b[1]))))
+    if (!(TEST_true(ossl_BN_GF2m_arr2poly(p0, b[0]))
+            && TEST_true(ossl_BN_GF2m_arr2poly(p1, b[1]))))
         goto err;
 
     for (i = 0; i < NUM0; i++) {
@@ -1110,7 +1111,7 @@ static int test_gf2m_modsolvequad(void)
                 s++;
                 if (!(TEST_true(BN_GF2m_mod_sqr(d, c, b[j], ctx))
                         && TEST_true(BN_GF2m_add(d, c, d))
-                        && TEST_true(BN_GF2m_mod(e, a, b[j]))
+                        && TEST_true(ossl_BN_GF2m_mod(e, a, b[j]))
                         && TEST_true(BN_GF2m_add(e, e, d))
                         /*
                          * Test that solution of quadratic c
@@ -1178,7 +1179,7 @@ static int test_kronecker(void)
         /* r := a^t mod b */
         BN_set_negative(b, 0);
 
-        if (!TEST_true(BN_mod_exp_recp(r, a, t, b, ctx)))
+        if (!TEST_true(ossl_BN_mod_exp_recp(r, a, t, b, ctx)))
             goto err;
         BN_set_negative(b, 1);
 
@@ -1196,7 +1197,7 @@ static int test_kronecker(void)
             legendre = -1;
         }
 
-        if (!TEST_int_ge(kronecker = BN_kronecker(a, b, ctx), -1))
+        if (!TEST_int_ge(kronecker = ossl_BN_kronecker(a, b, ctx), -1))
             goto err;
         /* we actually need BN_kronecker(a, |b|) */
         if (BN_is_negative(a) && BN_is_negative(b))
@@ -1249,8 +1250,8 @@ static int test_sum_all_alias_helper(const SUM_ALL_ALIAS *test)
         || !TEST_BN_eq(expected, alias)
         || !TEST_ptr(BN_copy(alias, orig))
         /* BN_usub */
-        || !TEST_true(BN_usub(expected, orig, orig))
-        || !TEST_true(BN_usub(alias, alias, alias))
+        || !TEST_true(ossl_BN_usub(expected, orig, orig))
+        || !TEST_true(ossl_BN_usub(alias, alias, alias))
         || !TEST_BN_eq(expected, alias))
         goto err;
 
@@ -1333,9 +1334,9 @@ static int file_sum(STANZA *s)
     if (!BN_is_negative(a) && !BN_is_negative(b) && BN_cmp(a, b) >= 0) {
         if (!TEST_true(BN_uadd(ret, a, b))
             || !equalBN("A +u B", sum, ret)
-            || !TEST_true(BN_usub(ret, sum, a))
+            || !TEST_true(ossl_BN_usub(ret, sum, a))
             || !equalBN("Sum -u A", b, ret)
-            || !TEST_true(BN_usub(ret, sum, b))
+            || !TEST_true(ossl_BN_usub(ret, sum, b))
             || !equalBN("Sum -u B", a, ret))
             goto err;
         /*
@@ -1349,16 +1350,16 @@ static int file_sum(STANZA *s)
             || !TEST_true(BN_uadd(ret, a, ret))
             || !equalBN("A +u B (r is b)", sum, ret)
             || !TEST_true(BN_copy(ret, sum))
-            || !TEST_true(BN_usub(ret, ret, a))
+            || !TEST_true(ossl_BN_usub(ret, ret, a))
             || !equalBN("Sum -u A (r is a)", b, ret)
             || !TEST_true(BN_copy(ret, a))
-            || !TEST_true(BN_usub(ret, sum, ret))
+            || !TEST_true(ossl_BN_usub(ret, sum, ret))
             || !equalBN("Sum -u A (r is b)", b, ret)
             || !TEST_true(BN_copy(ret, sum))
-            || !TEST_true(BN_usub(ret, ret, b))
+            || !TEST_true(ossl_BN_usub(ret, ret, b))
             || !equalBN("Sum -u B (r is a)", a, ret)
             || !TEST_true(BN_copy(ret, b))
-            || !TEST_true(BN_usub(ret, sum, ret))
+            || !TEST_true(ossl_BN_usub(ret, sum, ret))
             || !equalBN("Sum -u B (r is b)", a, ret))
             goto err;
     }
@@ -2709,9 +2710,9 @@ static int test_expmodone(void)
             || !TEST_BN_eq_zero(r)
             || !TEST_true(BN_mod_exp_mont_word(r, 1, p, m, NULL, NULL))
             || !TEST_BN_eq_zero(r)
-            || !TEST_true(BN_mod_exp_simple(r, a, p, m, NULL))
+            || !TEST_true(ossl_BN_mod_exp_simple(r, a, p, m, NULL))
             || !TEST_BN_eq_zero(r)
-            || !TEST_true(BN_mod_exp_recp(r, a, p, m, NULL))
+            || !TEST_true(ossl_BN_mod_exp_recp(r, a, p, m, NULL))
             || !TEST_BN_eq_zero(r))
             goto err;
         /* Repeat for r = 1 ^ 0 mod -1 */
@@ -3251,7 +3252,7 @@ static int test_mod_exp2_mont(void)
     BN_zero(exp_m);
 
     /* input of 0 is even, so must fail */
-    if (!TEST_int_eq(BN_mod_exp2_mont(exp_result, exp_a1, exp_p1, exp_a2,
+    if (!TEST_int_eq(ossl_BN_mod_exp2_mont(exp_result, exp_a1, exp_p1, exp_a2,
                          exp_p2, exp_m, ctx, NULL),
             0))
         goto err;
@@ -3321,8 +3322,8 @@ static int test_mod_exp_alias(int idx)
     if (!TEST_ptr(r = BN_new()))
         goto err;
 
-    if (!TEST_int_eq((idx == 0 ? BN_mod_exp_simple
-                               : BN_mod_exp_recp)(r, a, b, c, ctx),
+    if (!TEST_int_eq((idx == 0 ? ossl_BN_mod_exp_simple
+                               : ossl_BN_mod_exp_recp)(r, a, b, c, ctx),
             1))
         goto err;
     if (!TEST_ptr_ne(str = BN_bn2dec(r), NULL))
@@ -3336,8 +3337,8 @@ static int test_mod_exp_alias(int idx)
     BN_copy(r, b);
 
     /* Aliasing with exponent must work. */
-    if (!TEST_int_eq((idx == 0 ? BN_mod_exp_simple
-                               : BN_mod_exp_recp)(r, a, r, c, ctx),
+    if (!TEST_int_eq((idx == 0 ? ossl_BN_mod_exp_simple
+                               : ossl_BN_mod_exp_recp)(r, a, r, c, ctx),
             1))
         goto err;
     if (!TEST_ptr_ne(str = BN_bn2dec(r), NULL))
@@ -3350,10 +3351,10 @@ static int test_mod_exp_alias(int idx)
 
     /* Aliasing with modulus should return failure for the simple call. */
     if (idx == 0) {
-        if (!TEST_int_eq(BN_mod_exp_simple(c, a, b, c, ctx), 0))
+        if (!TEST_int_eq(ossl_BN_mod_exp_simple(c, a, b, c, ctx), 0))
             goto err;
     } else {
-        if (!TEST_int_eq(BN_mod_exp_recp(c, a, b, c, ctx), 1))
+        if (!TEST_int_eq(ossl_BN_mod_exp_recp(c, a, b, c, ctx), 1))
             goto err;
         if (!TEST_ptr_ne(str = BN_bn2dec(c), NULL))
             goto err;

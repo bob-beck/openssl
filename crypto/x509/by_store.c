@@ -123,7 +123,7 @@ static void free_store(CACHED_STORE *store)
 
 static void by_store_free(X509_LOOKUP *ctx)
 {
-    STACK_OF(CACHED_STORE) *stores = X509_LOOKUP_get_method_data(ctx);
+    STACK_OF(CACHED_STORE) *stores = ossl_X509_LOOKUP_get_method_data(ctx);
     sk_CACHED_STORE_pop_free(stores, free_store);
 }
 
@@ -134,7 +134,7 @@ static int by_store_ctrl_ex(X509_LOOKUP *ctx, int cmd, const char *argp,
     switch (cmd) {
     case X509_L_ADD_STORE:
         if (argp != NULL) {
-            STACK_OF(CACHED_STORE) *stores = X509_LOOKUP_get_method_data(ctx);
+            STACK_OF(CACHED_STORE) *stores = ossl_X509_LOOKUP_get_method_data(ctx);
             CACHED_STORE *store = OPENSSL_zalloc(sizeof(*store));
             OSSL_STORE_CTX *sctx;
 
@@ -164,7 +164,7 @@ static int by_store_ctrl_ex(X509_LOOKUP *ctx, int cmd, const char *argp,
             if (stores == NULL) {
                 stores = sk_CACHED_STORE_new_null();
                 if (stores != NULL)
-                    X509_LOOKUP_set_method_data(ctx, stores);
+                    ossl_X509_LOOKUP_set_method_data(ctx, stores);
             }
             if (stores == NULL || sk_CACHED_STORE_push(stores, store) <= 0) {
                 free_store(store);
@@ -198,7 +198,7 @@ static int by_store_ctrl(X509_LOOKUP *ctx, int cmd,
 static int by_store(X509_LOOKUP *ctx, X509_LOOKUP_TYPE type,
     const OSSL_STORE_SEARCH *criterion, X509_OBJECT *ret)
 {
-    STACK_OF(CACHED_STORE) *stores = X509_LOOKUP_get_method_data(ctx);
+    STACK_OF(CACHED_STORE) *stores = ossl_X509_LOOKUP_get_method_data(ctx);
     int i;
     int ok = 0;
 

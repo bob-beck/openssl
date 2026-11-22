@@ -295,7 +295,7 @@ static int dsa_sign_setup(DSA *dsa, BN_CTX *ctx_in,
     BN_set_flags(l, BN_FLG_CONSTTIME);
 
     if (dsa->flags & DSA_FLAG_CACHE_MONT_P) {
-        if (!BN_MONT_CTX_set_locked(&dsa->method_mont_p,
+        if (!ossl_BN_MONT_CTX_set_locked(&dsa->method_mont_p,
                 dsa->lock, dsa->params.p, ctx))
             goto err;
     }
@@ -319,7 +319,7 @@ static int dsa_sign_setup(DSA *dsa, BN_CTX *ctx_in,
         || !BN_add(k, l, dsa->params.q))
         goto err;
 
-    BN_consttime_swap(BN_is_bit_set(l, q_bits), k, l, q_words + 2);
+    ossl_BN_consttime_swap(BN_is_bit_set(l, q_bits), k, l, q_words + 2);
 
     if ((dsa)->meth->bn_mod_exp != NULL) {
         if (!dsa->meth->bn_mod_exp(dsa, r, dsa->params.g, k, dsa->params.p,
@@ -423,7 +423,7 @@ static int dsa_do_verify(const unsigned char *dgst, int dgst_len,
         goto err;
 
     if (dsa->flags & DSA_FLAG_CACHE_MONT_P) {
-        mont = BN_MONT_CTX_set_locked(&dsa->method_mont_p,
+        mont = ossl_BN_MONT_CTX_set_locked(&dsa->method_mont_p,
             dsa->lock, dsa->params.p, ctx);
         if (!mont)
             goto err;
@@ -434,7 +434,7 @@ static int dsa_do_verify(const unsigned char *dgst, int dgst_len,
                 dsa->params.p, ctx, mont))
             goto err;
     } else {
-        if (!BN_mod_exp2_mont(t1, dsa->params.g, u1, dsa->pub_key, u2,
+        if (!ossl_BN_mod_exp2_mont(t1, dsa->params.g, u1, dsa->pub_key, u2,
                 dsa->params.p, ctx, mont))
             goto err;
     }

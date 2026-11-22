@@ -73,6 +73,8 @@ L<ERR_get_error(3)>
 
 ASN1_STRING_new_not_owned() was added in OpenSSL 4.1.
 
+ASN1_STRING_clear_free() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2002-2026 The OpenSSL Project Authors. All Rights Reserved.

@@ -16,6 +16,7 @@
 #include "internal/deprecated.h"
 #include <openssl/proverr.h>
 #include "cipher_aes_gcm.h"
+#include "crypto/modes.h"
 
 int ossl_aes_gcm_hw_initkey(PROV_GCM_CTX *ctx, const unsigned char *key,
     size_t keylen, aes_set_encrypt_key_fn fn_set_key,
@@ -30,7 +31,7 @@ int ossl_aes_gcm_hw_initkey(PROV_GCM_CTX *ctx, const unsigned char *key,
         return 0;
     }
 
-    CRYPTO_gcm128_init(&ctx->gcm, ks, (block128_f)fn_block);
+    ossl_CRYPTO_gcm128_init(&ctx->gcm, ks, (block128_f)fn_block);
     ctx->ctr = fn_ctr;
     ctx->key_set = 1;
 
@@ -88,7 +89,7 @@ int ossl_generic_aes_gcm_cipher_update(PROV_GCM_CTX *ctx,
             if (len >= AES_GCM_ENC_BYTES && AES_GCM_ASM(ctx)) {
                 size_t res = (16 - ctx->gcm.mres) % 16;
 
-                if (CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, res))
+                if (ossl_CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, res))
                     return 0;
 
                 bulk = AES_gcm_encrypt(in + res, out + res, len - res,
@@ -98,15 +99,15 @@ int ossl_generic_aes_gcm_cipher_update(PROV_GCM_CTX *ctx,
                 ctx->gcm.len.u[1] += bulk;
                 bulk += res;
             }
-            if (CRYPTO_gcm128_encrypt_ctr32(&ctx->gcm, in + bulk, out + bulk,
+            if (ossl_CRYPTO_gcm128_encrypt_ctr32(&ctx->gcm, in + bulk, out + bulk,
                     len - bulk, ctx->ctr))
                 return 0;
 #else
-            if (CRYPTO_gcm128_encrypt_ctr32(&ctx->gcm, in, out, len, ctx->ctr))
+            if (ossl_CRYPTO_gcm128_encrypt_ctr32(&ctx->gcm, in, out, len, ctx->ctr))
                 return 0;
 #endif /* AES_GCM_ASM */
         } else {
-            if (CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, len))
+            if (ossl_CRYPTO_gcm128_encrypt(&ctx->gcm, in, out, len))
                 return 0;
         }
     } else {
@@ -127,11 +128,11 @@ int ossl_generic_aes_gcm_cipher_update(PROV_GCM_CTX *ctx,
                 ctx->gcm.len.u[1] += bulk;
                 bulk += res;
             }
-            if (CRYPTO_gcm128_decrypt_ctr32(&ctx->gcm, in + bulk, out + bulk,
+            if (ossl_CRYPTO_gcm128_decrypt_ctr32(&ctx->gcm, in + bulk, out + bulk,
                     len - bulk, ctx->ctr))
                 return 0;
 #else
-            if (CRYPTO_gcm128_decrypt_ctr32(&ctx->gcm, in, out, len, ctx->ctr))
+            if (ossl_CRYPTO_gcm128_decrypt_ctr32(&ctx->gcm, in, out, len, ctx->ctr))
                 return 0;
 #endif /* AES_GCM_ASM */
         } else {

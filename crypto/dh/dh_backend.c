@@ -240,7 +240,7 @@ dherr:
     DH_free(dh);
     dh = NULL;
 done:
-    ASN1_STRING_clear_free(privkey);
+    ossl_ASN1_STRING_clear_free(privkey);
     return dh;
 }
 #endif

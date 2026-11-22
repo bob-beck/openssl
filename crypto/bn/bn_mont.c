@@ -15,6 +15,7 @@
 
 #include "internal/cryptlib.h"
 #include "bn_local.h"
+#include "crypto/bn.h"
 
 #define MONT_WORD /* use the faster word-based algorithm */
 
@@ -207,7 +208,7 @@ int bn_from_mont_fixed_top(BIGNUM *ret, const BIGNUM *a, BN_MONT_CTX *mont,
         goto err;
 
     if (BN_ucmp(ret, &(mont->N)) >= 0) {
-        if (!BN_usub(ret, ret, &(mont->N)))
+        if (!ossl_BN_usub(ret, ret, &(mont->N)))
             goto err;
     }
     retn = 1;
@@ -422,7 +423,7 @@ BN_MONT_CTX *BN_MONT_CTX_copy(BN_MONT_CTX *to, BN_MONT_CTX *from)
     return to;
 }
 
-BN_MONT_CTX *BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
+BN_MONT_CTX *ossl_BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
     const BIGNUM *mod, BN_CTX *ctx)
 {
     BN_MONT_CTX *ret;
@@ -464,6 +465,14 @@ BN_MONT_CTX *BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
     CRYPTO_THREAD_unlock(lock);
     return ret;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+BN_MONT_CTX *BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
+    const BIGNUM *mod, BN_CTX *ctx)
+{
+    return ossl_BN_MONT_CTX_set_locked(pmont, lock, mod, ctx);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int ossl_bn_mont_ctx_set(BN_MONT_CTX *ctx, const BIGNUM *modulus, int ri, const unsigned char *rr,
     int rrlen, uint32_t nlo, uint32_t nhi)

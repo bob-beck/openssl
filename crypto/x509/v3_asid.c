@@ -627,7 +627,7 @@ static void *v2i_ASIdentifiers(const struct v3_ext_method *method,
          * Syntax is ok, read and add it.
          */
         if (!is_range) {
-            if (!X509V3_get_value_int(val, &min)) {
+            if (!ossl_X509V3_get_value_int(val, &min)) {
                 ERR_raise(ERR_LIB_X509V3, ERR_R_X509V3_LIB);
                 goto err;
             }

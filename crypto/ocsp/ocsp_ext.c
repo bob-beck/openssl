@@ -15,6 +15,7 @@
 #include "ocsp_local.h"
 #include <openssl/rand.h>
 #include <openssl/x509v3.h>
+#include "crypto/ocsp.h"
 
 /* Standard wrapper functions for extensions */
 
@@ -25,10 +26,17 @@ int OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x)
     return X509v3_get_ext_count(x->tbsRequest.requestExtensions);
 }
 
-int OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos)
+int ossl_OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos)
 {
     return (X509v3_get_ext_by_NID(x->tbsRequest.requestExtensions, nid, lastpos));
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos)
+{
+    return ossl_OCSP_REQUEST_get_ext_by_NID(x, nid, lastpos);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
     int lastpos)
@@ -41,10 +49,17 @@ int OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos)
     return (X509v3_get_ext_by_critical(x->tbsRequest.requestExtensions, crit, lastpos));
 }
 
-const X509_EXTENSION *OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc)
+const X509_EXTENSION *ossl_OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc)
 {
     return X509v3_get_ext(x->tbsRequest.requestExtensions, loc);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+const X509_EXTENSION *OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc)
+{
+    return ossl_OCSP_REQUEST_get_ext(x, loc);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 X509_EXTENSION *OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc)
 {
@@ -166,11 +181,18 @@ int OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
         value, crit, flags);
 }
 
-int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, const X509_EXTENSION *ex, int loc)
+int ossl_OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, const X509_EXTENSION *ex, int loc)
 {
     return (X509v3_add_ext(&(x->tbsResponseData.responseExtensions), ex, loc)
         != NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, const X509_EXTENSION *ex, int loc)
+{
+    return ossl_OCSP_BASICRESP_add_ext(x, ex, loc);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /* OCSP single response extensions */
 
@@ -311,7 +333,7 @@ int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
 
     int req_idx, resp_idx;
     const X509_EXTENSION *req_ext, *resp_ext;
-    req_idx = OCSP_REQUEST_get_ext_by_NID(req, NID_id_pkix_OCSP_Nonce, -1);
+    req_idx = ossl_OCSP_REQUEST_get_ext_by_NID(req, NID_id_pkix_OCSP_Nonce, -1);
     resp_idx = OCSP_BASICRESP_get_ext_by_NID(bs, NID_id_pkix_OCSP_Nonce, -1);
     /* Check both absent */
     if ((req_idx < 0) && (resp_idx < 0))
@@ -325,7 +347,7 @@ int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
     /*
      * Otherwise nonce in request and response so retrieve the extensions
      */
-    req_ext = OCSP_REQUEST_get_ext(req, req_idx);
+    req_ext = ossl_OCSP_REQUEST_get_ext(req, req_idx);
     resp_ext = OCSP_BASICRESP_get_ext(bs, resp_idx);
     if (ASN1_OCTET_STRING_cmp(X509_EXTENSION_get_data(req_ext),
             X509_EXTENSION_get_data(resp_ext)))
@@ -342,12 +364,12 @@ int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req)
     const X509_EXTENSION *req_ext;
     int req_idx;
     /* Check for nonce in request */
-    req_idx = OCSP_REQUEST_get_ext_by_NID(req, NID_id_pkix_OCSP_Nonce, -1);
+    req_idx = ossl_OCSP_REQUEST_get_ext_by_NID(req, NID_id_pkix_OCSP_Nonce, -1);
     /* If no nonce that's OK */
     if (req_idx < 0)
         return 2;
-    req_ext = OCSP_REQUEST_get_ext(req, req_idx);
-    return OCSP_BASICRESP_add_ext(resp, req_ext, -1);
+    req_ext = ossl_OCSP_REQUEST_get_ext(req, req_idx);
+    return ossl_OCSP_BASICRESP_add_ext(resp, req_ext, -1);
 }
 
 X509_EXTENSION *OCSP_crlID_new(const char *url, long *n, char *tim)

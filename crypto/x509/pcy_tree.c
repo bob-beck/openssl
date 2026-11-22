@@ -13,6 +13,7 @@
 #include <openssl/x509v3.h>
 
 #include "pcy_local.h"
+#include "crypto/x509.h"
 
 /*
  * If the maximum number of nodes in the policy tree isn't defined, set it to
@@ -250,7 +251,7 @@ static int tree_init(X509_POLICY_TREE **ptree, STACK_OF(X509) *certs,
     return ret;
 
 bad_tree:
-    X509_policy_tree_free(tree);
+    ossl_X509_policy_tree_free(tree);
     return X509_PCY_TREE_INTERNAL;
 }
 
@@ -625,7 +626,7 @@ static void exnode_free(X509_POLICY_NODE *node)
         OPENSSL_free(node);
 }
 
-void X509_policy_tree_free(X509_POLICY_TREE *tree)
+void ossl_X509_policy_tree_free(X509_POLICY_TREE *tree)
 {
     X509_POLICY_LEVEL *curr;
     int i;
@@ -647,6 +648,13 @@ void X509_policy_tree_free(X509_POLICY_TREE *tree)
     OPENSSL_free(tree);
 }
 
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+void X509_policy_tree_free(X509_POLICY_TREE *tree)
+{
+    ossl_X509_policy_tree_free(tree);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
+
 /*-
  * Application policy checking function.
  * Return codes:
@@ -655,7 +663,7 @@ void X509_policy_tree_free(X509_POLICY_TREE *tree)
  *  X509_PCY_TREE_INTERNAL: Internal error, most likely malloc
  *  X509_PCY_TREE_VALID:    Success (null tree if empty or bare TA)
  */
-int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
+int ossl_X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
     STACK_OF(X509) *certs,
     STACK_OF(ASN1_OBJECT) *policy_oids, unsigned int flags)
 {
@@ -674,14 +682,14 @@ int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
 
     if ((init_ret & X509_PCY_TREE_EXPLICIT) == 0) {
         if (init_ret & X509_PCY_TREE_EMPTY) {
-            X509_policy_tree_free(tree);
+            ossl_X509_policy_tree_free(tree);
             return X509_PCY_TREE_VALID;
         }
     } else {
         *pexplicit_policy = 1;
         /* Tree empty and requireExplicit True: Error */
         if (init_ret & X509_PCY_TREE_EMPTY) {
-            X509_policy_tree_free(tree);
+            ossl_X509_policy_tree_free(tree);
             return X509_PCY_TREE_FAILURE;
         }
     }
@@ -692,7 +700,7 @@ int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
         goto error;
 
     if (ret == X509_PCY_TREE_EMPTY) {
-        X509_policy_tree_free(tree);
+        ossl_X509_policy_tree_free(tree);
         if (init_ret & X509_PCY_TREE_EXPLICIT)
             return X509_PCY_TREE_FAILURE;
         return X509_PCY_TREE_VALID;
@@ -712,7 +720,7 @@ int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
     if (init_ret & X509_PCY_TREE_EXPLICIT) {
         nodes = X509_policy_tree_get0_user_policies(tree);
         if (sk_X509_POLICY_NODE_num(nodes) <= 0) {
-            X509_policy_tree_free(tree);
+            ossl_X509_policy_tree_free(tree);
             return X509_PCY_TREE_FAILURE;
         }
     }
@@ -721,6 +729,15 @@ int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
     return X509_PCY_TREE_VALID;
 
 error:
-    X509_policy_tree_free(tree);
+    ossl_X509_policy_tree_free(tree);
     return X509_PCY_TREE_INTERNAL;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
+    STACK_OF(X509) *certs,
+    STACK_OF(ASN1_OBJECT) *policy_oids, unsigned int flags)
+{
+    return ossl_X509_policy_check(ptree, pexplicit_policy, certs, policy_oids, flags);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */

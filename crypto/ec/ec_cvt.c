@@ -48,7 +48,7 @@ EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
      */
     meth = EC_GFp_mont_method();
 #else
-    if (BN_nist_mod_func(p))
+    if (ossl_BN_nist_mod_func(p))
         meth = EC_GFp_nist_method();
     else
         meth = EC_GFp_mont_method();

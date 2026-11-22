@@ -89,6 +89,10 @@ NULL on failure.
 ASN1_TYPE_pack_sequence() return an B<ASN1_TYPE> structure if it succeeds or
 NULL on failure.
 
+=head1 HISTORY
+
+ASN1_TYPE_cmp() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2015-2020 The OpenSSL Project Authors. All Rights Reserved.

@@ -415,7 +415,13 @@ X509_PUBKEY *d2i_X509_PUBKEY_fp(FILE *fp, X509_PUBKEY **xpk);
 int i2d_X509_PUBKEY_fp(FILE *fp, const X509_PUBKEY *xpk);
 PKCS8_PRIV_KEY_INFO *d2i_PKCS8_PRIV_KEY_INFO_fp(FILE *fp,
     PKCS8_PRIV_KEY_INFO **p8inf);
-int i2d_PKCS8_PRIV_KEY_INFO_fp(FILE *fp, const PKCS8_PRIV_KEY_INFO *p8inf);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Write a DER-encoded PKCS#8 private key structure to a FILE.
+ * @see i2d_PKCS8_PRIV_KEY_INFO_fp(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int i2d_PKCS8_PRIV_KEY_INFO_fp(FILE *fp, const PKCS8_PRIV_KEY_INFO *p8inf);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int i2d_PKCS8PrivateKeyInfo_fp(FILE *fp, const EVP_PKEY *key);
 int i2d_PrivateKey_fp(FILE *fp, const EVP_PKEY *pkey);
 EVP_PKEY *d2i_PrivateKey_ex_fp(FILE *fp, EVP_PKEY **a, OSSL_LIB_CTX *libctx,
@@ -529,7 +535,14 @@ X509_PUBKEY *X509_PUBKEY_new_ex(OSSL_LIB_CTX *libctx, const char *propq);
 int X509_PUBKEY_set(X509_PUBKEY **x, EVP_PKEY *pkey);
 EVP_PKEY *X509_PUBKEY_get0(const X509_PUBKEY *key);
 EVP_PKEY *X509_PUBKEY_get(const X509_PUBKEY *key);
-int X509_get_pubkey_parameters(EVP_PKEY *pkey, const STACK_OF(X509) *chain);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Copy missing public key parameters down a certificate chain and into a
+ * key.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int X509_get_pubkey_parameters(EVP_PKEY *pkey, const STACK_OF(X509) *chain);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 long X509_get_pathlen(const X509 *x);
 DECLARE_ASN1_ENCODE_FUNCTIONS_only(EVP_PKEY, PUBKEY)
 EVP_PKEY *d2i_PUBKEY_ex(EVP_PKEY **a, const unsigned char **pp, long length,
@@ -583,10 +596,22 @@ DECLARE_ASN1_ENCODE_FUNCTIONS_only(X509, X509_AUX)
 
 int i2d_re_X509_tbs(X509 *x, unsigned char **pp);
 
-int X509_SIG_INFO_get(const X509_SIG_INFO *siginf, int *mdnid, int *pknid,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Get the digest, public key algorithm, security bits and flags of
+ * signature information.
+ * @see X509_SIG_INFO_get(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int X509_SIG_INFO_get(const X509_SIG_INFO *siginf, int *mdnid, int *pknid,
     int *secbits, uint32_t *flags);
-void X509_SIG_INFO_set(X509_SIG_INFO *siginf, int mdnid, int pknid,
+/**
+ * @brief Set the digest, public key algorithm, security bits and flags of
+ * signature information.
+ * @see X509_SIG_INFO_set(3)
+ */
+OSSL_DEPRECATEDIN_4_2 void X509_SIG_INFO_set(X509_SIG_INFO *siginf, int mdnid, int pknid,
     int secbits, uint32_t flags);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int X509_get_signature_info(const X509 *x, int *mdnid, int *pknid, int *secbits,
     uint32_t *flags);
@@ -615,8 +640,19 @@ int X509_CRL_get0_by_serial(X509_CRL *crl,
     X509_REVOKED **ret, const ASN1_INTEGER *serial);
 int X509_CRL_get0_by_cert(X509_CRL *crl, X509_REVOKED **ret, const X509 *x);
 
-X509_PKEY *X509_PKEY_new(void);
-void X509_PKEY_free(X509_PKEY *a);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Allocate an X509_PKEY with an empty algorithm identifier and encrypted
+ * key.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 X509_PKEY *X509_PKEY_new(void);
+/**
+ * @brief Free an X509_PKEY and everything it owns.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 void X509_PKEY_free(X509_PKEY *a);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 DECLARE_ASN1_FUNCTIONS(NETSCAPE_SPKI)
 DECLARE_ASN1_FUNCTIONS(NETSCAPE_SPKAC)
@@ -717,8 +753,15 @@ int X509_REQ_extension_nid(int nid);
 int *X509_REQ_get_extension_nids(void);
 void X509_REQ_set_extension_nids(int *nids);
 STACK_OF(X509_EXTENSION) *X509_REQ_get_extensions(const X509_REQ *req);
-int X509_REQ_add_extensions_nid(X509_REQ *req,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Add extensions to a certificate request as an attribute of the given
+ * type.
+ * @see X509_REQ_add_extensions_nid(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int X509_REQ_add_extensions_nid(X509_REQ *req,
     const STACK_OF(X509_EXTENSION) *exts, int nid);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int X509_REQ_add_extensions(X509_REQ *req, const STACK_OF(X509_EXTENSION) *ext);
 int X509_REQ_get_attr_count(const X509_REQ *req);
 int X509_REQ_get_attr_by_NID(const X509_REQ *req, int nid, int lastpos);
@@ -784,12 +827,26 @@ int X509_check_private_key(const X509 *cert, const EVP_PKEY *pkey);
 int X509_chain_check_suiteb(int *perror_depth,
     const X509 *x, STACK_OF(X509) *chain,
     unsigned long flags);
-int X509_CRL_check_suiteb(X509_CRL *crl, EVP_PKEY *pk, unsigned long flags);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Check that a CRL signature algorithm and signing key meet Suite B
+ * requirements.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int X509_CRL_check_suiteb(X509_CRL *crl, EVP_PKEY *pk, unsigned long flags);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 void OSSL_STACK_OF_X509_free(STACK_OF(X509) *certs);
 STACK_OF(X509) *X509_chain_up_ref(STACK_OF(X509) *chain);
 
 int X509_issuer_and_serial_cmp(const X509 *a, const X509 *b);
-unsigned long X509_issuer_and_serial_hash(const X509 *a);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compute a hash of a certificate's issuer name and serial number from
+ * their MD5 digest.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 unsigned long X509_issuer_and_serial_hash(const X509 *a);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 int X509_issuer_name_cmp(const X509 *a, const X509 *b);
 unsigned long X509_issuer_name_hash(const X509 *a);
@@ -822,8 +879,19 @@ unsigned long X509_NAME_hash_ex(const X509_NAME *x, OSSL_LIB_CTX *libctx,
 unsigned long X509_NAME_hash_old(const X509_NAME *x);
 
 int X509_CRL_cmp(const X509_CRL *a, const X509_CRL *b);
-int X509_CRL_match(const X509_CRL *a, const X509_CRL *b);
-int X509_aux_print(BIO *out, const X509 *x, int indent);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Compare two CRLs by their cached encoding hashes.
+ * @see X509_CRL_match(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int X509_CRL_match(const X509_CRL *a, const X509_CRL *b);
+/**
+ * @brief Print the trusted uses, rejected uses, alias and key identifier of a
+ * certificate's auxiliary data.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+OSSL_DEPRECATEDIN_4_2 int X509_aux_print(BIO *out, const X509 *x, int indent);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 #ifndef OPENSSL_NO_STDIO
 int X509_print_ex_fp(FILE *bp, const X509 *x, unsigned long nmflag, unsigned long cflag);
 int X509_print_fp(FILE *bp, const X509 *x);
@@ -878,13 +946,27 @@ X509_NAME_ENTRY *X509_NAME_ENTRY_create_by_NID(X509_NAME_ENTRY **ne, int nid,
 int X509_NAME_add_entry_by_txt(X509_NAME *name, const char *field, int type,
     const unsigned char *bytes, int len, int loc,
     int set);
-X509_NAME_ENTRY *X509_NAME_ENTRY_create_by_OBJ(X509_NAME_ENTRY **ne,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Create or update a name entry from an object and data.
+ * @see X509_NAME_ENTRY_create_by_OBJ(3)
+ */
+OSSL_DEPRECATEDIN_4_2 X509_NAME_ENTRY *X509_NAME_ENTRY_create_by_OBJ(X509_NAME_ENTRY **ne,
     const ASN1_OBJECT *obj, int type,
     const unsigned char *bytes,
     int len);
-int X509_NAME_ENTRY_set_object(X509_NAME_ENTRY *ne, const ASN1_OBJECT *obj);
-int X509_NAME_ENTRY_set_data(X509_NAME_ENTRY *ne, int type,
+/**
+ * @brief Set the field type of a name entry.
+ * @see X509_NAME_ENTRY_set_object(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int X509_NAME_ENTRY_set_object(X509_NAME_ENTRY *ne, const ASN1_OBJECT *obj);
+/**
+ * @brief Set the data of a name entry.
+ * @see X509_NAME_ENTRY_set_data(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int X509_NAME_ENTRY_set_data(X509_NAME_ENTRY *ne, int type,
     const unsigned char *bytes, int len);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 const ASN1_OBJECT *X509_NAME_ENTRY_get_object(const X509_NAME_ENTRY *ne);
 const ASN1_STRING *X509_NAME_ENTRY_get_data(const X509_NAME_ENTRY *ne);
 int X509_NAME_ENTRY_set(const X509_NAME_ENTRY *ne);
@@ -900,7 +982,13 @@ int X509v3_get_ext_by_OBJ(const STACK_OF(X509_EXTENSION) *x,
 int X509v3_get_ext_by_critical(const STACK_OF(X509_EXTENSION) *x,
     int crit, int lastpos);
 const X509_EXTENSION *X509v3_get_ext(const STACK_OF(X509_EXTENSION) *x, int loc);
-X509_EXTENSION *X509v3_delete_ext(STACK_OF(X509_EXTENSION) *x, int loc);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Remove and return the extension at a given position in a stack.
+ * @see X509v3_delete_ext(3)
+ */
+OSSL_DEPRECATEDIN_4_2 X509_EXTENSION *X509v3_delete_ext(STACK_OF(X509_EXTENSION) *x, int loc);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 X509_EXTENSION *X509v3_delete_extension(STACK_OF(X509_EXTENSION) **x, int loc);
 STACK_OF(X509_EXTENSION) *X509v3_add_ext(STACK_OF(X509_EXTENSION) **x,
     const X509_EXTENSION *ex, int loc);
@@ -992,10 +1080,16 @@ X509_ATTRIBUTE *X509_ATTRIBUTE_create_by_OBJ(X509_ATTRIBUTE **attr,
     const ASN1_OBJECT *obj,
     int atrtype, const void *data,
     int len);
-X509_ATTRIBUTE *X509_ATTRIBUTE_create_by_txt(X509_ATTRIBUTE **attr,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Create or update an attribute whose type is given by name or OID text.
+ * @see X509_ATTRIBUTE_create_by_txt(3)
+ */
+OSSL_DEPRECATEDIN_4_2 X509_ATTRIBUTE *X509_ATTRIBUTE_create_by_txt(X509_ATTRIBUTE **attr,
     const char *atrname, int type,
     const unsigned char *bytes,
     int len);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int X509_ATTRIBUTE_set1_object(X509_ATTRIBUTE *attr, const ASN1_OBJECT *obj);
 int X509_ATTRIBUTE_set1_data(X509_ATTRIBUTE *attr, int attrtype,
     const void *data, int len);
@@ -1006,10 +1100,22 @@ const ASN1_OBJECT *X509_ATTRIBUTE_get0_object(const X509_ATTRIBUTE *attr);
 const ASN1_TYPE *X509_ATTRIBUTE_get0_type(const X509_ATTRIBUTE *attr, int idx);
 
 int EVP_PKEY_get_attr_count(const EVP_PKEY *key);
-int EVP_PKEY_get_attr_by_NID(const EVP_PKEY *key, int nid, int lastpos);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Find the next attribute of a key with a given NID.
+ * @see EVP_PKEY_get_attr_by_NID(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int EVP_PKEY_get_attr_by_NID(const EVP_PKEY *key, int nid, int lastpos);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int EVP_PKEY_get_attr_by_OBJ(const EVP_PKEY *key, const ASN1_OBJECT *obj,
     int lastpos);
-X509_ATTRIBUTE *EVP_PKEY_get_attr(const EVP_PKEY *key, int loc);
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Get the attribute at a given position of a key.
+ * @see EVP_PKEY_get_attr(3)
+ */
+OSSL_DEPRECATEDIN_4_2 X509_ATTRIBUTE *EVP_PKEY_get_attr(const EVP_PKEY *key, int loc);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 X509_ATTRIBUTE *EVP_PKEY_delete_attr(EVP_PKEY *key, int loc);
 int EVP_PKEY_add1_attr(EVP_PKEY *key, X509_ATTRIBUTE *attr);
 int EVP_PKEY_add1_attr_by_OBJ(EVP_PKEY *key,
@@ -1090,8 +1196,14 @@ int PKCS8_pkey_get0(const ASN1_OBJECT **ppkalg,
 const STACK_OF(X509_ATTRIBUTE) *
 PKCS8_pkey_get0_attrs(const PKCS8_PRIV_KEY_INFO *p8);
 int PKCS8_pkey_add1_attr(PKCS8_PRIV_KEY_INFO *p8, X509_ATTRIBUTE *attr);
-int PKCS8_pkey_add1_attr_by_NID(PKCS8_PRIV_KEY_INFO *p8, int nid, int type,
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+/**
+ * @brief Add an attribute identified by NID to a PKCS#8 private key.
+ * @see PKCS8_pkey_add1_attr_by_NID(3)
+ */
+OSSL_DEPRECATEDIN_4_2 int PKCS8_pkey_add1_attr_by_NID(PKCS8_PRIV_KEY_INFO *p8, int nid, int type,
     const unsigned char *bytes, int len);
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 int PKCS8_pkey_add1_attr_by_OBJ(PKCS8_PRIV_KEY_INFO *p8, const ASN1_OBJECT *obj,
     int type, const unsigned char *bytes, int len);
 

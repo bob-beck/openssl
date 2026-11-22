@@ -38,6 +38,10 @@ is still owned by the B<PKCS12_SAFEBAG> in which it resides.
 L<PKCS12_get_friendlyname(3)>,
 L<PKCS12_add_friendlyname_asc(3)>
 
+=head1 HISTORY
+
+PKCS12_get_attr_gen() was deprecated in OpenSSL 4.2.
+
 =head1 COPYRIGHT
 
 Copyright 2019-2026 The OpenSSL Project Authors. All Rights Reserved.

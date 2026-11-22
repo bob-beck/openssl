@@ -116,7 +116,7 @@ int X509_ALGOR_cmp(const X509_ALGOR *a, const X509_ALGOR *b)
         return rv;
     if (!a->parameter && !b->parameter)
         return 0;
-    return ASN1_TYPE_cmp(a->parameter, b->parameter);
+    return ossl_ASN1_TYPE_cmp(a->parameter, b->parameter);
 }
 
 int X509_ALGOR_copy(X509_ALGOR *dest, const X509_ALGOR *src)

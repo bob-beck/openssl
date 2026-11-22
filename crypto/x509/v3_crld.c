@@ -49,16 +49,16 @@ static STACK_OF(GENERAL_NAME) *gnames_from_sectname(X509V3_CTX *ctx,
     STACK_OF(CONF_VALUE) *gnsect;
     STACK_OF(GENERAL_NAME) *gens;
     if (*sect == '@')
-        gnsect = X509V3_get_section(ctx, sect + 1);
+        gnsect = ossl_X509V3_get_section(ctx, sect + 1);
     else
         gnsect = X509V3_parse_list(sect);
     if (!gnsect) {
         ERR_raise(ERR_LIB_X509V3, X509V3_R_SECTION_NOT_FOUND);
         return NULL;
     }
-    gens = v2i_GENERAL_NAMES(NULL, ctx, gnsect);
+    gens = ossl_v2i_GENERAL_NAMES(NULL, ctx, gnsect);
     if (*sect == '@')
-        X509V3_section_free(ctx, gnsect);
+        ossl_X509V3_section_free(ctx, gnsect);
     else
         sk_CONF_VALUE_pop_free(gnsect, X509V3_conf_free);
     return gens;
@@ -86,14 +86,14 @@ static int set_dist_point_name(DIST_POINT_NAME **pdp, X509V3_CTX *ctx,
         nm = X509_NAME_new();
         if (nm == NULL)
             return -1;
-        dnsect = X509V3_get_section(ctx, cnf->value);
+        dnsect = ossl_X509V3_get_section(ctx, cnf->value);
         if (!dnsect) {
             X509_NAME_free(nm);
             ERR_raise(ERR_LIB_X509V3, X509V3_R_SECTION_NOT_FOUND);
             return -1;
         }
-        ret = X509V3_NAME_from_section(nm, dnsect, MBSTRING_ASC);
-        X509V3_section_free(ctx, dnsect);
+        ret = ossl_X509V3_NAME_from_section(nm, dnsect, MBSTRING_ASC);
+        ossl_X509V3_section_free(ctx, dnsect);
         rnm = nm->entries;
         nm->entries = NULL;
         X509_NAME_free(nm);
@@ -265,16 +265,16 @@ static void *v2i_crld(const X509V3_EXT_METHOD *method,
         cnf = sk_CONF_VALUE_value(nval, i);
         if (cnf->value == NULL) {
             STACK_OF(CONF_VALUE) *dpsect;
-            dpsect = X509V3_get_section(ctx, cnf->name);
+            dpsect = ossl_X509V3_get_section(ctx, cnf->name);
             if (!dpsect)
                 goto err;
             point = crldp_from_section(ctx, dpsect);
-            X509V3_section_free(ctx, dpsect);
+            ossl_X509V3_section_free(ctx, dpsect);
             if (point == NULL)
                 goto err;
             sk_DIST_POINT_push(crld, point); /* no failure as it was reserved */
         } else {
-            if ((gen = v2i_GENERAL_NAME(method, ctx, cnf)) == NULL)
+            if ((gen = ossl_v2i_GENERAL_NAME(method, ctx, cnf)) == NULL)
                 goto err;
             if ((gens = GENERAL_NAMES_new()) == NULL) {
                 ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);
@@ -395,16 +395,16 @@ static void *v2i_idp(const X509V3_EXT_METHOD *method, X509V3_CTX *ctx,
         if (ret < 0)
             goto err;
         if (strcmp(name, "onlyuser") == 0) {
-            if (!X509V3_get_value_bool(cnf, &idp->onlyuser))
+            if (!ossl_X509V3_get_value_bool(cnf, &idp->onlyuser))
                 goto err;
         } else if (strcmp(name, "onlyCA") == 0) {
-            if (!X509V3_get_value_bool(cnf, &idp->onlyCA))
+            if (!ossl_X509V3_get_value_bool(cnf, &idp->onlyCA))
                 goto err;
         } else if (strcmp(name, "onlyAA") == 0) {
-            if (!X509V3_get_value_bool(cnf, &idp->onlyattr))
+            if (!ossl_X509V3_get_value_bool(cnf, &idp->onlyattr))
                 goto err;
         } else if (strcmp(name, "indirectCRL") == 0) {
-            if (!X509V3_get_value_bool(cnf, &idp->indirectCRL))
+            if (!ossl_X509V3_get_value_bool(cnf, &idp->indirectCRL))
                 goto err;
         } else if (strcmp(name, "onlysomereasons") == 0) {
             if (!set_reasons(&idp->onlysomereasons, val))
@@ -557,7 +557,7 @@ err:
 }
 
 /* Append any nameRelativeToCRLIssuer in dpn to iname, set in dpn->dpname */
-int DIST_POINT_set_dpname(DIST_POINT_NAME *dpn, const X509_NAME *iname)
+int ossl_DIST_POINT_set_dpname(DIST_POINT_NAME *dpn, const X509_NAME *iname)
 {
     if (dpn == NULL || dpn->type != 1)
         return 1;
@@ -565,6 +565,13 @@ int DIST_POINT_set_dpname(DIST_POINT_NAME *dpn, const X509_NAME *iname)
     dpn->dpname = ossl_dist_point_name_full(dpn, iname);
     return dpn->dpname != NULL;
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+int DIST_POINT_set_dpname(DIST_POINT_NAME *dpn, const X509_NAME *iname)
+{
+    return ossl_DIST_POINT_set_dpname(dpn, iname);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 ASN1_SEQUENCE(OSSL_AA_DIST_POINT) = {
     ASN1_EXP_OPT(OSSL_AA_DIST_POINT, distpoint, DIST_POINT_NAME, 0),
@@ -602,16 +609,16 @@ static OSSL_AA_DIST_POINT *aaidp_from_section(X509V3_CTX *ctx,
             if (!set_reasons(&point->reasons, cnf->value))
                 goto err;
         } else if (strcmp(cnf->name, "indirectCRL") == 0) {
-            if (!X509V3_get_value_bool(cnf, &point->indirectCRL))
+            if (!ossl_X509V3_get_value_bool(cnf, &point->indirectCRL))
                 goto err;
         } else if (strcmp(cnf->name, "containsUserAttributeCerts") == 0) {
-            if (!X509V3_get_value_bool(cnf, &point->containsUserAttributeCerts))
+            if (!ossl_X509V3_get_value_bool(cnf, &point->containsUserAttributeCerts))
                 goto err;
         } else if (strcmp(cnf->name, "containsAACerts") == 0) {
-            if (!X509V3_get_value_bool(cnf, &point->containsAACerts))
+            if (!ossl_X509V3_get_value_bool(cnf, &point->containsAACerts))
                 goto err;
         } else if (strcmp(cnf->name, "containsSOAPublicKeyCerts") == 0) {
-            if (!X509V3_get_value_bool(cnf, &point->containsSOAPublicKeyCerts))
+            if (!ossl_X509V3_get_value_bool(cnf, &point->containsSOAPublicKeyCerts))
                 goto err;
         }
     }
@@ -636,15 +643,15 @@ static void *v2i_aaidp(const X509V3_EXT_METHOD *method,
     if (cnf == NULL)
         return NULL;
     if (cnf->value == NULL) {
-        dpsect = X509V3_get_section(ctx, cnf->name);
+        dpsect = ossl_X509V3_get_section(ctx, cnf->name);
         if (dpsect == NULL)
             goto err;
         point = aaidp_from_section(ctx, dpsect);
-        X509V3_section_free(ctx, dpsect);
+        ossl_X509V3_section_free(ctx, dpsect);
         if (point == NULL)
             goto err;
     } else {
-        if ((gen = v2i_GENERAL_NAME(method, ctx, cnf)) == NULL)
+        if ((gen = ossl_v2i_GENERAL_NAME(method, ctx, cnf)) == NULL)
             goto err;
         if ((gens = GENERAL_NAMES_new()) == NULL) {
             ERR_raise(ERR_LIB_X509V3, ERR_R_ASN1_LIB);

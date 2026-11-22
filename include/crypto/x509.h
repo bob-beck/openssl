@@ -549,4 +549,280 @@ int ossl_x509_check_host(const X509 *x, const char *chk, size_t chklen,
 int ossl_x509_check_ip(const X509 *x, const unsigned char *chk, size_t chklen,
     unsigned int flags);
 
+/**
+ * @brief Free a policy tree.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_X509_policy_tree_free(X509_POLICY_TREE *tree);
+/**
+ * @brief Build and evaluate the RFC 5280 policy tree of a certificate chain.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509_policy_check(X509_POLICY_TREE **ptree, int *pexplicit_policy,
+    STACK_OF(X509) *certs,
+    STACK_OF(ASN1_OBJECT) *policy_oids, unsigned int flags);
+/**
+ * @brief Print the trusted uses, rejected uses, alias and key identifier of a
+ * certificate's auxiliary data.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509_aux_print(BIO *out, const X509 *x, int indent);
+/**
+ * @brief Free a configuration section obtained from an extension context's
+ * database.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+void ossl_X509V3_section_free(X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *section);
+/**
+ * @brief Look up a configuration section through an extension context's
+ * database.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+STACK_OF(CONF_VALUE) *ossl_X509V3_get_section(X509V3_CTX *ctx, const char *section);
+/**
+ * @brief Set the full name of a distribution point name that is relative to the
+ * CRL issuer.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_DIST_POINT_set_dpname(DIST_POINT_NAME *dpn, const X509_NAME *iname);
+/**
+ * @brief Convert an ASN.1 ENUMERATED to its name from an extension method's
+ * table.
+ * @see i2s_ASN1_ENUMERATED_TABLE(3)
+ */
+char *ossl_i2s_ASN1_ENUMERATED_TABLE(X509V3_EXT_METHOD *method,
+    const ASN1_ENUMERATED *e);
+/**
+ * @brief Compare two otherName values by type OID, then by value.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_OTHERNAME_cmp(OTHERNAME *a, OTHERNAME *b);
+/**
+ * @brief Get the default trust setting of a purpose.
+ * @see X509_PURPOSE_get_trust(3)
+ */
+int ossl_X509_PURPOSE_get_trust(const X509_PURPOSE *xp);
+/**
+ * @brief Validate a purpose identifier and store it.
+ * @see X509_PURPOSE_set(3)
+ */
+int ossl_X509_PURPOSE_set(int *p, int purpose);
+/**
+ * @brief Create a GENERAL_NAMES stack from a list of configuration values.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+GENERAL_NAMES *ossl_v2i_GENERAL_NAMES(const X509V3_EXT_METHOD *method,
+    X509V3_CTX *ctx, STACK_OF(CONF_VALUE) *nval);
+/**
+ * @brief Create a GENERAL_NAME from a configuration value.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+GENERAL_NAME *ossl_v2i_GENERAL_NAME(const X509V3_EXT_METHOD *method,
+    X509V3_CTX *ctx, CONF_VALUE *cnf);
+/**
+ * @brief Add a user identifier for an integer zone to a Strong Extranet ID
+ * structure.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_SXNET_add_id_INTEGER(SXNET **psx, ASN1_INTEGER *zone, const char *user,
+    int userlen);
+/**
+ * @brief Find the user identifier for a zone in a Strong Extranet ID structure.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+ASN1_OCTET_STRING *ossl_SXNET_get_id_INTEGER(SXNET *sx, ASN1_INTEGER *zone);
+/**
+ * @brief Add a user identifier for a zone given as a decimal or hex string to a
+ * Strong Extranet ID structure.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_SXNET_add_id_asc(SXNET **psx, const char *zone, const char *user, int userlen);
+/**
+ * @brief Append name entries from a configuration section to an X509_NAME.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509V3_NAME_from_section(X509_NAME *nm, STACK_OF(CONF_VALUE) *dn_sk,
+    unsigned long chtype);
+/**
+ * @brief Append a name with the value "TRUE" or "FALSE" to a CONF_VALUE stack.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509V3_add_value_bool(const char *name, int asn1_bool,
+    STACK_OF(CONF_VALUE) **extlist);
+/**
+ * @brief Parse a configuration value as an ASN.1 BOOLEAN.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509V3_get_value_bool(const CONF_VALUE *value, int *asn1_bool);
+/**
+ * @brief Append a name with an ASN.1 INTEGER value as a string to a CONF_VALUE
+ * stack.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509V3_add_value_int(const char *name, const ASN1_INTEGER *aint,
+    STACK_OF(CONF_VALUE) **extlist);
+/**
+ * @brief Parse a configuration value as an ASN.1 INTEGER.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509V3_get_value_int(const CONF_VALUE *value, ASN1_INTEGER **aint);
+/**
+ * @brief Convert an ASN.1 ENUMERATED to a decimal or hex string.
+ * @see i2s_ASN1_ENUMERATED(3)
+ */
+char *ossl_i2s_ASN1_ENUMERATED(X509V3_EXT_METHOD *method, const ASN1_ENUMERATED *a);
+/**
+ * @brief Create or update an attribute whose type is given by name or OID text.
+ * @see X509_ATTRIBUTE_create_by_txt(3)
+ */
+X509_ATTRIBUTE *ossl_X509_ATTRIBUTE_create_by_txt(X509_ATTRIBUTE **attr,
+    const char *atrname, int type,
+    const unsigned char *bytes,
+    int len);
+/**
+ * @brief Check that a CRL signature algorithm and signing key meet Suite B
+ * requirements.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509_CRL_check_suiteb(X509_CRL *crl, EVP_PKEY *pk, unsigned long flags);
+/**
+ * @brief Compare two CRLs by their cached encoding hashes.
+ * @see X509_CRL_match(3)
+ */
+int ossl_X509_CRL_match(const X509_CRL *a, const X509_CRL *b);
+/**
+ * @brief Set the method-specific data of a lookup.
+ * @see X509_LOOKUP_set_method_data(3)
+ */
+int ossl_X509_LOOKUP_set_method_data(X509_LOOKUP *ctx, void *data);
+/**
+ * @brief Get the method-specific data of a lookup.
+ * @see X509_LOOKUP_get_method_data(3)
+ */
+void *ossl_X509_LOOKUP_get_method_data(const X509_LOOKUP *ctx);
+/**
+ * @brief Find the first certificate or CRL in a stack with a given subject or
+ * issuer name.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509_OBJECT_idx_by_subject(STACK_OF(X509_OBJECT) *h, X509_LOOKUP_TYPE type,
+    const X509_NAME *name);
+/**
+ * @brief Call the shutdown function of a lookup's method.
+ * @see X509_LOOKUP_shutdown(3)
+ */
+int ossl_X509_LOOKUP_shutdown(X509_LOOKUP *ctx);
+/**
+ * @brief Add extensions to a certificate request as an attribute of the given
+ * type.
+ * @see X509_REQ_add_extensions_nid(3)
+ */
+int ossl_X509_REQ_add_extensions_nid(X509_REQ *req,
+    const STACK_OF(X509_EXTENSION) *exts, int nid);
+/**
+ * @brief Get the digest, public key algorithm, security bits and flags of
+ * signature information.
+ * @see X509_SIG_INFO_get(3)
+ */
+int ossl_X509_SIG_INFO_get(const X509_SIG_INFO *siginf, int *mdnid, int *pknid,
+    int *secbits, uint32_t *flags);
+/**
+ * @brief Set the digest, public key algorithm, security bits and flags of
+ * signature information.
+ * @see X509_SIG_INFO_set(3)
+ */
+void ossl_X509_SIG_INFO_set(X509_SIG_INFO *siginf, int mdnid, int pknid,
+    int secbits, uint32_t flags);
+/**
+ * @brief Find the table index of a trust setting identifier.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509_TRUST_get_by_id(int id);
+/**
+ * @brief Get a trust setting by index from the standard or application-defined
+ * table.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+X509_TRUST *ossl_X509_TRUST_get0(int idx);
+/**
+ * @brief Validate a trust identifier and store it.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509_TRUST_set(int *t, int trust);
+/**
+ * @brief Remove and return the extension at a given position in a stack.
+ * @see X509v3_delete_ext(3)
+ */
+X509_EXTENSION *ossl_X509v3_delete_ext(STACK_OF(X509_EXTENSION) *x, int loc);
+/**
+ * @brief Set the purpose and trust of a verification context, with a default
+ * purpose as fallback.
+ * @see X509_STORE_CTX_purpose_inherit(3)
+ */
+int ossl_X509_STORE_CTX_purpose_inherit(X509_STORE_CTX *ctx, int def_purpose,
+    int purpose, int trust);
+/**
+ * @brief Copy missing public key parameters down a certificate chain and into a
+ * key.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509_get_pubkey_parameters(EVP_PKEY *pkey, const STACK_OF(X509) *chain);
+/**
+ * @brief Set the acceptable policy OIDs of verification parameters.
+ * @see X509_VERIFY_PARAM_set1_policies(3)
+ */
+int ossl_X509_VERIFY_PARAM_set1_policies(X509_VERIFY_PARAM *param,
+    STACK_OF(ASN1_OBJECT) *policies);
+/**
+ * @brief Create or update a name entry from an object and data.
+ * @see X509_NAME_ENTRY_create_by_OBJ(3)
+ */
+X509_NAME_ENTRY *ossl_X509_NAME_ENTRY_create_by_OBJ(X509_NAME_ENTRY **ne,
+    const ASN1_OBJECT *obj, int type,
+    const unsigned char *bytes,
+    int len);
+/**
+ * @brief Set the field type of a name entry.
+ * @see X509_NAME_ENTRY_set_object(3)
+ */
+int ossl_X509_NAME_ENTRY_set_object(X509_NAME_ENTRY *ne, const ASN1_OBJECT *obj);
+/**
+ * @brief Set the data of a name entry.
+ * @see X509_NAME_ENTRY_set_data(3)
+ */
+int ossl_X509_NAME_ENTRY_set_data(X509_NAME_ENTRY *ne, int type,
+    const unsigned char *bytes, int len);
+/**
+ * @brief Get the rejected uses from a certificate's auxiliary data.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+const STACK_OF(ASN1_OBJECT) *ossl_X509_get0_reject_objects(const X509 *x);
+/**
+ * @brief Get the trusted uses from a certificate's auxiliary data.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+const STACK_OF(ASN1_OBJECT) *ossl_X509_get0_trust_objects(const X509 *x);
+/**
+ * @brief Check whether a certificate has auxiliary trust data.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+int ossl_X509_trusted(const X509 *x);
+
+#if !defined(OPENSSL_NO_MD5)
+/**
+ * @brief Compute a hash of a certificate's issuer name and serial number from
+ * their MD5 digest.
+ */
+/* doc-exempt: in util/missingcrypto.txt */
+unsigned long ossl_X509_issuer_and_serial_hash(const X509 *a);
+#endif /* !defined(OPENSSL_NO_MD5) */
+
+#if !defined(OPENSSL_NO_STDIO)
+/**
+ * @brief Write a DER-encoded PKCS#8 private key structure to a FILE.
+ * @see i2d_PKCS8_PRIV_KEY_INFO_fp(3)
+ */
+int ossl_i2d_PKCS8_PRIV_KEY_INFO_fp(FILE *fp, const PKCS8_PRIV_KEY_INFO *p8inf);
+#endif /* !defined(OPENSSL_NO_STDIO) */
+
 #endif /* OSSL_CRYPTO_X509_H */

@@ -13,6 +13,7 @@
 #include <openssl/trace.h>
 
 #include <crypto/asn1.h>
+#include "crypto/pkcs12.h"
 
 /*
  * Encrypt/Decrypt a buffer based on password and algor, result in a
@@ -124,7 +125,7 @@ err:
     return out;
 }
 
-unsigned char *PKCS12_pbe_crypt(const X509_ALGOR *algor,
+unsigned char *ossl_PKCS12_pbe_crypt(const X509_ALGOR *algor,
     const char *pass, int passlen,
     const unsigned char *in, int inlen,
     unsigned char **data, int *datalen, int en_de)
@@ -132,6 +133,16 @@ unsigned char *PKCS12_pbe_crypt(const X509_ALGOR *algor,
     return PKCS12_pbe_crypt_ex(algor, pass, passlen, in, inlen, data, datalen,
         en_de, NULL, NULL);
 }
+
+#if !defined(OPENSSL_NO_DEPRECATED_4_2)
+unsigned char *PKCS12_pbe_crypt(const X509_ALGOR *algor,
+    const char *pass, int passlen,
+    const unsigned char *in, int inlen,
+    unsigned char **data, int *datalen, int en_de)
+{
+    return ossl_PKCS12_pbe_crypt(algor, pass, passlen, in, inlen, data, datalen, en_de);
+}
+#endif /* !defined(OPENSSL_NO_DEPRECATED_4_2) */
 
 /*
  * Decrypt an OCTET STRING and decode ASN1 structure if zbuf set zero buffer

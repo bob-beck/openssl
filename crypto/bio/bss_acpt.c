@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include "bio_local.h"
+#include "internal/bio.h"
 
 #ifndef OPENSSL_NO_SOCK
 
@@ -176,7 +177,7 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
                 ERR_raise(ERR_LIB_BIO, BIO_R_UNSUPPORTED_IP_FAMILY);
                 goto exit_loop;
             }
-            if (BIO_lookup(c->param_addr, c->param_serv, BIO_LOOKUP_SERVER,
+            if (ossl_BIO_lookup(c->param_addr, c->param_serv, BIO_LOOKUP_SERVER,
                     family, SOCK_STREAM, &c->addr_first)
                 == 0)
                 goto exit_loop;
@@ -296,7 +297,7 @@ static int acpt_state(BIO *b, BIO_ACCEPT *c)
              * socket at the end.
              */
             if (c->bio_chain != NULL) {
-                if ((dbio = BIO_dup_chain(c->bio_chain)) == NULL)
+                if ((dbio = ossl_BIO_dup_chain(c->bio_chain)) == NULL)
                     goto exit_loop;
                 if (!BIO_push(dbio, bio))
                     goto exit_loop;

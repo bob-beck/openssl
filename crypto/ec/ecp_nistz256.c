@@ -30,6 +30,7 @@
 #include "crypto/bn.h"
 #include "ec_local.h"
 #include "internal/refcount.h"
+#include "crypto/ec.h"
 
 #if BN_BITS2 != 64
 #define TOBN(hi, lo) lo, hi
@@ -882,7 +883,7 @@ __owur static int ecp_nistz256_mult_precompute(EC_GROUP *group, BN_CTX *ctx)
             }
             ecp_nistz256_scatter_w7(preComputedTable[j], &temp, k);
             for (i = 0; i < 7; i++) {
-                if (!EC_POINT_dbl(group, P, P, ctx))
+                if (!ossl_EC_POINT_dbl(group, P, P, ctx))
                     goto err;
             }
         }
