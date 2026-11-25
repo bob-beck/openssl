@@ -64,6 +64,7 @@ typedef enum OPTION_choice {
     OPT_SET_SERIAL,
     OPT_NEW,
     OPT_FORCE_PUBKEY,
+    OPT_UNSIGNED,
     OPT_ISSU,
     OPT_SUBJ,
     OPT_ADDTRUST,
@@ -207,6 +208,8 @@ const OPTIONS x509_options[] = {
     { "subj", OPT_SUBJ, 's', "Alias for -set_subject" },
     { "force_pubkey", OPT_FORCE_PUBKEY, '<',
         "Key to be placed in new certificate or certificate request" },
+    { "unsigned", OPT_UNSIGNED, '<',
+        "Make an RFC 9925 unsigned certificate with the given public key" },
     { "clrext", OPT_CLREXT, '-',
         "Do not take over any extensions from the source certificate or request" },
     { "extfile", OPT_EXTFILE, '<', "Config file with X509V3 extensions to add" },
@@ -313,6 +316,31 @@ static int self_signed(X509_STORE *ctx, X509 *cert)
     return ret;
 }
 
+static void set_trust_settings(X509 *x, char *alias, int clrtrust,
+    int clrreject, STACK_OF(ASN1_OBJECT) *trust,
+    STACK_OF(ASN1_OBJECT) *reject)
+{
+    int i;
+
+    if (alias)
+        X509_alias_set1(x, (unsigned char *)alias, -1);
+
+    if (clrtrust)
+        X509_trust_clear(x);
+    if (clrreject)
+        X509_reject_clear(x);
+
+    if (trust != NULL) {
+        for (i = 0; i < sk_ASN1_OBJECT_num(trust); i++)
+            X509_add1_trust_object(x, sk_ASN1_OBJECT_value(trust, i));
+    }
+
+    if (reject != NULL) {
+        for (i = 0; i < sk_ASN1_OBJECT_num(reject); i++)
+            X509_add1_reject_object(x, sk_ASN1_OBJECT_value(reject, i));
+    }
+}
+
 static int add_object(STACK_OF(ASN1_OBJECT) **sk, const char *name,
     const char *desc, const char *prog)
 {
@@ -385,6 +413,7 @@ int x509_main(int argc, char **argv)
     X509_REQ *req = NULL, *rq = NULL;
     X509_STORE *ctx = NULL;
     char *CAkeyfile = NULL, *CAserial = NULL, *pubkeyfile = NULL, *alias = NULL;
+    char *unsigned_keyfile = NULL;
     char *checkhost = NULL, *checkemail = NULL, *checkip = NULL;
     STACK_OF(X509) *certs = NULL;
     char *ext_names = NULL;
@@ -543,6 +572,9 @@ int x509_main(int argc, char **argv)
             break;
         case OPT_FORCE_PUBKEY:
             pubkeyfile = opt_arg();
+            break;
+        case OPT_UNSIGNED:
+            unsigned_keyfile = opt_arg();
             break;
         case OPT_ISSU:
             issu = opt_arg();
@@ -771,6 +803,30 @@ int x509_main(int argc, char **argv)
         BIO_puts(bio_err, "The -req option cannot be used with -new\n");
         goto err;
     }
+    if (unsigned_keyfile != NULL) {
+        const char *conflict = NULL;
+
+        if (!newcert) {
+            BIO_puts(bio_err, "The -unsigned option requires -new\n");
+            goto err;
+        }
+        if (privkeyfile != NULL)
+            conflict = "-key";
+        else if (pubkeyfile != NULL)
+            conflict = "-force_pubkey";
+        else if (CAfile != NULL)
+            conflict = "-CA";
+        else if (badsig)
+            conflict = "-badsig";
+        else if (sigopts != NULL)
+            conflict = "-sigopt";
+        if (conflict != NULL) {
+            BIO_printf(bio_err, "The -unsigned option cannot be used with %s\n",
+                conflict);
+            goto err;
+        }
+        pubkeyfile = unsigned_keyfile;
+    }
     if (privkeyfile != NULL) {
         privkey = load_key(privkeyfile, keyformat, 0, passin, "private key");
         if (privkey == NULL)
@@ -892,7 +948,8 @@ int x509_main(int argc, char **argv)
             BIO_puts(bio_err,
                 "Warning: ignoring -preserve_dates option with -req or -new\n");
         preserve_dates = 0;
-        if (privkeyfile == NULL && CAkeyfile == NULL) {
+        if (privkeyfile == NULL && CAkeyfile == NULL
+            && unsigned_keyfile == NULL) {
             BIO_puts(bio_err,
                 "We need a private key to sign with, use -key or -CAkey or -CA with private key\n");
             goto err;
@@ -954,23 +1011,7 @@ cert_loop:
             goto err;
     }
 
-    if (alias)
-        X509_alias_set1(x, (unsigned char *)alias, -1);
-
-    if (clrtrust)
-        X509_trust_clear(x);
-    if (clrreject)
-        X509_reject_clear(x);
-
-    if (trust != NULL) {
-        for (i = 0; i < sk_ASN1_OBJECT_num(trust); i++)
-            X509_add1_trust_object(x, sk_ASN1_OBJECT_value(trust, i));
-    }
-
-    if (reject != NULL) {
-        for (i = 0; i < sk_ASN1_OBJECT_num(reject); i++)
-            X509_add1_reject_object(x, sk_ASN1_OBJECT_value(reject, i));
-    }
+    set_trust_settings(x, alias, clrtrust, clrreject, trust, reject);
 
     if (clrext && ext_names != NULL)
         BIO_puts(bio_err, "Warning: Ignoring -ext since -clrext is given\n");
@@ -1022,6 +1063,19 @@ cert_loop:
         if (!do_EXT_add_nconf(extconf, extconf, &ext_ctx, x,
                 "Error adding extensions from section %s\n", extsect))
             goto err;
+    }
+
+    if (unsigned_keyfile != NULL) {
+        X509 *unsigned_cert = make_unsigned_cert(x);
+
+        if (unsigned_cert == NULL) {
+            BIO_puts(bio_err, "Error making unsigned certificate\n");
+            goto err;
+        }
+        X509_free(x);
+        x = unsigned_cert;
+        /* Trust settings are not part of the encoding; apply them again. */
+        set_trust_settings(x, alias, clrtrust, clrreject, trust, reject);
     }
 
     /* At this point the contents of the certificate x have been finished. */

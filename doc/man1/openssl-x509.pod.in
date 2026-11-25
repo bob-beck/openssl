@@ -63,6 +63,7 @@ B<openssl> B<x509>
 [B<-set_subject> I<arg>]
 [B<-subj> I<arg>]
 [B<-force_pubkey> I<filename>]
+[B<-unsigned> I<filename>]
 [B<-clrext>]
 [B<-extfile> I<filename>]
 [B<-extensions> I<section>]
@@ -490,6 +491,23 @@ to directly generate a certificate containing any desired public key.
 This option is also useful for creating self-issued certificates that are not
 self-signed, for instance when the key cannot be used for signing, such as DH.
 
+=item B<-unsigned> I<filename>
+
+Create an unsigned certificate as specified in RFC 9925, containing the public
+key read from I<filename>.
+If the file contains a private key, its public part is used.
+Both signature algorithm fields of the certificate are set to
+B<id-alg-unsigned> and the signature value is empty.
+No private key is needed.
+
+This option requires B<-new> and cannot be used with the B<-key>,
+B<-signkey>, B<-force_pubkey>, B<-CA>, B<-sigopt>, or B<-badsig> options.
+
+The issuer name, validity, and extensions are set by the usual options and are
+not adjusted for an unsigned certificate.
+RFC 9925 recommends omitting the authority key identifier and issuer
+alternative name extensions; select the extensions to add accordingly.
+
 =item B<-clrext>
 
 When transforming a certificate to a new certificate
@@ -834,6 +852,12 @@ certificate extensions:
  openssl x509 -req -in req.pem -extfile openssl.cnf -extensions v3_usr \
         -CA cacert.pem -CAkey key.pem -CAcreateserial
 
+Create an RFC 9925 unsigned certificate for an ML-KEM public key, with the
+extensions in section v3_unsigned of ext.cnf:
+
+ openssl x509 -new -unsigned kem-pub.pem -subj "/CN=example" \
+        -extfile ext.cnf -extensions v3_unsigned -out cert.pem
+
 Set a certificate to be trusted for SSL client use and change set its alias to
 "Steve's Class 1 CA"
 
@@ -902,6 +926,8 @@ See B<-extfile> above for details.
 As of OpenSSL 4.0, the B<x509> utility no longer has specialised built-in logic
 to add the SKID or AKID extensions, they are handled through configuration
 files and command-line options just like any other extension.
+
+The B<-unsigned> option was added in OpenSSL 4.2.
 
 =head1 COPYRIGHT
 

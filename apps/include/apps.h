@@ -103,6 +103,16 @@ int has_stdin_waiting(void);
 
 int corrupt_signature(ASN1_STRING *signature);
 
+/**
+ * @brief Make an RFC 9925 unsigned certificate from the fields of a built one.
+ * The result is X.509 v3 and has the serial number, issuer, validity,
+ * subject, public key and extensions of cert, with both signature algorithms
+ * id-alg-unsigned and an empty signature value.
+ * @param cert the certificate to take the fields from; it is not modified
+ * @returns a new certificate, or NULL on error
+ */
+X509 *make_unsigned_cert(const X509 *cert);
+
 /* Helpers for setting X509v3 certificate fields notBefore and notAfter */
 int check_cert_time_string(const char *time, const char *desc);
 int set_cert_times(X509 *x, const char *startdate, const char *enddate,

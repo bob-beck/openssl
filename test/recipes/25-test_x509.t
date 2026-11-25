@@ -17,7 +17,7 @@ use File::Compare qw/compare_text/;
 
 setup("test_x509");
 
-plan tests => 160;
+plan tests => 161;
 
 # Prevent MSys2 filename munging for arguments that look like file paths but
 # aren't
@@ -979,4 +979,50 @@ subtest 'x509 signing with DER -keyform, -CAform and -CAkeyform' => sub {
        "sign CSR with -CAform DER and -CAkeyform DER");
     ok(get_issuer($caout) =~ /CN=CA/,
        "issuer of CA-signed cert matches DER CA cert");
+};
+
+# RFC 9925 unsigned certificates made with -unsigned
+subtest 'x509 -new -unsigned' => sub {
+    plan tests => 12;
+
+    my $unsigned = "unsigned.pem";
+    my $unsigned2 = "unsigned2.pem";
+
+    ok(run(app(["openssl", "x509", "-new", "-unsigned", $pubkey,
+                "-subj", "/CN=Unsigned", "-extfile", $extfile,
+                "-out", $unsigned])),
+       "make an unsigned certificate");
+    cert_contains($unsigned, "Signature Algorithm: id-alg-unsigned", 1,
+                  "unsigned signature algorithm");
+    ok(run(app(["openssl", "x509", "-in", $unsigned, "-out", $unsigned2])),
+       "read and write the unsigned certificate");
+    is(cmp_text($unsigned, $unsigned2), 0,
+       "unsigned certificate is unchanged by reading and writing");
+
+    ok(!run(app(["openssl", "x509", "-in", $unsigned, "-unsigned", $pubkey,
+                 "-out", "unsigned-err.pem"])),
+       "-unsigned requires -new");
+    foreach my $opt (["-key", $key], ["-force_pubkey", $pubkey],
+                     ["-CA", $unsigned], ["-badsig"],
+                     ["-sigopt", "rsa_padding_mode:pss"]) {
+        ok(!run(app(["openssl", "x509", "-new", "-unsigned", $pubkey,
+                     "-subj", "/CN=Unsigned", @$opt,
+                     "-out", "unsigned-err.pem"])),
+           "-unsigned cannot be used with $opt->[0]");
+    }
+
+    SKIP: {
+        skip "ML-KEM disabled", 2 if disabled("ml-kem");
+
+        my $kem_pub = "unsigned-kem-pub.pem";
+
+        ok(run(app(["openssl", "genpkey", "-algorithm", "ML-KEM-768",
+                    "-out", "unsigned-kem-key.pem"]))
+           && run(app(["openssl", "pkey", "-in", "unsigned-kem-key.pem",
+                       "-pubout", "-out", $kem_pub])),
+           "make an ML-KEM key");
+        ok(run(app(["openssl", "x509", "-new", "-unsigned", $kem_pub,
+                    "-subj", "/CN=Unsigned KEM", "-out", "unsigned-kem.pem"])),
+           "make an unsigned certificate for an ML-KEM key");
+    }
 };

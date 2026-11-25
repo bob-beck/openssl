@@ -3733,6 +3733,138 @@ int corrupt_signature(ASN1_STRING *signature)
     return 1;
 }
 
+/* version [0] EXPLICIT INTEGER 2, X.509 v3 */
+static const uint8_t version3_der[] = { 0xa0, 0x03, 0x02, 0x01, 0x02 };
+
+/* AlgorithmIdentifier { id-alg-unsigned }, parameters omitted (RFC 9925, 3.1) */
+static const uint8_t alg_unsigned_der[] = {
+    0x30, 0x0a, 0x06, 0x08, 0x2b, 0x06, 0x01, 0x05, 0x05, 0x07, 0x06, 0x24
+};
+
+/* Zero-length signatureValue BIT STRING (RFC 9925, 3.1) */
+static const uint8_t empty_bit_string_der[] = { 0x03, 0x01, 0x00 };
+
+/* TBSCertificate fields encoded by make_unsigned_cert() */
+enum {
+    TBS_SERIAL,
+    TBS_ISSUER,
+    TBS_NOT_BEFORE,
+    TBS_NOT_AFTER,
+    TBS_SUBJECT,
+    TBS_SPKI,
+    TBS_EXTENSIONS,
+    TBS_FIELD_COUNT
+};
+
+/* Size of a constructed DER element with content_len octets, 0 if too large */
+static size_t der_constructed_size(size_t content_len, int tag)
+{
+    int size;
+
+    if (content_len > INT_MAX)
+        return 0;
+    size = ASN1_object_size(1, (int)content_len, tag);
+    return size < 0 ? 0 : (size_t)size;
+}
+
+static unsigned char *der_put_bytes(unsigned char *p, const void *data,
+    size_t len)
+{
+    memcpy(p, data, len);
+    return p + len;
+}
+
+X509 *make_unsigned_cert(const X509 *cert)
+{
+    const STACK_OF(X509_EXTENSION) *exts = X509_get0_extensions(cert);
+    unsigned char *field[TBS_FIELD_COUNT] = { NULL };
+    int field_len[TBS_FIELD_COUNT] = { 0 };
+    size_t times_len, validity_len, ext_len = 0, tbs_content_len, tbs_len;
+    size_t cert_content_len, cert_len;
+    unsigned char *der = NULL, *p;
+    const unsigned char *q;
+    X509 *ret = NULL;
+    int i;
+
+    field_len[TBS_SERIAL] = i2d_ASN1_INTEGER(X509_get0_serialNumber(cert),
+        &field[TBS_SERIAL]);
+    field_len[TBS_ISSUER] = i2d_X509_NAME(X509_get_issuer_name(cert),
+        &field[TBS_ISSUER]);
+    field_len[TBS_NOT_BEFORE] = i2d_ASN1_TIME(X509_get0_notBefore(cert),
+        &field[TBS_NOT_BEFORE]);
+    field_len[TBS_NOT_AFTER] = i2d_ASN1_TIME(X509_get0_notAfter(cert),
+        &field[TBS_NOT_AFTER]);
+    field_len[TBS_SUBJECT] = i2d_X509_NAME(X509_get_subject_name(cert),
+        &field[TBS_SUBJECT]);
+    field_len[TBS_SPKI] = i2d_X509_PUBKEY(X509_get_X509_PUBKEY(cert),
+        &field[TBS_SPKI]);
+    if (sk_X509_EXTENSION_num(exts) > 0)
+        field_len[TBS_EXTENSIONS] = i2d_X509_EXTENSIONS(exts,
+            &field[TBS_EXTENSIONS]);
+    for (i = 0; i < TBS_FIELD_COUNT; i++) {
+        if (field_len[i] < 0)
+            goto end;
+    }
+
+    times_len = (size_t)field_len[TBS_NOT_BEFORE] + field_len[TBS_NOT_AFTER];
+    validity_len = der_constructed_size(times_len, V_ASN1_SEQUENCE);
+    if (validity_len == 0)
+        goto end;
+    if (field_len[TBS_EXTENSIONS] > 0) {
+        /* extensions [3] EXPLICIT */
+        ext_len = der_constructed_size(field_len[TBS_EXTENSIONS], 3);
+        if (ext_len == 0)
+            goto end;
+    }
+    tbs_content_len = sizeof(version3_der) + field_len[TBS_SERIAL]
+        + sizeof(alg_unsigned_der) + field_len[TBS_ISSUER] + validity_len
+        + field_len[TBS_SUBJECT] + field_len[TBS_SPKI] + ext_len;
+    tbs_len = der_constructed_size(tbs_content_len, V_ASN1_SEQUENCE);
+    if (tbs_len == 0)
+        goto end;
+    cert_content_len = tbs_len + sizeof(alg_unsigned_der)
+        + sizeof(empty_bit_string_der);
+    cert_len = der_constructed_size(cert_content_len, V_ASN1_SEQUENCE);
+    if (cert_len == 0)
+        goto end;
+
+    if ((der = OPENSSL_malloc(cert_len)) == NULL)
+        goto end;
+    p = der;
+    ASN1_put_object(&p, 1, (int)cert_content_len, V_ASN1_SEQUENCE,
+        V_ASN1_UNIVERSAL);
+    ASN1_put_object(&p, 1, (int)tbs_content_len, V_ASN1_SEQUENCE,
+        V_ASN1_UNIVERSAL);
+    p = der_put_bytes(p, version3_der, sizeof(version3_der));
+    p = der_put_bytes(p, field[TBS_SERIAL], field_len[TBS_SERIAL]);
+    p = der_put_bytes(p, alg_unsigned_der, sizeof(alg_unsigned_der));
+    p = der_put_bytes(p, field[TBS_ISSUER], field_len[TBS_ISSUER]);
+    ASN1_put_object(&p, 1, (int)times_len, V_ASN1_SEQUENCE, V_ASN1_UNIVERSAL);
+    p = der_put_bytes(p, field[TBS_NOT_BEFORE], field_len[TBS_NOT_BEFORE]);
+    p = der_put_bytes(p, field[TBS_NOT_AFTER], field_len[TBS_NOT_AFTER]);
+    p = der_put_bytes(p, field[TBS_SUBJECT], field_len[TBS_SUBJECT]);
+    p = der_put_bytes(p, field[TBS_SPKI], field_len[TBS_SPKI]);
+    if (ext_len > 0) {
+        ASN1_put_object(&p, 1, field_len[TBS_EXTENSIONS], 3,
+            V_ASN1_CONTEXT_SPECIFIC);
+        p = der_put_bytes(p, field[TBS_EXTENSIONS], field_len[TBS_EXTENSIONS]);
+    }
+    p = der_put_bytes(p, alg_unsigned_der, sizeof(alg_unsigned_der));
+    (void)der_put_bytes(p, empty_bit_string_der, sizeof(empty_bit_string_der));
+
+    if ((ret = X509_new_ex(app_get0_libctx(), app_get0_propq())) == NULL)
+        goto end;
+    q = der;
+    /* On failure d2i_X509() frees ret and sets it to NULL. */
+    (void)d2i_X509(&ret, &q, (long)cert_len);
+
+end:
+    for (i = 0; i < TBS_FIELD_COUNT; i++)
+        OPENSSL_free(field[i]);
+    OPENSSL_free(der);
+    return ret;
+}
+
 int check_cert_time_string(const char *time, const char *desc)
 {
     if (time == NULL || strcmp(time, "today") == 0
